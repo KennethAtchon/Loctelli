@@ -1,16 +1,24 @@
-"use client"
+"use client";
 
-import { useRef } from "react"
-import { motion, useInView } from "framer-motion"
-import { Check } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import { Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const plans = [
   {
     name: "Starter",
     price: 499,
-    description: "Perfect for small businesses just getting started with AI-powered lead generation.",
+    description:
+      "Perfect for small businesses just getting started with AI-powered lead generation.",
     features: [
       "Up to 100 qualified leads per month",
       "Basic AI chat qualification",
@@ -25,7 +33,8 @@ const plans = [
   {
     name: "Pro",
     price: 999,
-    description: "Ideal for growing businesses looking to scale their lead generation efforts.",
+    description:
+      "Ideal for growing businesses looking to scale their lead generation efforts.",
     features: [
       "Up to 500 qualified leads per month",
       "Advanced AI chat qualification",
@@ -42,7 +51,8 @@ const plans = [
   {
     name: "Enterprise",
     price: null,
-    description: "Tailored solutions for large organizations with complex sales processes.",
+    description:
+      "Tailored solutions for large organizations with complex sales processes.",
     features: [
       "Unlimited qualified leads",
       "Custom AI training and optimization",
@@ -57,11 +67,11 @@ const plans = [
     popular: false,
     color: "from-purple-500 to-purple-600",
   },
-]
+];
 
 export default function Pricing() {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, amount: 0.2 })
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
 
   return (
     <section id="pricing" className="py-24 bg-gray-950 relative" ref={ref}>
@@ -78,7 +88,9 @@ export default function Pricing() {
             transition={{ duration: 0.5 }}
           >
             Simple{" "}
-            <span className="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">Pricing</span>
+            <span className="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+              Pricing
+            </span>
           </motion.h2>
           <motion.p
             className="text-xl text-gray-400 max-w-2xl mx-auto"
@@ -100,7 +112,9 @@ export default function Pricing() {
               transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
             >
               <Card
-                className={`w-full bg-gray-900 border-gray-800 ${plan.popular ? "relative ring-2 ring-blue-500" : ""}`}
+                className={`w-full bg-gray-900 border-gray-800 ${
+                  plan.popular ? "relative ring-2 ring-blue-500" : ""
+                }`}
               >
                 {plan.popular && (
                   <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium py-1 px-4 rounded-full">
@@ -109,15 +123,21 @@ export default function Pricing() {
                 )}
 
                 <CardHeader>
-                  <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
-                  <CardDescription className="text-gray-400">{plan.description}</CardDescription>
+                  <CardTitle className="text-2xl font-bold">
+                    {plan.name}
+                  </CardTitle>
+                  <CardDescription className="text-gray-400">
+                    {plan.description}
+                  </CardDescription>
                 </CardHeader>
 
                 <CardContent>
                   <div className="mb-6">
                     {plan.price ? (
                       <div className="flex items-baseline">
-                        <span className="text-4xl font-bold">${plan.price}</span>
+                        <span className="text-4xl font-bold">
+                          ${plan.price}
+                        </span>
                         <span className="text-gray-400 ml-2">/month</span>
                       </div>
                     ) : (
@@ -140,7 +160,9 @@ export default function Pricing() {
                 </CardContent>
 
                 <CardFooter>
-                  <Button className={`w-full bg-gradient-to-r ${plan.color} hover:opacity-90 text-white`}>
+                  <Button
+                    className={`w-full bg-gradient-to-r ${plan.color} hover:opacity-90 text-white`}
+                  >
                     {plan.cta}
                   </Button>
                 </CardFooter>
@@ -150,5 +172,5 @@ export default function Pricing() {
         </div>
       </div>
     </section>
-  )
+  );
 }

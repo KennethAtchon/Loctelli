@@ -1,20 +1,23 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { motion } from "framer-motion"
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 export default function Hero() {
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
-  if (!mounted) return null
+  if (!mounted) return null;
 
   return (
-    <section className="relative h-screen flex items-center justify-center overflow-hidden" id="hero">
+    <section
+      className="relative h-screen flex items-center justify-center overflow-hidden"
+      id="hero"
+    >
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950"></div>
 
@@ -29,7 +32,11 @@ export default function Hero() {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center max-w-4xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             <h1 className="text-4xl md:text-6xl font-extrabold mb-6">
               <span className="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
                 Automate Your Sales
@@ -44,8 +51,8 @@ export default function Hero() {
             transition={{ duration: 0.5, delay: 0.2 }}
           >
             <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-              Loctelli creates ads, funnels leads into an AI chat system that qualifies and books meetings, all without
-              lifting a finger.
+              Loctelli creates ads, funnels leads into an AI chat system that
+              qualifies and books meetings, all without lifting a finger.
             </p>
           </motion.div>
 
@@ -58,7 +65,10 @@ export default function Hero() {
             <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-lg px-8 py-6 h-auto">
               Get Started
             </Button>
-            <Button variant="outline" className="border-gray-700 text-white hover:bg-gray-800 text-lg px-8 py-6 h-auto">
+            <Button
+              variant="outline"
+              className="border-gray-700 text-white hover:bg-gray-800 text-lg px-8 py-6 h-auto"
+            >
               Book a Demo
             </Button>
           </motion.div>
@@ -76,5 +86,5 @@ export default function Hero() {
         </div>
       </motion.div>
     </section>
-  )
+  );
 }

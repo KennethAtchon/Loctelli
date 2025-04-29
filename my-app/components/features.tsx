@@ -1,51 +1,57 @@
-"use client"
+"use client";
 
-import { useRef } from "react"
-import { motion, useInView } from "framer-motion"
-import { Clock, Bot, Zap, BarChart3, Shield, Layers } from "lucide-react"
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import { Clock, Bot, Zap, BarChart3, Shield, Layers } from "lucide-react";
 
 const features = [
   {
     icon: Clock,
     title: "Hands-Free Automation",
-    description: "Set it up once and let our AI handle the rest. No manual intervention required.",
+    description:
+      "Set it up once and let our AI handle the rest. No manual intervention required.",
     color: "from-blue-500 to-blue-600",
   },
   {
     icon: Bot,
     title: "24/7 Lead Qualification",
-    description: "Our AI works around the clock, qualifying leads even while you sleep.",
+    description:
+      "Our AI works around the clock, qualifying leads even while you sleep.",
     color: "from-indigo-500 to-indigo-600",
   },
   {
     icon: Zap,
     title: "Seamless Integration",
-    description: "Connects with your existing CRM, calendar, and marketing tools without friction.",
+    description:
+      "Connects with your existing CRM, calendar, and marketing tools without friction.",
     color: "from-violet-500 to-violet-600",
   },
   {
     icon: BarChart3,
     title: "Advanced Analytics",
-    description: "Gain insights into your funnel performance with detailed conversion metrics.",
+    description:
+      "Gain insights into your funnel performance with detailed conversion metrics.",
     color: "from-purple-500 to-purple-600",
   },
   {
     icon: Shield,
     title: "Enterprise Security",
-    description: "Bank-level encryption and compliance with data protection regulations.",
+    description:
+      "Bank-level encryption and compliance with data protection regulations.",
     color: "from-fuchsia-500 to-fuchsia-600",
   },
   {
     icon: Layers,
     title: "Scalable Infrastructure",
-    description: "Handles thousands of leads simultaneously without performance degradation.",
+    description:
+      "Handles thousands of leads simultaneously without performance degradation.",
     color: "from-pink-500 to-pink-600",
   },
-]
+];
 
 export default function Features() {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, amount: 0.2 })
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
 
   return (
     <section id="features" className="py-24 bg-gray-950 relative" ref={ref}>
@@ -62,7 +68,9 @@ export default function Features() {
             transition={{ duration: 0.5 }}
           >
             Powerful{" "}
-            <span className="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">Features</span>
+            <span className="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+              Features
+            </span>
           </motion.h2>
           <motion.p
             className="text-xl text-gray-400 max-w-2xl mx-auto"
@@ -70,7 +78,8 @@ export default function Features() {
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            Empower your business with next-gen AI technology that scales effortlessly
+            Empower your business with next-gen AI technology that scales
+            effortlessly
           </motion.p>
         </div>
 
@@ -96,5 +105,5 @@ export default function Features() {
         </div>
       </div>
     </section>
-  )
+  );
 }

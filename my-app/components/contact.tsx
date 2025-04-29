@@ -1,14 +1,21 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useRef, useState } from "react"
-import { motion, useInView } from "framer-motion"
-import { Mail, MessageSquare, Send, Twitter, Linkedin, Check } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
+import { useRef, useState } from "react";
+import { motion, useInView } from "framer-motion";
+import {
+  Mail,
+  MessageSquare,
+  Send,
+  Twitter,
+  Linkedin,
+  Check,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 export default function Contact() {
   const [formState, setFormState] = useState({
@@ -16,40 +23,42 @@ export default function Contact() {
     email: "",
     company: "",
     message: "",
-  })
+  });
 
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, amount: 0.2 })
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormState((prev) => ({ ...prev, [name]: value }))
-  }
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormState((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
 
     // Simulate form submission
     setTimeout(() => {
-      setIsSubmitting(false)
-      setIsSubmitted(true)
+      setIsSubmitting(false);
+      setIsSubmitted(true);
       setFormState({
         name: "",
         email: "",
         company: "",
         message: "",
-      })
+      });
 
       // Reset success message after 5 seconds
       setTimeout(() => {
-        setIsSubmitted(false)
-      }, 5000)
-    }, 1500)
-  }
+        setIsSubmitted(false);
+      }, 5000);
+    }, 1500);
+  };
 
   return (
     <section id="contact" className="py-24 bg-gray-950 relative" ref={ref}>
@@ -73,7 +82,8 @@ export default function Contact() {
               </h2>
 
               <p className="text-xl text-gray-400 mb-8">
-                Ready to transform your lead generation and qualification process? Reach out to our team today.
+                Ready to transform your lead generation and qualification
+                process? Reach out to our team today.
               </p>
 
               <div className="space-y-6">
@@ -93,7 +103,9 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold mb-1">Live Chat</h3>
-                    <p className="text-gray-400">Available Monday-Friday, 9am-5pm EST</p>
+                    <p className="text-gray-400">
+                      Available Monday-Friday, 9am-5pm EST
+                    </p>
                   </div>
                 </div>
 
@@ -129,7 +141,9 @@ export default function Contact() {
                     <Check className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold mb-2">Message Sent!</h3>
-                  <p className="text-gray-400">We'll get back to you as soon as possible.</p>
+                  <p className="text-gray-400">
+                    We'll get back to you as soon as possible.
+                  </p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit}>
@@ -185,7 +199,7 @@ export default function Contact() {
                       value={formState.message}
                       onChange={handleChange}
                       required
-                      className="bg-gray-800 border-gray-700 focus:border-blue-500 min-h-[120px]"
+                      className="bg-gray-800 border-gray-700 focus:border-blue-500 min-h-[120px] max-h-[240px]"
                     />
                   </div>
 
@@ -232,5 +246,5 @@ export default function Contact() {
         </div>
       </div>
     </section>
-  )
+  );
 }

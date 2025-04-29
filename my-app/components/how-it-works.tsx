@@ -1,46 +1,59 @@
-"use client"
+"use client";
 
-import { useRef } from "react"
-import { motion, useInView } from "framer-motion"
-import { MonitorSmartphone, Users, MessageSquareText, Calendar } from "lucide-react"
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import {
+  MonitorSmartphone,
+  Users,
+  MessageSquareText,
+  Calendar,
+} from "lucide-react";
 
 const steps = [
   {
     id: 1,
     title: "Ad Creation",
-    description: "We create targeted ads that reach your ideal customers across multiple platforms.",
+    description:
+      "We create targeted ads that reach your ideal customers across multiple platforms.",
     icon: MonitorSmartphone,
     color: "from-blue-500 to-blue-600",
   },
   {
     id: 2,
     title: "Lead Funneling",
-    description: "Interested prospects are automatically funneled into our AI-powered system.",
+    description:
+      "Interested prospects are automatically funneled into our AI-powered system.",
     icon: Users,
     color: "from-indigo-500 to-indigo-600",
   },
   {
     id: 3,
     title: "AI Chat Qualification",
-    description: "Our AI engages with leads 24/7, qualifying them based on your specific criteria.",
+    description:
+      "Our AI engages with leads 24/7, qualifying them based on your specific criteria.",
     icon: MessageSquareText,
     color: "from-violet-500 to-violet-600",
   },
   {
     id: 4,
     title: "Meeting Booking",
-    description: "Qualified leads are automatically scheduled into your calendar for follow-up.",
+    description:
+      "Qualified leads are automatically scheduled into your calendar for follow-up.",
     icon: Calendar,
     color: "from-purple-500 to-purple-600",
   },
-]
+];
 
 export default function HowItWorks() {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, amount: 0.2 })
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
 
   return (
-    <section id="how-it-works" className="py-24 bg-gray-900 relative overflow-hidden" ref={ref}>
+    <section
+      id="how-it-works"
+      className="py-24 bg-gray-900 relative overflow-hidden"
+      ref={ref}
+    >
       {/* Background elements */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-600 opacity-30"></div>
       <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 to-blue-500 opacity-30"></div>
@@ -54,7 +67,9 @@ export default function HowItWorks() {
             transition={{ duration: 0.5 }}
           >
             How It{" "}
-            <span className="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">Works</span>
+            <span className="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+              Works
+            </span>
           </motion.h2>
           <motion.p
             className="text-xl text-gray-400 max-w-2xl mx-auto"
@@ -62,7 +77,8 @@ export default function HowItWorks() {
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            Our seamless four-step process automates your entire lead generation and qualification workflow
+            Our seamless four-step process automates your entire lead generation
+            and qualification workflow
           </motion.p>
         </div>
 
@@ -98,7 +114,13 @@ export default function HowItWorks() {
 
                 {index < steps.length - 1 && (
                   <div className="hidden lg:block absolute -right-4 top-1/2 transform -translate-y-1/2 z-20">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
                       <path
                         d="M5 12H19M19 12L12 5M19 12L12 19"
                         stroke="currentColor"
@@ -116,5 +138,5 @@ export default function HowItWorks() {
         </div>
       </div>
     </section>
-  )
+  );
 }
