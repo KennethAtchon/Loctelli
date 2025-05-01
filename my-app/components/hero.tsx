@@ -68,7 +68,7 @@ export default function Hero() {
             <Button
               variant="outline"
               className="border-gray-700 text-white hover:bg-gray-800 text-lg px-8 py-6 h-auto"
-              onClick={() => open("https://calendly.com/kennethatchon/30min")}
+              onClick={() => open("https://calendly.com/loctelli-info/30min")}
             >
               Book a Demo
             </Button>

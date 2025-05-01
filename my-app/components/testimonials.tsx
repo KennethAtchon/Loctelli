@@ -21,7 +21,7 @@ const testimonials = [
       "We started working with them in February, and it took a bit of time to adapt to the AI system but it was worth it. By months 2 and 3, we were bringing in an extra $7,000–$8,000 per month from just $1,500 in ad spend. We're now planning to double that spend over the next few months. Love working with the team — only issue is Elias acts like we're blood relatives already, haha.",
     author: "Cory Brewer",
     title: "Founder & President, Beyond Landscaping Ltd (North Vancouver, BC)",
-    avatar: "/placeholder.svg?height=100&width=100",
+    avatar: "/cory.png?height=100&width=100",
   },
 ];
 

@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,6 +15,7 @@ import {
 
 const blogPosts = [
   {
+    id: "how-ai-revolutionizing-lead-generation",
     title: "How AI is Revolutionizing Lead Generation",
     description:
       "Discover how artificial intelligence is transforming the way businesses generate and qualify leads.",
@@ -22,6 +24,7 @@ const blogPosts = [
     category: "AI Technology",
   },
   {
+    id: "5-ways-optimize-sales-funnel-automation",
     title: "5 Ways to Optimize Your Sales Funnel with Automation",
     description:
       "Learn practical strategies to streamline your sales process and increase conversion rates.",
@@ -30,6 +33,7 @@ const blogPosts = [
     category: "Sales Strategy",
   },
   {
+    id: "future-b2b-sales-ai-powered-conversations",
     title: "The Future of B2B Sales: AI-Powered Conversations",
     description:
       "Explore how conversational AI is changing the landscape of business-to-business sales.",
@@ -84,13 +88,16 @@ export default function Blog() {
               transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
             >
               <Card className="bg-gray-800 border-gray-700 overflow-hidden h-full flex flex-col hover:border-gray-600 transition-colors duration-300">
-                <div className="h-48 overflow-hidden">
+                <Link
+                  href={`/blog/${post.id}`}
+                  className="block h-48 overflow-hidden"
+                >
                   <img
                     src={post.image || "/placeholder.svg"}
                     alt={post.title}
                     className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                   />
-                </div>
+                </Link>
 
                 <CardHeader>
                   <div className="flex items-center mb-2">
@@ -107,13 +114,15 @@ export default function Blog() {
                 </CardHeader>
 
                 <CardFooter className="mt-auto">
-                  <Button
-                    variant="ghost"
-                    className="text-blue-400 hover:text-blue-300 hover:bg-gray-700 p-0 group"
-                  >
-                    Read More
-                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
+                  <Link href={`/blog/${post.id}`}>
+                    <Button
+                      variant="ghost"
+                      className="text-blue-400 hover:text-blue-300 hover:bg-gray-700 p-0 group"
+                    >
+                      Read More
+                      <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
                 </CardFooter>
               </Card>
             </motion.div>

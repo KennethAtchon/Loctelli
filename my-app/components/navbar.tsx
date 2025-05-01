@@ -19,13 +19,13 @@ export default function Navbar() {
   }, []);
 
   const navLinks = [
-    { name: "Home", href: "#" },
-    { name: "How It Works", href: "#how-it-works" },
-    { name: "Features", href: "#features" },
-    { name: "Testimonials", href: "#testimonials" },
-    { name: "Pricing", href: "#pricing" },
-    { name: "Blog", href: "#blog" },
-    { name: "Contact", href: "#contact" },
+    { name: "Home", href: "/" },
+    { name: "How It Works", href: "/#how-it-works" },
+    { name: "Features", href: "/#features" },
+    { name: "Testimonials", href: "/#testimonials" },
+    { name: "Pricing", href: "/#pricing" },
+    { name: "Blog", href: "/#blog" },
+    { name: "Contact", href: "/#contact" },
   ];
 
   return (
@@ -61,7 +61,7 @@ export default function Navbar() {
               ))}
               <Button
                 className="ml-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-                onClick={() => open("https://calendly.com/kennethatchon/30min")}
+                onClick={() => open("https://calendly.com/loctelli-info/30min")}
               >
                 Book a Demo
               </Button>
@@ -100,7 +100,7 @@ export default function Navbar() {
             ))}
             <Button
               className="mt-4 w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-              onClick={() => open("https://calendly.com/kennethatchon/30min")}
+              onClick={() => open("https://calendly.com/loctelli-info/30min")}
             >
               Book a Demo
             </Button>
