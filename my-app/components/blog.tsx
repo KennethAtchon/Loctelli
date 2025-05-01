@@ -18,7 +18,7 @@ const blogPosts = [
     description:
       "Discover how artificial intelligence is transforming the way businesses generate and qualify leads.",
     date: "April 15, 2025",
-    image: "/placeholder.svg?height=200&width=400",
+    image: "/robot.webp?height=200&width=400",
     category: "AI Technology",
   },
   {
@@ -26,7 +26,7 @@ const blogPosts = [
     description:
       "Learn practical strategies to streamline your sales process and increase conversion rates.",
     date: "April 8, 2025",
-    image: "/placeholder.svg?height=200&width=400",
+    image: "/funnel.avif?height=200&width=400",
     category: "Sales Strategy",
   },
   {
@@ -34,7 +34,7 @@ const blogPosts = [
     description:
       "Explore how conversational AI is changing the landscape of business-to-business sales.",
     date: "March 30, 2025",
-    image: "/placeholder.svg?height=200&width=400",
+    image: "/business.png?height=200&width=400",
     category: "Industry Trends",
   },
 ];

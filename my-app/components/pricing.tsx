@@ -29,6 +29,7 @@ const plans = [
     cta: "Get Started",
     popular: false,
     color: "from-blue-500 to-blue-600",
+    action: () => {},
   },
   {
     name: "Pro",
@@ -47,6 +48,7 @@ const plans = [
     cta: "Get Started",
     popular: true,
     color: "from-blue-500 to-purple-600",
+    action: () => {},
   },
   {
     name: "Enterprise",
@@ -66,6 +68,12 @@ const plans = [
     cta: "Contact Us",
     popular: false,
     color: "from-purple-500 to-purple-600",
+    action: () => {
+      const contactSection = document.getElementById("contact");
+      if (contactSection) {
+        contactSection.scrollIntoView({ behavior: "smooth" });
+      }
+    },
   },
 ];
 
@@ -162,6 +170,7 @@ export default function Pricing() {
                 <CardFooter>
                   <Button
                     className={`w-full bg-gradient-to-r ${plan.color} hover:opacity-90 text-white`}
+                    onClick={plan.action}
                   >
                     {plan.cta}
                   </Button>

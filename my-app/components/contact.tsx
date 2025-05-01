@@ -40,24 +40,14 @@ export default function Contact() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
-    // Simulate form submission
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSubmitted(true);
-      setFormState({
-        name: "",
-        email: "",
-        company: "",
-        message: "",
-      });
-
-      // Reset success message after 5 seconds
-      setTimeout(() => {
-        setIsSubmitted(false);
-      }, 5000);
-    }, 1500);
+    const { name, email, company, message } = formState;
+    const subject = encodeURIComponent(
+      `Contact from ${name}${company ? ` at ${company}` : ""}`
+    );
+    const body = encodeURIComponent(
+      `Name: ${name}\nEmail: ${email}\nCompany: ${company}\n\nMessage:\n${message}`
+    );
+    window.location.href = `mailto:info@loctelli.com?subject=${subject}&body=${body}`;
   };
 
   return (

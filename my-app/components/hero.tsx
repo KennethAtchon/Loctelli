@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
 
 export default function Hero() {
   const [mounted, setMounted] = useState(false);
@@ -68,6 +68,7 @@ export default function Hero() {
             <Button
               variant="outline"
               className="border-gray-700 text-white hover:bg-gray-800 text-lg px-8 py-6 h-auto"
+              onClick={() => open("https://calendly.com/kennethatchon/30min")}
             >
               Book a Demo
             </Button>

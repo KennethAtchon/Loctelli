@@ -59,7 +59,10 @@ export default function Navbar() {
                   {link.name}
                 </Link>
               ))}
-              <Button className="ml-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
+              <Button
+                className="ml-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                onClick={() => open("https://calendly.com/kennethatchon/30min")}
+              >
                 Book a Demo
               </Button>
             </div>
@@ -95,7 +98,10 @@ export default function Navbar() {
                 {link.name}
               </Link>
             ))}
-            <Button className="mt-4 w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
+            <Button
+              className="mt-4 w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              onClick={() => open("https://calendly.com/kennethatchon/30min")}
+            >
               Book a Demo
             </Button>
           </div>
