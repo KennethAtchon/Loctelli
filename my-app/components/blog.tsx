@@ -5,6 +5,7 @@ import { motion, useInView } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardDescription,
@@ -13,39 +14,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-const blogPosts = [
-  {
-    id: "how-ai-revolutionizing-lead-generation",
-    title: "How AI is Revolutionizing Lead Generation",
-    description:
-      "Discover how artificial intelligence is transforming the way businesses generate and qualify leads.",
-    date: "April 15, 2025",
-    image: "/robot.webp?height=200&width=400",
-    category: "AI Technology",
-  },
-  {
-    id: "5-ways-optimize-sales-funnel-automation",
-    title: "5 Ways to Optimize Your Sales Funnel with Automation",
-    description:
-      "Learn practical strategies to streamline your sales process and increase conversion rates.",
-    date: "April 8, 2025",
-    image: "/funnel.avif?height=200&width=400",
-    category: "Sales Strategy",
-  },
-  {
-    id: "future-b2b-sales-ai-powered-conversations",
-    title: "The Future of B2B Sales: AI-Powered Conversations",
-    description:
-      "Explore how conversational AI is changing the landscape of business-to-business sales.",
-    date: "March 30, 2025",
-    image: "/business.png?height=200&width=400",
-    category: "Industry Trends",
-  },
-];
+import { landingBlogPosts } from "@/mock/blogPosts";
 
 export default function Blog() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const router = useRouter();
 
   return (
     <section id="blog" className="py-24 bg-gray-900 relative" ref={ref}>
@@ -72,6 +46,7 @@ export default function Blog() {
             <Button
               variant="outline"
               className="border-gray-700 text-white hover:bg-gray-800 group"
+              onClick={() => router.push("/blog")}
             >
               View All Articles
               <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -80,7 +55,7 @@ export default function Blog() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {blogPosts.map((post, index) => (
+          {landingBlogPosts.map((post, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}

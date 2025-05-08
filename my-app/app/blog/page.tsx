@@ -1,90 +1,15 @@
-import Link from "next/link"
-import { Search } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import Navbar from "@/components/navbar"
-import Footer from "@/components/footer"
-import BlogPagination from "@/components/blog-pagination"
-
-// Sample blog data - in a real app, this would come from a database or CMS
-const blogPosts = [
-  {
-    id: "how-ai-revolutionizing-lead-generation",
-    title: "How AI is Revolutionizing Lead Generation",
-    excerpt:
-      "Discover how artificial intelligence is transforming the way businesses generate and qualify leads, leading to higher conversion rates and more efficient sales processes.",
-    date: "April 15, 2025",
-    image: "/placeholder.svg?height=400&width=800",
-    category: "AI Technology",
-    author: "Sarah Johnson",
-    authorImage: "/placeholder.svg?height=100&width=100",
-    readTime: "5 min read",
-  },
-  {
-    id: "5-ways-optimize-sales-funnel-automation",
-    title: "5 Ways to Optimize Your Sales Funnel with Automation",
-    excerpt:
-      "Learn practical strategies to streamline your sales process and increase conversion rates using the latest automation technologies and AI-driven insights.",
-    date: "April 8, 2025",
-    image: "/placeholder.svg?height=400&width=800",
-    category: "Sales Strategy",
-    author: "Michael Chen",
-    authorImage: "/placeholder.svg?height=100&width=100",
-    readTime: "7 min read",
-  },
-  {
-    id: "future-b2b-sales-ai-powered-conversations",
-    title: "The Future of B2B Sales: AI-Powered Conversations",
-    excerpt:
-      "Explore how conversational AI is changing the landscape of business-to-business sales, enabling 24/7 lead qualification and personalized customer interactions.",
-    date: "March 30, 2025",
-    image: "/placeholder.svg?height=400&width=800",
-    category: "Industry Trends",
-    author: "Jessica Rivera",
-    authorImage: "/placeholder.svg?height=100&width=100",
-    readTime: "6 min read",
-  },
-  {
-    id: "measuring-roi-ai-lead-generation",
-    title: "Measuring ROI on AI Lead Generation Investments",
-    excerpt:
-      "A comprehensive guide to calculating and maximizing the return on investment for your AI-powered lead generation tools and strategies.",
-    date: "March 22, 2025",
-    image: "/placeholder.svg?height=400&width=800",
-    category: "Analytics",
-    author: "Alex Thompson",
-    authorImage: "/placeholder.svg?height=100&width=100",
-    readTime: "8 min read",
-  },
-  {
-    id: "ethical-considerations-ai-sales",
-    title: "Ethical Considerations in AI-Driven Sales",
-    excerpt:
-      "An exploration of the ethical implications of using AI in sales processes, including privacy concerns, transparency, and maintaining the human touch.",
-    date: "March 15, 2025",
-    image: "/placeholder.svg?height=400&width=800",
-    category: "Ethics",
-    author: "David Wilson",
-    authorImage: "/placeholder.svg?height=100&width=100",
-    readTime: "9 min read",
-  },
-  {
-    id: "integrating-ai-chat-crm-systems",
-    title: "Integrating AI Chat with Your Existing CRM Systems",
-    excerpt:
-      "A technical guide to seamlessly connecting AI-powered chat solutions with popular CRM platforms for enhanced lead management and customer insights.",
-    date: "March 8, 2025",
-    image: "/placeholder.svg?height=400&width=800",
-    category: "Integration",
-    author: "Emily Zhang",
-    authorImage: "/placeholder.svg?height=100&width=100",
-    readTime: "10 min read",
-  },
-]
+import Link from "next/link";
+import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
+import BlogPagination from "@/components/blog-pagination";
+import { blogPosts } from "@/mock/blogPosts";
 
 // All unique categories from blog posts
-const categories = Array.from(new Set(blogPosts.map((post) => post.category)))
+const categories = Array.from(new Set(blogPosts.map((post) => post.category)));
 
 export default function BlogPage() {
   return (
@@ -102,10 +27,13 @@ export default function BlogPage() {
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-bold mb-6">
                 Loctelli{" "}
-                <span className="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">Blog</span>
+                <span className="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+                  Blog
+                </span>
               </h1>
               <p className="text-xl text-gray-300 mb-8">
-                Insights, strategies, and trends in AI-powered lead generation and sales automation
+                Insights, strategies, and trends in AI-powered lead generation
+                and sales automation
               </p>
 
               {/* Search Bar */}
@@ -163,12 +91,16 @@ export default function BlogPage() {
                         <Badge className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0">
                           {post.category}
                         </Badge>
-                        <span className="text-gray-400 text-sm ml-3">{post.date}</span>
+                        <span className="text-gray-400 text-sm ml-3">
+                          {post.date}
+                        </span>
                       </div>
                       <h2 className="text-xl font-bold mb-3 group-hover:text-blue-400 transition-colors duration-300">
                         {post.title}
                       </h2>
-                      <p className="text-gray-400 mb-4 flex-grow">{post.excerpt}</p>
+                      <p className="text-gray-400 mb-4 flex-grow">
+                        {post.excerpt}
+                      </p>
                       <div className="flex items-center justify-between mt-4">
                         <div className="flex items-center">
                           <img
@@ -176,9 +108,13 @@ export default function BlogPage() {
                             alt={post.author}
                             className="w-8 h-8 rounded-full mr-2 object-cover"
                           />
-                          <span className="text-sm text-gray-300">{post.author}</span>
+                          <span className="text-sm text-gray-300">
+                            {post.author}
+                          </span>
                         </div>
-                        <span className="text-sm text-gray-400">{post.readTime}</span>
+                        <span className="text-sm text-gray-400">
+                          {post.readTime}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -201,7 +137,8 @@ export default function BlogPage() {
                   </span>
                 </h2>
                 <p className="text-gray-400 mb-6">
-                  Get the latest insights on AI, lead generation, and sales automation delivered to your inbox.
+                  Get the latest insights on AI, lead generation, and sales
+                  automation delivered to your inbox.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
                   <Input
@@ -220,5 +157,5 @@ export default function BlogPage() {
       </main>
       <Footer />
     </div>
-  )
+  );
 }
