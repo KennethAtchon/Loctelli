@@ -31,12 +31,12 @@ export function HeroSection() {
               >
                 Book a Demo
               </Button>
-              <Button
+              {/* <Button
                 variant="outline"
                 className="border-blue-500 text-blue-500 hover:bg-blue-50 px-8 py-6 text-lg rounded-full"
               >
                 Learn More
-              </Button>
+              </Button> */}
             </div>
           </motion.div>
 

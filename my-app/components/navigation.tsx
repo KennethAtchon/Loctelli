@@ -55,6 +55,12 @@ export function Navigation() {
             Features
           </Link>
           <Link
+            href="#demo"
+            className="font-medium text-gray-800 hover:text-blue-500 transition-colors"
+          >
+            Demo
+          </Link>
+          {/* <Link
             href="#pricing"
             className="font-medium text-gray-800 hover:text-blue-500 transition-colors"
           >
@@ -65,7 +71,7 @@ export function Navigation() {
             className="font-medium text-gray-800 hover:text-blue-500 transition-colors"
           >
             Testimonials
-          </Link>
+          </Link> */}
           <Link
             href="#contact"
             className="font-medium text-gray-800 hover:text-blue-500 transition-colors"
