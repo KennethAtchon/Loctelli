@@ -1,118 +1,99 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUp, Facebook, Twitter, Instagram } from "lucide-react";
+import { Linkedin, Twitter, Instagram } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
-export default function Footer() {
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
+export function Footer() {
   return (
-    <footer className="bg-gray-950 border-t border-gray-900 pt-12 pb-8">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+    <footer className="bg-white text-gray-800 pt-16 pb-8 border-t border-gray-100">
+      <div className="container">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           <div className="md:col-span-1">
             <Link href="/" className="inline-block mb-6">
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-teal-400 bg-clip-text text-transparent">
                 Loctelli
               </span>
             </Link>
-            <p className="text-gray-400 mb-6">
-              AI-powered infrastructure for hands-free lead generation and
-              qualification.
+            <p className="text-gray-600 mb-6">
+              AI-powered lead generation to supercharge your sales and marketing
+              efforts.
             </p>
             <div className="flex space-x-4">
               <a
                 href="#"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-500 hover:text-blue-500 transition-colors"
               >
-                <Facebook className="h-6 w-6" />
+                <Linkedin className="w-5 h-5" />
+                <span className="sr-only">LinkedIn</span>
               </a>
               <a
                 href="#"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-500 hover:text-blue-500 transition-colors"
               >
-                <Twitter className="h-6 w-6" />
+                <Twitter className="w-5 h-5" />
+                <span className="sr-only">Twitter</span>
               </a>
               <a
                 href="#"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-500 hover:text-blue-500 transition-colors"
               >
-                <Instagram className="h-6 w-6" />
+                <Instagram className="w-5 h-5" />
+                <span className="sr-only">Instagram</span>
               </a>
             </div>
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold mb-4">Product</h3>
+            <h4 className="text-lg font-bold text-gray-900 mb-4">
+              Quick Links
+            </h4>
             <ul className="space-y-2">
               <li>
                 <Link
                   href="#"
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-gray-600 hover:text-blue-500 transition-colors"
+                >
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#how-it-works"
+                  className="text-gray-600 hover:text-blue-500 transition-colors"
+                >
+                  How It Works
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="#features"
+                  className="text-gray-600 hover:text-blue-500 transition-colors"
                 >
                   Features
                 </Link>
               </li>
               <li>
                 <Link
-                  href="#"
-                  className="text-gray-400 hover:text-white transition-colors"
+                  href="#pricing"
+                  className="text-gray-600 hover:text-blue-500 transition-colors"
                 >
                   Pricing
                 </Link>
               </li>
               <li>
                 <Link
-                  href="#"
-                  className="text-gray-400 hover:text-white transition-colors"
+                  href="#testimonials"
+                  className="text-gray-600 hover:text-blue-500 transition-colors"
                 >
-                  Case Studies
+                  Testimonials
                 </Link>
               </li>
               <li>
                 <Link
-                  href="#"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Documentation
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Company</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="#"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Careers
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-gray-400 hover:text-white transition-colors"
+                  href="#contact"
+                  className="text-gray-600 hover:text-blue-500 transition-colors"
                 >
                   Contact
                 </Link>
@@ -121,56 +102,56 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold mb-4">Legal</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="#"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Cookie Policy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  GDPR
-                </Link>
-              </li>
-            </ul>
+            <h4 className="text-lg font-bold text-gray-900 mb-4">
+              Subscribe to Our Newsletter
+            </h4>
+            <p className="text-gray-600 mb-4">
+              Get the latest updates and insights on lead generation.
+            </p>
+            <div className="flex space-x-2">
+              <Input
+                placeholder="Your email"
+                className="bg-white border-gray-200"
+              />
+              <Button className="bg-teal-500 hover:bg-teal-600">
+                Subscribe
+              </Button>
+            </div>
+
+            <div className="mt-8">
+              <h4 className="text-lg font-bold text-gray-900 mb-4">Legal</h4>
+              <ul className="space-y-2">
+                <li>
+                  <Link
+                    href="#"
+                    className="text-gray-600 hover:text-blue-500 transition-colors"
+                  >
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="#"
+                    className="text-gray-600 hover:text-blue-500 transition-colors"
+                  >
+                    Terms of Service
+                  </Link>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
 
-        <div className="border-t border-gray-900 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-500 text-sm mb-4 md:mb-0">
+        <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <div className="text-gray-600 mb-4 md:mb-0">
             © 2025 Loctelli. All rights reserved.
-          </p>
-
-          <button
-            onClick={scrollToTop}
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
-            aria-label="Scroll to top"
-          >
-            <ArrowUp className="h-5 w-5 text-gray-400" />
-          </button>
+          </div>
+          <div className="flex items-center">
+            <span className="text-xs text-gray-500 mr-2">Powered by</span>
+            <span className="text-xs font-medium bg-gradient-to-r from-blue-500 to-teal-400 bg-clip-text text-transparent">
+              AI
+            </span>
+          </div>
         </div>
       </div>
     </footer>
