@@ -123,18 +123,22 @@ export function Footer() {
               <ul className="space-y-2">
                 <li>
                   <Link
-                    href="#"
+                    href="https://calendly.com/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-gray-600 hover:text-blue-500 transition-colors"
                   >
-                    Privacy Policy
+                    Calendly Privacy Policy
                   </Link>
                 </li>
                 <li>
                   <Link
-                    href="#"
+                    href="https://calendly.com/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-gray-600 hover:text-blue-500 transition-colors"
                   >
-                    Terms of Service
+                    Calendly Terms of Use
                   </Link>
                 </li>
               </ul>
@@ -143,14 +147,14 @@ export function Footer() {
         </div>
 
         <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <div className="text-gray-600 mb-4 md:mb-0">
-            © 2025 Loctelli. All rights reserved.
-          </div>
-          <div className="flex items-center">
-            <span className="text-xs text-gray-500 mr-2">Powered by</span>
-            <span className="text-xs font-medium bg-gradient-to-r from-blue-500 to-teal-400 bg-clip-text text-transparent">
-              AI
-            </span>
+          <div className="w-full mb-4 md:mb-0">
+            <div className="text-xs text-gray-500 mb-2">
+              Bookings handled via Calendly. See Calendly’s Privacy Policy and
+              Terms of Use for more info.
+            </div>
+            <div className="text-gray-600">
+              © 2025 Loctelli. All rights reserved.
+            </div>
           </div>
         </div>
       </div>
