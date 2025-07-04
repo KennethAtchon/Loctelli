@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Models migrated from SQLAlchemy models
+
+model User {
+  id              Int         @id @default(autoincrement())
+  name            String
+  company         String?
+  email           String?
+  budget          String?
+  bookingsTime    Json?       // JSON field for bookings time
+  bookingEnabled  Int         @default(0) // 0 = False, 1 = True
+  calendarId      String?     // Calendar ID for GoHighLevel integration
+  locationId      String?     // Location ID for GoHighLevel integration
+  assignedUserId  String?     // Assigned User ID for GoHighLevel integration
+  strategies      Strategy[]
+  clients         Client[]
+  bookings        Booking[]
+}
+
+model Strategy {
+  id                      Int        @id @default(autoincrement())
+  userId                  Int
+  name                    String
+  tag                     String?
+  tone                    String?
+  aiInstructions          String?    @db.Text
+  objectionHandling       String?    @db.Text
+  qualificationPriority   String?
+  creativity              Int?
+  aiObjective             String?    @db.Text
+  disqualificationCriteria String?   @db.Text
+  exampleConversation     Json?
+  delayMin                Int?       // Minimum delay in seconds
+  delayMax                Int?       // Maximum delay in seconds
+  createdAt               DateTime   @default(now())
+  updatedAt               DateTime   @default(now()) @updatedAt
+  user                    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clients                 Client[]
+}
+
+model Client {
+  id             Int       @id @default(autoincrement())
+  userId         Int
+  strategyId     Int
+  name           String
+  email          String?
+  phone          String?
+  company        String?
+  position       String?
+  customId       String?
+  messageHistory Json?     // List of messages in JSON format
+  status         String    @default("lead")
+  notes          String?   @db.Text
+  lastMessage    String?   @db.Text
+  lastMessageDate String?
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  strategy       Strategy  @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  bookings       Booking[]
+}
+
+model Booking {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  clientId     Int?
+  bookingType  String
+  details      Json
+  status       String   @default("pending")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client       Client?  @relation(fields: [clientId], references: [id])
+}

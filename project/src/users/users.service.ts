@@ -1,0 +1,126 @@
+import { Injectable, NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
+import { GhlService } from '../ghl/ghl.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+
+@Injectable()
+export class UsersService {
+  constructor(
+    private prisma: PrismaService,
+    private ghlService: GhlService
+  ) {}
+
+  async create(createUserDto: CreateUserDto) {
+    return this.prisma.user.create({
+      data: createUserDto,
+    });
+  }
+
+  async findAll() {
+    return this.prisma.user.findMany({
+      include: {
+        strategies: true,
+        clients: true,
+        bookings: true,
+      },
+    });
+  }
+
+  async findOne(id: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        strategies: true,
+        clients: true,
+        bookings: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    return user;
+  }
+
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    try {
+      return await this.prisma.user.update({
+        where: { id },
+        data: updateUserDto,
+      });
+    } catch (error) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+  }
+
+  async remove(id: number) {
+    try {
+      return await this.prisma.user.delete({
+        where: { id },
+      });
+    } catch (error) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+  }
+
+  /**
+   * Import users from GoHighLevel subaccounts (locations)
+   * @returns List of created users
+   */
+  async importGhlUsers() {
+    try {
+      // Fetch subaccounts from GoHighLevel API
+      const subaccountsData = await this.ghlService.searchSubaccounts();
+      
+      if (!subaccountsData || !subaccountsData.locations) {
+        throw new HttpException(
+          'Failed to fetch subaccounts from GoHighLevel API',
+          HttpStatus.BAD_GATEWAY
+        );
+      }
+      
+      const createdUsers = [];
+      
+      // Process each location and create a user
+      for (const loc of subaccountsData.locations) {
+        // Map subaccount/location fields to User fields
+        const userData = {
+          name: loc.name || '',
+          company: loc.companyId || null,
+          email: loc.email || null,
+          // Add any other mappings as needed
+        };
+        
+        // Prevent duplicates by checking if user with same email exists
+        if (userData.email) {
+          const existingUser = await this.prisma.user.findFirst({
+            where: { email: userData.email }
+          });
+          
+          if (existingUser) {
+            continue;
+          }
+        }
+        
+        // Create the user
+        const newUser = await this.prisma.user.create({
+          data: userData
+        });
+        
+        createdUsers.push(newUser);
+      }
+      
+      return createdUsers;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        `Error importing GHL users: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+}
