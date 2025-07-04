@@ -15,11 +15,9 @@ RUN pnpm install
 COPY . .
 
 # Define arguments for environment variables needed at build time
-ARG NEXTAUTH_SECRET
 ARG NEXT_PUBLIC_API_URL
 
 # Set environment variables for the build
-ENV NEXTAUTH_SECRET=$NEXTAUTH_SECRET
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Build the Next.js app

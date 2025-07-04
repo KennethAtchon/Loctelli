@@ -4,7 +4,11 @@ import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { AdminAuthService } from './admin-auth.service';
+import { AdminAuthController } from './admin-auth.controller';
+import { AdminAuthCodeService } from './admin-auth-code.service';
 import { JwtStrategy } from './jwt.strategy';
+import { RolesGuard } from './guards/roles.guard';
 import { PrismaModule } from '../prisma/prisma.module';
 import { RedisModule } from '../redis/redis.module';
 
@@ -22,8 +26,8 @@ import { RedisModule } from '../redis/redis.module';
       inject: [ConfigService],
     }),
   ],
-  providers: [AuthService, JwtStrategy],
-  controllers: [AuthController],
-  exports: [AuthService],
+  providers: [AuthService, AdminAuthService, AdminAuthCodeService, JwtStrategy, RolesGuard],
+  controllers: [AuthController, AdminAuthController],
+  exports: [AuthService, AdminAuthService],
 })
 export class AuthModule {} 

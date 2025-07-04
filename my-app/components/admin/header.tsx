@@ -4,7 +4,7 @@ import { Bell, Search, User, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/contexts/auth-context';
+import { useAdminAuth } from '@/contexts/admin-auth-context';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,12 +15,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 export function Header() {
-  const { user, logout } = useAuth();
+  const { admin, adminLogout } = useAdminAuth();
   const router = useRouter();
 
   const handleLogout = async () => {
-    await logout();
-    router.push('/auth/login');
+    await adminLogout();
+    router.push('/admin/login');
   };
 
   return (
@@ -56,7 +56,7 @@ export function Header() {
                   <User className="h-4 w-4 text-gray-600" />
                 </div>
                 <span className="hidden md:block">
-                  {user?.name || 'User'}
+                  {admin?.name || 'Admin'}
                 </span>
               </Button>
             </DropdownMenuTrigger>

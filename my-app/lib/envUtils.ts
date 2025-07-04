@@ -10,7 +10,7 @@ export const API_CONFIG = {
 
 // Authentication Configuration
 export const AUTH_CONFIG = {
-  SECRET: process.env.NEXTAUTH_SECRET,
+  // Custom authentication system - no NextAuth needed
 } as const;
 
 // Environment Configuration
@@ -22,16 +22,8 @@ export const ENV_CONFIG = {
 
 // Validation function to ensure required environment variables are set
 export function validateEnvironmentVariables(): void {
-  const requiredVars = [
-    { name: 'NEXTAUTH_SECRET', value: AUTH_CONFIG.SECRET },
-  ];
-
-  const missingVars = requiredVars.filter(({ value }) => !value);
-  
-  if (missingVars.length > 0) {
-    const missingVarNames = missingVars.map(({ name }) => name).join(', ');
-    throw new Error(`Missing required environment variables: ${missingVarNames}`);
-  }
+  // No required environment variables for now
+  // Add any required environment variables here as needed
 }
 
 // Helper function to get environment variable with type safety

@@ -8,7 +8,7 @@ A comprehensive CRM application built with NestJS backend and Next.js frontend, 
 - **Frontend**: Next.js 15 with React 19 and TailwindCSS
 - **Database**: PostgreSQL
 - **Cache**: Redis (backend only)
-- **Authentication**: NextAuth.js (frontend)
+- **Authentication**: Custom JWT-based authentication (frontend & backend)
 
 ## 📁 Project Structure
 
@@ -229,9 +229,9 @@ POSTGRES_DB=loctelli
 # API Configuration
 NEXT_PUBLIC_API_URL=http://localhost:3000
 
-# NextAuth Configuration
-NEXTAUTH_SECRET=your-super-secret-key
-NEXTAUTH_URL=http://localhost:3001
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key-change-in-production
+JWT_REFRESH_SECRET=your-super-secret-refresh-key-change-in-production
 ```
 
 ## 🧪 Testing

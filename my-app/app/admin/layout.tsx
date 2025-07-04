@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { Sidebar } from '@/components/admin/sidebar';
 import { Header } from '@/components/admin/header';
-import { ProtectedRoute } from '@/components/auth/protected-route';
+import { AdminProtectedRoute } from '@/components/auth/admin-protected-route';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -9,7 +9,7 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
-    <ProtectedRoute>
+    <AdminProtectedRoute>
       <div className="min-h-screen bg-gray-50">
         <div className="flex">
           <Sidebar />
@@ -21,6 +21,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </div>
         </div>
       </div>
-    </ProtectedRoute>
+    </AdminProtectedRoute>
   );
 } 

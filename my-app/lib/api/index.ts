@@ -6,9 +6,11 @@ import { BookingsApi } from './endpoints/bookings';
 import { ChatApi } from './endpoints/chat';
 import { StatusApi } from './endpoints/status';
 import { AuthApi } from './endpoints/auth';
+import { AdminAuthApi } from './endpoints/admin-auth';
 
 export class Api extends ApiClient {
   public auth: AuthApi;
+  public adminAuth: AdminAuthApi;
   public users: UsersApi;
   public clients: ClientsApi;
   public strategies: StrategiesApi;
@@ -21,6 +23,7 @@ export class Api extends ApiClient {
     
     // Initialize all endpoint APIs
     this.auth = new AuthApi(baseUrl);
+    this.adminAuth = new AdminAuthApi(baseUrl);
     this.users = new UsersApi(baseUrl);
     this.clients = new ClientsApi(baseUrl);
     this.strategies = new StrategiesApi(baseUrl);
@@ -35,6 +38,7 @@ export const api = new Api();
 
 // Export individual APIs for direct use if needed
 export { AuthApi } from './endpoints/auth';
+export { AdminAuthApi } from './endpoints/admin-auth';
 export { UsersApi } from './endpoints/users';
 export { ClientsApi } from './endpoints/clients';
 export { StrategiesApi } from './endpoints/strategies';
@@ -44,4 +48,12 @@ export { StatusApi } from './endpoints/status';
 
 // Export types
 export type { SystemStatus } from './endpoints/status';
-export type { LoginDto, RegisterDto, AuthResponse, UserProfile } from './endpoints/auth'; 
+export type { LoginDto, RegisterDto, AuthResponse, UserProfile } from './endpoints/auth';
+export type { 
+  AdminLoginDto, 
+  AdminRegisterDto, 
+  AdminProfile, 
+  AdminAuthResponse, 
+  CreateUserDto, 
+  UpdateUserDto 
+} from './endpoints/admin-auth'; 

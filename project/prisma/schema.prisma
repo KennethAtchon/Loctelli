@@ -12,6 +12,20 @@ datasource db {
 
 // Models migrated from SQLAlchemy models
 
+model AdminUser {
+  id              Int         @id @default(autoincrement())
+  name            String
+  email           String      @unique
+  password        String      // Hashed password for authentication
+  role            String      @default("admin") // admin, super_admin
+  isActive        Boolean     @default(true)
+  permissions     Json?       // JSON field for granular permissions
+  lastLoginAt     DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  createdUsers    User[]      // Users created by this admin
+}
+
 model User {
   id              Int         @id @default(autoincrement())
   name            String
@@ -29,6 +43,8 @@ model User {
   lastLoginAt     DateTime?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+  createdByAdminId Int?       // ID of the admin who created this user
+  createdByAdmin  AdminUser?  @relation(fields: [createdByAdminId], references: [id])
   strategies      Strategy[]
   clients         Client[]
   bookings        Booking[]

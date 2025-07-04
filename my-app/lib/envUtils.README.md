@@ -57,7 +57,8 @@ const customVar = getEnvVar('CUSTOM_VARIABLE', 'default-value');
 - `BASE_URL`: The base URL for API calls (defaults to `http://localhost:3000`)
 
 ### Authentication Configuration (`env.auth`)
-- `SECRET`: NextAuth.js secret key (required)
+- `JWT_SECRET`: JWT signing secret key (required)
+- `JWT_REFRESH_SECRET`: JWT refresh token secret key (required)
 
 ### Environment Configuration (`env.env`)
 - `NODE_ENV`: Current environment (`development`, `production`, etc.)
