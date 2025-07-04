@@ -3,6 +3,7 @@ import { GhlService } from '../ghl/ghl.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -12,8 +13,14 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
+    // Hash password if provided
+    const data = { ...createUserDto };
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 12);
+    }
+    
     return this.prisma.user.create({
-      data: createUserDto,
+      data,
     });
   }
 
@@ -87,9 +94,11 @@ export class UsersService {
       for (const loc of subaccountsData.locations) {
         // Map subaccount/location fields to User fields
         const userData = {
-          name: loc.name || '',
+          name: loc.name || 'Unknown User',
           company: loc.companyId || null,
-          email: loc.email || null,
+          email: loc.email || `user-${Date.now()}@example.com`,
+          password: await bcrypt.hash('defaultPassword123', 12), // Default password
+          role: 'user',
           // Add any other mappings as needed
         };
         

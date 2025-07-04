@@ -1,8 +1,10 @@
 'use client';
 
-import { Bell, Search, User } from 'lucide-react';
+import { Bell, Search, User, LogOut } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useAuth } from '@/contexts/auth-context';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +15,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 export function Header() {
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/auth/login');
+  };
+
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
@@ -45,7 +55,9 @@ export function Header() {
                 <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
                   <User className="h-4 w-4 text-gray-600" />
                 </div>
-                <span className="hidden md:block">Admin User</span>
+                <span className="hidden md:block">
+                  {user?.name || 'User'}
+                </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -54,7 +66,10 @@ export function Header() {
               <DropdownMenuItem>Profile</DropdownMenuItem>
               <DropdownMenuItem>Settings</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Sign out</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign out
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

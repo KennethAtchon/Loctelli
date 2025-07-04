@@ -31,7 +31,11 @@ export class BookingHelperService {
     private prisma: PrismaService,
     private configService: ConfigService,
   ) {
-    this.ghlApiKey = this.configService.get<string>('GHL_API_KEY');
+    const ghlApiKey = this.configService.get<string>('GHL_API_KEY');
+    if (!ghlApiKey) {
+      throw new Error('GHL_API_KEY is not defined');
+    }
+    this.ghlApiKey = ghlApiKey;
     this.ghlApiVersion = this.configService.get<string>(
       'GHL_API_VERSION',
       '2021-04-15',

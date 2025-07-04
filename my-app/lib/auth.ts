@@ -1,5 +1,6 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import { API_CONFIG, AUTH_CONFIG } from './envUtils';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -17,7 +18,7 @@ export const authOptions: NextAuthOptions = {
         try {
           // This would need to be implemented in your NestJS backend
           // For now, we'll create a mock authentication
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+          const response = await fetch(`${API_CONFIG.BASE_URL}/auth/login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -55,8 +56,8 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id as string;
+      if (token && session.user) {
+        (session.user as any).id = token.id as string;
         session.user.email = token.email as string;
         session.user.name = token.name as string;
       }
@@ -67,5 +68,5 @@ export const authOptions: NextAuthOptions = {
     signIn: '/auth/signin',
     error: '/auth/error',
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: AUTH_CONFIG.SECRET,
 }; 

@@ -55,7 +55,7 @@ export default function AuthUsageExample() {
     setMessage('');
 
     try {
-      const response = await api.auth.register(registerData);
+      await api.auth.register(registerData);
       setMessage('Registration successful! Please login.');
       setRegisterData({ name: '', email: '', password: '', company: '' });
     } catch (error) {

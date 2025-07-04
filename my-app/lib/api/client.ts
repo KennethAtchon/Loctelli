@@ -1,6 +1,8 @@
-import { ApiResponse, ApiError, ApiRequestOptions } from './types';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+import { ApiRequestOptions } from './types';
+import { API_CONFIG } from '../envUtils';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_BASE_URL = API_CONFIG.BASE_URL;
 
 export class ApiClient {
   private baseUrl: string;
@@ -54,6 +56,7 @@ export class ApiClient {
     return this.request<T>(endpoint, { method: 'GET', ...options });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected async post<T>(endpoint: string, data?: any, options?: ApiRequestOptions): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'POST',
@@ -62,6 +65,7 @@ export class ApiClient {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected async patch<T>(endpoint: string, data?: any, options?: ApiRequestOptions): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'PATCH',
@@ -74,6 +78,7 @@ export class ApiClient {
     return this.request<T>(endpoint, { method: 'DELETE', ...options });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected async put<T>(endpoint: string, data?: any, options?: ApiRequestOptions): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'PUT',
@@ -83,6 +88,7 @@ export class ApiClient {
   }
 
   // Helper method to build query strings
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected buildQueryString(params: Record<string, any>): string {
     const searchParams = new URLSearchParams();
     

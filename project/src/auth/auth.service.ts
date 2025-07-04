@@ -70,7 +70,7 @@ export class AuthService {
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
     // Store refresh token in Redis
-    await this.redisService.setSession(`refresh:${user.id}`, refreshToken, 7 * 24 * 60 * 60);
+    await this.redisService.setCache(`refresh:${user.id}`, refreshToken, 7 * 24 * 60 * 60);
 
     return {
       access_token: accessToken,
@@ -115,7 +115,7 @@ export class AuthService {
 
   async refreshToken(userId: number, refreshToken: string) {
     // Verify refresh token from Redis
-    const storedToken = await this.redisService.getSession(`refresh:${userId}`);
+    const storedToken = await this.redisService.getCache(`refresh:${userId}`);
     
     if (!storedToken || storedToken !== refreshToken) {
       throw new UnauthorizedException('Invalid refresh token');
@@ -139,7 +139,7 @@ export class AuthService {
     const newRefreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
     // Update refresh token in Redis
-    await this.redisService.setSession(`refresh:${user.id}`, newRefreshToken, 7 * 24 * 60 * 60);
+    await this.redisService.setCache(`refresh:${user.id}`, newRefreshToken, 7 * 24 * 60 * 60);
 
     return {
       access_token: newAccessToken,
@@ -149,7 +149,7 @@ export class AuthService {
 
   async logout(userId: number) {
     // Remove refresh token from Redis
-    await this.redisService.deleteSession(`refresh:${userId}`);
+    await this.redisService.delCache(`refresh:${userId}`);
     return { message: 'Logged out successfully' };
   }
 

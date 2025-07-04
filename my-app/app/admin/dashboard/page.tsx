@@ -1,253 +1,131 @@
+'use client';
+
+import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  Users,
-  Target,
-  Calendar,
-  MessageSquare,
-  TrendingUp,
-  TrendingDown,
-  ArrowRight,
-} from 'lucide-react';
-import Link from 'next/link';
+import { Users, Calendar, TrendingUp, DollarSign } from 'lucide-react';
 
-// Mock data - replace with real API calls
-const stats = [
-  {
-    title: 'Total Users',
-    value: '1,234',
-    change: '+12%',
-    trend: 'up',
-    icon: Users,
-    color: 'text-blue-600',
-  },
-  {
-    title: 'Active Clients',
-    value: '856',
-    change: '+8%',
-    trend: 'up',
-    icon: Users,
-    color: 'text-green-600',
-  },
-  {
-    title: 'Strategies',
-    value: '45',
-    change: '+5%',
-    trend: 'up',
-    icon: Target,
-    color: 'text-purple-600',
-  },
-  {
-    title: 'Bookings',
-    value: '2,341',
-    change: '-3%',
-    trend: 'down',
-    icon: Calendar,
-    color: 'text-orange-600',
-  },
-];
+export default function AdminDashboard() {
+  const { user } = useAuth();
 
-const recentBookings = [
-  {
-    id: 1,
-    client: 'John Doe',
-    type: 'Consultation',
-    date: '2024-01-15',
-    status: 'confirmed',
-  },
-  {
-    id: 2,
-    client: 'Jane Smith',
-    type: 'Follow-up',
-    date: '2024-01-16',
-    status: 'pending',
-  },
-  {
-    id: 3,
-    client: 'Mike Johnson',
-    type: 'Sales Call',
-    date: '2024-01-17',
-    status: 'confirmed',
-  },
-];
+  const stats = [
+    {
+      title: 'Total Users',
+      value: '1,234',
+      description: 'Active users this month',
+      icon: Users,
+      color: 'text-blue-600',
+    },
+    {
+      title: 'Bookings',
+      value: '89',
+      description: 'Meetings scheduled',
+      icon: Calendar,
+      color: 'text-green-600',
+    },
+    {
+      title: 'Revenue',
+      value: '$12,345',
+      description: 'This month',
+      icon: DollarSign,
+      color: 'text-purple-600',
+    },
+    {
+      title: 'Growth',
+      value: '+12%',
+      description: 'vs last month',
+      icon: TrendingUp,
+      color: 'text-orange-600',
+    },
+  ];
 
-const recentClients = [
-  {
-    id: 1,
-    name: 'John Doe',
-    email: 'john@example.com',
-    status: 'active',
-    lastContact: '2024-01-15',
-  },
-  {
-    id: 2,
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    status: 'lead',
-    lastContact: '2024-01-14',
-  },
-  {
-    id: 3,
-    name: 'Mike Johnson',
-    email: 'mike@example.com',
-    status: 'active',
-    lastContact: '2024-01-13',
-  },
-];
-
-export default function DashboardPage() {
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Welcome back! Here's what's happening with your business.</p>
-        </div>
-        <Button>
-          View Reports
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
+      {/* Welcome Section */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <h1 className="text-2xl font-bold text-gray-900">
+          Welcome back, {user?.name || 'User'}!
+        </h1>
+        <p className="text-gray-600 mt-2">
+          Here's what's happening with your business today.
+        </p>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                {stat.title}
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
               <stat.icon className={`h-4 w-4 ${stat.color}`} />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stat.value}</div>
-              <div className="flex items-center text-xs text-gray-600">
-                {stat.trend === 'up' ? (
-                  <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
-                ) : (
-                  <TrendingDown className="h-3 w-3 text-red-600 mr-1" />
-                )}
-                {stat.change} from last month
-              </div>
+              <p className="text-xs text-muted-foreground">{stat.description}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Bookings */}
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Recent Bookings</CardTitle>
-            <CardDescription>Latest appointments and meetings</CardDescription>
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription>
+              Common tasks and shortcuts
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentBookings.map((booking) => (
-                <div key={booking.id} className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{booking.client}</p>
-                    <p className="text-sm text-gray-600">{booking.type}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-600">{booking.date}</p>
-                    <Badge
-                      variant={booking.status === 'confirmed' ? 'default' : 'secondary'}
-                      className="text-xs"
-                    >
-                      {booking.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4">
-              <Link href="/admin/bookings">
-                <Button variant="outline" size="sm" className="w-full">
-                  View All Bookings
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
+          <CardContent className="space-y-3">
+            <Button className="w-full justify-start" variant="outline">
+              <Users className="mr-2 h-4 w-4" />
+              Manage Clients
+            </Button>
+            <Button className="w-full justify-start" variant="outline">
+              <Calendar className="mr-2 h-4 w-4" />
+              View Bookings
+            </Button>
+            <Button className="w-full justify-start" variant="outline">
+              <TrendingUp className="mr-2 h-4 w-4" />
+              Analytics
+            </Button>
           </CardContent>
         </Card>
 
-        {/* Recent Clients */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Clients</CardTitle>
-            <CardDescription>Latest client additions and updates</CardDescription>
+            <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>
+              Latest updates and notifications
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentClients.map((client) => (
-                <div key={client.id} className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{client.name}</p>
-                    <p className="text-sm text-gray-600">{client.email}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-600">{client.lastContact}</p>
-                    <Badge
-                      variant={client.status === 'active' ? 'default' : 'secondary'}
-                      className="text-xs"
-                    >
-                      {client.status}
-                    </Badge>
-                  </div>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3">
+                <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                <div className="text-sm">
+                  <p className="font-medium">New client registered</p>
+                  <p className="text-gray-500">2 minutes ago</p>
                 </div>
-              ))}
-            </div>
-            <div className="mt-4">
-              <Link href="/admin/clients">
-                <Button variant="outline" size="sm" className="w-full">
-                  View All Clients
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
+                <div className="text-sm">
+                  <p className="font-medium">Meeting scheduled</p>
+                  <p className="text-gray-500">1 hour ago</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="h-2 w-2 bg-purple-500 rounded-full"></div>
+                <div className="text-sm">
+                  <p className="font-medium">Payment received</p>
+                  <p className="text-gray-500">3 hours ago</p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Common tasks and shortcuts</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Link href="/admin/clients/new">
-              <Button variant="outline" className="w-full h-20 flex-col">
-                <Users className="h-6 w-6 mb-2" />
-                Add Client
-              </Button>
-            </Link>
-            <Link href="/admin/strategies/new">
-              <Button variant="outline" className="w-full h-20 flex-col">
-                <Target className="h-6 w-6 mb-2" />
-                Create Strategy
-              </Button>
-            </Link>
-            <Link href="/admin/bookings/new">
-              <Button variant="outline" className="w-full h-20 flex-col">
-                <Calendar className="h-6 w-6 mb-2" />
-                Schedule Booking
-              </Button>
-            </Link>
-            <Link href="/admin/chat">
-              <Button variant="outline" className="w-full h-20 flex-col">
-                <MessageSquare className="h-6 w-6 mb-2" />
-                View Messages
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 } 
