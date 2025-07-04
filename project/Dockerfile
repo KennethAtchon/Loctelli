@@ -47,8 +47,15 @@ RUN npm ci --only=production
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
+# Copy Prisma schema and migrations
+COPY --from=builder /app/prisma ./prisma
+
+# Copy startup script
+COPY start.sh ./
+RUN chmod +x start.sh
+
 # Expose port
 EXPOSE 3000
 
-# Start the application
-CMD ["node", "dist/main"] 
+# Start the application with migrations
+CMD ["./start.sh"] 

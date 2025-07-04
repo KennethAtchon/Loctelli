@@ -7,11 +7,11 @@ export class StatusController {
 
   @Get()
   getSystemStatus() {
-    return this.statusService.getSystemStatus();
+    return this.statusService.getStatus();
   }
 
   @Get('health')
   getHealthCheck() {
-    return this.statusService.getHealthCheck();
+    return this.statusService.getHealthStatus();
   }
 }

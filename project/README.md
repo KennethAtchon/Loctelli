@@ -31,6 +31,51 @@
 $ npm install
 ```
 
+## Database Setup
+
+This project uses Prisma for database management with automatic migrations. The application will automatically run migrations on startup.
+
+### Database Scripts
+
+```bash
+# Run migrations (production)
+$ npm run db:migrate
+
+# Create and apply new migration (development)
+$ npm run db:migrate:dev
+
+# Reset database (development only)
+$ npm run db:migrate:reset
+
+# Generate Prisma client
+$ npm run db:generate
+
+# Open Prisma Studio
+$ npm run db:studio
+```
+
+### Automatic Migrations
+
+The application automatically runs migrations on startup in the following ways:
+
+1. **Application Level**: The `PrismaService` automatically runs `prisma migrate deploy` during module initialization
+2. **Container Level**: The Docker container uses a startup script that runs migrations before starting the application
+3. **Production Safety**: In production, the application will exit if migrations fail to prevent running with an inconsistent database state
+
+### Connection Retry Logic
+
+The application includes robust retry logic for database and Redis connections:
+
+1. **Database Retry**: The `PrismaService` waits for the database to be available, retrying every 1 second for up to 30 seconds
+2. **Redis Retry**: The `RedisService` waits for Redis to be available, retrying every 1 second for up to 30 seconds
+3. **Health Checks**: The `/status/health` endpoint provides detailed health status for both database and Redis
+4. **Production Safety**: In production, the application will exit if connections fail after max retries
+
+### Health Monitoring
+
+- **GET /status** - Basic application status
+- **GET /status/health** - Detailed health check including database and Redis status
+
 ## Compile and run the project
 
 ```bash
