@@ -100,8 +100,8 @@ npm run db:studio
 
 ## 🌐 Access the Application
 
-- **Frontend**: http://localhost:3001
-- **Backend API**: http://localhost:3000
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8000
 - **Database**: localhost:5432
 - **Redis**: localhost:6379
 - **Prisma Studio**: http://localhost:5555
@@ -227,7 +227,7 @@ POSTGRES_DB=loctelli
 
 ```env
 # API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:8000
 
 # JWT Configuration
 JWT_SECRET=your-super-secret-jwt-key-change-in-production

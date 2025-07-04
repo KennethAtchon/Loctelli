@@ -16,4 +16,4 @@ npx prisma generate
 # Start the application
 echo "Starting NestJS application..."
 echo "The application will automatically wait for database and Redis connections..."
-exec node dist/main 
+exec node dist/core/main 

@@ -55,7 +55,7 @@ COPY start.sh ./
 RUN chmod +x start.sh
 
 # Expose port
-EXPOSE 3000
+EXPOSE 8000
 
 # Start the application with migrations
 CMD ["./start.sh"] 

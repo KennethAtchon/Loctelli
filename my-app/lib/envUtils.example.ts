@@ -42,6 +42,6 @@ export function getApiEndpoint() {
   } else if (env.env.IS_DEVELOPMENT) {
     return env.api.BASE_URL;
   } else {
-    return 'http://localhost:3000';
+    return 'http://localhost:8000';
   }
 } 
