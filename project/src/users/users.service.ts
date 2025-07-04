@@ -3,6 +3,7 @@ import { GhlService } from '../ghl/ghl.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -88,7 +89,7 @@ export class UsersService {
         );
       }
       
-      const createdUsers = [];
+      const createdUsers: User[] = [];
       
       // Process each location and create a user
       for (const loc of subaccountsData.locations) {

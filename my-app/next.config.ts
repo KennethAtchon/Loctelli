@@ -9,6 +9,13 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  experimental: {
+    optimizePackageImports: ['lucide-react'],
+  },
+  trailingSlash: true,
+  generateBuildId: async () => {
+    return 'build-' + Date.now();
+  },
 };
 
 export default nextConfig;
