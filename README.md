@@ -1,6 +1,6 @@
 # Loctelli CRM
 
-A comprehensive CRM application built with NestJS backend and Next.js frontend, featuring client management, sales strategies, booking system, and chat integration.
+A comprehensive CRM application built with NestJS backend and Next.js frontend, featuring client management, sales strategies, booking system, and AI-powered chat integration.
 
 ## 🏗️ Architecture
 
@@ -9,6 +9,7 @@ A comprehensive CRM application built with NestJS backend and Next.js frontend, 
 - **Database**: PostgreSQL
 - **Cache**: Redis (backend only)
 - **Authentication**: Custom JWT-based authentication (frontend & backend)
+- **AI Integration**: OpenAI-powered chat responses and sales strategies
 
 ## 📁 Project Structure
 
@@ -16,12 +17,16 @@ A comprehensive CRM application built with NestJS backend and Next.js frontend, 
 Loctelli/
 ├── project/              # NestJS Backend
 │   ├── src/
-│   │   ├── users/        # User management
-│   │   ├── clients/      # Client management
-│   │   ├── strategies/   # Sales strategies
-│   │   ├── bookings/     # Booking management
-│   │   ├── chat/         # Chat functionality
-│   │   └── prisma/       # Database configuration
+│   │   ├── auth/         # Authentication & authorization
+│   │   ├── modules/      # Core business modules
+│   │   │   ├── users/    # User management
+│   │   │   ├── clients/  # Client management
+│   │   │   ├── strategies/ # Sales strategies
+│   │   │   ├── bookings/ # Booking management
+│   │   │   └── chat/     # Chat functionality
+│   │   ├── infrastructure/ # Database, Redis, config
+│   │   ├── webhooks/     # External integrations
+│   │   └── background/   # Background processes
 │   ├── prisma/
 │   │   └── schema.prisma # Database schema
 │   └── docker-compose.yml
@@ -29,10 +34,16 @@ Loctelli/
     ├── app/
     │   ├── (main)/       # Public pages
     │   ├── admin/        # Admin panel
-    │   └── api/          # Next.js API routes
+    │   └── auth/         # Authentication pages
     ├── components/       # React components
-    ├── lib/              # Utilities and API clients
-    └── types/            # Shared TypeScript types
+    │   ├── ui/          # Reusable UI components
+    │   ├── admin/       # Admin-specific components
+    │   └── auth/        # Auth components
+    ├── lib/             # Utilities and API clients
+    │   └── api/         # API client modules
+    ├── contexts/        # React contexts
+    ├── hooks/           # Custom React hooks
+    └── types/           # Shared TypeScript types
 ```
 
 ## 🚀 Quick Start
@@ -50,7 +61,19 @@ git clone <repository-url>
 cd Loctelli
 ```
 
-### 2. Backend Setup
+### 2. Environment Setup
+
+Create environment files for both backend and frontend:
+
+```bash
+# Backend environment
+cp project/.env.example project/.env
+
+# Frontend environment
+cp my-app/.env.example my-app/.env.local
+```
+
+### 3. Backend Setup
 
 ```bash
 cd project
@@ -58,35 +81,8 @@ cd project
 # Install dependencies
 npm install
 
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your database credentials
-
-# Start the database and backend
+# Start the database and Redis
 docker-compose up -d db redis
-npm run start:dev
-```
-
-### 3. Frontend Setup
-
-```bash
-cd my-app
-
-# Install dependencies
-npm install
-
-# Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with your API URL
-
-# Start the frontend
-npm run dev
-```
-
-### 4. Database Setup
-
-```bash
-cd project
 
 # Generate Prisma client
 npm run db:generate
@@ -94,7 +90,28 @@ npm run db:generate
 # Run migrations
 npm run db:migrate
 
-# (Optional) Open Prisma Studio
+# Start the backend
+npm run start:dev
+```
+
+### 4. Frontend Setup
+
+```bash
+cd my-app
+
+# Install dependencies
+npm install
+
+# Start the frontend
+npm run dev
+```
+
+### 5. Database Setup
+
+```bash
+cd project
+
+# (Optional) Open Prisma Studio for database management
 npm run db:studio
 ```
 
@@ -108,35 +125,55 @@ npm run db:studio
 
 ## 📊 Features
 
-### Admin Dashboard
-- Overview statistics and metrics
-- Recent activity feed
-- Quick action buttons
-- Real-time data visualization
+### 🔐 Authentication & Authorization
+- **Multi-level authentication**: Admin and regular user roles
+- **JWT-based sessions**: Secure token-based authentication
+- **Role-based access control**: Different permissions for different user types
+- **Protected routes**: Automatic route protection based on user roles
 
-### Client Management
-- Add, edit, and delete clients
-- Track client status and interactions
-- Search and filter functionality
-- Client history and notes
+### 👥 User Management
+- **User registration and login**: Secure authentication system
+- **Profile management**: Update user information and preferences
+- **Company and budget tracking**: Store business-related information
+- **Calendar integration**: GoHighLevel calendar integration support
 
-### Sales Strategies
-- Create AI-powered sales strategies
-- Customize tone and instructions
-- Track strategy performance
-- Template management
+### 🎯 Sales Strategies
+- **AI-powered strategies**: Create intelligent sales approaches
+- **Customizable parameters**: Tone, creativity, objectives, and more
+- **Objection handling**: Pre-defined responses to common objections
+- **Qualification criteria**: Define what makes a good prospect
+- **Example conversations**: Template conversations for guidance
+- **Delay settings**: Control response timing for natural flow
 
-### Booking System
-- Schedule appointments and meetings
-- Calendar integration
-- Booking status tracking
-- Automated reminders
+### 👤 Client Management
+- **Comprehensive client profiles**: Store all client information
+- **Status tracking**: Monitor client progression through sales funnel
+- **Message history**: Complete conversation history
+- **Notes and annotations**: Add context and observations
+- **Custom IDs**: Integration with external systems
+- **Company and position tracking**: Professional context
 
-### Chat Integration
-- Real-time messaging with clients
-- Message history
-- AI-powered responses
-- Integration with sales strategies
+### 📅 Booking System
+- **Appointment scheduling**: Create and manage meetings
+- **Calendar integration**: Sync with external calendars
+- **Status tracking**: Monitor booking states
+- **Client association**: Link bookings to specific clients
+- **Flexible booking types**: Support for different meeting types
+
+### 💬 AI Chat Integration
+- **Intelligent responses**: AI-powered message generation
+- **Strategy-based responses**: Use sales strategies for context
+- **Real-time messaging**: Instant communication with clients
+- **Message history**: Complete conversation tracking
+- **Custom ID support**: Integration with external chat systems
+
+### 📊 Admin Dashboard
+- **Overview statistics**: Key metrics and performance indicators
+- **Recent activity feed**: Latest system activities
+- **Quick action buttons**: Common administrative tasks
+- **Real-time data visualization**: Charts and graphs
+- **User management**: Administer user accounts
+- **System monitoring**: Health checks and status
 
 ## 🔧 Development
 
@@ -145,7 +182,7 @@ npm run db:studio
 ```bash
 cd project
 
-# Start development server
+# Start development server with hot reload
 npm run start:dev
 
 # Run tests
@@ -153,6 +190,11 @@ npm run test
 
 # Run e2e tests
 npm run test:e2e
+
+# Database operations
+npm run db:migrate:dev  # Create new migration
+npm run db:reset        # Reset database
+npm run db:studio       # Open Prisma Studio
 ```
 
 ### Frontend Development
@@ -168,6 +210,9 @@ npm run build
 
 # Start production server
 npm run start
+
+# Lint code
+npm run lint
 ```
 
 ### Database Management
@@ -176,13 +221,16 @@ npm run start
 cd project
 
 # Create a new migration
+npm run db:migrate:dev
+
+# Deploy migrations to production
 npm run db:migrate
 
-# Reset database
+# Reset database (development only)
 npm run db:reset
 
-# Seed database
-npm run db:seed
+# Generate Prisma client
+npm run db:generate
 ```
 
 ## 🐳 Docker Development
@@ -190,8 +238,14 @@ npm run db:seed
 Run the entire stack with Docker:
 
 ```bash
-cd project
+# Start all services
 docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop all services
+docker-compose down
 ```
 
 This will start:
@@ -200,110 +254,70 @@ This will start:
 - NestJS backend API
 - Next.js frontend
 
-## 📝 Environment Variables
+## 🔌 API Documentation
 
-### Backend (.env)
+The backend provides a comprehensive REST API with the following main endpoints:
 
-```env
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/loctelli"
+- **Authentication**: `/auth/*` - Login, register, token refresh
+- **Users**: `/users/*` - User management
+- **Clients**: `/clients/*` - Client management
+- **Strategies**: `/strategies/*` - Sales strategy management
+- **Bookings**: `/bookings/*` - Booking management
+- **Chat**: `/chat/*` - Messaging functionality
+- **Status**: `/status/*` - System health and status
 
-# Redis
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_PASSWORD=
-REDIS_DB=0
+For detailed API documentation, see the [API Client Documentation](my-app/lib/api/README.md).
 
-# JWT
-JWT_SECRET="your-jwt-secret"
+## 🛠️ Technology Stack
 
-# PostgreSQL
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=password
-POSTGRES_DB=loctelli
-```
+### Backend
+- **Framework**: NestJS 11
+- **Database**: PostgreSQL with Prisma ORM
+- **Cache**: Redis
+- **Authentication**: JWT with Passport
+- **Validation**: class-validator
+- **Testing**: Jest
+- **Scheduling**: @nestjs/schedule
 
-### Frontend (.env.local)
+### Frontend
+- **Framework**: Next.js 15 with React 19
+- **Styling**: TailwindCSS with shadcn/ui components
+- **State Management**: React Context API
+- **Forms**: React Hook Form with Zod validation
+- **Icons**: Lucide React
+- **Charts**: Recharts
+- **Animations**: Framer Motion
 
-```env
-# API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:8000
-
-# JWT Configuration
-JWT_SECRET=your-super-secret-jwt-key-change-in-production
-JWT_REFRESH_SECRET=your-super-secret-refresh-key-change-in-production
-```
-
-## 🧪 Testing
-
-### Backend Tests
-
-```bash
-cd project
-
-# Unit tests
-npm run test
-
-# E2E tests
-npm run test:e2e
-
-# Test coverage
-npm run test:cov
-```
-
-### Frontend Tests
-
-```bash
-cd my-app
-
-# Run tests
-npm run test
-
-# Run tests in watch mode
-npm run test:watch
-```
-
-## 📦 Deployment
-
-### Production Build
-
-```bash
-# Backend
-cd project
-npm run build
-npm run start:prod
-
-# Frontend
-cd my-app
-npm run build
-npm run start
-```
-
-### Docker Production
-
-```bash
-cd project
-docker-compose -f docker-compose.prod.yml up -d
-```
+### DevOps
+- **Containerization**: Docker & Docker Compose
+- **Database Migrations**: Prisma Migrate
+- **Code Quality**: ESLint, Prettier
+- **Type Safety**: TypeScript
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## 📄 License
+## 📝 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## 🆘 Support
 
 For support and questions:
-- Create an issue in the repository
-- Contact the development team
-- Check the documentation
+- Check the documentation in each module
+- Review the API client documentation
+- Open an issue on GitHub
+
+## 🔄 Version History
+
+- **v0.1.0**: Initial release with core CRM functionality
+- **v0.2.0**: Added AI chat integration and sales strategies
+- **v0.3.0**: Enhanced admin dashboard and user management
 
 ---
 
