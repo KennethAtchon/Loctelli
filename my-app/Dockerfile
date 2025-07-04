@@ -23,8 +23,6 @@ ENV NEXTAUTH_SECRET=$NEXTAUTH_SECRET
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Build the Next.js app
-
-# Build the Next.js app
 RUN pnpm run build
 
 # Stage 2: Production
@@ -36,17 +34,16 @@ WORKDIR /app
 RUN apk add --no-cache libc6-compat \
     && npm install -g pnpm
 
-# Copy necessary files from builder
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
+# Copy package files
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
-COPY --from=builder /app/node_modules ./node_modules
-
-
 
 # Install production dependencies
 RUN pnpm install --prod
+
+# Copy built application
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
 
 # Expose port
 EXPOSE 3000
