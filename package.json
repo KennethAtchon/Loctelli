@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@nestjs/cache-manager": "^3.0.1",
+    "keyv": "^4.5.4",
+    "@keyv/redis": "^2.2.4"
+  }
+} 

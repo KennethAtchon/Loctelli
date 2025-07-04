@@ -1,15 +1,20 @@
-// User types
+// User types (Accounts)
 export interface User {
   id: number;
   name: string;
+  email: string;
+  role: string;
+  isActive: boolean;
   company?: string;
-  email?: string;
   budget?: string;
   bookingsTime?: any;
   bookingEnabled: number;
   calendarId?: string;
   locationId?: string;
   assignedUserId?: string;
+  lastLoginAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
   strategies?: Strategy[];
   clients?: Client[];
   bookings?: Booking[];
@@ -37,7 +42,7 @@ export interface Strategy {
   clients?: Client[];
 }
 
-// Client types
+// Client types (belong to Users)
 export interface Client {
   id: number;
   userId: number;
@@ -90,8 +95,10 @@ export interface PaginatedResponse<T> {
 // Form types
 export interface CreateUserDto {
   name: string;
+  email: string;
+  password: string;
+  role?: string;
   company?: string;
-  email?: string;
   budget?: string;
   bookingEnabled?: number;
   calendarId?: string;
@@ -162,6 +169,7 @@ export interface AuthUser {
   id: number;
   name: string;
   email: string;
+  role: string;
   company?: string;
 }
 

@@ -5,8 +5,10 @@ import { StrategiesApi } from './endpoints/strategies';
 import { BookingsApi } from './endpoints/bookings';
 import { ChatApi } from './endpoints/chat';
 import { StatusApi } from './endpoints/status';
+import { AuthApi } from './endpoints/auth';
 
 export class Api extends ApiClient {
+  public auth: AuthApi;
   public users: UsersApi;
   public clients: ClientsApi;
   public strategies: StrategiesApi;
@@ -18,6 +20,7 @@ export class Api extends ApiClient {
     super(baseUrl);
     
     // Initialize all endpoint APIs
+    this.auth = new AuthApi(baseUrl);
     this.users = new UsersApi(baseUrl);
     this.clients = new ClientsApi(baseUrl);
     this.strategies = new StrategiesApi(baseUrl);
@@ -31,6 +34,7 @@ export class Api extends ApiClient {
 export const api = new Api();
 
 // Export individual APIs for direct use if needed
+export { AuthApi } from './endpoints/auth';
 export { UsersApi } from './endpoints/users';
 export { ClientsApi } from './endpoints/clients';
 export { StrategiesApi } from './endpoints/strategies';
@@ -39,4 +43,5 @@ export { ChatApi } from './endpoints/chat';
 export { StatusApi } from './endpoints/status';
 
 // Export types
-export type { SystemStatus } from './endpoints/status'; 
+export type { SystemStatus } from './endpoints/status';
+export type { LoginDto, RegisterDto, AuthResponse, UserProfile } from './endpoints/auth'; 
