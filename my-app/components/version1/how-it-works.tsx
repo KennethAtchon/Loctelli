@@ -1,13 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import {
-  Monitor,
-  Users,
-  MessageSquare,
-  Calendar,
-  ArrowRight,
-} from "lucide-react";
+import { Monitor, MessageSquare, Calendar, ArrowRight } from "lucide-react";
 import { motion, useInView } from "framer-motion";
 
 export function HowItWorks() {
