@@ -19,11 +19,13 @@ import { ApiKeyMiddleware } from './middleware/api-key.middleware';
 import { ConfigModule } from './config/config.module';
 import { GhlModule } from './integrations/ghl/ghl.module';
 import { GeneralModule } from './general/general.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
     ConfigModule,
     PrismaModule,
+    RedisModule,
     UsersModule,
     StrategiesModule,
     ClientsModule,

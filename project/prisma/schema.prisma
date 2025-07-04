@@ -15,14 +15,20 @@ datasource db {
 model User {
   id              Int         @id @default(autoincrement())
   name            String
+  email           String      @unique
+  password        String      // Hashed password for authentication
+  role            String      @default("user") // admin, user, manager
+  isActive        Boolean     @default(true)
   company         String?
-  email           String?
   budget          String?
   bookingsTime    Json?       // JSON field for bookings time
   bookingEnabled  Int         @default(0) // 0 = False, 1 = True
   calendarId      String?     // Calendar ID for GoHighLevel integration
   locationId      String?     // Location ID for GoHighLevel integration
   assignedUserId  String?     // Assigned User ID for GoHighLevel integration
+  lastLoginAt     DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
   strategies      Strategy[]
   clients         Client[]
   bookings        Booking[]
