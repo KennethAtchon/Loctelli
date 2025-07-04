@@ -76,6 +76,32 @@ The application includes robust retry logic for database and Redis connections:
 - **GET /status** - Basic application status
 - **GET /status/health** - Detailed health check including database and Redis status
 
+### Project Structure
+
+The project follows a modular structure with clear separation of concerns:
+
+```
+src/
+├── infrastructure/          # Core infrastructure services
+│   ├── prisma/             # Database service and module
+│   ├── redis/              # Redis service and module
+│   ├── config/             # Configuration management
+│   └── middleware/         # Custom middleware
+├── modules/                # Business logic modules
+│   ├── users/              # User management
+│   ├── clients/            # Client management
+│   ├── strategies/         # Strategy management
+│   ├── bookings/           # Booking management
+│   └── chat/               # Chat functionality
+├── auth/                   # Authentication and authorization
+├── webhooks/               # Webhook handlers
+├── status/                 # Health and status endpoints
+├── background/             # Background processes
+├── ghl/                    # GoHighLevel integration
+├── general/                # General utilities
+└── core/                   # Application core
+```
+
 ## Compile and run the project
 
 ```bash

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { WebhooksService } from './webhooks.service';
 import { WebhooksController } from './webhooks.controller';
 import { HighLevelWebhooksController } from './highlevel-webhooks.controller';
-import { PrismaModule } from '../prisma/prisma.module';
+import { PrismaModule } from '../infrastructure/prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],

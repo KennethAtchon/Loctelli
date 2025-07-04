@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { SalesBotService } from './sales-bot.service';
-import { PrismaModule } from '../prisma/prisma.module';
+import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
 import { FreeSlotCronService } from './free-slot-cron.service';
 import { ConfigModule } from '@nestjs/config';
-import { ChatModule } from '../chat/chat.module';
-import { BookingsModule } from '../bookings/bookings.module';
+import { ChatModule } from '../../modules/chat/chat.module';
+import { BookingsModule } from '../../modules/bookings/bookings.module';
 
 @Module({
   imports: [

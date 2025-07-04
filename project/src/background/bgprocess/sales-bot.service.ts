@@ -1,9 +1,9 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
-import { PromptHelperService } from '../chat/prompt-helper.service';
-import { BookingHelperService } from '../bookings/booking-helper.service';
+import { PromptHelperService } from '../../modules/chat/prompt-helper.service';
+import { BookingHelperService } from '../../modules/bookings/booking-helper.service';
 import axios from 'axios';
 
 interface ChatMessage {

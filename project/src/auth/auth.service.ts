@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '../prisma/prisma.service';
-import { RedisService } from '../redis/redis.service';
+import { PrismaService } from '../infrastructure/prisma/prisma.service';
+import { RedisService } from '../infrastructure/redis/redis.service';
 import * as bcrypt from 'bcrypt';
 
 export interface LoginDto {

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { OpenAIPromptBuilderService } from './openai-prompt-builder.service';
 
 interface MessageHistory {

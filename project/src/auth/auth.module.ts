@@ -9,8 +9,8 @@ import { AdminAuthController } from './admin-auth.controller';
 import { AdminAuthCodeService } from './admin-auth-code.service';
 import { JwtStrategy } from './jwt.strategy';
 import { RolesGuard } from './guards/roles.guard';
-import { PrismaModule } from '../prisma/prisma.module';
-import { RedisModule } from '../redis/redis.module';
+import { PrismaModule } from '../infrastructure/prisma/prisma.module';
+import { RedisModule } from '../infrastructure/redis/redis.module';
 
 @Module({
   imports: [

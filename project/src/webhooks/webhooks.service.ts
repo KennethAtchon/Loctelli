@@ -2,7 +2,7 @@ import { Injectable, Logger, HttpStatus, HttpException } from '@nestjs/common';
 import { WebhookEventDto } from './dto/webhook-event.dto';
 import { ContactCreatedDto } from './dto/contact-created.dto';
 import { OutboundMessageDto } from './dto/outbound-message.dto';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../infrastructure/prisma/prisma.service';
 
 @Injectable()
 export class WebhooksService {
