@@ -6,6 +6,7 @@
 // API Configuration
 export const API_CONFIG = {
   BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+  API_KEY: process.env.API_KEY || '',
 } as const;
 
 // Authentication Configuration
@@ -22,8 +23,16 @@ export const ENV_CONFIG = {
 
 // Validation function to ensure required environment variables are set
 export function validateEnvironmentVariables(): void {
-  // No required environment variables for now
-  // Add any required environment variables here as needed
+  const requiredVars = [
+    { key: 'API_KEY', value: API_CONFIG.API_KEY, name: 'API Key' },
+  ];
+
+  const missingVars = requiredVars.filter(({ value }) => !value);
+
+  if (missingVars.length > 0) {
+    const missingVarNames = missingVars.map(({ name }) => name).join(', ');
+    throw new Error(`Missing required environment variables: ${missingVarNames}`);
+  }
 }
 
 // Helper function to get environment variable with type safety

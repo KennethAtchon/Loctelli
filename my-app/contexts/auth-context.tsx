@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { AuthCookies } from '@/lib/cookies';
 import type { UserProfile, LoginDto, RegisterDto, AuthResponse } from '@/lib/api';
 
 interface AuthContextType {
@@ -22,20 +23,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const isAuthenticated = !!user;
 
-  // Check for existing tokens on mount
+  // Check for existing tokens and auto-login on mount
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const accessToken = localStorage.getItem('access_token');
-        if (accessToken) {
+        // Check if we have any auth tokens
+        if (AuthCookies.hasUserTokens()) {
           // Try to get user profile
           const profile = await api.auth.getProfile();
           setUser(profile);
         }
       } catch (error) {
         // Clear invalid tokens
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
+        AuthCookies.clearAll();
+        console.error('Auto-login failed:', error);
       } finally {
         setIsLoading(false);
       }
@@ -47,12 +48,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (credentials: LoginDto) => {
     const response: AuthResponse = await api.auth.login(credentials);
     
-    // Store tokens
-    localStorage.setItem('access_token', response.access_token);
-    localStorage.setItem('refresh_token', response.refresh_token);
+    // Store tokens in cookies
+    AuthCookies.setAccessToken(response.access_token);
+    AuthCookies.setRefreshToken(response.refresh_token);
     
-    // Set user
-    setUser(response.user);
+    // Get full user profile and set user
+    const profile = await api.auth.getProfile();
+    setUser(profile);
   };
 
   const register = async (data: RegisterDto) => {
@@ -68,8 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     
     // Clear tokens and user state
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+    AuthCookies.clearAll();
     setUser(null);
   };
 
@@ -80,8 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       // If getting profile fails, user might be logged out
       setUser(null);
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
+      AuthCookies.clearAll();
     }
   };
 

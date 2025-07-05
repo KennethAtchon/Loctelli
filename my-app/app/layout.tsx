@@ -5,6 +5,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
 import { AdminAuthProvider } from "@/contexts/admin-auth-context";
+import { validateEnvironmentVariables } from "@/lib/envUtils";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,6 +16,20 @@ export const metadata: Metadata = {
   keywords:
     "AI infrastructure, lead generation, sales automation, AI chat, lead qualification",
 };
+
+// Validate environment variables on app startup
+if (typeof window === 'undefined') {
+  try {
+    validateEnvironmentVariables();
+    console.log('✅ Environment validation passed');
+  } catch (error) {
+    console.error('❌ Environment validation failed:', error);
+    // In development, we might want to show a more user-friendly error
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Please ensure API_KEY is set in your .env.local file');
+    }
+  }
+}
 
 export default function RootLayout({
   children,

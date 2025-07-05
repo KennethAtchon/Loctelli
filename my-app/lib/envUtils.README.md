@@ -1,84 +1,127 @@
-# Environment Variables Management
+# Environment Utilities
 
-This project uses a centralized approach to manage environment variables through `envUtils.ts`.
+This module provides centralized environment variable management for the Loctelli CRM application.
 
 ## Overview
 
-All environment variables are accessed through the `envUtils.ts` file, which provides:
-- Type-safe access to environment variables
-- Centralized configuration management
-- Validation of required environment variables
-- Helper functions for common use cases
+The `envUtils.ts` file centralizes all environment variable access, providing type safety and validation. This ensures consistent access to configuration values across the application.
+
+## Required Environment Variables
+
+### API Configuration
+- `NEXT_PUBLIC_API_URL`: Backend API base URL (defaults to `http://localhost:8000`)
+- `API_KEY`: **Required** - API key for backend authorization (server-side only)
+
+## Configuration Objects
+
+### API_CONFIG
+```typescript
+export const API_CONFIG = {
+  BASE_URL: string;    // Backend API URL
+  API_KEY: string;     // API key for authorization
+} as const;
+```
+
+### ENV_CONFIG
+```typescript
+export const ENV_CONFIG = {
+  NODE_ENV: string;           // Current environment
+  IS_PRODUCTION: boolean;     // True if production
+  IS_DEVELOPMENT: boolean;    // True if development
+} as const;
+```
 
 ## Usage
 
 ### Basic Usage
-
 ```typescript
-import { env } from './lib/envUtils';
+import { env } from '@/lib/envUtils';
 
 // Access API configuration
 const apiUrl = env.api.BASE_URL;
+const apiKey = env.api.API_KEY;
 
-// Access authentication configuration
-const authSecret = env.auth.SECRET;
-
-// Check environment
+// Access environment configuration
 const isProduction = env.env.IS_PRODUCTION;
 ```
 
-### Validation
-
+### Environment Validation
 ```typescript
-import { validateEnvironmentVariables } from './lib/envUtils';
+import { validateEnvironmentVariables } from '@/lib/envUtils';
 
 // Validate on app startup
 try {
   validateEnvironmentVariables();
   console.log('✅ All required environment variables are set');
 } catch (error) {
-  console.error('❌ Missing required environment variables:', error);
+  console.error('❌ Environment validation failed:', error);
   process.exit(1);
 }
 ```
 
 ### Helper Functions
-
 ```typescript
-import { getEnvVar } from './lib/envUtils';
+import { getEnvVar } from '@/lib/envUtils';
 
-// Get environment variable with default value
+// Get environment variable with default
 const customVar = getEnvVar('CUSTOM_VARIABLE', 'default-value');
 ```
 
-## Available Configurations
+## API Key Authorization
 
-### API Configuration (`env.api`)
-- `BASE_URL`: The base URL for API calls (defaults to `http://localhost:3000`)
+The API key is automatically included in all backend requests in the `x-api-key` header:
 
-### Authentication Configuration (`env.auth`)
-- `JWT_SECRET`: JWT signing secret key (required)
-- `JWT_REFRESH_SECRET`: JWT refresh token secret key (required)
+```typescript
+// Headers sent with every request
+{
+  'Content-Type': 'application/json',
+  'x-api-key': API_KEY,
+  'X-User-Token': userAccessToken, // If user is logged in
+}
+```
 
-### Environment Configuration (`env.env`)
-- `NODE_ENV`: Current environment (`development`, `production`, etc.)
-- `IS_PRODUCTION`: Boolean indicating if in production
-- `IS_DEVELOPMENT`: Boolean indicating if in development
+## Environment Setup
 
-## Adding New Environment Variables
+### Development
+Create a `.env.local` file in the `my-app` directory:
 
-1. Add the variable to `envUtils.ts` in the appropriate configuration section
-2. Update the validation function if the variable is required
-3. Update this documentation
+```bash
+# API Configuration
+NEXT_PUBLIC_API_URL=http://localhost:8000
+API_KEY=your-development-api-key
 
-## Benefits
+# Environment
+NODE_ENV=development
+```
 
-- **Type Safety**: All environment variables are typed
-- **Centralization**: Single source of truth for all environment configuration
-- **Validation**: Automatic validation of required variables
-- **Maintainability**: Easy to modify and extend
-- **Documentation**: Self-documenting configuration structure
+### Production
+Set the following environment variables in your production environment:
 
-## Example
+```bash
+NEXT_PUBLIC_API_URL=https://your-api-domain.com
+API_KEY=your-production-api-key
+NODE_ENV=production
+```
 
-See `envUtils.example.ts` for complete usage examples. 
+## Security Considerations
+
+- **API Key**: The API key is required for all backend communication and is server-side only
+- **Public Variables**: Only variables prefixed with `NEXT_PUBLIC_` are available in the browser
+- **Validation**: The application validates required environment variables on startup
+- **Type Safety**: All configuration objects are typed with `as const` for better type inference
+
+## Error Handling
+
+If required environment variables are missing, the application will:
+
+1. Log an error during validation
+2. Exit with code 1 in development
+3. Show appropriate error messages to users
+
+## Best Practices
+
+1. **Always use envUtils**: Don't access `process.env` directly
+2. **Validate on startup**: Call `validateEnvironmentVariables()` early in your app
+3. **Use type-safe access**: Access config through the `env` object
+4. **Provide defaults**: Use the helper functions for optional variables
+5. **Document changes**: Update this README when adding new environment variables 

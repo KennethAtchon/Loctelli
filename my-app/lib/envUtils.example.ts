@@ -9,11 +9,12 @@ import { env, validateEnvironmentVariables, getEnvVar } from './envUtils';
 export function exampleUsage() {
   // Access API configuration
   const apiUrl = env.api.BASE_URL;
+  const apiKey = env.api.API_KEY;
   console.log('API URL:', apiUrl);
+  console.log('API Key exists:', !!apiKey);
 
   // Access authentication configuration
-  const authSecret = env.auth.SECRET;
-  console.log('Auth Secret exists:', !!authSecret);
+  console.log('Auth config loaded:', !!env.auth);
 
   // Access environment configuration
   const isProduction = env.env.IS_PRODUCTION;
@@ -44,4 +45,12 @@ export function getApiEndpoint() {
   } else {
     return 'http://localhost:8000';
   }
+}
+
+// Example 5: Using API key in requests
+export function getApiHeaders() {
+  return {
+    'Content-Type': 'application/json',
+    'x-api-key': env.api.API_KEY,
+  };
 } 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAdminAuth } from '@/contexts/admin-auth-context';
@@ -13,17 +13,24 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const { adminLogin } = useAdminAuth();
-  const [isLoading, setIsLoading] = useState(false);
+  const { adminLogin, isAuthenticated, isLoading } = useAdminAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState<AdminLoginDto>({
     email: '',
     password: '',
   });
 
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.push('/admin/dashboard');
+    }
+  }, [isAuthenticated, isLoading, router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
     setError('');
 
     try {
@@ -32,7 +39,7 @@ export default function AdminLoginPage() {
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Login failed. Please try again.');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -43,6 +50,20 @@ export default function AdminLoginPage() {
       [name]: value,
     }));
   };
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  // Don't render the form if already authenticated (will redirect)
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -102,9 +123,9 @@ export default function AdminLoginPage() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isLoading}
+                disabled={isSubmitting}
               >
-                {isLoading ? 'Signing in...' : 'Sign in'}
+                {isSubmitting ? 'Signing in...' : 'Sign in'}
               </Button>
             </form>
             

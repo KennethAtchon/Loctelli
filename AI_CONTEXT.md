@@ -224,11 +224,17 @@ components/
 
 ### State Management
 - **React Context API**: For global state management
-- **Auth Context**: Handles authentication state
-- **Admin Auth Context**: Separate admin authentication
+- **Auth Context**: Handles authentication state with automatic login
+- **Admin Auth Context**: Separate admin authentication with automatic login
+- **Cookie-based persistence**: Tokens stored in secure HTTP cookies
+- **Automatic token refresh**: Seamless token renewal without user intervention
 
 ### API Client
 Modular API client with separate modules for each endpoint:
+- **API key authorization**: Includes API key in `x-api-key` header for all requests
+- **Automatic authentication**: Includes tokens from cookies in all requests
+- **Token refresh handling**: Automatically refreshes expired tokens
+- **Request retry logic**: Retries failed requests with new tokens
 - `UsersApi` - User management
 - `ClientsApi` - Client management
 - `StrategiesApi` - Strategy management
@@ -252,13 +258,57 @@ Modular API client with separate modules for each endpoint:
 - **bookingsTime**: JSON field for user booking preferences
 - **exampleConversation**: JSON field for strategy conversation templates
 
+## Cookie-Based Authentication System
+
+### Overview
+The application uses secure HTTP cookies for authentication token storage, providing automatic login functionality and enhanced security compared to localStorage.
+
+### Key Features
+- **Automatic Login**: Users are automatically logged in when they visit the app if they have valid authentication cookies
+- **Secure Token Storage**: Tokens stored in HTTP cookies with secure settings (httpOnly, secure, sameSite)
+- **Automatic Token Refresh**: Access tokens are automatically refreshed when they expire
+- **Separate Admin/User Tokens**: Clear separation between admin and user authentication flows
+
+### Cookie Structure
+```typescript
+// Regular User Tokens
+access_token: string;     // 1 hour TTL
+refresh_token: string;    // 7 days TTL
+
+// Admin Tokens
+admin_access_token: string;     // 1 hour TTL
+admin_refresh_token: string;    // 7 days TTL
+```
+
+### Cookie Security Settings
+- **Path**: `/` (available across the entire domain)
+- **Secure**: `true` in production (HTTPS only)
+- **SameSite**: `strict` (prevents CSRF attacks)
+- **HttpOnly**: `true` when supported by server
+- **MaxAge**: Configurable expiration times
+
+### Authentication Flow
+1. **Login**: Tokens stored in cookies, user automatically logged in
+2. **API Requests**: Tokens automatically included in request headers
+3. **Token Expiry**: Automatic refresh without user intervention
+4. **Logout**: All cookies cleared, user redirected to login
+
+### Implementation Files
+- `lib/cookies.ts` - Cookie management utility
+- `contexts/auth-context.tsx` - User authentication context
+- `contexts/admin-auth-context.tsx` - Admin authentication context
+- `lib/api/client.ts` - API client with automatic token handling
+
 ## Security Considerations
 
 ### Authentication
-- JWT-based authentication with refresh tokens
-- Role-based access control (admin, user, manager)
-- Password hashing with bcrypt
-- Protected routes with guards
+- **Cookie-based JWT authentication** with automatic login functionality
+- **Secure token storage** using HTTP cookies with proper security flags
+- **Automatic token refresh** - handles expired tokens seamlessly
+- **Role-based access control** (admin, user, manager)
+- **Password hashing** with bcrypt
+- **Protected routes** with guards
+- **Multi-level authentication** - separate admin and user authentication flows
 
 ### Data Protection
 - Input validation with class-validator
@@ -342,6 +392,7 @@ interface PaginatedResponse<T> {
 
 ### Frontend Environment Variables
 - `NEXT_PUBLIC_API_URL`: Backend API URL
+- `API_KEY`: **Required** - API key for backend authorization (server-side only)
 - `NODE_ENV`: Environment mode
 
 ## Deployment

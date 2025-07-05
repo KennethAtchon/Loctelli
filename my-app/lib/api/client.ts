@@ -1,8 +1,11 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 import { ApiRequestOptions } from './types';
 import { API_CONFIG } from '../envUtils';
+import { AuthCookies } from '../cookies';
+import { api } from './index';
 
 const API_BASE_URL = API_CONFIG.BASE_URL;
+const API_KEY = API_CONFIG.API_KEY;
 
 export class ApiClient {
   private baseUrl: string;
@@ -10,9 +13,84 @@ export class ApiClient {
     timeout: 10000,
     retries: 3,
   };
+  private isRefreshing = false;
+  private refreshPromise: Promise<any> | null = null;
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
+  }
+
+  // Get authentication headers based on available tokens
+  private getAuthHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {};
+    
+    // Add API key authorization (matches backend middleware expectation)
+    if (API_KEY) {
+      headers['x-api-key'] = API_KEY;
+    }
+    
+    // Check for admin tokens first (admin takes precedence)
+    const adminAccessToken = AuthCookies.getAdminAccessToken();
+    if (adminAccessToken) {
+      headers['X-User-Token'] = adminAccessToken;
+      return headers;
+    }
+    
+    // Check for regular user tokens
+    const accessToken = AuthCookies.getAccessToken();
+    if (accessToken) {
+      headers['X-User-Token'] = accessToken;
+    }
+    
+    return headers;
+  }
+
+  // Refresh tokens automatically
+  private async refreshTokens(): Promise<void> {
+    if (this.isRefreshing) {
+      // If already refreshing, wait for the existing promise
+      return this.refreshPromise;
+    }
+
+    this.isRefreshing = true;
+    this.refreshPromise = this.performTokenRefresh();
+    
+    try {
+      await this.refreshPromise;
+    } finally {
+      this.isRefreshing = false;
+      this.refreshPromise = null;
+    }
+  }
+
+  private async performTokenRefresh(): Promise<void> {
+    try {
+      // Try admin refresh first
+      const adminRefreshToken = AuthCookies.getAdminRefreshToken();
+      if (adminRefreshToken) {
+        const response = await api.adminAuth.adminRefreshToken(adminRefreshToken);
+        AuthCookies.setAdminAccessToken(response.access_token);
+        AuthCookies.setAdminRefreshToken(response.refresh_token);
+        return;
+      }
+
+      // Try regular user refresh
+      const refreshToken = AuthCookies.getRefreshToken();
+      if (refreshToken) {
+        const response = await api.auth.refreshToken(refreshToken);
+        AuthCookies.setAccessToken(response.access_token);
+        AuthCookies.setRefreshToken(response.refresh_token);
+        return;
+      }
+
+      // No valid refresh tokens, clear all auth cookies
+      AuthCookies.clearAll();
+      throw new Error('No valid refresh token available');
+    } catch (error) {
+      // Clear all auth cookies on refresh failure
+      AuthCookies.clearAll();
+      throw error;
+    }
   }
 
   protected async request<T>(
@@ -21,9 +99,13 @@ export class ApiClient {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     
+    // Add auth headers
+    const authHeaders = this.getAuthHeaders();
+    
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
+        ...authHeaders,
         ...options.headers,
       },
       ...options,
@@ -39,6 +121,46 @@ export class ApiClient {
       });
 
       clearTimeout(timeoutId);
+      
+      // Handle 401 Unauthorized - try to refresh tokens
+      if (response.status === 401) {
+        try {
+          await this.refreshTokens();
+          
+          // Retry the request with new tokens
+          const newAuthHeaders = this.getAuthHeaders();
+          const retryConfig: RequestInit = {
+            ...config,
+            headers: {
+              ...config.headers,
+              ...newAuthHeaders,
+            },
+          };
+          
+          const retryResponse = await fetch(url, {
+            ...retryConfig,
+            signal: controller.signal,
+          });
+          
+          if (!retryResponse.ok) {
+            const errorData = await retryResponse.json().catch(() => ({}));
+            throw new Error(`HTTP error! status: ${retryResponse.status}, message: ${errorData.message || retryResponse.statusText}`);
+          }
+          
+          return await retryResponse.json();
+        } catch (refreshError) {
+          // If refresh fails, redirect to login
+          if (typeof window !== 'undefined') {
+            // Check if we're on an admin page
+            if (window.location.pathname.startsWith('/admin')) {
+              window.location.href = '/admin/login';
+            } else {
+              window.location.href = '/auth/login';
+            }
+          }
+          throw new Error('Authentication failed. Please log in again.');
+        }
+      }
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

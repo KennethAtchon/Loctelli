@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { AuthCookies } from '@/lib/cookies';
 import type { AdminProfile, AdminLoginDto, AdminRegisterDto, AdminAuthResponse } from '@/lib/api';
 
 interface AdminAuthContextType {
@@ -22,20 +23,20 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
   const isAuthenticated = !!admin;
 
-  // Check for existing admin tokens on mount
+  // Check for existing admin tokens and auto-login on mount
   useEffect(() => {
     const checkAdminAuth = async () => {
       try {
-        const adminAccessToken = localStorage.getItem('admin_access_token');
-        if (adminAccessToken) {
+        // Check if we have any admin auth tokens
+        if (AuthCookies.hasAdminTokens()) {
           // Try to get admin profile
           const profile = await api.adminAuth.getAdminProfile();
           setAdmin(profile);
         }
       } catch (error) {
         // Clear invalid tokens
-        localStorage.removeItem('admin_access_token');
-        localStorage.removeItem('admin_refresh_token');
+        AuthCookies.clearAll();
+        console.error('Admin auto-login failed:', error);
       } finally {
         setIsLoading(false);
       }
@@ -47,12 +48,13 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const adminLogin = async (credentials: AdminLoginDto) => {
     const response: AdminAuthResponse = await api.adminAuth.adminLogin(credentials);
     
-    // Store admin tokens
-    localStorage.setItem('admin_access_token', response.access_token);
-    localStorage.setItem('admin_refresh_token', response.refresh_token);
+    // Store admin tokens in cookies
+    AuthCookies.setAdminAccessToken(response.access_token);
+    AuthCookies.setAdminRefreshToken(response.refresh_token);
     
-    // Set admin
-    setAdmin(response.admin);
+    // Get full admin profile and set admin
+    const profile = await api.adminAuth.getAdminProfile();
+    setAdmin(profile);
   };
 
   const adminRegister = async (data: AdminRegisterDto) => {
@@ -68,8 +70,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     }
     
     // Clear tokens and admin state
-    localStorage.removeItem('admin_access_token');
-    localStorage.removeItem('admin_refresh_token');
+    AuthCookies.clearAll();
     setAdmin(null);
   };
 
@@ -80,8 +81,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       // If getting profile fails, admin might be logged out
       setAdmin(null);
-      localStorage.removeItem('admin_access_token');
-      localStorage.removeItem('admin_refresh_token');
+      AuthCookies.clearAll();
     }
   };
 

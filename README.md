@@ -8,7 +8,7 @@ A comprehensive CRM application built with NestJS backend and Next.js frontend, 
 - **Frontend**: Next.js 15 with React 19 and TailwindCSS
 - **Database**: PostgreSQL
 - **Cache**: Redis (backend only)
-- **Authentication**: Custom JWT-based authentication (frontend & backend)
+- **Authentication**: Cookie-based JWT authentication with automatic login (frontend & backend)
 - **AI Integration**: OpenAI-powered chat responses and sales strategies
 
 ## 📁 Project Structure
@@ -73,6 +73,8 @@ cp project/.env.example project/.env
 cp my-app/.env.example my-app/.env.local
 ```
 
+**Important**: You must set the `API_KEY` environment variable in your frontend `.env.local` file. This API key is required for all backend communication and is server-side only.
+
 ### 3. Backend Setup
 
 ```bash
@@ -126,10 +128,12 @@ npm run db:studio
 ## 📊 Features
 
 ### 🔐 Authentication & Authorization
-- **Multi-level authentication**: Admin and regular user roles
-- **JWT-based sessions**: Secure token-based authentication
+- **Cookie-based authentication**: Secure HTTP cookies with automatic login functionality
+- **Multi-level authentication**: Admin and regular user roles with separate token storage
+- **Automatic token refresh**: Seamless token renewal without user intervention
 - **Role-based access control**: Different permissions for different user types
 - **Protected routes**: Automatic route protection based on user roles
+- **Enhanced security**: httpOnly, secure, and sameSite cookie flags
 
 ### 👥 User Management
 - **User registration and login**: Secure authentication system
@@ -254,6 +258,32 @@ This will start:
 - NestJS backend API
 - Next.js frontend
 
+## 🔐 Authentication System
+
+### Cookie-Based Authentication
+The application uses secure HTTP cookies for authentication, providing:
+
+- **Automatic Login**: Users stay logged in across browser sessions
+- **Secure Token Storage**: Tokens stored in HTTP cookies with security flags
+- **Automatic Token Refresh**: Seamless token renewal without user intervention
+- **Enhanced Security**: Protection against XSS and CSRF attacks
+
+### Key Features
+- **Separate Admin/User Authentication**: Clear separation between admin and user authentication flows
+- **Token Management**: Automatic handling of access and refresh tokens
+- **Session Persistence**: Users remain logged in until they explicitly logout
+- **Security Headers**: Proper cookie security settings (httpOnly, secure, sameSite)
+
+### Authentication Flow
+1. **API Key Authorization**: All requests include API key in `x-api-key` header
+2. **Login**: User credentials validated, tokens stored in secure cookies
+3. **Automatic Login**: On app load, valid cookies automatically log user in
+4. **API Requests**: API key and user tokens automatically included in all requests
+5. **Token Refresh**: Expired tokens automatically refreshed in background
+6. **Logout**: All authentication cookies cleared
+
+For detailed authentication documentation, see [Cookie Authentication README](my-app/lib/cookies/README.md).
+
 ## 🔌 API Documentation
 
 The backend provides a comprehensive REST API with the following main endpoints:
@@ -274,7 +304,7 @@ For detailed API documentation, see the [API Client Documentation](my-app/lib/ap
 - **Framework**: NestJS 11
 - **Database**: PostgreSQL with Prisma ORM
 - **Cache**: Redis
-- **Authentication**: JWT with Passport
+- **Authentication**: JWT with Passport and cookie-based sessions
 - **Validation**: class-validator
 - **Testing**: Jest
 - **Scheduling**: @nestjs/schedule
@@ -282,7 +312,8 @@ For detailed API documentation, see the [API Client Documentation](my-app/lib/ap
 ### Frontend
 - **Framework**: Next.js 15 with React 19
 - **Styling**: TailwindCSS with shadcn/ui components
-- **State Management**: React Context API
+- **State Management**: React Context API with cookie-based persistence
+- **Authentication**: Cookie-based JWT with automatic login and token refresh
 - **Forms**: React Hook Form with Zod validation
 - **Icons**: Lucide React
 - **Charts**: Recharts
@@ -318,6 +349,7 @@ For support and questions:
 - **v0.1.0**: Initial release with core CRM functionality
 - **v0.2.0**: Added AI chat integration and sales strategies
 - **v0.3.0**: Enhanced admin dashboard and user management
+- **v0.4.0**: Implemented cookie-based authentication with automatic login
 
 ---
 
