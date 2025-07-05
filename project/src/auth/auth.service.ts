@@ -113,38 +113,49 @@ export class AuthService {
     return result;
   }
 
-  async refreshToken(userId: number, refreshToken: string) {
-    // Verify refresh token from Redis
-    const storedToken = await this.redisService.getCache(`refresh:${userId}`);
-    
-    if (!storedToken || storedToken !== refreshToken) {
+  async refreshToken(refreshToken: string) {
+    try {
+      // Decode the refresh token to get user ID
+      const decoded = this.jwtService.verify(refreshToken) as JwtPayload;
+      const userId = decoded.sub;
+
+      // Verify refresh token from Redis
+      const storedToken = await this.redisService.getCache(`refresh:${userId}`);
+      
+      if (!storedToken || storedToken !== refreshToken) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user || !user.isActive) {
+        throw new UnauthorizedException('User not found or inactive');
+      }
+
+      const payload: JwtPayload = {
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+      };
+
+      const newAccessToken = this.jwtService.sign(payload);
+      const newRefreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+      // Update refresh token in Redis
+      await this.redisService.setCache(`refresh:${user.id}`, newRefreshToken, 7 * 24 * 60 * 60);
+
+      return {
+        access_token: newAccessToken,
+        refresh_token: newRefreshToken,
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
       throw new UnauthorizedException('Invalid refresh token');
     }
-
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user || !user.isActive) {
-      throw new UnauthorizedException('User not found or inactive');
-    }
-
-    const payload: JwtPayload = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    };
-
-    const newAccessToken = this.jwtService.sign(payload);
-    const newRefreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
-
-    // Update refresh token in Redis
-    await this.redisService.setCache(`refresh:${user.id}`, newRefreshToken, 7 * 24 * 60 * 60);
-
-    return {
-      access_token: newAccessToken,
-      refresh_token: newRefreshToken,
-    };
   }
 
   async logout(userId: number) {

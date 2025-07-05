@@ -128,6 +128,18 @@ export const AuthCookies = {
   // Clear all auth tokens
   clearAll: () => CookieManager.clearAuthCookies(),
   
+  // Clear only admin tokens
+  clearAdminTokens: () => {
+    CookieManager.deleteCookie('admin_access_token');
+    CookieManager.deleteCookie('admin_refresh_token');
+  },
+  
+  // Clear only user tokens
+  clearUserTokens: () => {
+    CookieManager.deleteCookie('access_token');
+    CookieManager.deleteCookie('refresh_token');
+  },
+  
   // Check if user is logged in
   hasUserTokens: () => {
     return CookieManager.hasCookie('access_token') || CookieManager.hasCookie('refresh_token');

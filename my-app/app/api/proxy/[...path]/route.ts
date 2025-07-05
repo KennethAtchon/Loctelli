@@ -5,37 +5,42 @@ const API_KEY = process.env.API_KEY; // Server-side only, not NEXT_PUBLIC
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  return handleRequest(request, params.path, 'GET');
+  const resolvedParams = await params;
+  return handleRequest(request, resolvedParams.path, 'GET');
 }
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  return handleRequest(request, params.path, 'POST');
+  const resolvedParams = await params;
+  return handleRequest(request, resolvedParams.path, 'POST');
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  return handleRequest(request, params.path, 'PUT');
+  const resolvedParams = await params;
+  return handleRequest(request, resolvedParams.path, 'PUT');
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  return handleRequest(request, params.path, 'PATCH');
+  const resolvedParams = await params;
+  return handleRequest(request, resolvedParams.path, 'PATCH');
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  return handleRequest(request, params.path, 'DELETE');
+  const resolvedParams = await params;
+  return handleRequest(request, resolvedParams.path, 'DELETE');
 }
 
 async function handleRequest(
@@ -57,9 +62,17 @@ async function handleRequest(
       'Content-Type': 'application/json',
     };
 
+    console.log(API_KEY)
+
     // Add API key to backend request
     if (API_KEY) {
       headers['x-api-key'] = API_KEY;
+    } else {
+      console.error('❌ API_KEY is not set in environment variables');
+      return NextResponse.json(
+        { error: 'Server configuration error', message: 'API key not configured' },
+        { status: 500 }
+      );
     }
 
     // Forward user authentication headers if present

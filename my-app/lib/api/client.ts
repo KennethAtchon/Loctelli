@@ -13,6 +13,7 @@ export class ApiClient {
   };
   private isRefreshing = false;
   private refreshPromise: Promise<any> | null = null;
+  private isRefreshRequest = false; // Flag to prevent recursive refresh attempts
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
@@ -25,21 +26,34 @@ export class ApiClient {
     // Note: API key is now handled server-side by the proxy
     // No need to include it in frontend requests
     
-    // Check for admin tokens first (admin takes precedence)
+    // Debug: Check all tokens
     const adminAccessToken = AuthCookies.getAdminAccessToken();
+    const adminRefreshToken = AuthCookies.getAdminRefreshToken();
+    const userAccessToken = AuthCookies.getAccessToken();
+    const userRefreshToken = AuthCookies.getRefreshToken();
+    
+    console.log('🔍 Token Debug:', {
+      adminAccess: !!adminAccessToken,
+      adminRefresh: !!adminRefreshToken,
+      userAccess: !!userAccessToken,
+      userRefresh: !!userRefreshToken,
+      adminAccessLength: adminAccessToken?.length || 0,
+      adminRefreshLength: adminRefreshToken?.length || 0,
+    });
+    
+    // Check for admin tokens first (admin takes precedence)
     if (adminAccessToken) {
       headers['x-user-token'] = adminAccessToken;
-      console.log('🔑 Admin token found and added to headers');
+      console.log('🔑 Admin access token found and added to headers');
       return headers;
     }
     
     // Check for regular user tokens
-    const accessToken = AuthCookies.getAccessToken();
-    if (accessToken) {
-      headers['x-user-token'] = accessToken;
-      console.log('🔑 User token found and added to headers');
+    if (userAccessToken) {
+      headers['x-user-token'] = userAccessToken;
+      console.log('🔑 User access token found and added to headers');
     } else {
-      console.log('ℹ️ No user tokens found');
+      console.log('ℹ️ No access tokens found');
     }
     
     return headers;
@@ -68,31 +82,69 @@ export class ApiClient {
       // Try admin refresh first
       const adminRefreshToken = AuthCookies.getAdminRefreshToken();
       if (adminRefreshToken) {
-        // Import dynamically to avoid circular dependency
-        const { api } = await import('./index');
-        const response = await api.adminAuth.adminRefreshToken(adminRefreshToken);
-        AuthCookies.setAdminAccessToken(response.access_token);
-        AuthCookies.setAdminRefreshToken(response.refresh_token);
-        return;
+        try {
+          // Use direct fetch to avoid infinite loop
+          this.isRefreshRequest = true;
+          const response = await fetch(`${this.baseUrl}/admin/auth/refresh`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ refresh_token: adminRefreshToken }),
+          });
+          this.isRefreshRequest = false;
+
+          if (!response.ok) {
+            throw new Error(`Refresh failed: ${response.status}`);
+          }
+
+          const data = await response.json();
+          AuthCookies.setAdminAccessToken(data.access_token);
+          AuthCookies.setAdminRefreshToken(data.refresh_token);
+          return;
+        } catch (error) {
+          console.error('Admin token refresh failed:', error);
+          // Clear only admin tokens on failure
+          AuthCookies.clearAdminTokens();
+          throw error;
+        }
       }
 
       // Try regular user refresh
       const refreshToken = AuthCookies.getRefreshToken();
       if (refreshToken) {
-        // Import dynamically to avoid circular dependency
-        const { api } = await import('./index');
-        const response = await api.auth.refreshToken(refreshToken);
-        AuthCookies.setAccessToken(response.access_token);
-        AuthCookies.setRefreshToken(response.refresh_token);
-        return;
+        try {
+          // Use direct fetch to avoid infinite loop
+          this.isRefreshRequest = true;
+          const response = await fetch(`${this.baseUrl}/auth/refresh`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+          });
+          this.isRefreshRequest = false;
+
+          if (!response.ok) {
+            throw new Error(`Refresh failed: ${response.status}`);
+          }
+
+          const data = await response.json();
+          AuthCookies.setAccessToken(data.access_token);
+          AuthCookies.setRefreshToken(data.refresh_token);
+          return;
+        } catch (error) {
+          console.error('User token refresh failed:', error);
+          // Clear only user tokens on failure
+          AuthCookies.clearUserTokens();
+          throw error;
+        }
       }
 
-      // No valid refresh tokens, clear all auth cookies
-      AuthCookies.clearAll();
+      // No valid refresh tokens
       throw new Error('No valid refresh token available');
     } catch (error) {
-      // Clear all auth cookies on refresh failure
-      AuthCookies.clearAll();
+      // Don't clear all tokens here - let the specific refresh methods handle their own tokens
       throw error;
     }
   }
@@ -102,9 +154,15 @@ export class ApiClient {
     options: RequestInit & ApiRequestOptions = {}
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
+    console.log('🌐 API Request:', {
+      url,
+      method: options.method || 'GET',
+      endpoint
+    });
     
     // Add auth headers
     const authHeaders = this.getAuthHeaders();
+    console.log('🔑 Auth headers:', authHeaders);
     
     const config: RequestInit = {
       headers: {
@@ -126,13 +184,17 @@ export class ApiClient {
 
       clearTimeout(timeoutId);
       
-      // Handle 401 Unauthorized - try to refresh tokens
-      if (response.status === 401) {
+      console.log('📡 Response status:', response.status, response.statusText);
+      
+      // Handle 401 Unauthorized - try to refresh tokens (but not for refresh requests themselves)
+      if (response.status === 401 && !this.isRefreshRequest) {
+        console.log('🔒 401 Unauthorized, attempting token refresh...');
         try {
           await this.refreshTokens();
           
           // Retry the request with new tokens
           const newAuthHeaders = this.getAuthHeaders();
+          console.log('🔄 Retrying with new auth headers:', newAuthHeaders);
           const retryConfig: RequestInit = {
             ...config,
             headers: {
@@ -146,6 +208,8 @@ export class ApiClient {
             signal: controller.signal,
           });
           
+          console.log('🔄 Retry response status:', retryResponse.status, retryResponse.statusText);
+          
           if (!retryResponse.ok) {
             const errorData = await retryResponse.json().catch(() => ({}));
             throw new Error(`HTTP error! status: ${retryResponse.status}, message: ${errorData.message || retryResponse.statusText}`);
@@ -153,6 +217,7 @@ export class ApiClient {
           
           return await retryResponse.json();
         } catch (refreshError) {
+          console.error('❌ Token refresh failed:', refreshError);
           // If refresh fails, redirect to login
           if (typeof window !== 'undefined') {
             // Check if we're on an admin page
@@ -168,12 +233,17 @@ export class ApiClient {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('❌ API request failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData
+        });
         throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message || response.statusText}`);
       }
       
       return await response.json();
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error('❌ API request failed:', error);
       
       // Handle specific error types
       if (error instanceof Error) {

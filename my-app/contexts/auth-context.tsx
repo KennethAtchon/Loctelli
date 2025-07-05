@@ -27,6 +27,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       console.log('🔍 Checking user authentication...');
+      
+      // Add timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        console.warn('⚠️ User auth check timeout - forcing loading to false');
+        setIsLoading(false);
+      }, 10000); // 10 second timeout
+
       try {
         // Check if we have any auth tokens
         if (AuthCookies.hasUserTokens()) {
@@ -48,6 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         AuthCookies.clearAll();
         console.error('❌ Auto-login failed:', error);
       } finally {
+        clearTimeout(timeoutId);
         console.log('🏁 User auth check completed');
         setIsLoading(false);
       }

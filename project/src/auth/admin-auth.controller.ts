@@ -38,9 +38,8 @@ export class AdminAuthController {
   }
 
   @Post('refresh')
-  @UseGuards(JwtAuthGuard)
-  async adminRefreshToken(@Request() req, @Body() body: { refresh_token: string }) {
-    return this.adminAuthService.adminRefreshToken(req.user.userId, body.refresh_token);
+  async adminRefreshToken(@Body() body: { refresh_token: string }) {
+    return this.adminAuthService.adminRefreshToken(body.refresh_token);
   }
 
   @Post('logout')

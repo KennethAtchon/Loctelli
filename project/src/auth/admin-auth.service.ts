@@ -156,39 +156,50 @@ export class AdminAuthService {
     return result;
   }
 
-  async adminRefreshToken(adminId: number, refreshToken: string) {
-    // Verify refresh token from Redis
-    const storedToken = await this.redisService.getCache(`admin_refresh:${adminId}`);
-    
-    if (!storedToken || storedToken !== refreshToken) {
+  async adminRefreshToken(refreshToken: string) {
+    try {
+      // Decode the refresh token to get admin ID
+      const decoded = this.jwtService.verify(refreshToken) as AdminJwtPayload;
+      const adminId = decoded.sub;
+
+      // Verify refresh token from Redis
+      const storedToken = await this.redisService.getCache(`admin_refresh:${adminId}`);
+      
+      if (!storedToken || storedToken !== refreshToken) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      const adminUser = await this.prisma.adminUser.findUnique({
+        where: { id: adminId },
+      });
+
+      if (!adminUser || !adminUser.isActive) {
+        throw new UnauthorizedException('Admin user not found or inactive');
+      }
+
+      const payload: AdminJwtPayload = {
+        sub: adminUser.id,
+        email: adminUser.email,
+        role: adminUser.role,
+        type: 'admin',
+      };
+
+      const newAccessToken = this.jwtService.sign(payload);
+      const newRefreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+      // Update refresh token in Redis
+      await this.redisService.setCache(`admin_refresh:${adminUser.id}`, newRefreshToken, 7 * 24 * 60 * 60);
+
+      return {
+        access_token: newAccessToken,
+        refresh_token: newRefreshToken,
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
       throw new UnauthorizedException('Invalid refresh token');
     }
-
-    const adminUser = await this.prisma.adminUser.findUnique({
-      where: { id: adminId },
-    });
-
-    if (!adminUser || !adminUser.isActive) {
-      throw new UnauthorizedException('Admin user not found or inactive');
-    }
-
-    const payload: AdminJwtPayload = {
-      sub: adminUser.id,
-      email: adminUser.email,
-      role: adminUser.role,
-      type: 'admin',
-    };
-
-    const newAccessToken = this.jwtService.sign(payload);
-    const newRefreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
-
-    // Update refresh token in Redis
-    await this.redisService.setCache(`admin_refresh:${adminUser.id}`, newRefreshToken, 7 * 24 * 60 * 60);
-
-    return {
-      access_token: newAccessToken,
-      refresh_token: newRefreshToken,
-    };
   }
 
   async adminLogout(adminId: number) {
