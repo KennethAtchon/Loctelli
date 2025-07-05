@@ -1,8 +1,9 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
+import { GeneralService } from './general.service';
 
 @Controller('general')
 export class GeneralController {
-  constructor() {}
+  constructor(private readonly generalService: GeneralService) {}
 
   @Get()
   generalGet() {
@@ -12,5 +13,15 @@ export class GeneralController {
   @Post()
   generalPost(@Body() data: any) {
     return { received: data };
+  }
+
+  @Get('dashboard-stats')
+  async getDashboardStats() {
+    return this.generalService.getDashboardStats();
+  }
+
+  @Get('system-status')
+  async getSystemStatus() {
+    return this.generalService.getSystemStatus();
   }
 }

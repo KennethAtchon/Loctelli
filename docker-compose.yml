@@ -84,8 +84,6 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000/api/proxy}
       BACKEND_URL: http://loctelli_api:8000
-      API_KEY: ${API_KEY}
-      NODE_ENV: ${NODE_ENV:-production}
     env_file:
       - ./my-app/.env
     depends_on:

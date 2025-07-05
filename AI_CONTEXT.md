@@ -4,25 +4,31 @@ This document provides comprehensive context for AI models to understand the Loc
 
 ## System Overview
 
-Loctelli is a CRM application with AI-powered sales automation capabilities. The system consists of a NestJS backend API and a Next.js frontend, with PostgreSQL database and Redis caching.
+Loctelli is a comprehensive CRM application with AI-powered sales automation capabilities. The system consists of a NestJS backend API and a Next.js frontend, with PostgreSQL database and Redis caching. The application features advanced authentication, client management, sales strategies, booking systems, and AI-powered chat integration with automated background processes.
 
 ## Architecture Context
 
 ### Technology Stack
 - **Backend**: NestJS 11 with TypeScript
-- **Frontend**: Next.js 15 with React 19
-- **Database**: PostgreSQL with Prisma ORM
-- **Cache**: Redis
-- **Authentication**: JWT-based with role-based access control
+- **Frontend**: Next.js 15.2.4 with React 19
+- **Database**: PostgreSQL with Prisma ORM 6.9.0
+- **Cache**: Redis 7-alpine
+- **Authentication**: Cookie-based JWT authentication with automatic login
 - **AI Integration**: OpenAI-powered chat responses and sales strategies
+- **UI Framework**: TailwindCSS with shadcn/ui components
+- **State Management**: React Context API with cookie-based persistence
+- **API Communication**: Next.js API proxy for secure backend communication
 
 ### Key Components
-1. **Authentication System**: Multi-level auth with admin and user roles
-2. **User Management**: User profiles with company and budget tracking
-3. **Sales Strategies**: AI-powered sales approaches with customizable parameters
-4. **Client Management**: Comprehensive client profiles with message history
-5. **Booking System**: Appointment scheduling with calendar integration
-6. **Chat System**: AI-powered messaging with strategy-based responses
+1. **Authentication System**: Multi-level auth with admin and user roles, cookie-based with automatic login
+2. **User Management**: User profiles with company, budget tracking, and calendar integration
+3. **Sales Strategies**: AI-powered sales approaches with customizable parameters and objection handling
+4. **Client Management**: Comprehensive client profiles with message history and status tracking
+5. **Booking System**: Appointment scheduling with calendar integration and status management
+6. **Chat System**: AI-powered messaging with strategy-based responses and real-time communication
+7. **Admin Dashboard**: Comprehensive admin panel with user management and system monitoring
+8. **Background Processes**: Automated booking management and sales bot services
+9. **API Proxy System**: Secure server-side communication between frontend and backend
 
 ## Data Models
 
@@ -38,14 +44,16 @@ interface User {
   isActive: boolean;
   company?: string;
   budget?: string;
-  bookingsTime?: any;
+  bookingsTime?: any; // JSON field for booking preferences
   bookingEnabled: number; // 0 = False, 1 = True
-  calendarId?: string;
-  locationId?: string;
-  assignedUserId?: string;
+  calendarId?: string; // GoHighLevel calendar integration
+  locationId?: string; // GoHighLevel location integration
+  assignedUserId?: string; // External system user ID
   lastLoginAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+  createdByAdminId?: number; // ID of admin who created this user
+  createdByAdmin?: AdminUser; // Relation to admin
   strategies?: Strategy[];
   clients?: Client[];
   bookings?: Booking[];
@@ -58,17 +66,17 @@ interface Strategy {
   id: number;
   userId: number;
   name: string;
-  tag?: string;
-  tone?: string;
-  aiInstructions?: string;
-  objectionHandling?: string;
-  qualificationPriority?: string;
-  creativity?: number;
-  aiObjective?: string;
-  disqualificationCriteria?: string;
-  exampleConversation?: any;
-  delayMin?: number; // Minimum delay in seconds
-  delayMax?: number; // Maximum delay in seconds
+  tag?: string; // Strategy categorization
+  tone?: string; // Communication tone (professional, casual, etc.)
+  aiInstructions?: string; // Specific AI instructions for response generation
+  objectionHandling?: string; // Pre-defined responses to common objections
+  qualificationPriority?: string; // What makes a good prospect
+  creativity?: number; // AI creativity level (1-10 scale)
+  aiObjective?: string; // Primary AI objective for this strategy
+  disqualificationCriteria?: string; // When to disqualify prospects
+  exampleConversation?: any; // JSON field for conversation templates
+  delayMin?: number; // Minimum delay in seconds for responses
+  delayMax?: number; // Maximum delay in seconds for responses
   createdAt: Date;
   updatedAt: Date;
   user?: User;
@@ -86,13 +94,13 @@ interface Client {
   email?: string;
   phone?: string;
   company?: string;
-  position?: string;
-  customId?: string;
-  messageHistory?: any; // JSON array of messages
-  status: string; // "lead", "prospect", "customer", etc.
-  notes?: string;
-  lastMessage?: string;
-  lastMessageDate?: string;
+  position?: string; // Job title/position
+  customId?: string; // External system integration ID
+  messageHistory?: any; // JSON array of complete conversation history
+  status: string; // "lead", "prospect", "customer", "disqualified", etc.
+  notes?: string; // Additional notes and observations
+  lastMessage?: string; // Most recent message content
+  lastMessageDate?: string; // Timestamp of last message
   user?: User;
   strategy?: Strategy;
   bookings?: Booking[];
@@ -104,10 +112,10 @@ interface Client {
 interface Booking {
   id: number;
   userId: number;
-  clientId?: number;
-  bookingType: string;
-  details: any; // JSON object with booking details
-  status: string; // "pending", "confirmed", "cancelled", etc.
+  clientId?: number; // Optional client association
+  bookingType: string; // Type of booking (meeting, call, etc.)
+  details: any; // JSON object with booking details (time, duration, etc.)
+  status: string; // "pending", "confirmed", "cancelled", "completed"
   createdAt: Date;
   updatedAt: Date;
   user?: User;
@@ -121,7 +129,7 @@ interface AdminUser {
   id: number;
   name: string;
   email: string;
-  password: string; // Hashed
+  password: string; // Hashed with bcrypt
   role: string; // "admin", "super_admin"
   isActive: boolean;
   permissions?: any; // JSON field for granular permissions
@@ -134,79 +142,117 @@ interface AdminUser {
 
 ## API Structure
 
+### API Proxy System
+The frontend communicates with the backend through a Next.js API proxy (`/api/proxy/[...path]`) that:
+- Handles API key authentication server-side
+- Forwards user authentication tokens
+- Provides secure communication between frontend and backend
+- Manages CORS and request/response handling
+
 ### Authentication Endpoints
-- `POST /auth/login` - User login
+- `POST /auth/login` - User login with cookie-based token storage
 - `POST /auth/register` - User registration
-- `POST /auth/refresh` - Token refresh
-- `POST /auth/admin/login` - Admin login
-- `POST /auth/admin/register` - Admin registration
+- `POST /auth/refresh` - Token refresh with automatic cookie update
+- `GET /auth/profile` - Get current user profile
+- `POST /auth/change-password` - Change user password
+- `POST /auth/logout` - User logout
+- `POST /admin/auth/login` - Admin login with separate cookie storage
+- `POST /admin/auth/register` - Admin registration
+- `POST /admin/auth/refresh` - Admin token refresh
+- `GET /admin/auth/profile` - Get admin profile
+- `GET /admin/auth/users` - Get all users (admin only)
+- `POST /admin/auth/generate-auth-code` - Generate admin auth code
+- `GET /admin/auth/current-auth-code` - Get current auth code
 
 ### Core API Modules
 
 #### Users API (`/users`)
-- `GET /users` - Get all users
+- `GET /users` - Get all users (admin only)
 - `GET /users/:id` - Get user by ID
 - `POST /users` - Create new user
 - `PUT /users/:id` - Update user
 - `DELETE /users/:id` - Delete user
 
 #### Strategies API (`/strategies`)
-- `GET /strategies` - Get all strategies
+- `GET /strategies` - Get all strategies for current user
 - `GET /strategies/:id` - Get strategy by ID
 - `POST /strategies` - Create new strategy
-- `PUT /strategies/:id` - Update strategy
+- `PATCH /strategies/:id` - Update strategy
 - `DELETE /strategies/:id` - Delete strategy
-- `GET /strategies/user/:userId` - Get strategies by user
+- `GET /strategies?userId=:userId` - Get strategies by user (admin only)
+- `POST /strategies/:id/duplicate` - Duplicate strategy
 
 #### Clients API (`/clients`)
-- `GET /clients` - Get all clients
+- `GET /clients` - Get all clients for current user
 - `GET /clients/:id` - Get client by ID
 - `POST /clients` - Create new client
-- `PUT /clients/:id` - Update client
+- `PATCH /clients/:id` - Update client
 - `DELETE /clients/:id` - Delete client
-- `GET /clients/user/:userId` - Get clients by user
-- `GET /clients/strategy/:strategyId` - Get clients by strategy
+- `GET /clients?userId=:userId` - Get clients by user (admin only)
+- `GET /clients?strategyId=:strategyId` - Get clients by strategy
 
 #### Bookings API (`/bookings`)
-- `GET /bookings` - Get all bookings
+- `GET /bookings` - Get all bookings for current user
 - `GET /bookings/:id` - Get booking by ID
 - `POST /bookings` - Create new booking
-- `PUT /bookings/:id` - Update booking
+- `PATCH /bookings/:id` - Update booking
 - `DELETE /bookings/:id` - Delete booking
-- `GET /bookings/user/:userId` - Get bookings by user
-- `GET /bookings/client/:clientId` - Get bookings by client
+- `GET /bookings?userId=:userId` - Get bookings by user (admin only)
+- `GET /bookings?clientId=:clientId` - Get bookings by client
+- `GET /bookings?startDate=:startDate&endDate=:endDate` - Get bookings by date range
+- `PATCH /bookings/:id/status` - Update booking status
 
 #### Chat API (`/chat`)
-- `POST /chat/send` - Send a message
-- `GET /chat/history/:clientId` - Get chat history
-- `POST /chat/send-by-custom-id` - Send message by custom ID
-- `POST /chat/general` - Handle general chat data
+- `POST /chat/send-message` - Send a message with AI response generation
+- `GET /chat/history/:clientId` - Get complete chat history for client
+- `GET /chat/history/:clientId?startDate=:startDate&endDate=:endDate` - Get chat history by date range
+- `PATCH /chat/messages/:messageId/read` - Mark message as read
+- `DELETE /chat/messages/:messageId` - Delete message
+- `GET /chat/unread-count/:clientId` - Get unread messages count
+- `PATCH /chat/mark-all-read/:clientId` - Mark all messages as read
+
+#### Status API (`/status`)
+- `GET /status` - System health check
+- `GET /status/health` - Health check endpoint
+- `GET /status/version` - Get API version
+
+#### General API (`/general`)
+- `GET /general/dashboard-stats` - Get aggregated dashboard statistics for admin
+- `GET /general/system-status` - Get system health status (database, Redis, etc.)
+- `GET /general` - General endpoint test
+- `POST /general` - General endpoint test
 
 ## AI Integration Points
 
 ### Chat System
-The chat system uses AI to generate responses based on:
+The chat system uses OpenAI to generate intelligent responses based on:
 1. **Sales Strategy Context**: Uses the client's assigned strategy for response generation
-2. **Message History**: Considers previous conversation context
-3. **Client Profile**: Incorporates client information (company, position, etc.)
+2. **Message History**: Considers previous conversation context and tone
+3. **Client Profile**: Incorporates client information (company, position, status)
 4. **Custom Instructions**: Follows AI instructions defined in the strategy
+5. **Objection Handling**: Uses pre-defined responses for common objections
+6. **Creativity Control**: Adjusts response creativity based on strategy settings
 
 ### Strategy-Based AI Responses
 Each client is assigned a sales strategy that contains:
-- **AI Instructions**: Specific instructions for the AI model
-- **Tone**: Desired communication tone
-- **Objection Handling**: Pre-defined responses to common objections
-- **Qualification Criteria**: What makes a good prospect
+- **AI Instructions**: Specific instructions for the AI model on how to respond
+- **Tone**: Desired communication tone (professional, casual, friendly, etc.)
+- **Objection Handling**: Pre-defined responses to common sales objections
+- **Qualification Criteria**: What makes a good prospect for this strategy
 - **Creativity Level**: Controls response creativity (1-10 scale)
+- **AI Objective**: Primary goal for the AI in conversations
+- **Disqualification Criteria**: When to disqualify prospects
 - **Delay Settings**: Natural response timing (min/max seconds)
 
 ### Message Structure
 ```typescript
 interface ChatMessage {
-  content: string;
-  role: 'user' | 'assistant';
-  timestamp: string;
-  metadata?: any;
+  id: string;
+  clientId: number;
+  message: string;
+  sender: 'user' | 'client';
+  timestamp: Date;
+  status: 'sent' | 'delivered' | 'read';
 }
 ```
 
@@ -216,47 +262,53 @@ interface ChatMessage {
 ```
 components/
 ├── ui/              # Reusable UI components (shadcn/ui)
-├── admin/           # Admin-specific components
-├── auth/            # Authentication components
-├── examples/        # Example usage components
-└── version1/        # Landing page components
+├── admin/           # Admin-specific components (header, sidebar)
+├── auth/            # Authentication components (protected routes)
+├── version1/        # Landing page components
+└── theme-provider.tsx # Theme management
 ```
 
 ### State Management
 - **React Context API**: For global state management
-- **Auth Context**: Handles authentication state with automatic login
+- **Auth Context**: Handles user authentication state with automatic login
 - **Admin Auth Context**: Separate admin authentication with automatic login
 - **Cookie-based persistence**: Tokens stored in secure HTTP cookies
 - **Automatic token refresh**: Seamless token renewal without user intervention
+- **Session persistence**: Users remain logged in across browser sessions
 
 ### API Client
 Modular API client with separate modules for each endpoint:
-- **API key authorization**: Includes API key in `x-api-key` header for all requests
+- **API key authorization**: Handled server-side through proxy
 - **Automatic authentication**: Includes tokens from cookies in all requests
 - **Token refresh handling**: Automatically refreshes expired tokens
 - **Request retry logic**: Retries failed requests with new tokens
-- `UsersApi` - User management
-- `ClientsApi` - Client management
-- `StrategiesApi` - Strategy management
-- `BookingsApi` - Booking management
-- `ChatApi` - Chat functionality
-- `StatusApi` - System status
+- **Error handling**: Comprehensive error handling and user feedback
+- `AuthApi` - User authentication operations
+- `AdminAuthApi` - Admin authentication operations
+- `UsersApi` - User management operations
+- `ClientsApi` - Client management operations
+- `StrategiesApi` - Strategy management operations
+- `BookingsApi` - Booking management operations
+- `ChatApi` - Chat functionality and AI integration
+- `StatusApi` - System status and health checks
 
 ## Database Schema
 
 ### Key Relationships
-1. **User → Strategy**: One-to-many (users can have multiple strategies)
-2. **User → Client**: One-to-many (users can have multiple clients)
-3. **Strategy → Client**: One-to-many (strategies can be used by multiple clients)
-4. **User → Booking**: One-to-many (users can have multiple bookings)
-5. **Client → Booking**: One-to-many (clients can have multiple bookings)
-6. **AdminUser → User**: One-to-many (admins can create multiple users)
+1. **AdminUser → User**: One-to-many (admins can create multiple users)
+2. **User → Strategy**: One-to-many (users can have multiple strategies)
+3. **User → Client**: One-to-many (users can have multiple clients)
+4. **Strategy → Client**: One-to-many (strategies can be used by multiple clients)
+5. **User → Booking**: One-to-many (users can have multiple bookings)
+6. **Client → Booking**: One-to-many (clients can have multiple bookings)
 
 ### Important Fields
-- **messageHistory**: JSON field storing complete conversation history
-- **permissions**: JSON field for granular admin permissions
-- **bookingsTime**: JSON field for user booking preferences
+- **messageHistory**: JSON field storing complete conversation history with timestamps
+- **permissions**: JSON field for granular admin permissions and access control
+- **bookingsTime**: JSON field for user booking preferences and availability
 - **exampleConversation**: JSON field for strategy conversation templates
+- **details**: JSON field in bookings for flexible booking information storage
+- **createdByAdminId**: Foreign key linking users to their creating admin
 
 ## Cookie-Based Authentication System
 
@@ -268,6 +320,7 @@ The application uses secure HTTP cookies for authentication token storage, provi
 - **Secure Token Storage**: Tokens stored in HTTP cookies with secure settings (httpOnly, secure, sameSite)
 - **Automatic Token Refresh**: Access tokens are automatically refreshed when they expire
 - **Separate Admin/User Tokens**: Clear separation between admin and user authentication flows
+- **Session Persistence**: Users remain logged in across browser sessions
 
 ### Cookie Structure
 ```typescript
@@ -288,16 +341,21 @@ admin_refresh_token: string;    // 7 days TTL
 - **MaxAge**: Configurable expiration times
 
 ### Authentication Flow
-1. **Login**: Tokens stored in cookies, user automatically logged in
-2. **API Requests**: Tokens automatically included in request headers
-3. **Token Expiry**: Automatic refresh without user intervention
-4. **Logout**: All cookies cleared, user redirected to login
+1. **API Key Authorization**: All requests include API key in `x-api-key` header (server-side)
+2. **Login**: Tokens stored in cookies, user automatically logged in
+3. **API Requests**: Tokens automatically included in request headers
+4. **Token Expiry**: Automatic refresh without user intervention
+5. **Logout**: All cookies cleared, user redirected to login
+6. **Session Persistence**: Users stay logged in across sessions
 
 ### Implementation Files
-- `lib/cookies.ts` - Cookie management utility
-- `contexts/auth-context.tsx` - User authentication context
-- `contexts/admin-auth-context.tsx` - Admin authentication context
+- `lib/cookies.ts` - Cookie management utility functions
+- `contexts/auth-context.tsx` - User authentication context with automatic login
+- `contexts/admin-auth-context.tsx` - Admin authentication context with automatic login
 - `lib/api/client.ts` - API client with automatic token handling
+- `components/auth/protected-route.tsx` - Route protection component
+- `components/auth/admin-protected-route.tsx` - Admin route protection component
+- `app/api/proxy/[...path]/route.ts` - API proxy for secure backend communication
 
 ## CORS Configuration
 
@@ -305,7 +363,12 @@ The backend is configured with CORS to allow cross-origin requests from the fron
 
 ```typescript
 app.enableCors({
-  origin: ['http://localhost:3000', ...],
+  origin: [
+    'http://localhost:3000',
+    'http://loctelli_frontend:3000',
+    'http://frontend:3000',
+    process.env.FRONTEND_URL,
+  ].filter(Boolean),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
@@ -333,44 +396,55 @@ app.enableCors({
 - **Automatic token refresh** - handles expired tokens seamlessly
 - **Role-based access control** (admin, user, manager)
 - **Password hashing** with bcrypt
-- **Protected routes** with guards
+- **Protected routes** with guards and middleware
 - **Multi-level authentication** - separate admin and user authentication flows
+- **Session persistence** - users remain logged in across sessions
+- **API key protection** - server-side only, not exposed to client
 
 ### Data Protection
 - Input validation with class-validator
 - SQL injection prevention through Prisma ORM
 - XSS protection through proper data sanitization
+- CSRF protection through SameSite cookie settings
+- API key authorization for all backend requests
+- Server-side proxy for secure API communication
 
 ## Integration Points
 
 ### External Integrations
-- **GoHighLevel**: Calendar and location integration
-- **OpenAI**: AI-powered chat responses
+- **GoHighLevel**: Calendar and location integration for booking management
+- **OpenAI**: AI-powered chat responses and conversation generation
 - **Redis**: Caching and session management
+- **PostgreSQL**: Primary data storage with Prisma ORM
 
 ### Webhook Support
-- Contact creation webhooks
-- Outbound message webhooks
-- General webhook event handling
+- Contact creation webhooks for external system integration
+- Outbound message webhooks for communication tracking
+- General webhook event handling for extensibility
 
 ## Development Workflow
 
 ### Backend Development
-- NestJS CLI for module generation
-- Prisma for database management
-- Jest for testing
-- ESLint for code quality
+- NestJS CLI for module generation and scaffolding
+- Prisma for database management and migrations
+- Jest for unit and integration testing
+- ESLint for code quality and consistency
+- Background processes for automated tasks
+- API key middleware for route protection
 
 ### Frontend Development
-- Next.js App Router
-- TypeScript for type safety
-- TailwindCSS for styling
-- shadcn/ui for component library
+- Next.js App Router for modern React development
+- TypeScript for type safety and better development experience
+- TailwindCSS for utility-first styling
+- shadcn/ui for consistent component library
+- React Context API for state management
+- API proxy for secure backend communication
 
 ### Database Management
-- Prisma Migrate for schema changes
-- Prisma Studio for database visualization
-- Automatic client generation
+- Prisma Migrate for schema changes and versioning
+- Prisma Studio for database visualization and management
+- Automatic client generation for type safety
+- Migration rollback capabilities
 
 ## Common Patterns
 
@@ -412,28 +486,97 @@ interface PaginatedResponse<T> {
 ### Backend Environment Variables
 - `DATABASE_URL`: PostgreSQL connection string
 - `REDIS_URL`: Redis connection string
-- `JWT_SECRET`: JWT signing secret
-- `JWT_REFRESH_SECRET`: JWT refresh secret
-- `NODE_ENV`: Environment mode
+- `JWT_SECRET`: JWT signing secret for access tokens
+- `JWT_REFRESH_SECRET`: JWT signing secret for refresh tokens
+- `NODE_ENV`: Environment mode (development, production, test)
+- `OPENAI_API_KEY`: OpenAI API key for AI integration
+- `API_KEY`: Internal API key for service-to-service communication
+- `FRONTEND_URL`: Frontend URL for CORS configuration
 
 ### Frontend Environment Variables
-- `NEXT_PUBLIC_API_URL`: Backend API URL
+- `NEXT_PUBLIC_API_URL`: Backend API URL for client-side requests (defaults to proxy)
+- `BACKEND_URL`: Backend URL for proxy communication
 - `API_KEY`: **Required** - API key for backend authorization (server-side only)
 - `NODE_ENV`: Environment mode
+- `NEXT_PUBLIC_APP_URL`: Application URL for cookie settings
 
 ## Deployment
 
 ### Docker Configuration
 - Multi-service Docker Compose setup
-- PostgreSQL and Redis containers
+- PostgreSQL 15-alpine and Redis 7-alpine containers with health checks
+- Volume persistence for data storage
+- Environment-specific configurations
 - Health checks for all services
-- Volume persistence for data
 
 ### Production Considerations
 - Environment-specific configurations
-- Database migrations
+- Database migrations and seeding
 - Static asset optimization
-- API rate limiting
-- Monitoring and logging
+- API rate limiting and security
+- Monitoring and logging setup
+- SSL/TLS certificate configuration
+- Backup and recovery procedures
+
+## Background Processes
+
+### Automated Tasks
+- **Free Slot Cron Service**: Automated booking slot management
+- **Sales Bot Service**: AI-powered sales automation
+- **Background Process Module**: Centralized background task management
+
+## Package Versions
+
+### Backend Dependencies
+- **NestJS**: 11.0.1
+- **Prisma**: 6.9.0
+- **PostgreSQL**: 15-alpine
+- **Redis**: 7-alpine
+- **JWT**: 11.0.0
+- **Passport**: 11.0.0
+- **bcrypt**: 5.1.1
+- **class-validator**: 0.14.2
+
+### Frontend Dependencies
+- **Next.js**: 15.2.4
+- **React**: 19
+- **TypeScript**: 5
+- **TailwindCSS**: 3.4.17
+- **shadcn/ui**: Latest components
+- **Framer Motion**: Latest
+- **React Hook Form**: 7.54.1
+- **Zod**: 3.24.1
+
+## Admin Dashboard Features
+
+### Dashboard Statistics
+The admin dashboard provides real-time statistics including:
+- **Total Users**: Count of all registered users
+- **Active Users**: Count of users with active status
+- **Total Strategies**: Count of all sales strategies
+- **Total Bookings**: Count of all appointments/bookings
+- **Total Clients**: Count of all client records
+- **Recent Users**: Latest 5 users who joined the platform
+- **Growth Rates**: Percentage changes from previous month (mock data for now)
+
+### System Status Monitoring
+Real-time system health monitoring including:
+- **Database Status**: PostgreSQL connection health
+- **API Server Status**: Backend service availability
+- **Redis Cache Status**: Cache service connectivity
+- **File Storage Status**: Storage service availability
+
+### Interactive Features
+- **Refresh Button**: Manual data refresh with loading states
+- **Clickable Cards**: Stats cards navigate to relevant admin pages
+- **Action Buttons**: Quick access to user management and settings
+- **Real-time Updates**: Live system status with color-coded badges
+- **Error Handling**: Graceful error display with retry functionality
+
+### Dashboard Integration
+- **Backend Integration**: Real data from database queries
+- **API Endpoints**: Dedicated endpoints for stats and system status
+- **Performance Optimized**: Parallel API calls for faster loading
+- **Responsive Design**: Mobile-friendly layout with proper spacing
 
 This context should provide AI models with comprehensive understanding of the Loctelli CRM system architecture, data flow, and implementation details for effective code analysis and generation. 

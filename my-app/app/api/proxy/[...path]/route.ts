@@ -62,7 +62,6 @@ async function handleRequest(
       'Content-Type': 'application/json',
     };
 
-    console.log(API_KEY)
 
     // Add API key to backend request
     if (API_KEY) {

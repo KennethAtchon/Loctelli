@@ -1,15 +1,18 @@
 # Loctelli CRM
 
-A comprehensive CRM application built with NestJS backend and Next.js frontend, featuring client management, sales strategies, booking system, and AI-powered chat integration.
+A comprehensive CRM application built with NestJS backend and Next.js frontend, featuring client management, sales strategies, booking system, and AI-powered chat integration with advanced authentication, admin capabilities, and automated background processes.
 
 ## 🏗️ Architecture
 
-- **Backend**: NestJS with Prisma ORM, PostgreSQL, and Redis
-- **Frontend**: Next.js 15 with React 19 and TailwindCSS
-- **Database**: PostgreSQL
-- **Cache**: Redis (backend only)
+- **Backend**: NestJS 11 with Prisma ORM, PostgreSQL, and Redis
+- **Frontend**: Next.js 15.2.4 with React 19 and TailwindCSS
+- **Database**: PostgreSQL 15-alpine with Prisma ORM 6.9.0
+- **Cache**: Redis 7-alpine (backend only)
 - **Authentication**: Cookie-based JWT authentication with automatic login (frontend & backend)
 - **AI Integration**: OpenAI-powered chat responses and sales strategies
+- **UI Framework**: TailwindCSS with shadcn/ui components
+- **State Management**: React Context API with cookie-based persistence
+- **API Communication**: Next.js API proxy for secure backend communication
 
 ## 📁 Project Structure
 
@@ -18,6 +21,14 @@ Loctelli/
 ├── project/              # NestJS Backend
 │   ├── src/
 │   │   ├── auth/         # Authentication & authorization
+│   │   │   ├── admin-auth.controller.ts
+│   │   │   ├── admin-auth.service.ts
+│   │   │   ├── admin-auth-code.service.ts
+│   │   │   ├── auth.controller.ts
+│   │   │   ├── auth.service.ts
+│   │   │   ├── auth.guard.ts
+│   │   │   ├── jwt.strategy.ts
+│   │   │   └── guards/   # Role-based guards
 │   │   ├── modules/      # Core business modules
 │   │   │   ├── users/    # User management
 │   │   │   ├── clients/  # Client management
@@ -26,22 +37,40 @@ Loctelli/
 │   │   │   └── chat/     # Chat functionality
 │   │   ├── infrastructure/ # Database, Redis, config
 │   │   ├── webhooks/     # External integrations
-│   │   └── background/   # Background processes
+│   │   ├── background/   # Background processes
+│   │   │   ├── bgprocess/
+│   │   │   ├── free-slot-cron.service.ts
+│   │   │   └── sales-bot.service.ts
+│   │   ├── status/       # System status
+│   │   ├── ghl/          # GoHighLevel integration
+│   │   └── general/      # General utilities
 │   ├── prisma/
-│   │   └── schema.prisma # Database schema
+│   │   ├── schema.prisma # Database schema
+│   │   └── migrations/   # Database migrations
 │   └── docker-compose.yml
 └── my-app/               # Next.js Frontend
     ├── app/
     │   ├── (main)/       # Public pages
+    │   │   └── blog/     # Blog pages
     │   ├── admin/        # Admin panel
-    │   └── auth/         # Authentication pages
+    │   │   ├── (auth)/   # Admin auth pages
+    │   │   └── (main)/   # Admin main pages
+    │   ├── auth/         # Authentication pages
+    │   └── api/          # API routes
+    │       └── proxy/    # Backend proxy
     ├── components/       # React components
-    │   ├── ui/          # Reusable UI components
+    │   ├── ui/          # Reusable UI components (shadcn/ui)
     │   ├── admin/       # Admin-specific components
-    │   └── auth/        # Auth components
+    │   ├── auth/        # Auth components
+    │   └── version1/    # Landing page components
     ├── lib/             # Utilities and API clients
-    │   └── api/         # API client modules
+    │   ├── api/         # API client modules
+    │   ├── cookies.ts   # Cookie management
+    │   ├── envUtils.ts  # Environment utilities
+    │   └── utils.ts     # Utility functions
     ├── contexts/        # React contexts
+    │   ├── auth-context.tsx
+    │   └── admin-auth-context.tsx
     ├── hooks/           # Custom React hooks
     └── types/           # Shared TypeScript types
 ```
@@ -134,12 +163,17 @@ npm run db:studio
 - **Role-based access control**: Different permissions for different user types
 - **Protected routes**: Automatic route protection based on user roles
 - **Enhanced security**: httpOnly, secure, and sameSite cookie flags
+- **Session persistence**: Users remain logged in across browser sessions
+- **Admin auth codes**: Secure admin authentication with generated codes
 
 ### 👥 User Management
 - **User registration and login**: Secure authentication system
 - **Profile management**: Update user information and preferences
 - **Company and budget tracking**: Store business-related information
 - **Calendar integration**: GoHighLevel calendar integration support
+- **Booking preferences**: Customizable booking time preferences
+- **Location management**: GoHighLevel location integration
+- **Admin user creation**: Admins can create and manage user accounts
 
 ### 🎯 Sales Strategies
 - **AI-powered strategies**: Create intelligent sales approaches
@@ -148,36 +182,70 @@ npm run db:studio
 - **Qualification criteria**: Define what makes a good prospect
 - **Example conversations**: Template conversations for guidance
 - **Delay settings**: Control response timing for natural flow
+- **Disqualification criteria**: When to disqualify prospects
+- **Strategy categorization**: Tag-based organization
+- **Strategy duplication**: Easy strategy replication
 
 ### 👤 Client Management
 - **Comprehensive client profiles**: Store all client information
 - **Status tracking**: Monitor client progression through sales funnel
-- **Message history**: Complete conversation history
+- **Message history**: Complete conversation history with timestamps
 - **Notes and annotations**: Add context and observations
 - **Custom IDs**: Integration with external systems
 - **Company and position tracking**: Professional context
+- **Strategy assignment**: Link clients to specific sales strategies
+- **Advanced filtering**: Filter clients by various criteria
 
 ### 📅 Booking System
 - **Appointment scheduling**: Create and manage meetings
-- **Calendar integration**: Sync with external calendars
-- **Status tracking**: Monitor booking states
+- **Calendar integration**: Sync with external calendar systems
+- **Status management**: Track booking status (pending, confirmed, cancelled, completed)
 - **Client association**: Link bookings to specific clients
-- **Flexible booking types**: Support for different meeting types
+- **Flexible details**: JSON-based booking information storage
+- **Date range filtering**: Filter bookings by time periods
 
-### 💬 AI Chat Integration
-- **Intelligent responses**: AI-powered message generation
-- **Strategy-based responses**: Use sales strategies for context
-- **Real-time messaging**: Instant communication with clients
-- **Message history**: Complete conversation tracking
-- **Custom ID support**: Integration with external chat systems
+### 🤖 AI-Powered Chat System
+- **Intelligent responses**: OpenAI-powered message generation
+- **Strategy-based conversations**: Use assigned sales strategies for context
+- **Message history**: Complete conversation tracking with timestamps
+- **Real-time communication**: Instant message delivery and status updates
+- **Objection handling**: Automatic response to common sales objections
+- **Tone control**: Adjust communication style based on strategy
+- **Creativity settings**: Control AI response creativity levels
+- **Natural delays**: Simulate human response timing
 
 ### 📊 Admin Dashboard
-- **Overview statistics**: Key metrics and performance indicators
-- **Recent activity feed**: Latest system activities
-- **Quick action buttons**: Common administrative tasks
-- **Real-time data visualization**: Charts and graphs
-- **User management**: Administer user accounts
-- **System monitoring**: Health checks and status
+- **Real-time statistics**: Live data from database with automatic refresh
+- **System monitoring**: Health checks for database, Redis, and services
+- **User management**: Quick access to user administration
+- **Interactive cards**: Clickable statistics that navigate to relevant pages
+- **Growth tracking**: Monitor system growth with percentage changes
+- **Recent activity**: View latest user registrations and system events
+- **Performance metrics**: Track key business indicators
+- **Error handling**: Graceful error display with retry functionality
+- **Responsive design**: Mobile-friendly dashboard layout
+
+### 🔧 System Administration
+- **Comprehensive admin panel**: Full administrative control
+- **User management**: Create, update, and delete user accounts
+- **System monitoring**: Real-time health status monitoring
+- **Database management**: Direct database access and monitoring
+- **Cache management**: Redis cache status and performance
+- **API management**: Monitor API server status and performance
+- **Background processes**: Automated booking and sales bot services
+- **Security management**: Admin authentication and authorization
+
+### 🔄 Background Processes
+- **Free Slot Cron Service**: Automated booking slot management
+- **Sales Bot Service**: AI-powered sales automation
+- **Background Process Module**: Centralized background task management
+
+### 🔌 API Proxy System
+- **Secure communication**: Server-side proxy for backend communication
+- **API key protection**: API keys handled server-side only
+- **Request forwarding**: Automatic forwarding of authentication tokens
+- **Error handling**: Comprehensive error handling and logging
+- **CORS management**: Proper cross-origin request handling
 
 ## 🔧 Development
 
@@ -253,8 +321,8 @@ docker-compose down
 ```
 
 This will start:
-- PostgreSQL database
-- Redis cache
+- PostgreSQL database (15-alpine)
+- Redis cache (7-alpine)
 - NestJS backend API
 - Next.js frontend
 
@@ -267,15 +335,18 @@ The application uses secure HTTP cookies for authentication, providing:
 - **Secure Token Storage**: Tokens stored in HTTP cookies with security flags
 - **Automatic Token Refresh**: Seamless token renewal without user intervention
 - **Enhanced Security**: Protection against XSS and CSRF attacks
+- **Session Persistence**: Users remain logged in until they explicitly logout
 
 ### Key Features
 - **Separate Admin/User Authentication**: Clear separation between admin and user authentication flows
 - **Token Management**: Automatic handling of access and refresh tokens
-- **Session Persistence**: Users remain logged in until they explicitly logout
+- **Session Persistence**: Users remain logged in across browser sessions and page refreshes
 - **Security Headers**: Proper cookie security settings (httpOnly, secure, sameSite)
+- **Role-based Access Control**: Different permissions for admin and regular users
+- **Admin Auth Codes**: Secure admin authentication with generated codes
 
 ### Authentication Flow
-1. **API Key Authorization**: All requests include API key in `x-api-key` header
+1. **API Key Authorization**: All requests include API key in `x-api-key` header (server-side)
 2. **Login**: User credentials validated, tokens stored in secure cookies
 3. **Automatic Login**: On app load, valid cookies automatically log user in
 4. **API Requests**: API key and user tokens automatically included in all requests
@@ -289,48 +360,72 @@ The backend is configured to allow cross-origin requests with the necessary head
 - `Content-Type`: Standard content type
 - `Authorization`: Standard authorization header
 
-For detailed authentication documentation, see [Cookie Authentication README](my-app/lib/cookies/README.md).
-
 ## 🔌 API Documentation
 
 The backend provides a comprehensive REST API with the following main endpoints:
 
-- **Authentication**: `/auth/*` - Login, register, token refresh
-- **Users**: `/users/*` - User management
-- **Clients**: `/clients/*` - Client management
-- **Strategies**: `/strategies/*` - Sales strategy management
-- **Bookings**: `/bookings/*` - Booking management
-- **Chat**: `/chat/*` - Messaging functionality
-- **Status**: `/status/*` - System health and status
+### Authentication
+- `POST /auth/login` - User login with cookie-based token storage
+- `POST /auth/register` - User registration
+- `POST /auth/refresh` - Token refresh with automatic cookie update
+- `GET /auth/profile` - Get current user profile
+- `POST /auth/change-password` - Change user password
+- `POST /auth/logout` - User logout
+- `POST /admin/auth/login` - Admin login with separate cookie storage
+- `POST /admin/auth/register` - Admin registration
+- `POST /admin/auth/refresh` - Admin token refresh
+- `GET /admin/auth/profile` - Get admin profile
+- `GET /admin/auth/users` - Get all users (admin only)
+- `POST /admin/auth/generate-auth-code` - Generate admin auth code
+- `GET /admin/auth/current-auth-code` - Get current auth code
 
-For detailed API documentation, see the [API Client Documentation](my-app/lib/api/README.md).
+### Core Modules
+- **Users**: `/users/*` - User management with role-based access
+- **Clients**: `/clients/*` - Client management with strategy assignment
+- **Strategies**: `/strategies/*` - Sales strategy management
+- **Bookings**: `/bookings/*` - Booking management with calendar integration
+- **Chat**: `/chat/*` - AI-powered messaging functionality
+- **Status**: `/status/*` - System health and status monitoring
+
+### API Features
+- **API Key Authorization**: All requests require API key in header (server-side)
+- **Automatic Token Handling**: Tokens automatically included from cookies
+- **Error Handling**: Comprehensive error responses with proper HTTP status codes
+- **Validation**: Input validation using class-validator
+- **Pagination**: Built-in pagination support for list endpoints
+- **Query Parameters**: Advanced filtering and search capabilities
 
 ## 🛠️ Technology Stack
 
 ### Backend
-- **Framework**: NestJS 11
-- **Database**: PostgreSQL with Prisma ORM
-- **Cache**: Redis
+- **Framework**: NestJS 11 with TypeScript
+- **Database**: PostgreSQL 15-alpine with Prisma ORM 6.9.0
+- **Cache**: Redis 7-alpine for session management and caching
 - **Authentication**: JWT with Passport and cookie-based sessions
-- **Validation**: class-validator
-- **Testing**: Jest
-- **Scheduling**: @nestjs/schedule
+- **Validation**: class-validator for input validation
+- **Testing**: Jest for unit and integration testing
+- **Scheduling**: @nestjs/schedule for background tasks
+- **Background Processes**: Automated booking and sales bot services
+- **API Key Middleware**: Route protection with API key validation
 
 ### Frontend
-- **Framework**: Next.js 15 with React 19
-- **Styling**: TailwindCSS with shadcn/ui components
+- **Framework**: Next.js 15.2.4 with React 19
+- **Styling**: TailwindCSS 3.4.17 with shadcn/ui components
 - **State Management**: React Context API with cookie-based persistence
 - **Authentication**: Cookie-based JWT with automatic login and token refresh
-- **Forms**: React Hook Form with Zod validation
+- **Forms**: React Hook Form 7.54.1 with Zod 3.24.1 validation
 - **Icons**: Lucide React
-- **Charts**: Recharts
+- **Charts**: Recharts for data visualization
 - **Animations**: Framer Motion
+- **Type Safety**: TypeScript 5
+- **API Proxy**: Server-side proxy for secure backend communication
 
 ### DevOps
 - **Containerization**: Docker & Docker Compose
 - **Database Migrations**: Prisma Migrate
 - **Code Quality**: ESLint, Prettier
 - **Type Safety**: TypeScript
+- **Environment Management**: Environment-specific configurations
 
 ## 🤝 Contributing
 
@@ -357,7 +452,9 @@ For support and questions:
 - **v0.2.0**: Added AI chat integration and sales strategies
 - **v0.3.0**: Enhanced admin dashboard and user management
 - **v0.4.0**: Implemented cookie-based authentication with automatic login
+- **v0.5.0**: Added background processes and enhanced AI integration
+- **v0.6.0**: Implemented API proxy system and admin auth codes
 
 ---
 
-Built with ❤️ using NestJS and Next.js 
+Built with ❤️ using NestJS and Next.js

@@ -65,6 +65,35 @@ export interface UpdateUserDto {
   isActive?: boolean;
 }
 
+export interface DashboardStats {
+  totalUsers: number;
+  activeUsers: number;
+  totalStrategies: number;
+  totalBookings: number;
+  totalClients: number;
+  recentUsers: Array<{
+    id: number;
+    name: string;
+    email: string;
+    isActive: boolean;
+    createdAt: string;
+    company: string | null;
+  }>;
+  growthRates: {
+    users: number;
+    activeUsers: number;
+    strategies: number;
+    bookings: number;
+  };
+}
+
+export interface SystemStatus {
+  database: string;
+  apiServer: string;
+  redisCache: string;
+  fileStorage: string;
+}
+
 export class AdminAuthApi extends ApiClient {
   async adminLogin(data: AdminLoginDto): Promise<AdminAuthResponse> {
     return this.post<AdminAuthResponse>('/admin/auth/login', data);
@@ -108,5 +137,13 @@ export class AdminAuthApi extends ApiClient {
 
   async getCurrentAuthCode(): Promise<{ authCode: string; message: string }> {
     return this.get<{ authCode: string; message: string }>('/admin/auth/current-auth-code');
+  }
+
+  async getDashboardStats(): Promise<DashboardStats> {
+    return this.get<DashboardStats>('/general/dashboard-stats');
+  }
+
+  async getSystemStatus(): Promise<SystemStatus> {
+    return this.get<SystemStatus>('/general/system-status');
   }
 } 
