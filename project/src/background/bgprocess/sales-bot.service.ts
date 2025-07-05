@@ -37,11 +37,11 @@ export class SalesBotService implements OnModuleInit {
     this.logger.log('Sales Bot Service initialized');
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
-  async handleScheduledTasks() {
-    this.logger.log('Running scheduled sales bot tasks');
-    await this.processFollowUps();
-  }
+  // @Cron(CronExpression.EVERY_HOUR)
+  // async handleScheduledTasks() {
+  //   this.logger.log('Running scheduled sales bot tasks');
+  //   await this.processFollowUps();
+  // }
   
   /**
    * Generate a response for a client message

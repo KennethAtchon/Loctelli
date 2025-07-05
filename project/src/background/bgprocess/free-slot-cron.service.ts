@@ -210,11 +210,12 @@ export class FreeSlotCronService {
 
   /**
    * Run background processes on schedule
+   * DISABLED: Cron jobs temporarily disabled
    */
-  @Cron(CronExpression.EVERY_HOUR)
-  async handleCronTasks() {
-    this.logger.log('Running scheduled background tasks');
-    await this.importGhlUsersBg();
-    await this.fetchFreeSlots();
-  }
+  // @Cron(CronExpression.EVERY_HOUR)
+  // async handleCronTasks() {
+  //   this.logger.log('Running scheduled background tasks');
+  //   await this.importGhlUsersBg();
+  //   await this.fetchFreeSlots();
+  // }
 }

@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
-import { ScheduleModule } from '@nestjs/schedule';
+import { Module, forwardRef } from '@nestjs/common';
+// import { ScheduleModule } from '@nestjs/schedule'; // DISABLED: Cron jobs temporarily disabled
 import { SalesBotService } from './sales-bot.service';
 import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
 import { FreeSlotCronService } from './free-slot-cron.service';
@@ -9,10 +9,10 @@ import { BookingsModule } from '../../modules/bookings/bookings.module';
 
 @Module({
   imports: [
-    ScheduleModule.forRoot(),
+    // ScheduleModule.forRoot(), // DISABLED: Cron jobs temporarily disabled
     PrismaModule,
     ConfigModule,
-    ChatModule,
+    forwardRef(() => ChatModule),
     BookingsModule,
   ],
   providers: [SalesBotService, FreeSlotCronService],

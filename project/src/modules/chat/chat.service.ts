@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { ChatMessageDto } from './dto/chat-message.dto';
 import { SendMessageDto } from './dto/send-message.dto';
@@ -8,6 +8,7 @@ import { SalesBotService } from '../../background/bgprocess/sales-bot.service';
 export class ChatService {
   constructor(
     private prisma: PrismaService,
+    @Inject(forwardRef(() => SalesBotService))
     private salesBotService: SalesBotService
   ) {}
 
