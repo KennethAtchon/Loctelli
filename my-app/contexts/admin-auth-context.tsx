@@ -26,18 +26,29 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   // Check for existing admin tokens and auto-login on mount
   useEffect(() => {
     const checkAdminAuth = async () => {
+      console.log('🔍 Checking admin authentication...');
       try {
         // Check if we have any admin auth tokens
         if (AuthCookies.hasAdminTokens()) {
-          // Try to get admin profile
-          const profile = await api.adminAuth.getAdminProfile();
+          console.log('✅ Found admin tokens, attempting to get profile...');
+          // Try to get admin profile with timeout
+          const profilePromise = api.adminAuth.getAdminProfile();
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Request timeout')), 5000)
+          );
+          
+          const profile = await Promise.race([profilePromise, timeoutPromise]) as AdminProfile;
+          console.log('✅ Admin profile retrieved successfully:', profile.email);
           setAdmin(profile);
+        } else {
+          console.log('❌ No admin tokens found');
         }
       } catch (error) {
         // Clear invalid tokens
         AuthCookies.clearAll();
-        console.error('Admin auto-login failed:', error);
+        console.error('❌ Admin auto-login failed:', error);
       } finally {
+        console.log('🏁 Admin auth check completed');
         setIsLoading(false);
       }
     };

@@ -2,10 +2,8 @@
 import { ApiRequestOptions } from './types';
 import { API_CONFIG } from '../envUtils';
 import { AuthCookies } from '../cookies';
-import { api } from './index';
 
 const API_BASE_URL = API_CONFIG.BASE_URL;
-const API_KEY = API_CONFIG.API_KEY;
 
 export class ApiClient {
   private baseUrl: string;
@@ -24,22 +22,24 @@ export class ApiClient {
   private getAuthHeaders(): Record<string, string> {
     const headers: Record<string, string> = {};
     
-    // Add API key authorization (matches backend middleware expectation)
-    if (API_KEY) {
-      headers['x-api-key'] = API_KEY;
-    }
+    // Note: API key is now handled server-side by the proxy
+    // No need to include it in frontend requests
     
     // Check for admin tokens first (admin takes precedence)
     const adminAccessToken = AuthCookies.getAdminAccessToken();
     if (adminAccessToken) {
-      headers['X-User-Token'] = adminAccessToken;
+      headers['x-user-token'] = adminAccessToken;
+      console.log('🔑 Admin token found and added to headers');
       return headers;
     }
     
     // Check for regular user tokens
     const accessToken = AuthCookies.getAccessToken();
     if (accessToken) {
-      headers['X-User-Token'] = accessToken;
+      headers['x-user-token'] = accessToken;
+      console.log('🔑 User token found and added to headers');
+    } else {
+      console.log('ℹ️ No user tokens found');
     }
     
     return headers;
@@ -68,6 +68,8 @@ export class ApiClient {
       // Try admin refresh first
       const adminRefreshToken = AuthCookies.getAdminRefreshToken();
       if (adminRefreshToken) {
+        // Import dynamically to avoid circular dependency
+        const { api } = await import('./index');
         const response = await api.adminAuth.adminRefreshToken(adminRefreshToken);
         AuthCookies.setAdminAccessToken(response.access_token);
         AuthCookies.setAdminRefreshToken(response.refresh_token);
@@ -77,6 +79,8 @@ export class ApiClient {
       // Try regular user refresh
       const refreshToken = AuthCookies.getRefreshToken();
       if (refreshToken) {
+        // Import dynamically to avoid circular dependency
+        const { api } = await import('./index');
         const response = await api.auth.refreshToken(refreshToken);
         AuthCookies.setAccessToken(response.access_token);
         AuthCookies.setRefreshToken(response.refresh_token);
@@ -170,6 +174,17 @@ export class ApiClient {
       return await response.json();
     } catch (error) {
       console.error('API request failed:', error);
+      
+      // Handle specific error types
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new Error('Request timeout. Please check your connection and try again.');
+        }
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+          throw new Error('Network error. Please check your connection and try again.');
+        }
+      }
+      
       throw error;
     }
   }
@@ -214,11 +229,11 @@ export class ApiClient {
   protected buildQueryString(params: Record<string, any>): string {
     const searchParams = new URLSearchParams();
     
-    Object.entries(params).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(params)) {
       if (value !== undefined && value !== null) {
         searchParams.append(key, String(value));
       }
-    });
+    }
     
     return searchParams.toString();
   }

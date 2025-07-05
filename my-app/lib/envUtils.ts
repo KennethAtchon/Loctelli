@@ -5,8 +5,8 @@
 
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
-  API_KEY: process.env.API_KEY || '',
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/proxy',
+  // Note: API_KEY is now server-side only and handled by the proxy
 } as const;
 
 // Authentication Configuration
@@ -23,8 +23,9 @@ export const ENV_CONFIG = {
 
 // Validation function to ensure required environment variables are set
 export function validateEnvironmentVariables(): void {
-  const requiredVars = [
-    { key: 'API_KEY', value: API_CONFIG.API_KEY, name: 'API Key' },
+  // Note: API_KEY is now validated server-side in the proxy
+  const requiredVars: Array<{ key: string; value: string; name: string }> = [
+    // Add other required vars here if needed
   ];
 
   const missingVars = requiredVars.filter(({ value }) => !value);

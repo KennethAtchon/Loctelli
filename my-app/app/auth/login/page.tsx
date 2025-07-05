@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
+import { useAdminAuth } from '@/contexts/admin-auth-context';
 import type { LoginDto } from '@/lib/api';
+import { testApiConnection, testAuthEndpoint, testHealthEndpoint } from '@/lib/api/test-api-key';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,20 +15,70 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { login, isAuthenticated: isUserAuthenticated, isLoading: isUserLoading } = useAuth();
+  const { isAuthenticated: isAdminAuthenticated, isLoading: isAdminLoading } = useAdminAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [apiStatus, setApiStatus] = useState<{ success: boolean; message: string } | null>(null);
   const [formData, setFormData] = useState<LoginDto>({
     email: '',
     password: '',
   });
 
+  // Check if any auth context is still loading
+  const isLoading = isUserLoading || isAdminLoading;
+  const isAuthenticated = isUserAuthenticated || isAdminAuthenticated;
+
+  // Test API connection on mount
+  useEffect(() => {
+    const checkApiStatus = async () => {
+      console.log('🔍 Testing API connection...');
+      const status = await testApiConnection();
+      const healthStatus = await testHealthEndpoint();
+      setApiStatus(status.success ? status : healthStatus);
+      console.log('API Status:', status);
+      console.log('Health Status:', healthStatus);
+    };
+
+    checkApiStatus();
+  }, []);
+
   // Redirect if already authenticated
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      router.push('/admin/dashboard');
+      if (isAdminAuthenticated) {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/admin/dashboard');
+      }
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isAdminAuthenticated, isLoading, router]);
+
+  // Fallback to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        console.warn('Auth loading timeout - forcing loading state to false');
+        // Force loading to false after 10 seconds to prevent infinite loading
+        // This is a fallback in case the auth contexts get stuck
+      }
+    }, 10000);
+
+    return () => clearTimeout(timeout);
+  }, [isLoading]);
+
+  // Additional fallback: if loading takes too long, show the form anyway
+  const [forceShowForm, setForceShowForm] = useState(false);
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        console.warn('Forcing form display after 15 seconds');
+        setForceShowForm(true);
+      }
+    }, 15000);
+
+    return () => clearTimeout(timeout);
+  }, [isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,10 +97,19 @@ export default function LoginPage() {
   };
 
   // Show loading state while checking authentication
-  if (isLoading) {
+  if (isLoading && !forceShowForm) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">Checking authentication...</p>
+          <p className="text-sm text-gray-500 mt-2">This may take a few moments</p>
+          {apiStatus && !apiStatus.success && (
+            <div className="mt-4 p-3 bg-yellow-100 border border-yellow-400 rounded text-yellow-700 text-sm">
+              ⚠️ API Connection Issue: {apiStatus.message}
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -85,6 +146,16 @@ export default function LoginPage() {
               {error && (
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              {apiStatus && !apiStatus.success && (
+                <Alert variant="destructive">
+                  <AlertDescription>
+                    ⚠️ API Connection Issue: {apiStatus.message}
+                    <br />
+                    <span className="text-sm">Please ensure the backend server is running.</span>
+                  </AlertDescription>
                 </Alert>
               )}
 

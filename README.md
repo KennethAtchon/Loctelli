@@ -282,6 +282,13 @@ The application uses secure HTTP cookies for authentication, providing:
 5. **Token Refresh**: Expired tokens automatically refreshed in background
 6. **Logout**: All authentication cookies cleared
 
+### CORS Configuration
+The backend is configured to allow cross-origin requests with the necessary headers:
+- `x-api-key`: API key for authorization
+- `x-user-token`: User authentication tokens
+- `Content-Type`: Standard content type
+- `Authorization`: Standard authorization header
+
 For detailed authentication documentation, see [Cookie Authentication README](my-app/lib/cookies/README.md).
 
 ## 🔌 API Documentation

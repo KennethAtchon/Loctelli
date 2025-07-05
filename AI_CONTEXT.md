@@ -299,6 +299,32 @@ admin_refresh_token: string;    // 7 days TTL
 - `contexts/admin-auth-context.tsx` - Admin authentication context
 - `lib/api/client.ts` - API client with automatic token handling
 
+## CORS Configuration
+
+The backend is configured with CORS to allow cross-origin requests from the frontend:
+
+```typescript
+app.enableCors({
+  origin: ['http://localhost:3000', ...],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-API-Key',
+    'x-api-key',
+    'X-User-Token',
+    'x-user-token'
+  ],
+});
+```
+
+### Allowed Headers
+- `Content-Type`: Standard content type header
+- `Authorization`: Standard authorization header
+- `X-API-Key` / `x-api-key`: API key for backend authorization
+- `X-User-Token` / `x-user-token`: User authentication tokens
+
 ## Security Considerations
 
 ### Authentication

@@ -26,18 +26,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Check for existing tokens and auto-login on mount
   useEffect(() => {
     const checkAuth = async () => {
+      console.log('🔍 Checking user authentication...');
       try {
         // Check if we have any auth tokens
         if (AuthCookies.hasUserTokens()) {
-          // Try to get user profile
-          const profile = await api.auth.getProfile();
+          console.log('✅ Found user tokens, attempting to get profile...');
+          // Try to get user profile with timeout
+          const profilePromise = api.auth.getProfile();
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Request timeout')), 5000)
+          );
+          
+          const profile = await Promise.race([profilePromise, timeoutPromise]) as UserProfile;
+          console.log('✅ User profile retrieved successfully:', profile.email);
           setUser(profile);
+        } else {
+          console.log('❌ No user tokens found');
         }
       } catch (error) {
         // Clear invalid tokens
         AuthCookies.clearAll();
-        console.error('Auto-login failed:', error);
+        console.error('❌ Auto-login failed:', error);
       } finally {
+        console.log('🏁 User auth check completed');
         setIsLoading(false);
       }
     };

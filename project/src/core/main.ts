@@ -14,7 +14,14 @@ async function bootstrap() {
     ].filter(Boolean),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+    allowedHeaders: [
+      'Content-Type', 
+      'Authorization', 
+      'X-API-Key',
+      'x-api-key',
+      'X-User-Token',
+      'x-user-token'
+    ],
   });
   
   await app.listen(process.env.PORT ?? 3000);
