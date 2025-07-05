@@ -198,6 +198,7 @@ The frontend communicates with the backend through a Next.js API proxy (`/api/pr
 - `GET /general/recent-clients` - Get recent clients
 - `GET /general/users/:id/detailed` - Get detailed user information
 - `GET /general/clients/:id/detailed` - Get detailed client information
+- `GET /general/database-schema` - Get database schema for ERD visualization
 - `GET /general/schema` - Get database schema for development tools
 
 #### Bookings API (`/booking`)
@@ -623,6 +624,9 @@ The admin dashboard includes a comprehensive database schema visualization:
 - **Download Option**: Export diagram as SVG for documentation
 - **Code View**: Collapsible section showing raw Mermaid code
 - **Loading States**: Smooth loading indicators during generation
+- **Error Handling**: Graceful fallback to hardcoded schema if API fails
+- **Debug Logging**: Detailed logging for troubleshooting Mermaid syntax issues
+- **Simplified Relationships**: Clean relationship syntax without labels to avoid parsing errors
 
 ## Client Management Features
 

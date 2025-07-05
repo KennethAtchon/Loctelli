@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { useAdminAuth } from '@/contexts/admin-auth-context';
 import type { LoginDto } from '@/lib/api';
-import { testApiConnection, testHealthEndpoint } from '@/lib/api/test-api-key';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,7 +20,7 @@ export default function LoginPage() {
   const { isAuthenticated: isAdminAuthenticated, isLoading: isAdminLoading } = useAdminAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [apiStatus, setApiStatus] = useState<{ success: boolean; message: string } | null>(null);
+
   const [formData, setFormData] = useState<LoginDto>({
     email: '',
     password: '',
@@ -30,19 +30,7 @@ export default function LoginPage() {
   const isLoading = isUserLoading || isAdminLoading;
   const isAuthenticated = isUserAuthenticated || isAdminAuthenticated;
 
-  // Test API connection on mount
-  useEffect(() => {
-    const checkApiStatus = async () => {
-      logger.debug('🔍 Testing API connection...');
-      const status = await testApiConnection();
-      const healthStatus = await testHealthEndpoint();
-      setApiStatus(status.success ? status : healthStatus);
-      logger.debug('API Status:', status);
-      logger.debug('Health Status:', healthStatus);
-    };
 
-    checkApiStatus();
-  }, []);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -105,11 +93,6 @@ export default function LoginPage() {
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto mb-4"></div>
           <p className="text-gray-600">Checking authentication...</p>
           <p className="text-sm text-gray-500 mt-2">This may take a few moments</p>
-          {apiStatus && !apiStatus.success && (
-            <div className="mt-4 p-3 bg-yellow-100 border border-yellow-400 rounded text-yellow-700 text-sm">
-              ⚠️ API Connection Issue: {apiStatus.message}
-            </div>
-          )}
         </div>
       </div>
     );
@@ -150,15 +133,7 @@ export default function LoginPage() {
                 </Alert>
               )}
 
-              {apiStatus && !apiStatus.success && (
-                <Alert variant="destructive">
-                  <AlertDescription>
-                    ⚠️ API Connection Issue: {apiStatus.message}
-                    <br />
-                    <span className="text-sm">Please ensure the backend server is running.</span>
-                  </AlertDescription>
-                </Alert>
-              )}
+
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>

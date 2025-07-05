@@ -186,6 +186,13 @@ npm run db:studio
 - **Strategy categorization**: Tag-based organization
 - **Strategy duplication**: Easy strategy replication
 
+### 🗄️ Development Tools
+- **Database Schema Visualization**: Interactive ERD diagrams with Mermaid.js showing all fields including foreign keys
+- **Real-time schema generation**: Dynamic schema fetching from backend
+- **Zoom and pan controls**: Interactive diagram navigation
+- **Export functionality**: Download diagrams as SVG files
+- **Fallback schema**: Offline schema display when API is unavailable
+
 ### 👤 Client Management
 - **Comprehensive client profiles**: Store all client information
 - **Status tracking**: Monitor client progression through sales funnel
@@ -198,6 +205,16 @@ npm run db:studio
 - **Real-time search**: Search by name, email, company, or phone
 - **Status filtering**: Filter by active, lead, inactive, or all clients
 - **Detailed client views**: Modal dialogs showing complete client information
+
+### 🗄️ Database Schema Visualization
+- **Interactive ERD diagrams**: Real-time database schema visualization using Mermaid.js
+- **Dynamic schema generation**: Automatically generates diagrams from Prisma schema
+- **Relationship mapping**: Visual representation of foreign key relationships
+- **Interactive controls**: Zoom in/out, download, and refresh functionality
+- **Error handling**: Graceful fallback to hardcoded schema if API fails
+- **Debug logging**: Detailed logging for troubleshooting Mermaid syntax issues
+- **Simplified relationships**: Clean relationship syntax without labels to avoid parsing errors
+- **Export functionality**: Download diagrams as SVG for documentation
 
 ### 🛠️ Development Tools
 - **Database schema visualization**: Interactive ERD diagrams using Mermaid.js

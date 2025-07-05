@@ -18,6 +18,7 @@ export default function DatabaseSchema({ className }: DatabaseSchemaProps) {
   const [error, setError] = useState<string | null>(null);
   const [scale, setScale] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
+  const renderIdRef = useRef(0);
 
   useEffect(() => {
     initializeMermaid();
@@ -40,11 +41,17 @@ export default function DatabaseSchema({ className }: DatabaseSchemaProps) {
         stroke: 'gray',
         fill: 'honeydew',
         fontSize: 12
+      },
+      flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true
       }
     });
   };
 
   const generateSchema = async (): Promise<void> => {
+    logger.info('generateSchema called');
+    
     try {
       setIsLoading(true);
       setError(null);
@@ -52,22 +59,111 @@ export default function DatabaseSchema({ className }: DatabaseSchemaProps) {
       // Fetch schema from backend API
       const response = await api.general.getDatabaseSchema();
       
+      // Debug: Log the response structure
+      logger.info('Schema API response:', response);
+      
       if (!response.success || !response.data) {
         throw new Error(response.error || 'Failed to fetch schema');
       }
       
       // Convert schema to Mermaid ERD
+      logger.info('Converting schema data:', response.data);
       const erdCode = convertSchemaToMermaid(response.data);
+      logger.info('Generated ERD code:', erdCode);
       setMermaidCode(erdCode);
       
       // Render the diagram
       await renderDiagram(erdCode);
     } catch (err) {
       logger.error('Failed to generate database schema:', err);
-      setError('Failed to generate database schema');
+      setError('Backend server unavailable. Using fallback schema.');
+      
+      // Fallback to hardcoded schema if API fails
+      const fallbackCode = generateFallbackERD();
+      setMermaidCode(fallbackCode);
+      await renderDiagram(fallbackCode);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const generateFallbackERD = (): string => {
+    return `erDiagram
+    AdminUser {
+        int id
+        string name
+        string email
+        string password
+        string role
+        boolean isActive
+        json permissions
+        datetime lastLoginAt
+        datetime createdAt
+        datetime updatedAt
+    }
+    User {
+        int id
+        string name
+        string email
+        string password
+        string role
+        boolean isActive
+        string company
+        string budget
+        json bookingsTime
+        int bookingEnabled
+        string calendarId
+        string locationId
+        string assignedUserId
+        datetime lastLoginAt
+        datetime createdAt
+        datetime updatedAt
+        int createdByAdminId "FK -> AdminUser"
+    }
+    Strategy {
+        int id
+        int userId "FK -> User"
+        string name
+        string tag
+        string tone
+        string aiInstructions
+        string objectionHandling
+        string qualificationPriority
+        int creativity
+        string aiObjective
+        string disqualificationCriteria
+        json exampleConversation
+        int delayMin
+        int delayMax
+        datetime createdAt
+        datetime updatedAt
+    }
+    Client {
+        int id
+        int userId "FK -> User"
+        int strategyId "FK -> Strategy"
+        string name
+        string email
+        string phone
+        string company
+        string position
+        string customId
+        json messageHistory
+        string status
+        string notes
+        string lastMessage
+        string lastMessageDate
+    }
+    Booking {
+        int id
+        int userId "FK -> User"
+        int clientId "FK -> Client"
+        string bookingType
+        json details
+        string status
+        datetime createdAt
+        datetime updatedAt
+    }`;
   };
 
   interface SchemaModelField {
@@ -93,35 +189,21 @@ export default function DatabaseSchema({ className }: DatabaseSchemaProps) {
   const convertSchemaToMermaid = (schema: Schema) => {
     let mermaid = 'erDiagram\n';
     
-    // Add entities
+    // Add entities with all fields including foreign keys
     for (const model of schema.models) {
       mermaid += `    ${model.name} {\n`;
       
       for (const field of model.fields) {
-        if (!field.isRelation) {
-          const type = getMermaidType(field.type);
-          // Only output 'type name' (no PK, unique, nullable, etc.)
+        const type = getMermaidType(field.type);
+        // Add FK indicator for foreign key fields
+        if (field.isRelation) {
+          mermaid += `        ${type} ${field.name} "FK -> ${field.relationTarget}"\n`;
+        } else {
           mermaid += `        ${type} ${field.name}\n`;
         }
       }
       
       mermaid += '    }\n';
-    }
-
-    // Add relationships (show all, both directions, and deduplicate)
-    const rels = new Set();
-    for (const model of schema.models) {
-      for (const field of model.fields) {
-        if (field.isRelation && field.relationTarget) {
-          // Compose a unique key to deduplicate (A->B:field)
-          const relKey = `${model.name}|${field.relationTarget}|${field.relationType}`;
-          if (!rels.has(relKey)) {
-            rels.add(relKey);
-            const relation = getRelationSymbol(field.relationType || 'many-to-one');
-            mermaid += `    ${model.name} ${relation} ${field.relationTarget} : \"${field.name}\"\n`;
-          }
-        }
-      }
     }
 
     return mermaid;
@@ -143,35 +225,42 @@ export default function DatabaseSchema({ className }: DatabaseSchemaProps) {
     return typeMap[prismaType] || 'string';
   };
 
-  const getRelationSymbol = (relationType: string): string => {
-    switch (relationType) {
-      case 'one-to-many':
-        return '||--o{';
-      case 'many-to-one':
-        return '}o--||';
-      case 'one-to-one':
-        return '||--||';
-      default:
-        return '}o--o{';
-    }
-  };
+
 
   const renderDiagram = async (code: string): Promise<void> => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) {
+      logger.error('Container ref is not available');
+      setError('Failed to render diagram: Container not ready');
+      return;
+    }
+    
     // Clear previous SVG
     containerRef.current.innerHTML = '';
+    
     try {
+      // Log the generated code for debugging
+      logger.info('Generated Mermaid code:', code);
+      
       // Validate Mermaid code before rendering
+      logger.info('Validating Mermaid code...');
       mermaid.parse(code);
-      const { svg } = await mermaid.render('database-schema', code);
+      logger.info('Mermaid code is valid, rendering...');
+      
+      const renderId = `database-schema-${++renderIdRef.current}`;
+      const { svg } = await mermaid.render(renderId, code);
+      logger.info('Mermaid rendered successfully, setting innerHTML');
       containerRef.current.innerHTML = svg;
+      logger.info('Diagram rendered successfully');
     } catch (err) {
       logger.error('Failed to render Mermaid diagram:', err);
+      logger.error('Generated code was:', code);
       setError('Failed to render database diagram: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
   const handleRefresh = () => {
+    logger.info('Refresh button clicked');
+    setError(null);
     generateSchema();
   };
 
@@ -228,18 +317,18 @@ export default function DatabaseSchema({ className }: DatabaseSchemaProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={handleResetZoom}
-            >
-              <RotateCcw className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
               onClick={handleZoomIn}
               disabled={scale >= 2}
             >
               <ZoomIn className="h-4 w-4" />
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleResetZoom}
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>            
             <Button
               variant="outline"
               size="sm"
@@ -250,7 +339,10 @@ export default function DatabaseSchema({ className }: DatabaseSchemaProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={handleRefresh}
+              onClick={() => {
+                logger.info('Button clicked directly');
+                handleRefresh();
+              }}
               disabled={isLoading}
             >
               <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -260,20 +352,25 @@ export default function DatabaseSchema({ className }: DatabaseSchemaProps) {
       </CardHeader>
       <CardContent>
         {error && (
-          <div className="text-center py-8">
-            <p className="text-red-600 mb-4 whitespace-pre-line">{error}</p>
-            <Button onClick={handleRefresh}>Retry</Button>
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-yellow-800 text-sm">{error}</p>
+            <p className="text-xs text-yellow-700 mt-1">Use the refresh button to retry connecting to the backend.</p>
           </div>
         )}
         
         {isLoading && !error && (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-            <span className="ml-2">Generating schema...</span>
+            <span className="ml-2">Loading schema...</span>
           </div>
         )}
         
-        {!isLoading && !error && (
+        <div className={!isLoading && !error ? 'block' : 'hidden'}>
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>Foreign Key Legend:</strong> Fields marked with "FK {'->'} TableName" indicate relationships between tables.
+            </p>
+          </div>
           <div className="overflow-auto border rounded-lg bg-white">
             <div
               ref={containerRef}
@@ -285,7 +382,7 @@ export default function DatabaseSchema({ className }: DatabaseSchemaProps) {
               }}
             />
           </div>
-        )}
+        </div>
         
         {mermaidCode && (
           <details className="mt-4">
