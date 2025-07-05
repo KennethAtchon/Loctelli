@@ -13,6 +13,7 @@ import { StrategiesModule } from '../modules/strategies/strategies.module';
 import { ClientsModule } from '../modules/clients/clients.module';
 import { BookingsModule } from '../modules/bookings/bookings.module';
 import { ChatModule } from '../modules/chat/chat.module';
+import { PromptTemplatesModule } from '../modules/prompt-templates/prompt-templates.module';
 import { WebhooksModule } from '../webhooks/webhooks.module';
 import { StatusModule } from '../status/status.module';
 import { BgProcessModule } from '../background/bgprocess/bgprocess.module';
@@ -38,6 +39,7 @@ import { JwtAuthGuard } from '../auth/auth.guard';
     ClientsModule,
     BookingsModule,
     ChatModule,
+    PromptTemplatesModule,
     WebhooksModule,
     StatusModule,
     BgProcessModule,

@@ -200,7 +200,7 @@ export class AdminAuthApi extends ApiClient {
   }
 
   async updateAdminProfile(data: UpdateAdminProfileDto): Promise<AdminProfile> {
-    return this.patch<AdminProfile>('/admin/auth/profile', data);
+    return this.put<AdminProfile>('/admin/auth/profile', data);
   }
 
   async changeAdminPassword(data: ChangeAdminPasswordDto): Promise<{ message: string }> {

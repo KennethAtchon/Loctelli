@@ -24,6 +24,7 @@ model AdminUser {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   createdUsers    User[]      // Users created by this admin
+  promptTemplates PromptTemplate[] // Prompt templates created by this admin
 }
 
 model User {
@@ -69,6 +70,8 @@ model Strategy {
   updatedAt               DateTime   @default(now()) @updatedAt
   user                    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   clients                 Client[]
+  promptTemplateId        Int
+  promptTemplate          PromptTemplate @relation(fields: [promptTemplateId], references: [id])
 }
 
 model Client {
@@ -102,4 +105,25 @@ model Booking {
   updatedAt    DateTime @default(now()) @updatedAt
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   client       Client?  @relation(fields: [clientId], references: [id])
+}
+
+model PromptTemplate {
+  id                  Int       @id @default(autoincrement())
+  name                String
+  description         String?   @db.Text
+  isActive            Boolean   @default(false) // Only one can be active globally
+  isDefault           Boolean   @default(false) // Marks the default template
+  systemPrompt        String    @db.Text // The main system prompt
+  role                String    @default("conversational AI and sales representative")
+  instructions        String?   @db.Text // Additional instructions
+  context             String?   @db.Text // Context information
+  bookingInstruction  String?   @db.Text // Booking-specific instructions
+  creativity          Int       @default(7) // 1-10 scale
+  temperature         Float     @default(0.7) // OpenAI temperature
+  maxTokens           Int?      // Optional token limit
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  createdByAdminId    Int
+  createdByAdmin      AdminUser @relation(fields: [createdByAdminId], references: [id])
+  strategies          Strategy[]
 }

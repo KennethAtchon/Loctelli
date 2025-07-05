@@ -3,6 +3,7 @@ import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { PromptHelperService } from '../../modules/chat/prompt-helper.service';
+import { PromptTemplatesService } from '../../modules/prompt-templates/prompt-templates.service';
 import { BookingHelperService } from '../../modules/bookings/booking-helper.service';
 import axios from 'axios';
 
@@ -28,6 +29,7 @@ export class SalesBotService implements OnModuleInit {
     private prisma: PrismaService,
     private configService: ConfigService,
     private promptHelper: PromptHelperService,
+    private promptTemplatesService: PromptTemplatesService,
     private bookingHelper: BookingHelperService
   ) {
     this.openaiApiKey = this.configService.get<string>('OPENAI_API_KEY') || '';
@@ -83,7 +85,7 @@ export class SalesBotService implements OnModuleInit {
       this.logger.debug(`Using history with ${history.length} messages for clientId=${clientId}`);
       
       // Generate prompt
-      const prompt = this.promptHelper.composePrompt(client, user, strategy, history);
+      const prompt = await this.promptHelper.composePrompt(client, user, strategy, history);
       
       // Create bot response
       const botResponse = await this.createBotResponse(prompt);
@@ -215,12 +217,16 @@ export class SalesBotService implements OnModuleInit {
     })))}`);
     
     try {
+      // Get active template for parameters
+      const activeTemplate = await this.promptTemplatesService.getActive();
+      
       const response = await axios.post(
         'https://api.openai.com/v1/chat/completions',
         {
           model: this.openaiModel,
           messages,
-          temperature: this.temperature,
+          temperature: activeTemplate.temperature,
+          max_tokens: activeTemplate.maxTokens,
         },
         {
           headers: {

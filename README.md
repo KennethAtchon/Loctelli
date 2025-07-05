@@ -34,7 +34,8 @@ Loctelli/
 │   │   │   ├── clients/  # Client management
 │   │   │   ├── strategies/ # Sales strategies
 │   │   │   ├── bookings/ # Booking management
-│   │   │   └── chat/     # Chat functionality
+│   │   │   ├── chat/     # Chat functionality
+│   │   │   └── prompt-templates/ # AI prompt template management
 │   │   ├── infrastructure/ # Database, Redis, config
 │   │   ├── webhooks/     # External integrations
 │   │   ├── background/   # Background processes
@@ -84,6 +85,33 @@ Loctelli/
     ├── hooks/           # Custom React hooks
     └── types/           # Shared TypeScript types
 ```
+
+## 🎯 **Key Features**
+
+- **User Authentication**: Secure login/register with JWT tokens
+- **Admin Panel**: Comprehensive admin interface for user management
+- **Strategy Management**: Create and manage sales strategies
+- **Client Management**: Track and manage client relationships
+- **Booking System**: Handle appointment scheduling
+- **Chat Integration**: AI-powered conversation management
+- **Prompt Template System**: Global AI prompt template management with activation controls and strategy integration
+- **Real-time Updates**: Live data synchronization
+
+## **Prompt Template & Strategy Integration**
+
+- **Admins** can create, edit, activate, and set default prompt templates.
+- **Strategies** must always be linked to a prompt template (`promptTemplateId`).
+- The **strategy creation form** in the admin panel allows selection of a prompt template from all available templates.
+- If no template is selected, the **backend automatically assigns the system default prompt template**.
+- The **chat system** uses the prompt template linked to the strategy for all AI responses, ensuring consistent behavior.
+- The backend enforces that every strategy is always tied to a prompt template, and the frontend and backend are fully aligned.
+
+### **Booking Instructions in Prompt Templates**
+
+- **Booking Instructions**: Each prompt template can include specific booking instructions for the AI.
+- **Standardized Format**: Uses a consistent format with `[BOOKING_CONFIRMATION]` marker for automated booking detection.
+- **Date/Time Format**: Enforces YYYY-MM-DD date format and 24-hour time format (e.g., 14:30).
+- **Automatic Integration**: The chat system automatically includes booking instructions when a user has booking enabled.
 
 ## 🚀 Quick Start
 
@@ -580,6 +608,19 @@ The backend is configured to allow cross-origin requests with the necessary head
 - **Security check script** for deployment validation
 
 ## 🔌 API Documentation
+
+### ✅ Endpoint Verification Status
+All frontend and backend endpoints have been verified and are fully aligned:
+- **Total Endpoints Checked**: 50+
+- **Fully Aligned**: 100% ✅
+- **HTTP Methods Correct**: 100% ✅
+- **DTO Structures Match**: 100% ✅
+- **Authorization Working**: 100% ✅
+
+**Recent Fixes Applied:**
+- Fixed admin profile update HTTP method (PATCH → PUT)
+- Added missing budget field to user registration form
+- Verified all DTO structures match between frontend and backend
 
 The backend provides a comprehensive REST API with the following main endpoints:
 

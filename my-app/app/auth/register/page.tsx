@@ -22,6 +22,7 @@ export default function RegisterPage() {
     email: '',
     password: '',
     company: '',
+    budget: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,7 +46,7 @@ export default function RegisterPage() {
       setSuccess('Registration successful! Please sign in with your new account.');
       
       // Clear form
-      setFormData({ name: '', email: '', password: '', company: '' });
+      setFormData({ name: '', email: '', password: '', company: '', budget: '' });
       
       // Redirect to login after 2 seconds
       setTimeout(() => {
@@ -141,6 +142,17 @@ export default function RegisterPage() {
                   value={formData.company || ''}
                   onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                   placeholder="Enter your company name"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="budget">Budget (Optional)</Label>
+                <Input
+                  id="budget"
+                  type="text"
+                  value={formData.budget || ''}
+                  onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                  placeholder="Enter your budget range"
                 />
               </div>
 

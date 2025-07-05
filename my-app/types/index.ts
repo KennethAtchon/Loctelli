@@ -36,6 +36,7 @@ export interface Strategy {
   exampleConversation?: any;
   delayMin?: number;
   delayMax?: number;
+  promptTemplateId: number;
   createdAt: Date;
   updatedAt: Date;
   user?: User;
@@ -120,6 +121,7 @@ export interface CreateStrategyDto {
   exampleConversation?: any;
   delayMin?: number;
   delayMax?: number;
+  promptTemplateId?: number;
 }
 
 export interface CreateClientDto {

@@ -58,8 +58,9 @@ export class BookingsController {
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: { status: string },
+    @CurrentUser() user
   ) {
-    return this.bookingsService.update(id, { status: body.status });
+    return this.bookingsService.update(id, { status: body.status }, user.userId, user.role);
   }
 
   @Delete(':id')

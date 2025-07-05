@@ -4,6 +4,7 @@ import { ClientsApi } from './endpoints/clients';
 import { StrategiesApi } from './endpoints/strategies';
 import { BookingsApi } from './endpoints/bookings';
 import { ChatApi } from './endpoints/chat';
+import { PromptTemplatesApi } from './endpoints/prompt-templates';
 import { StatusApi } from './endpoints/status';
 import { AuthApi } from './endpoints/auth';
 import { AdminAuthApi } from './endpoints/admin-auth';
@@ -17,6 +18,7 @@ export class Api extends ApiClient {
   public strategies: StrategiesApi;
   public bookings: BookingsApi;
   public chat: ChatApi;
+  public promptTemplates: PromptTemplatesApi;
   public status: StatusApi;
   public general: GeneralApi;
 
@@ -31,6 +33,7 @@ export class Api extends ApiClient {
     this.strategies = new StrategiesApi(baseUrl);
     this.bookings = new BookingsApi(baseUrl);
     this.chat = new ChatApi(baseUrl);
+    this.promptTemplates = new PromptTemplatesApi(baseUrl);
     this.status = new StatusApi(baseUrl);
     this.general = new GeneralApi(baseUrl);
   }
@@ -47,6 +50,7 @@ export { ClientsApi } from './endpoints/clients';
 export { StrategiesApi } from './endpoints/strategies';
 export { BookingsApi } from './endpoints/bookings';
 export { ChatApi } from './endpoints/chat';
+export { PromptTemplatesApi } from './endpoints/prompt-templates';
 export { StatusApi } from './endpoints/status';
 export { GeneralApi } from './endpoints/general';
 

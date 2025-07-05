@@ -15,6 +15,7 @@ import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { CreateStrategyDto } from '@/types';
 import type { UserProfile } from '@/lib/api/endpoints/admin-auth';
+import type { PromptTemplate } from '@/lib/api/endpoints/prompt-templates';
 import logger from '@/lib/logger';
 
 export default function NewStrategyPage() {
@@ -22,6 +23,7 @@ export default function NewStrategyPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [users, setUsers] = useState<UserProfile[]>([]);
+  const [promptTemplates, setPromptTemplates] = useState<PromptTemplate[]>([]);
   const [formData, setFormData] = useState<CreateStrategyDto>({
     userId: 0, // Will be set when user selects from dropdown
     name: '',
@@ -36,21 +38,33 @@ export default function NewStrategyPage() {
     exampleConversation: '',
     delayMin: 30,
     delayMax: 120,
+    promptTemplateId: undefined, // Will be set when template is selected
   });
 
-  // Load users for the dropdown
+  // Load users and prompt templates for the dropdowns
   useEffect(() => {
-    const loadUsers = async () => {
+    const loadData = async () => {
       try {
-        const usersData = await api.adminAuth.getAllUsers();
+        const [usersData, templatesData] = await Promise.all([
+          api.adminAuth.getAllUsers(),
+          api.promptTemplates.getAll()
+        ]);
+        
         // Filter out admin users, only show regular users
         const regularUsers = usersData.filter(user => user.role !== 'admin');
         setUsers(regularUsers);
+        setPromptTemplates(templatesData);
+        
+        // Set default prompt template if available
+        if (templatesData.length > 0) {
+          const defaultTemplate = templatesData.find(t => t.isDefault) || templatesData[0];
+          setFormData(prev => ({ ...prev, promptTemplateId: defaultTemplate.id }));
+        }
       } catch (error) {
-        logger.error('Failed to load users:', error);
+        logger.error('Failed to load data:', error);
       }
     };
-    loadUsers();
+    loadData();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,6 +72,11 @@ export default function NewStrategyPage() {
     
     if (!formData.userId || formData.userId === 0) {
       setError('Please select a user for this strategy');
+      return;
+    }
+    
+    if (!formData.promptTemplateId) {
+      setError('Please select a prompt template for this strategy');
       return;
     }
     
@@ -151,6 +170,25 @@ export default function NewStrategyPage() {
                       {users.map((user) => (
                         <SelectItem key={user.id} value={user.id.toString()}>
                           {user.name} ({user.email})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="promptTemplateId">Prompt Template *</Label>
+                  <Select
+                    value={formData.promptTemplateId?.toString() || ''}
+                    onValueChange={(value) => handleSelectChange('promptTemplateId', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a prompt template" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {promptTemplates.map((template) => (
+                        <SelectItem key={template.id} value={template.id.toString()}>
+                          {template.name} {template.isDefault && '(Default)'} {template.isActive && '(Active)'}
                         </SelectItem>
                       ))}
                     </SelectContent>

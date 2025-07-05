@@ -16,6 +16,7 @@ import {
   Database,
   Menu,
   X,
+  FileText,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -27,8 +28,9 @@ const navigation = [
   { name: 'Clients', href: '/admin/clients', icon: Users },
   { name: 'Bookings', href: '/admin/bookings', icon: Calendar },
   { name: 'Chat', href: '/admin/chat', icon: MessageSquare },
-  { name: 'Settings', href: '/admin/settings', icon: Settings },
+  { name: 'Prompt Builder', href: '/admin/prompt-templates', icon: FileText },
   { name: 'Dev', href: '/admin/dev', icon: Database },
+  { name: 'Settings', href: '/admin/settings', icon: Settings },  
 ];
 
 export function Sidebar() {

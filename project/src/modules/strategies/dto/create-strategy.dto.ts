@@ -50,4 +50,8 @@ export class CreateStrategyDto {
   @IsInt()
   @IsOptional()
   delayMax?: number;
+
+  @IsInt()
+  @IsOptional()
+  promptTemplateId?: number;
 }
