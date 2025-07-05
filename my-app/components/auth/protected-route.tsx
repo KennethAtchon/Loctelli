@@ -19,16 +19,13 @@ export function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
     }
   }, [isAuthenticated, isLoading, router]);
 
-  if (isLoading) {
+  // Show loading state while checking authentication or during redirect
+  if (isLoading || (!isAuthenticated && !isLoading)) {
     return fallback || (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    return null; // Will redirect to login
   }
 
   return <>{children}</>;
