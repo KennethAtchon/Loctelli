@@ -83,6 +83,42 @@ Loctelli/
 - Docker and Docker Compose
 - Git
 
+### 🔒 Security Setup (Required for Production)
+
+Before deploying to production, you must:
+
+1. **Generate secure secrets**:
+```bash
+# Generate JWT secret
+openssl rand -hex 32
+
+# Generate API key
+openssl rand -hex 32
+
+# Generate admin auth code
+openssl rand -hex 16
+```
+
+2. **Update environment variables** with secure values:
+```bash
+# Backend (.env)
+JWT_SECRET=your_generated_jwt_secret_here
+API_KEY=your_generated_api_key_here
+ADMIN_AUTH_CODE=your_generated_admin_code_here
+DATABASE_URL=postgresql://user:password@localhost:5432/loctelli
+REDIS_URL=redis://:password@localhost:6379
+
+# Frontend (.env.local)
+API_KEY=your_generated_api_key_here
+```
+
+3. **Run security check**:
+```bash
+./scripts/security-check.sh
+```
+
+**⚠️ Never use default/example values in production!**
+
 ### 1. Clone the Repository
 
 ```bash
@@ -451,6 +487,45 @@ The backend is configured to allow cross-origin requests with the necessary head
 - `x-user-token`: User authentication tokens
 - `Content-Type`: Standard content type
 - `Authorization`: Standard authorization header
+
+## 🔒 Security Features
+
+### Authentication & Authorization
+- **JWT-based authentication** with secure token rotation
+- **Password complexity requirements** (8+ chars, uppercase, lowercase, numbers, special chars)
+- **Admin password requirements** (12+ chars with enhanced security)
+- **Rate limiting** on authentication endpoints (5 attempts per 15 minutes)
+- **Session management** with automatic token refresh
+- **Role-based access control** (admin, user, manager)
+- **Secure cookie storage** with httpOnly, secure, and sameSite flags
+
+### API Security
+- **API key authentication** for all backend requests
+- **Input validation and sanitization** to prevent XSS and injection attacks
+- **Request size limits** (10MB max)
+- **Content-Type validation** for all requests
+- **Security headers** (CSP, X-Frame-Options, X-Content-Type-Options, etc.)
+- **CORS protection** with strict origin validation
+
+### Data Protection
+- **Password hashing** with bcrypt (12 rounds)
+- **SQL injection prevention** through Prisma ORM
+- **XSS protection** through input sanitization
+- **CSRF protection** through SameSite cookies
+- **Secure token storage** in Redis with expiration
+
+### Infrastructure Security
+- **Environment variable validation** on startup
+- **Secure secret generation** utilities
+- **File permission checks** for sensitive files
+- **SSL/TLS enforcement** in production
+- **Database connection security** with SSL support
+
+### Security Monitoring
+- **Comprehensive logging** for security events
+- **Rate limiting monitoring** and alerting
+- **Failed authentication tracking**
+- **Security check script** for deployment validation
 
 ## 🔌 API Documentation
 

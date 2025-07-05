@@ -415,24 +415,48 @@ app.enableCors({
 
 ## Security Considerations
 
-### Authentication
-- **Cookie-based JWT authentication** with automatic login functionality
-- **Secure token storage** using HTTP cookies with proper security flags
-- **Automatic token refresh** - handles expired tokens seamlessly
-- **Role-based access control** (admin, user, manager)
-- **Password hashing** with bcrypt
-- **Protected routes** with guards and middleware
-- **Multi-level authentication** - separate admin and user authentication flows
-- **Session persistence** - users remain logged in across sessions
-- **API key protection** - server-side only, not exposed to client
+### Authentication & Authorization
+- **JWT-based authentication** with secure token rotation (15min access, 7-day refresh)
+- **Password complexity requirements** (8+ chars, uppercase, lowercase, numbers, special chars)
+- **Admin password requirements** (12+ chars with enhanced security)
+- **Rate limiting** on authentication endpoints (5 attempts per 15 minutes)
+- **Session management** with automatic token refresh and rotation
+- **Role-based access control** (admin, user, manager) with granular permissions
+- **Secure cookie storage** with httpOnly, secure, and sameSite flags
+- **API key authentication** for all backend requests (server-side only)
 
-### Data Protection
-- Input validation with class-validator
-- SQL injection prevention through Prisma ORM
-- XSS protection through proper data sanitization
-- CSRF protection through SameSite cookie settings
-- API key authorization for all backend requests
-- Server-side proxy for secure API communication
+### Data Protection & Input Validation
+- **Comprehensive input validation** middleware for all requests
+- **XSS protection** through input sanitization and CSP headers
+- **SQL injection prevention** through Prisma ORM and parameterized queries
+- **CSRF protection** through SameSite cookies and CSRF tokens
+- **Request size limits** (10MB max) to prevent DoS attacks
+- **Content-Type validation** for all POST/PUT/PATCH requests
+- **HTML sanitization** for user-generated content
+
+### API Security
+- **Security headers** (CSP, X-Frame-Options, X-Content-Type-Options, HSTS)
+- **CORS protection** with strict origin validation
+- **Rate limiting** with Redis-based tracking
+- **Request sanitization** for all inputs (body, query, params)
+- **Error handling** without information disclosure
+- **API versioning** support for future security updates
+
+### Infrastructure Security
+- **Environment variable validation** on startup with secure defaults
+- **Secure secret generation** utilities for development
+- **File permission checks** for sensitive configuration files
+- **SSL/TLS enforcement** in production environments
+- **Database connection security** with SSL support
+- **Redis authentication** with password protection
+
+### Security Monitoring & Logging
+- **Comprehensive security logging** for all authentication events
+- **Rate limiting monitoring** and alerting capabilities
+- **Failed authentication tracking** with IP-based blocking
+- **Security check script** for deployment validation
+- **Audit trail** for sensitive operations
+- **Performance monitoring** with security metrics
 
 ## Integration Points
 

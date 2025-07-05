@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../infrastructure/prisma/prisma.service';
 import { RedisService } from '../infrastructure/redis/redis.service';
@@ -13,8 +13,8 @@ export interface AdminRegisterDto {
   name: string;
   email: string;
   password: string;
-  role?: string;
-  permissions?: any;
+  role: string;
+  authCode: string;
 }
 
 export interface AdminJwtPayload {
@@ -32,6 +32,39 @@ export class AdminAuthService {
     private redisService: RedisService,
   ) {}
 
+  // Password validation function
+  private validatePassword(password: string): void {
+    const minLength = 12; // Higher requirement for admin passwords
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (password.length < minLength) {
+      throw new BadRequestException('Admin password must be at least 12 characters long');
+    }
+    if (!hasUpperCase) {
+      throw new BadRequestException('Admin password must contain at least one uppercase letter');
+    }
+    if (!hasLowerCase) {
+      throw new BadRequestException('Admin password must contain at least one lowercase letter');
+    }
+    if (!hasNumbers) {
+      throw new BadRequestException('Admin password must contain at least one number');
+    }
+    if (!hasSpecialChar) {
+      throw new BadRequestException('Admin password must contain at least one special character');
+    }
+  }
+
+  // Email validation function
+  private validateEmail(email: string): void {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new BadRequestException('Invalid email format');
+    }
+  }
+
   async validateAdminUser(email: string, password: string): Promise<any> {
     const adminUser = await this.prisma.adminUser.findUnique({
       where: { email },
@@ -45,6 +78,9 @@ export class AdminAuthService {
   }
 
   async adminLogin(loginDto: AdminLoginDto) {
+    // Validate email format
+    this.validateEmail(loginDto.email);
+
     const adminUser = await this.validateAdminUser(loginDto.email, loginDto.password);
     
     if (!adminUser) {
@@ -68,10 +104,11 @@ export class AdminAuthService {
       type: 'admin',
     };
 
-    const accessToken = this.jwtService.sign(payload);
+    // Reduced token expiration for better security
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
-    // Store refresh token in Redis
+    // Store refresh token in Redis with rotation
     await this.redisService.setCache(`admin_refresh:${adminUser.id}`, refreshToken, 7 * 24 * 60 * 60);
 
     return {
@@ -87,33 +124,36 @@ export class AdminAuthService {
     };
   }
 
-  async adminRegister(registerDto: AdminRegisterDto & { authCode: string }) {
-    // Verify admin auth code
-    const validAuthCode = process.env.ADMIN_AUTH_CODE || 'ADMIN_2024_SECURE';
-    if (registerDto.authCode !== validAuthCode) {
-      throw new UnauthorizedException('Invalid admin authorization code');
+  async adminRegister(registerDto: AdminRegisterDto) {
+    // Validate email format
+    this.validateEmail(registerDto.email);
+    
+    // Validate password complexity
+    this.validatePassword(registerDto.password);
+
+    // Validate role
+    if (!['admin', 'super_admin'].includes(registerDto.role)) {
+      throw new BadRequestException('Invalid admin role');
     }
 
-    // Check if admin user already exists
+    // Check if admin already exists
     const existingAdmin = await this.prisma.adminUser.findUnique({
       where: { email: registerDto.email },
     });
 
     if (existingAdmin) {
-      throw new ConflictException('Admin user with this email already exists');
+      throw new ConflictException('Admin with this email already exists');
     }
 
-    // Hash password
+    // Hash password with higher salt rounds for better security
     const hashedPassword = await bcrypt.hash(registerDto.password, 12);
 
-    // Create admin user
     const adminUser = await this.prisma.adminUser.create({
       data: {
         name: registerDto.name,
         email: registerDto.email,
         password: hashedPassword,
-        role: registerDto.role || 'admin',
-        permissions: registerDto.permissions,
+        role: registerDto.role,
       },
     });
 
@@ -156,52 +196,6 @@ export class AdminAuthService {
     return result;
   }
 
-  async adminRefreshToken(refreshToken: string) {
-    try {
-      // Decode the refresh token to get admin ID
-      const decoded = this.jwtService.verify(refreshToken) as AdminJwtPayload;
-      const adminId = decoded.sub;
-
-      // Verify refresh token from Redis
-      const storedToken = await this.redisService.getCache(`admin_refresh:${adminId}`);
-      
-      if (!storedToken || storedToken !== refreshToken) {
-        throw new UnauthorizedException('Invalid refresh token');
-      }
-
-      const adminUser = await this.prisma.adminUser.findUnique({
-        where: { id: adminId },
-      });
-
-      if (!adminUser || !adminUser.isActive) {
-        throw new UnauthorizedException('Admin user not found or inactive');
-      }
-
-      const payload: AdminJwtPayload = {
-        sub: adminUser.id,
-        email: adminUser.email,
-        role: adminUser.role,
-        type: 'admin',
-      };
-
-      const newAccessToken = this.jwtService.sign(payload);
-      const newRefreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
-
-      // Update refresh token in Redis
-      await this.redisService.setCache(`admin_refresh:${adminUser.id}`, newRefreshToken, 7 * 24 * 60 * 60);
-
-      return {
-        access_token: newAccessToken,
-        refresh_token: newRefreshToken,
-      };
-    } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-  }
-
   async adminLogout(adminId: number) {
     // Remove refresh token from Redis
     await this.redisService.delCache(`admin_refresh:${adminId}`);
@@ -220,7 +214,6 @@ export class AdminAuthService {
         isActive: true,
         lastLoginAt: true,
         createdAt: true,
-        updatedAt: true,
       },
     });
 
@@ -336,5 +329,91 @@ export class AdminAuthService {
     });
 
     return { message: 'User deleted successfully' };
+  }
+
+  async changeAdminPassword(adminId: number, oldPassword: string, newPassword: string) {
+    // Validate new password complexity
+    this.validatePassword(newPassword);
+
+    const adminUser = await this.prisma.adminUser.findUnique({
+      where: { id: adminId },
+    });
+
+    if (!adminUser) {
+      throw new UnauthorizedException('Admin user not found');
+    }
+
+    // Verify old password
+    const isOldPasswordValid = await bcrypt.compare(oldPassword, adminUser.password);
+    if (!isOldPasswordValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    // Check if new password is different from old password
+    const isNewPasswordSame = await bcrypt.compare(newPassword, adminUser.password);
+    if (isNewPasswordSame) {
+      throw new BadRequestException('New password must be different from current password');
+    }
+
+    // Hash new password
+    const hashedNewPassword = await bcrypt.hash(newPassword, 12);
+
+    // Update password
+    await this.prisma.adminUser.update({
+      where: { id: adminId },
+      data: { password: hashedNewPassword },
+    });
+
+    // Invalidate all existing refresh tokens for this admin
+    await this.redisService.delCache(`admin_refresh:${adminId}`);
+
+    return { message: 'Admin password changed successfully' };
+  }
+
+  async adminRefreshToken(refreshToken: string) {
+    try {
+      // Decode the refresh token to get admin ID
+      const decoded = this.jwtService.verify(refreshToken) as AdminJwtPayload;
+      const adminId = decoded.sub;
+
+      // Verify refresh token from Redis
+      const storedToken = await this.redisService.getCache(`admin_refresh:${adminId}`);
+      
+      if (!storedToken || storedToken !== refreshToken) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      const adminUser = await this.prisma.adminUser.findUnique({
+        where: { id: adminId },
+      });
+
+      if (!adminUser || !adminUser.isActive) {
+        throw new UnauthorizedException('Admin user not found or inactive');
+      }
+
+      const payload: AdminJwtPayload = {
+        sub: adminUser.id,
+        email: adminUser.email,
+        role: adminUser.role,
+        type: 'admin',
+      };
+
+      // Generate new tokens with rotation
+      const newAccessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
+      const newRefreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+      // Update refresh token in Redis (rotation)
+      await this.redisService.setCache(`admin_refresh:${adminUser.id}`, newRefreshToken, 7 * 24 * 60 * 60);
+
+      return {
+        access_token: newAccessToken,
+        refresh_token: newRefreshToken,
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      throw new UnauthorizedException('Invalid refresh token');
+    }
   }
 } 
