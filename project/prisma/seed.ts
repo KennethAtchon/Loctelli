@@ -1,6 +1,16 @@
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
+
+// Get default admin password from environment variable
+const getDefaultAdminPassword = (): string => {
+  const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD;
+  if (!defaultPassword) {
+    throw new Error('DEFAULT_ADMIN_PASSWORD environment variable is required for seeding');
+  }
+  return defaultPassword;
+};
 
 async function main() {
   console.log('Starting database seed...');
@@ -18,14 +28,20 @@ async function main() {
     
     if (!adminUser) {
       console.log('No admin user found, creating default admin...');
+      const defaultPassword = getDefaultAdminPassword();
+      const hashedPassword = await bcrypt.hash(defaultPassword, 12);
+      
       adminUser = await prisma.adminUser.create({
         data: {
           name: 'System Admin',
           email: 'admin@loctelli.com',
-          password: '$2b$10$default.hash.for.admin', // This should be changed on first login
+          password: hashedPassword,
           role: 'super_admin',
         },
       });
+      
+      console.log('Default admin created with email: admin@loctelli.com');
+      console.log('Default password: ' + defaultPassword);
     }
 
     // Create default prompt template

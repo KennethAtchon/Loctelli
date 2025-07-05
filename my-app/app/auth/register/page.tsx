@@ -43,14 +43,14 @@ export default function RegisterPage() {
     try {
       await register(formData);
       console.log('✅ Registration successful');
-      setSuccess('Registration successful! Please sign in with your new account.');
+      setSuccess('Registration successful! You have been automatically logged in.');
       
       // Clear form
       setFormData({ name: '', email: '', password: '', company: '', budget: '' });
       
-      // Redirect to login after 2 seconds
+      // Redirect to home page after 2 seconds
       setTimeout(() => {
-        router.push('/auth/login');
+        router.push('/');
       }, 2000);
     } catch (error) {
       console.error('❌ Registration failed:', error);

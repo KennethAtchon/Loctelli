@@ -16,6 +16,7 @@ export interface SecurityConfig {
   };
   admin: {
     authCode: string;
+    defaultPassword: string;
   };
   database: {
     url: string;
@@ -57,6 +58,7 @@ export class SecurityConfigService {
       },
       admin: {
         authCode: this.getRequiredEnv('ADMIN_AUTH_CODE'),
+        defaultPassword: this.getRequiredEnv('DEFAULT_ADMIN_PASSWORD'),
       },
       database: {
         url: this.getRequiredEnv('DATABASE_URL'),
@@ -115,6 +117,10 @@ export class SecurityConfigService {
     return authCode.length >= 16 && !authCode.includes('ADMIN_2024_SECURE');
   }
 
+  validateAdminPassword(password: string): boolean {
+    return password.length >= 12 && !password.includes('password') && !password.includes('admin');
+  }
+
   validateDatabaseUrl(url: string): boolean {
     return url.startsWith('postgresql://') && !url.includes('password');
   }
@@ -137,6 +143,10 @@ export class SecurityConfigService {
 
     if (!this.validateAdminAuthCode(config.admin.authCode)) {
       throw new Error('ADMIN_AUTH_CODE is not secure. Use a strong, random code.');
+    }
+
+    if (!this.validateAdminPassword(config.admin.defaultPassword)) {
+      throw new Error('DEFAULT_ADMIN_PASSWORD is not secure. Use a strong password.');
     }
 
     if (!this.validateDatabaseUrl(config.database.url)) {

@@ -113,7 +113,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = async (data: RegisterDto) => {
     try {
+      // First register the user
       await api.auth.register(data);
+      
+      // Then automatically log them in with the same credentials
+      const loginCredentials: LoginDto = {
+        email: data.email,
+        password: data.password,
+      };
+      
+      // Use the existing login method to handle the login
+      await login(loginCredentials);
     } catch (error) {
       logger.error('Registration failed:', error);
       // Re-throw the error so the form can handle it

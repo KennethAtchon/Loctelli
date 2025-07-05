@@ -88,7 +88,7 @@ Loctelli/
 
 ## 🎯 **Key Features**
 
-- **User Authentication**: Secure login/register with JWT tokens
+- **User Authentication**: Secure login/register with JWT tokens and automatic login after registration
 - **Admin Panel**: Comprehensive admin interface for user management
 - **Strategy Management**: Create and manage sales strategies
 - **Client Management**: Track and manage client relationships
@@ -135,6 +135,9 @@ openssl rand -hex 32
 
 # Generate admin auth code
 openssl rand -hex 16
+
+# Generate secure admin password (or create your own)
+openssl rand -base64 12
 ```
 
 2. **Update environment variables** with secure values:
@@ -143,6 +146,7 @@ openssl rand -hex 16
 JWT_SECRET=your_generated_jwt_secret_here
 API_KEY=your_generated_api_key_here
 ADMIN_AUTH_CODE=your_generated_admin_code_here
+DEFAULT_ADMIN_PASSWORD=your_secure_admin_password_here
 DATABASE_URL=postgresql://user:password@localhost:5432/loctelli
 REDIS_URL=redis://:password@localhost:6379
 

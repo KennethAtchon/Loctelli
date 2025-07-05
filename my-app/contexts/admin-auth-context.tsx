@@ -126,7 +126,17 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const adminRegister = async (data: AdminRegisterDto) => {
+    // First register the admin
     await api.adminAuth.adminRegister(data);
+    
+    // Then automatically log them in with the same credentials
+    const loginCredentials: AdminLoginDto = {
+      email: data.email,
+      password: data.password,
+    };
+    
+    // Use the existing adminLogin method to handle the login
+    await adminLogin(loginCredentials);
   };
 
   const adminLogout = async () => {

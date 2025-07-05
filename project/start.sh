@@ -13,6 +13,10 @@ npx prisma migrate deploy
 echo "Generating Prisma client..."
 npx prisma generate
 
+# Run database seeding
+echo "Running database seeding..."
+npm run db:seed
+
 # Start the application
 echo "Starting NestJS application..."
 echo "The application will automatically wait for database and Redis connections..."

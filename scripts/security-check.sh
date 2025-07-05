@@ -131,6 +131,7 @@ fi
 check_env_var "JWT_SECRET" "$JWT_SECRET" "true"
 check_env_var "API_KEY" "$API_KEY" "true"
 check_env_var "ADMIN_AUTH_CODE" "$ADMIN_AUTH_CODE" "true"
+check_env_var "DEFAULT_ADMIN_PASSWORD" "$DEFAULT_ADMIN_PASSWORD" "true"
 check_env_var "DATABASE_URL" "$DATABASE_URL" "true"
 check_env_var "REDIS_URL" "$REDIS_URL" "true"
 

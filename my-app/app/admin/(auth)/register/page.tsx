@@ -36,15 +36,15 @@ export default function AdminRegisterPage() {
 
     try {
       await adminRegister(formData);
-      setSuccess('Admin registration successful! Please sign in with your new account.');
+      setSuccess('Admin registration successful! You have been automatically logged in.');
       
       // Clear form
       setFormData({ name: '', email: '', password: '', authCode: '', role: 'admin' });
       
-      // Redirect to admin login after 3 seconds
+      // Redirect to admin dashboard after 2 seconds
       setTimeout(() => {
-        router.push('/admin/login');
-      }, 3000);
+        router.push('/admin/dashboard');
+      }, 2000);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Registration failed. Please try again.');
     } finally {
