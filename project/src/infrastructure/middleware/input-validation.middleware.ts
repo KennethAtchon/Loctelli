@@ -9,15 +9,11 @@ export class InputValidationMiddleware implements NestMiddleware {
       req.body = this.sanitizeObject(req.body);
     }
 
-    // Sanitize query parameters
-    if (req.query) {
-      req.query = this.sanitizeObject(req.query);
-    }
+    // Validate query parameters (without modifying them)
+    this.validateQueryParams(req);
 
-    // Sanitize URL parameters
-    if (req.params) {
-      req.params = this.sanitizeObject(req.params);
-    }
+    // Validate URL parameters (without modifying them)
+    this.validateUrlParams(req);
 
     // Validate request size
     this.validateRequestSize(req);
@@ -101,6 +97,30 @@ export class InputValidationMiddleware implements NestMiddleware {
 
       if (!isValidType) {
         throw new BadRequestException('Invalid Content-Type');
+      }
+    }
+  }
+
+  private validateQueryParams(req: Request): void {
+    if (req.query && Object.keys(req.query).length > 0) {
+      // Check for potentially dangerous query parameters
+      const dangerousParams = ['script', 'javascript', 'onload', 'onerror'];
+      for (const key of Object.keys(req.query)) {
+        if (dangerousParams.some(dangerous => key.toLowerCase().includes(dangerous))) {
+          throw new BadRequestException('Potentially dangerous query parameter detected');
+        }
+      }
+    }
+  }
+
+  private validateUrlParams(req: Request): void {
+    if (req.params && Object.keys(req.params).length > 0) {
+      // Check for potentially dangerous URL parameters
+      const dangerousParams = ['script', 'javascript', 'onload', 'onerror'];
+      for (const key of Object.keys(req.params)) {
+        if (dangerousParams.some(dangerous => key.toLowerCase().includes(dangerous))) {
+          throw new BadRequestException('Potentially dangerous URL parameter detected');
+        }
       }
     }
   }
