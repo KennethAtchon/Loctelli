@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
 import { AdminAuthProvider } from "@/contexts/admin-auth-context";
 import { validateEnvironmentVariables } from "@/lib/envUtils";
+import logger from '@/lib/logger';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,12 +22,12 @@ export const metadata: Metadata = {
 if (typeof window === 'undefined') {
   try {
     validateEnvironmentVariables();
-    console.log('✅ Environment validation passed');
+    logger.debug('✅ Environment validation passed');
   } catch (error) {
-    console.error('❌ Environment validation failed:', error);
+    logger.error('❌ Environment validation failed:', error);
     // In development, we might want to show a more user-friendly error
     if (process.env.NODE_ENV === 'development') {
-      console.error('Please ensure API_KEY is set in your .env.local file');
+      logger.error('Please ensure API_KEY is set in your .env.local file');
     }
   }
 }

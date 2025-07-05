@@ -97,4 +97,218 @@ export class GeneralService {
       throw new Error(`Failed to check system status: ${error.message}`);
     }
   }
+
+  async getRecentClients() {
+    try {
+      return await this.prisma.client.findMany({
+        take: 5,
+        orderBy: {
+          id: 'desc'
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            }
+          },
+          strategy: {
+            select: {
+              id: true,
+              name: true,
+              tag: true,
+            }
+          },
+          bookings: {
+            select: {
+              id: true,
+              bookingType: true,
+              status: true,
+              createdAt: true,
+            }
+          }
+        }
+      });
+    } catch (error) {
+      throw new Error(`Failed to fetch recent clients: ${error.message}`);
+    }
+  }
+
+  async getDetailedUser(userId: number) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          createdByAdmin: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            }
+          },
+          strategies: {
+            select: {
+              id: true,
+              name: true,
+              tag: true,
+              tone: true,
+            }
+          },
+          clients: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              status: true,
+            }
+          },
+          bookings: {
+            select: {
+              id: true,
+              bookingType: true,
+              status: true,
+              createdAt: true,
+            }
+          }
+        }
+      });
+
+      if (!user) {
+        throw new Error(`User with ID ${userId} not found`);
+      }
+
+      return user;
+    } catch (error) {
+      throw new Error(`Failed to fetch detailed user: ${error.message}`);
+    }
+  }
+
+  async getDetailedClient(clientId: number) {
+    try {
+      const client = await this.prisma.client.findUnique({
+        where: { id: clientId },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            }
+          },
+          strategy: {
+            select: {
+              id: true,
+              name: true,
+              tag: true,
+            }
+          },
+          bookings: {
+            select: {
+              id: true,
+              bookingType: true,
+              status: true,
+              createdAt: true,
+            }
+          }
+        }
+      });
+
+      if (!client) {
+        throw new Error(`Client with ID ${clientId} not found`);
+      }
+
+      return client;
+    } catch (error) {
+      throw new Error(`Failed to fetch detailed client: ${error.message}`);
+    }
+  }
+
+  async getDatabaseSchema() {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      
+      const schemaPath = path.join(process.cwd(), 'prisma', 'schema.prisma');
+      const schemaContent = fs.readFileSync(schemaPath, 'utf-8');
+      
+      // Parse the schema to extract model information
+      const models = this.parsePrismaSchema(schemaContent);
+      
+      return {
+        success: true,
+        data: {
+          models,
+          rawSchema: schemaContent,
+          lastModified: fs.statSync(schemaPath).mtime
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Failed to read database schema',
+        details: error.message
+      };
+    }
+  }
+
+  private parsePrismaSchema(content: string): any[] {
+    const models: any[] = [];
+    const modelRegex = /model\s+(\w+)\s*\{([^}]+)\}/g;
+    let match;
+
+    while ((match = modelRegex.exec(content)) !== null) {
+      const modelName = match[1];
+      const modelContent = match[2];
+      const fields = this.parseModelFields(modelContent);
+      
+      models.push({
+        name: modelName,
+        fields
+      });
+    }
+
+    return models;
+  }
+
+  private parseModelFields(modelContent: string): any[] {
+    const fields: any[] = [];
+    const lines = modelContent.split('\n');
+
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      if (!trimmedLine || trimmedLine.startsWith('//') || trimmedLine.includes('@relation')) {
+        continue;
+      }
+
+      const fieldMatch = trimmedLine.match(/^(\w+)\s+(\w+(?:\[\])?)\s*(\?)?\s*(.*)$/);
+      if (fieldMatch) {
+        const [, name, type, optional, attributes] = fieldMatch;
+        
+        const field = {
+          name,
+          type: type.replace('[]', ''),
+          isRequired: !optional,
+          isId: attributes.includes('@id'),
+          isUnique: attributes.includes('@unique'),
+          isRelation: type.includes('[]') || attributes.includes('@relation'),
+          relationType: type.includes('[]') ? 'one-to-many' : 'many-to-one',
+          relationTarget: this.extractRelationTarget(attributes)
+        };
+
+        fields.push(field);
+      }
+    }
+
+    return fields;
+  }
+
+  private extractRelationTarget(attributes: string) {
+    const relationMatch = attributes.match(/@relation\([^)]*\)/);
+    if (relationMatch) {
+      const targetMatch = relationMatch[0].match(/references:\s*\[(\w+)\]/);
+      return targetMatch ? targetMatch[1] : null;
+    }
+    return null;
+  }
 }

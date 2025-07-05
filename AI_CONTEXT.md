@@ -166,38 +166,38 @@ The frontend communicates with the backend through a Next.js API proxy (`/api/pr
 
 ### Core API Modules
 
-#### Users API (`/users`)
-- `GET /users` - Get all users (admin only)
-- `GET /users/:id` - Get user by ID
-- `POST /users` - Create new user
-- `PUT /users/:id` - Update user
-- `DELETE /users/:id` - Delete user
+#### Users API (`/user`)
+- `GET /user` - Get all users (admin only)
+- `GET /user/:id` - Get user by ID
+- `POST /user` - Create new user
+- `PUT /user/:id` - Update user
+- `DELETE /user/:id` - Delete user
 
-#### Strategies API (`/strategies`)
-- `GET /strategies` - Get all strategies for current user
-- `GET /strategies/:id` - Get strategy by ID
-- `POST /strategies` - Create new strategy
-- `PATCH /strategies/:id` - Update strategy
-- `DELETE /strategies/:id` - Delete strategy
-- `GET /strategies?userId=:userId` - Get strategies by user (admin only)
-- `POST /strategies/:id/duplicate` - Duplicate strategy
+#### Strategies API (`/strategy`)
+- `GET /strategy` - Get all strategies for current user
+- `GET /strategy/:id` - Get strategy by ID
+- `POST /strategy` - Create new strategy
+- `PATCH /strategy/:id` - Update strategy
+- `DELETE /strategy/:id` - Delete strategy
+- `GET /strategy?userId=:userId` - Get strategies by user (admin only)
+- `POST /strategy/:id/duplicate` - Duplicate strategy
 
-#### Clients API (`/clients`)
-- `GET /clients` - Get all clients for current user
-- `GET /clients/:id` - Get client by ID
-- `POST /clients` - Create new client
-- `PATCH /clients/:id` - Update client
-- `DELETE /clients/:id` - Delete client
-- `GET /clients?userId=:userId` - Get clients by user (admin only)
-- `GET /clients?strategyId=:strategyId` - Get clients by strategy
+#### Clients API (`/client`)
+- `GET /client` - Get all clients for current user
+- `GET /client/:id` - Get client by ID
+- `POST /client` - Create new client
+- `PATCH /client/:id` - Update client
+- `DELETE /client/:id` - Delete client
+- `GET /client?userId=:userId` - Get clients by user (admin only)
+- `GET /client?strategyId=:strategyId` - Get clients by strategy
 
-#### Bookings API (`/bookings`)
-- `GET /bookings` - Get all bookings for current user
-- `GET /bookings/:id` - Get booking by ID
-- `POST /bookings` - Create new booking
-- `PATCH /bookings/:id` - Update booking
-- `DELETE /bookings/:id` - Delete booking
-- `GET /bookings?userId=:userId` - Get bookings by user (admin only)
+#### Bookings API (`/booking`)
+- `GET /booking` - Get all bookings for current user
+- `GET /booking/:id` - Get booking by ID
+- `POST /booking` - Create new booking
+- `PATCH /booking/:id` - Update booking
+- `DELETE /booking/:id` - Delete booking
+- `GET /booking?userId=:userId` - Get bookings by user (admin only)
 - `GET /bookings?clientId=:clientId` - Get bookings by client
 - `GET /bookings?startDate=:startDate&endDate=:endDate` - Get bookings by date range
 - `PATCH /bookings/:id/status` - Update booking status
@@ -219,6 +219,9 @@ The frontend communicates with the backend through a Next.js API proxy (`/api/pr
 #### General API (`/general`)
 - `GET /general/dashboard-stats` - Get aggregated dashboard statistics for admin
 - `GET /general/system-status` - Get system health status (database, Redis, etc.)
+- `GET /general/recent-clients` - Get recent clients with full details
+- `GET /general/users/:id/detailed` - Get detailed user information with all related data
+- `GET /general/clients/:id/detailed` - Get detailed client information with all related data
 - `GET /general` - General endpoint test
 - `POST /general` - General endpoint test
 
@@ -572,11 +575,179 @@ Real-time system health monitoring including:
 - **Action Buttons**: Quick access to user management and settings
 - **Real-time Updates**: Live system status with color-coded badges
 - **Error Handling**: Graceful error display with retry functionality
+- **Detailed User Views**: Modal dialogs showing complete user information
+- **Detailed Client Views**: Modal dialogs showing complete client information
+- **View Buttons**: Eye icon buttons to view all details for each user/client
+- **Related Data Display**: Shows strategies, clients, bookings, and admin relationships
 
 ### Dashboard Integration
 - **Backend Integration**: Real data from database queries
 - **API Endpoints**: Dedicated endpoints for stats and system status
 - **Performance Optimized**: Parallel API calls for faster loading
 - **Responsive Design**: Mobile-friendly layout with proper spacing
+- **Modal Dialogs**: Detailed information displayed in scrollable modals
+- **Data Relationships**: Shows connections between users, clients, strategies, and bookings
+- **Database Schema Visualization**: Interactive ERD diagram showing database structure and relationships
+
+## Database Schema Visualization
+
+### Real-time Schema Display
+The admin dashboard includes a comprehensive database schema visualization:
+
+#### Interactive ERD Diagram
+- **Mermaid.js Integration**: Uses Mermaid.js for professional entity relationship diagrams
+- **Real-time Generation**: Schema diagram generated dynamically from Prisma schema
+- **Live Updates**: Automatically reflects schema changes when Prisma schema is modified
+- **Interactive Controls**: Zoom in/out, download, and refresh functionality
+
+#### Schema Features
+- **Entity Display**: All database tables shown with field types and constraints
+- **Relationship Mapping**: Visual representation of foreign key relationships
+- **Field Details**: Shows primary keys, unique constraints, nullable fields
+- **Type Information**: Displays Prisma data types with Mermaid equivalents
+
+#### Backend Integration
+- **API Endpoint**: `/general/schema` provides real-time schema data
+- **Schema Parsing**: Backend parses Prisma schema file and returns structured data
+- **Error Handling**: Graceful fallback if schema file cannot be read
+- **Performance**: Cached schema data with file modification tracking
+
+#### UI/UX Features
+- **Responsive Design**: Mobile-friendly diagram display
+- **Zoom Controls**: Interactive zoom in/out with reset functionality
+- **Download Option**: Export diagram as SVG for documentation
+- **Code View**: Collapsible section showing raw Mermaid code
+- **Loading States**: Smooth loading indicators during generation
+
+## Client Management Features
+
+### Clients Page Integration
+The clients page provides comprehensive client management with full backend integration:
+
+#### Real-time Data
+- **Live Client Data**: Real client information from database
+- **Dynamic Statistics**: Real-time counts for total, active, lead, and inactive clients
+- **Automatic Refresh**: Manual refresh with loading states
+- **Error Handling**: Graceful error display with retry functionality
+
+#### Search and Filtering
+- **Real-time Search**: Search by name, email, company, or phone
+- **Status Filtering**: Filter by active, lead, inactive, or all clients
+- **Dynamic Results**: Live filtering with result counts
+- **Empty States**: Helpful messages when no results found
+
+#### Detailed Client Views
+- **Complete Information**: All client fields displayed in modal dialogs
+- **Related Data**: Shows assigned user, strategy, and bookings
+- **Timestamps**: Creation, update, and last message dates
+- **Notes and Messages**: Full notes and last message content
+- **Responsive Modals**: Scrollable dialogs for large datasets
+
+#### Action Functionality
+- **View Details**: Eye icon buttons for complete client information
+- **Edit Clients**: Links to edit pages (when implemented)
+- **Delete Clients**: Confirmation-based deletion with automatic refresh
+- **Add Clients**: Quick access to client creation
+
+#### UI/UX Features
+- **Loading States**: Spinners and skeleton loading
+- **Status Badges**: Color-coded status indicators
+- **Responsive Table**: Mobile-friendly data display
+- **Empty States**: Helpful messaging when no data available
+- **Real-time Updates**: Automatic data refresh after actions
+
+## User Management Features
+
+### Users Page Integration
+The users page provides comprehensive user management with full backend integration:
+
+#### Real-time Data
+- **Live User Data**: Real user information from database
+- **Dynamic Statistics**: Real-time counts for total, active, inactive, and admin users
+- **Automatic Refresh**: Manual refresh with loading states
+- **Error Handling**: Graceful error display with retry functionality
+
+#### Search and Filtering
+- **Real-time Search**: Search by name, email, or company
+- **Role Filtering**: Filter by user, manager, admin, or all roles
+- **Status Filtering**: Filter by active, inactive, or all users
+- **Dynamic Results**: Live filtering with result counts
+- **Empty States**: Helpful messages when no results found
+
+#### Detailed User Views
+- **Complete Information**: All user fields displayed in modal dialogs
+- **Related Data**: Shows strategies, clients, bookings, and admin relationships
+- **Integration Details**: Calendar ID, location ID, and assigned user ID
+- **Timestamps**: Creation, update, and last login dates
+- **Admin Audit Trail**: Shows which admin created each user
+
+#### Action Functionality
+- **View Details**: Eye icon buttons for complete user information
+- **Edit Users**: Full user editing with role and status management
+- **Delete Users**: Confirmation-based deletion with automatic refresh
+- **Create Users**: User creation with role assignment
+- **Status Toggle**: Enable/disable user accounts
+
+#### UI/UX Features
+- **Loading States**: Spinners and skeleton loading
+- **Role Badges**: Color-coded role indicators (admin=red, manager=secondary, user=outline)
+- **Status Badges**: Active/inactive status indicators
+- **Responsive Table**: Mobile-friendly data display
+- **Empty States**: Helpful messaging when no data available
+- **Real-time Updates**: Automatic data refresh after actions
+
+## Settings Management Features
+
+### Settings Page Integration
+The settings page provides admin configuration management with role-based access:
+
+#### Authorization Code Management
+- **Current Code Display**: Shows current admin authorization code
+- **Code Generation**: Generate new secure authorization codes
+- **Security Features**: Password masking with show/hide toggle
+- **Copy Functionality**: One-click copy to clipboard
+- **Environment Integration**: Instructions for environment variable setup
+
+#### Role-based Access Control
+- **Super Admin Only**: Settings access restricted to super admin role
+- **Access Denied**: Clear messaging for unauthorized users
+- **Security Information**: Best practices and security guidelines
+- **Environment Configuration**: Admin auth code environment variable management
+
+#### Security Features
+- **Password Masking**: Auth codes hidden by default with toggle
+- **Copy to Clipboard**: Secure copying with success notifications
+- **Code Generation**: Secure random code generation
+- **Expiration Tracking**: Code expiration information
+- **Security Guidelines**: Best practices documentation
+
+#### UI/UX Features
+- **Loading States**: Spinners during code generation
+- **Success Notifications**: Toast notifications for actions
+- **Error Handling**: Graceful error display
+- **Security Information**: Comprehensive security documentation
+- **Responsive Design**: Mobile-friendly layout
+
+## Logging Utility (Frontend)
+
+A streamlined logger is implemented using the `loglevel` library in `my-app/lib/logger.ts`:
+
+- **Environment-based log levels**: In production, only warnings and errors are logged. In development, debug/info logs are enabled.
+- **Runtime control**: You can change the log level at runtime using `setLogLevel`.
+- **Usage**: Import `logger` and use `logger.debug`, `logger.info`, `logger.warn`, `logger.error` instead of `console.log`/`console.warn`/`console.error`.
+
+```typescript
+import logger, { setLogLevel } from '@/lib/logger';
+
+logger.debug('Debug message');
+logger.info('Info message');
+logger.warn('Warning message');
+logger.error('Error message');
+
+// Change log level at runtime
+setLogLevel('error'); // Only errors will be logged
+```
+
+All previous console statements in the frontend have been replaced with this logger for consistent, environment-aware logging.
 
 This context should provide AI models with comprehensive understanding of the Loctelli CRM system architecture, data flow, and implementation details for effective code analysis and generation. 

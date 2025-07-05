@@ -195,6 +195,12 @@ npm run db:studio
 - **Company and position tracking**: Professional context
 - **Strategy assignment**: Link clients to specific sales strategies
 - **Advanced filtering**: Filter clients by various criteria
+- **Real-time search**: Search by name, email, company, or phone
+- **Status filtering**: Filter by active, lead, inactive, or all clients
+- **Detailed client views**: Modal dialogs showing complete client information
+- **Client statistics**: Real-time counts for different client statuses
+- **Delete functionality**: Confirmation-based client deletion
+- **Responsive table**: Mobile-friendly client data display
 
 ### 📅 Booking System
 - **Appointment scheduling**: Create and manage meetings
@@ -224,6 +230,34 @@ npm run db:studio
 - **Performance metrics**: Track key business indicators
 - **Error handling**: Graceful error display with retry functionality
 - **Responsive design**: Mobile-friendly dashboard layout
+- **Detailed user views**: Modal dialogs showing complete user information with all fields
+- **Detailed client views**: Modal dialogs showing complete client information with all fields
+- **View buttons**: Eye icon buttons to view all details for each user and client
+- **Related data display**: Shows strategies, clients, bookings, and admin relationships
+- **Recent clients section**: Latest clients added to the platform with detailed information
+- **Database schema visualization**: Interactive ERD diagram showing database structure and relationships
+
+### 👥 User Management (Admin)
+- **Complete user management**: Full CRUD operations with role-based access control
+- **Advanced search & filtering**: Search by name, email, company with role and status filters
+- **Real-time statistics**: Live user counts (total, active, inactive, admin users)
+- **Detailed user views**: Comprehensive user information with related strategies, clients, and bookings
+- **Role management**: User role assignment and status toggling
+- **Integration details**: Calendar, location, and external system integration tracking
+- **Admin audit trail**: Track which admin created each user
+- **User activity monitoring**: Last login tracking and activity status
+- **Bulk operations**: Efficient user management with action buttons
+- **Responsive design**: Mobile-friendly user management interface
+
+### ⚙️ Settings Management (Admin)
+- **Admin authorization code management**: Generate and manage admin registration codes
+- **Role-based access control**: Super admin only access to sensitive settings
+- **Security features**: Password masking, copy to clipboard functionality
+- **Environment configuration**: Admin auth code environment variable management
+- **Security best practices**: Guidelines and security information
+- **Real-time code generation**: Secure auth code generation with expiration tracking
+- **Access control**: Clear messaging for unauthorized users
+- **Security documentation**: Comprehensive security guidelines
 
 ### 🔧 System Administration
 - **Comprehensive admin panel**: Full administrative control
@@ -380,10 +414,10 @@ The backend provides a comprehensive REST API with the following main endpoints:
 - `GET /admin/auth/current-auth-code` - Get current auth code
 
 ### Core Modules
-- **Users**: `/users/*` - User management with role-based access
-- **Clients**: `/clients/*` - Client management with strategy assignment
-- **Strategies**: `/strategies/*` - Sales strategy management
-- **Bookings**: `/bookings/*` - Booking management with calendar integration
+- **Users**: `/user/*` - User management with role-based access
+- **Clients**: `/client/*` - Client management with strategy assignment
+- **Strategies**: `/strategy/*` - Sales strategy management
+- **Bookings**: `/booking/*` - Booking management with calendar integration
 - **Chat**: `/chat/*` - AI-powered messaging functionality
 - **Status**: `/status/*` - System health and status monitoring
 
@@ -454,6 +488,28 @@ For support and questions:
 - **v0.4.0**: Implemented cookie-based authentication with automatic login
 - **v0.5.0**: Added background processes and enhanced AI integration
 - **v0.6.0**: Implemented API proxy system and admin auth codes
+
+## 📝 Logging Utility (Frontend)
+
+A streamlined logger is implemented using the `loglevel` library in `my-app/lib/logger.ts`:
+
+- **Environment-based log levels**: In production, only warnings and errors are logged. In development, debug/info logs are enabled.
+- **Runtime control**: You can change the log level at runtime using `setLogLevel`.
+- **Usage**: Import `logger` and use `logger.debug`, `logger.info`, `logger.warn`, `logger.error` instead of `console.log`/`console.warn`/`console.error`.
+
+```typescript
+import logger, { setLogLevel } from '@/lib/logger';
+
+logger.debug('Debug message');
+logger.info('Info message');
+logger.warn('Warning message');
+logger.error('Error message');
+
+// Change log level at runtime
+setLogLevel('error'); // Only errors will be logged
+```
+
+All previous console statements in the frontend have been replaced with this logger for consistent, environment-aware logging.
 
 ---
 

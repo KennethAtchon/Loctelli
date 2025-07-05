@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import logger from '@/lib/logger';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -32,12 +33,12 @@ export default function LoginPage() {
   // Test API connection on mount
   useEffect(() => {
     const checkApiStatus = async () => {
-      console.log('🔍 Testing API connection...');
+      logger.debug('🔍 Testing API connection...');
       const status = await testApiConnection();
       const healthStatus = await testHealthEndpoint();
       setApiStatus(status.success ? status : healthStatus);
-      console.log('API Status:', status);
-      console.log('Health Status:', healthStatus);
+      logger.debug('API Status:', status);
+      logger.debug('Health Status:', healthStatus);
     };
 
     checkApiStatus();
@@ -58,7 +59,7 @@ export default function LoginPage() {
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (isLoading) {
-        console.warn('Auth loading timeout - forcing loading state to false');
+        logger.warn('Auth loading timeout - forcing loading state to false');
         // Force loading to false after 10 seconds to prevent infinite loading
         // This is a fallback in case the auth contexts get stuck
       }
@@ -72,7 +73,7 @@ export default function LoginPage() {
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (isLoading) {
-        console.warn('Forcing form display after 15 seconds');
+        logger.warn('Forcing form display after 15 seconds');
         setForceShowForm(true);
       }
     }, 15000);

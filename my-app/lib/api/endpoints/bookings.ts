@@ -3,38 +3,38 @@ import { Booking, CreateBookingDto } from '@/types';
 
 export class BookingsApi extends ApiClient {
   async getBookings(): Promise<Booking[]> {
-    return this.get<Booking[]>('/bookings');
+    return this.get<Booking[]>('/booking');
   }
 
   async getBooking(id: number): Promise<Booking> {
-    return this.get<Booking>(`/bookings/${id}`);
+    return this.get<Booking>(`/booking/${id}`);
   }
 
   async createBooking(data: CreateBookingDto): Promise<Booking> {
-    return this.post<Booking>('/bookings', data);
+    return this.post<Booking>('/booking', data);
   }
 
   async updateBooking(id: number, data: Partial<CreateBookingDto>): Promise<Booking> {
-    return this.patch<Booking>(`/bookings/${id}`, data);
+    return this.patch<Booking>(`/booking/${id}`, data);
   }
 
   async deleteBooking(id: number): Promise<void> {
-    return this.delete<void>(`/bookings/${id}`);
+    return this.delete<void>(`/booking/${id}`);
   }
 
   async getBookingsByUser(userId: number): Promise<Booking[]> {
-    return this.get<Booking[]>(`/bookings?userId=${userId}`);
+    return this.get<Booking[]>(`/booking?userId=${userId}`);
   }
 
   async getBookingsByClient(clientId: number): Promise<Booking[]> {
-    return this.get<Booking[]>(`/bookings?clientId=${clientId}`);
+    return this.get<Booking[]>(`/booking?clientId=${clientId}`);
   }
 
   async getBookingsByDateRange(startDate: string, endDate: string): Promise<Booking[]> {
-    return this.get<Booking[]>(`/bookings?startDate=${startDate}&endDate=${endDate}`);
+    return this.get<Booking[]>(`/booking?startDate=${startDate}&endDate=${endDate}`);
   }
 
   async updateBookingStatus(id: number, status: string): Promise<Booking> {
-    return this.patch<Booking>(`/bookings/${id}/status`, { status });
+    return this.patch<Booking>(`/booking/${id}/status`, { status });
   }
 } 

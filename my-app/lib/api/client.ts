@@ -2,6 +2,7 @@
 import { ApiRequestOptions } from './types';
 import { API_CONFIG } from '../envUtils';
 import { AuthCookies } from '../cookies';
+import logger from '@/lib/logger';
 
 const API_BASE_URL = API_CONFIG.BASE_URL;
 
@@ -32,7 +33,7 @@ export class ApiClient {
     const userAccessToken = AuthCookies.getAccessToken();
     const userRefreshToken = AuthCookies.getRefreshToken();
     
-    console.log('🔍 Token Debug:', {
+    logger.debug('🔍 Token Debug:', {
       adminAccess: !!adminAccessToken,
       adminRefresh: !!adminRefreshToken,
       userAccess: !!userAccessToken,
@@ -44,16 +45,16 @@ export class ApiClient {
     // Check for admin tokens first (admin takes precedence)
     if (adminAccessToken) {
       headers['x-user-token'] = adminAccessToken;
-      console.log('🔑 Admin access token found and added to headers');
+      logger.debug('🔑 Admin access token found and added to headers');
       return headers;
     }
     
     // Check for regular user tokens
     if (userAccessToken) {
       headers['x-user-token'] = userAccessToken;
-      console.log('🔑 User access token found and added to headers');
+      logger.debug('🔑 User access token found and added to headers');
     } else {
-      console.log('ℹ️ No access tokens found');
+      logger.debug('ℹ️ No access tokens found');
     }
     
     return headers;
@@ -103,7 +104,7 @@ export class ApiClient {
           AuthCookies.setAdminRefreshToken(data.refresh_token);
           return;
         } catch (error) {
-          console.error('Admin token refresh failed:', error);
+          logger.error('Admin token refresh failed:', error);
           // Clear only admin tokens on failure
           AuthCookies.clearAdminTokens();
           throw error;
@@ -134,7 +135,7 @@ export class ApiClient {
           AuthCookies.setRefreshToken(data.refresh_token);
           return;
         } catch (error) {
-          console.error('User token refresh failed:', error);
+          logger.error('User token refresh failed:', error);
           // Clear only user tokens on failure
           AuthCookies.clearUserTokens();
           throw error;
@@ -154,7 +155,7 @@ export class ApiClient {
     options: RequestInit & ApiRequestOptions = {}
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    console.log('🌐 API Request:', {
+    logger.debug('🌐 API Request:', {
       url,
       method: options.method || 'GET',
       endpoint
@@ -162,7 +163,7 @@ export class ApiClient {
     
     // Add auth headers
     const authHeaders = this.getAuthHeaders();
-    console.log('🔑 Auth headers:', authHeaders);
+    logger.debug('🔑 Auth headers:', authHeaders);
     
     const config: RequestInit = {
       headers: {
@@ -184,17 +185,17 @@ export class ApiClient {
 
       clearTimeout(timeoutId);
       
-      console.log('📡 Response status:', response.status, response.statusText);
+      logger.debug('📡 Response status:', response.status, response.statusText);
       
       // Handle 401 Unauthorized - try to refresh tokens (but not for refresh requests themselves)
       if (response.status === 401 && !this.isRefreshRequest) {
-        console.log('🔒 401 Unauthorized, attempting token refresh...');
+        logger.debug('🔒 401 Unauthorized, attempting token refresh...');
         try {
           await this.refreshTokens();
           
           // Retry the request with new tokens
           const newAuthHeaders = this.getAuthHeaders();
-          console.log('🔄 Retrying with new auth headers:', newAuthHeaders);
+          logger.debug('🔄 Retrying with new auth headers:', newAuthHeaders);
           const retryConfig: RequestInit = {
             ...config,
             headers: {
@@ -208,7 +209,7 @@ export class ApiClient {
             signal: controller.signal,
           });
           
-          console.log('🔄 Retry response status:', retryResponse.status, retryResponse.statusText);
+          logger.debug('🔄 Retry response status:', retryResponse.status, retryResponse.statusText);
           
           if (!retryResponse.ok) {
             const errorData = await retryResponse.json().catch(() => ({}));
@@ -217,7 +218,7 @@ export class ApiClient {
           
           return await retryResponse.json();
         } catch (refreshError) {
-          console.error('❌ Token refresh failed:', refreshError);
+          logger.error('❌ Token refresh failed:', refreshError);
           // If refresh fails, redirect to login
           if (typeof window !== 'undefined') {
             // Check if we're on an admin page
@@ -233,7 +234,7 @@ export class ApiClient {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('❌ API request failed:', {
+        logger.error('❌ API request failed:', {
           status: response.status,
           statusText: response.statusText,
           errorData
@@ -243,7 +244,7 @@ export class ApiClient {
       
       return await response.json();
     } catch (error) {
-      console.error('❌ API request failed:', error);
+      logger.error('❌ API request failed:', error);
       
       // Handle specific error types
       if (error instanceof Error) {

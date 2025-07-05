@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import logger from '@/lib/logger';
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
 const API_KEY = process.env.API_KEY; // Server-side only, not NEXT_PUBLIC
@@ -67,7 +68,7 @@ async function handleRequest(
     if (API_KEY) {
       headers['x-api-key'] = API_KEY;
     } else {
-      console.error('❌ API_KEY is not set in environment variables');
+      logger.error('❌ API_KEY is not set in environment variables');
       return NextResponse.json(
         { error: 'Server configuration error', message: 'API key not configured' },
         { status: 500 }
@@ -117,7 +118,7 @@ async function handleRequest(
     });
 
   } catch (error) {
-    console.error('Proxy error:', error);
+    logger.error('Proxy error:', error);
     return NextResponse.json(
       { error: 'Internal server error', message: 'Failed to proxy request' },
       { status: 500 }

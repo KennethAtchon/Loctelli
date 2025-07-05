@@ -7,6 +7,7 @@ import { ChatApi } from './endpoints/chat';
 import { StatusApi } from './endpoints/status';
 import { AuthApi } from './endpoints/auth';
 import { AdminAuthApi } from './endpoints/admin-auth';
+import { GeneralApi } from './endpoints/general';
 
 export class Api extends ApiClient {
   public auth: AuthApi;
@@ -17,6 +18,7 @@ export class Api extends ApiClient {
   public bookings: BookingsApi;
   public chat: ChatApi;
   public status: StatusApi;
+  public general: GeneralApi;
 
   constructor(baseUrl?: string) {
     super(baseUrl);
@@ -30,6 +32,7 @@ export class Api extends ApiClient {
     this.bookings = new BookingsApi(baseUrl);
     this.chat = new ChatApi(baseUrl);
     this.status = new StatusApi(baseUrl);
+    this.general = new GeneralApi(baseUrl);
   }
 }
 
@@ -45,6 +48,7 @@ export { StrategiesApi } from './endpoints/strategies';
 export { BookingsApi } from './endpoints/bookings';
 export { ChatApi } from './endpoints/chat';
 export { StatusApi } from './endpoints/status';
+export { GeneralApi } from './endpoints/general';
 
 // Export types
 export type { SystemStatus } from './endpoints/status';

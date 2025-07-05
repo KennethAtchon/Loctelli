@@ -94,6 +94,80 @@ export interface SystemStatus {
   fileStorage: string;
 }
 
+export interface DetailedUser {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+  company?: string;
+  budget?: string;
+  bookingsTime?: any;
+  bookingEnabled: number;
+  calendarId?: string;
+  locationId?: string;
+  assignedUserId?: string;
+  lastLoginAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  createdByAdminId?: number;
+  createdByAdmin?: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  strategies?: Array<{
+    id: number;
+    name: string;
+    tag?: string;
+    tone?: string;
+  }>;
+  clients?: Array<{
+    id: number;
+    name: string;
+    email?: string;
+    status: string;
+  }>;
+  bookings?: Array<{
+    id: number;
+    bookingType: string;
+    status: string;
+    createdAt: string;
+  }>;
+}
+
+export interface DetailedClient {
+  id: number;
+  name: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+  position?: string;
+  customId?: string;
+  status: string;
+  notes?: string;
+  lastMessage?: string;
+  lastMessageDate?: string;
+  createdAt: string;
+  updatedAt: string;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  strategy?: {
+    id: number;
+    name: string;
+    tag?: string;
+  };
+  bookings?: Array<{
+    id: number;
+    bookingType: string;
+    status: string;
+    createdAt: string;
+  }>;
+}
+
 export class AdminAuthApi extends ApiClient {
   async adminLogin(data: AdminLoginDto): Promise<AdminAuthResponse> {
     return this.post<AdminAuthResponse>('/admin/auth/login', data);
@@ -145,5 +219,17 @@ export class AdminAuthApi extends ApiClient {
 
   async getSystemStatus(): Promise<SystemStatus> {
     return this.get<SystemStatus>('/general/system-status');
+  }
+
+  async getRecentClients(): Promise<DetailedClient[]> {
+    return this.get<DetailedClient[]>('/general/recent-clients');
+  }
+
+  async getDetailedUser(userId: number): Promise<DetailedUser> {
+    return this.get<DetailedUser>(`/general/users/${userId}/detailed`);
+  }
+
+  async getDetailedClient(clientId: number): Promise<DetailedClient> {
+    return this.get<DetailedClient>(`/general/clients/${clientId}/detailed`);
   }
 } 

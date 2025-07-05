@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, ParseIntPipe } from '@nestjs/common';
 import { GeneralService } from './general.service';
 
 @Controller('general')
@@ -23,5 +23,25 @@ export class GeneralController {
   @Get('system-status')
   async getSystemStatus() {
     return this.generalService.getSystemStatus();
+  }
+
+  @Get('recent-clients')
+  async getRecentClients() {
+    return this.generalService.getRecentClients();
+  }
+
+  @Get('users/:id/detailed')
+  async getDetailedUser(@Param('id', ParseIntPipe) id: number) {
+    return this.generalService.getDetailedUser(id);
+  }
+
+  @Get('clients/:id/detailed')
+  async getDetailedClient(@Param('id', ParseIntPipe) id: number) {
+    return this.generalService.getDetailedClient(id);
+  }
+
+  @Get('schema')
+  async getDatabaseSchema() {
+    return this.generalService.getDatabaseSchema();
   }
 }

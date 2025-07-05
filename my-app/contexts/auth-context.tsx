@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { AuthCookies } from '@/lib/cookies';
 import type { UserProfile, LoginDto, RegisterDto, AuthResponse } from '@/lib/api';
+import logger from '@/lib/logger';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -26,18 +27,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Check for existing tokens and auto-login on mount
   useEffect(() => {
     const checkAuth = async () => {
-      console.log('🔍 Checking user authentication...');
+      logger.debug('🔍 Checking user authentication...');
       
       // Add timeout to prevent infinite loading
       const timeoutId = setTimeout(() => {
-        console.warn('⚠️ User auth check timeout - forcing loading to false');
+        logger.warn('⚠️ User auth check timeout - forcing loading to false');
         setIsLoading(false);
       }, 10000); // 10 second timeout
 
       try {
         // Check if we have any auth tokens
         if (AuthCookies.hasUserTokens()) {
-          console.log('✅ Found user tokens, attempting to get profile...');
+          logger.debug('✅ Found user tokens, attempting to get profile...');
           // Try to get user profile with timeout
           const profilePromise = api.auth.getProfile();
           const timeoutPromise = new Promise((_, reject) => 
@@ -45,18 +46,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           );
           
           const profile = await Promise.race([profilePromise, timeoutPromise]) as UserProfile;
-          console.log('✅ User profile retrieved successfully:', profile.email);
+          logger.debug('✅ User profile retrieved successfully:', profile.email);
           setUser(profile);
         } else {
-          console.log('❌ No user tokens found');
+          logger.debug('❌ No user tokens found');
         }
       } catch (error) {
         // Clear invalid tokens
         AuthCookies.clearAll();
-        console.error('❌ Auto-login failed:', error);
+        logger.error('❌ Auto-login failed:', error);
       } finally {
         clearTimeout(timeoutId);
-        console.log('🏁 User auth check completed');
+        logger.debug('🏁 User auth check completed');
         setIsLoading(false);
       }
     };
@@ -85,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await api.auth.logout();
     } catch (error) {
       // Continue with logout even if API call fails
-      console.error('Logout API call failed:', error);
+      logger.error('Logout API call failed:', error);
     }
     
     // Clear tokens and user state

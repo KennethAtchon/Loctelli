@@ -3,30 +3,30 @@ import { Strategy, CreateStrategyDto } from '@/types';
 
 export class StrategiesApi extends ApiClient {
   async getStrategies(): Promise<Strategy[]> {
-    return this.get<Strategy[]>('/strategies');
+    return this.get<Strategy[]>('/strategy');
   }
 
   async getStrategy(id: number): Promise<Strategy> {
-    return this.get<Strategy>(`/strategies/${id}`);
+    return this.get<Strategy>(`/strategy/${id}`);
   }
 
   async createStrategy(data: CreateStrategyDto): Promise<Strategy> {
-    return this.post<Strategy>('/strategies', data);
+    return this.post<Strategy>('/strategy', data);
   }
 
   async updateStrategy(id: number, data: Partial<CreateStrategyDto>): Promise<Strategy> {
-    return this.patch<Strategy>(`/strategies/${id}`, data);
+    return this.patch<Strategy>(`/strategy/${id}`, data);
   }
 
   async deleteStrategy(id: number): Promise<void> {
-    return this.delete<void>(`/strategies/${id}`);
+    return this.delete<void>(`/strategy/${id}`);
   }
 
   async getStrategiesByUser(userId: number): Promise<Strategy[]> {
-    return this.get<Strategy[]>(`/strategies?userId=${userId}`);
+    return this.get<Strategy[]>(`/strategy?userId=${userId}`);
   }
 
   async duplicateStrategy(id: number): Promise<Strategy> {
-    return this.post<Strategy>(`/strategies/${id}/duplicate`);
+    return this.post<Strategy>(`/strategy/${id}/duplicate`);
   }
 } 
