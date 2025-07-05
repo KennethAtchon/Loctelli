@@ -133,6 +133,9 @@ export interface CreateClientDto {
   customId?: string;
   status?: string;
   notes?: string;
+  messages?: any;
+  lastMessage?: string;
+  lastMessageDate?: string;
 }
 
 export interface CreateBookingDto {

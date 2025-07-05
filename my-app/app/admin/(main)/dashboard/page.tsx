@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Users, Target, Calendar, RefreshCw, Plus, Settings, Eye, Building } from 'lucide-react';
+import { Users, Target, Calendar, RefreshCw, Plus, Eye, Building } from 'lucide-react';
 import { DashboardStats, SystemStatus } from '@/lib/api/endpoints/admin-auth';
 import Link from 'next/link';
 import logger from '@/lib/logger';
@@ -212,18 +212,6 @@ export default function AdminDashboardPage() {
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Link href="/admin/users">
-            <Button variant="outline" size="sm">
-              <Users className="h-4 w-4 mr-2" />
-              Manage Users
-            </Button>
-          </Link>
-          <Link href="/admin/settings">
-            <Button variant="outline" size="sm">
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </Button>
-          </Link>
         </div>
       </div>
 

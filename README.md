@@ -60,9 +60,19 @@ Loctelli/
     │       └── proxy/    # Backend proxy
     ├── components/       # React components
     │   ├── ui/          # Reusable UI components (shadcn/ui)
+    │   ├── customUI/    # Custom UI components
+    │   │   ├── notification.tsx    # Notification system for user feedback
+    │   │   └── bulk-actions.tsx    # Bulk operations component
     │   ├── admin/       # Admin-specific components
     │   ├── auth/        # Auth components
     │   └── version1/    # Landing page components
+```
+
+**Import Paths:**
+- `@/components/ui/` - shadcn/ui components
+- `@/components/customUI/` - Custom UI components
+- `@/components/admin/` - Admin-specific components
+- `@/components/auth/` - Authentication components
     ├── lib/             # Utilities and API clients
     │   ├── api/         # API client modules
     │   ├── cookies.ts   # Cookie management
@@ -198,6 +208,33 @@ npm run db:studio
 - **Automatic token refresh**: Seamless token renewal without user intervention
 - **Role-based access control**: Different permissions for different user types
 - **Protected routes**: Automatic route protection based on user roles
+
+### 👥 User Management
+- **Complete CRUD operations**: Create, read, update, and delete users
+- **Role management**: Assign and manage user roles (admin, user, manager)
+- **Status control**: Activate/deactivate users
+- **Company association**: Link users to companies and manage organizational structure
+- **Integration settings**: Configure calendar and location integrations
+- **Bulk operations**: Manage multiple users simultaneously
+
+### 🏢 Client Management
+- **Full CRUD functionality**: Add, edit, delete, and view client information
+- **Comprehensive client profiles**: Name, email, phone, company, position, custom ID
+- **Status tracking**: Lead, active, inactive status management
+- **Strategy assignment**: Link clients to AI sales strategies
+- **Notes and history**: Track client interactions and notes
+- **Search and filtering**: Find clients by name, email, company, or status
+- **Bulk operations**: Manage multiple clients at once
+
+### 🎯 Strategy Management
+- **AI strategy creation**: Build custom AI conversation strategies
+- **Comprehensive configuration**: Tone, creativity, objectives, and timing
+- **Objection handling**: Pre-defined responses to common objections
+- **Qualification criteria**: Define what makes a good prospect
+- **Example conversations**: Provide conversation templates for AI
+- **Delay settings**: Configure response timing for natural conversation flow
+- **Tagging system**: Organize strategies by category (sales, support, etc.)
+- **Bulk operations**: Manage multiple strategies simultaneously
 - **Enhanced security**: httpOnly, secure, and sameSite cookie flags
 - **Session persistence**: Users remain logged in across browser sessions
 - **Admin auth codes**: Secure admin authentication with generated codes
@@ -267,12 +304,15 @@ npm run db:studio
 ### 📅 Booking Management (Admin)
 - **Comprehensive booking system**: Manage all appointments and meetings
 - **Status tracking**: Monitor booking status (confirmed, pending, cancelled)
+- **Quick status updates**: Inline status dropdown for rapid booking management
+- **Booking editing**: Full editing capabilities for booking details, dates, and information
+
 - **Client associations**: Link bookings to specific clients and users
 - **Advanced filtering**: Filter by status, type, and date ranges
 - **Search functionality**: Search bookings by client, user, or booking type
 - **Detailed booking views**: Complete booking information with client and user details
 - **Real-time statistics**: Live counts for total, confirmed, pending, and cancelled bookings
-- **Flexible details**: JSON-based booking information storage
+- **Flexible details**: JSON-based booking information storage with structured fields (date, duration, location, notes, agenda)
 - **Responsive design**: Mobile-friendly booking management interface
 
 ### 🤖 AI Chat Interface (Admin)

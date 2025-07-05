@@ -114,9 +114,9 @@ interface Booking {
   id: number;
   userId: number;
   clientId?: number; // Optional client association
-  bookingType: string; // Type of booking (meeting, call, etc.)
-  details: any; // JSON object with booking details (time, duration, etc.)
-  status: string; // "pending", "confirmed", "cancelled", "completed"
+  bookingType: string; // Type of booking (consultation, meeting, demo)
+  details: any; // JSON object with booking details (date, duration, location, notes, agenda)
+  status: string; // "pending", "confirmed", "cancelled"
   createdAt: Date;
   updatedAt: Date;
   user?: User;
@@ -191,6 +191,17 @@ The frontend communicates with the backend through a Next.js API proxy (`/api/pr
 - `DELETE /client/:id` - Delete client
 - `GET /client?userId=:userId` - Get clients by user (admin only)
 - `GET /client?strategyId=:strategyId` - Get clients by strategy
+
+#### Bookings API (`/booking`)
+- `GET /booking` - Get all bookings (admin) or user bookings
+- `GET /booking/:id` - Get booking by ID
+- `POST /booking` - Create new booking (AI-generated)
+- `PATCH /booking/:id` - Update booking details
+- `PATCH /booking/:id/status` - Update booking status only
+- `DELETE /booking/:id` - Delete booking
+- `GET /booking?userId=:userId` - Get bookings by user
+- `GET /booking?clientId=:clientId` - Get bookings by client
+- `GET /booking?startDate=:startDate&endDate=:endDate` - Get bookings by date range
 
 #### General API (`/general`)
 - `GET /general/dashboard-stats` - Get dashboard statistics
@@ -274,7 +285,13 @@ The admin interface provides comprehensive management capabilities through dedic
 - **Dashboard** (`/admin/dashboard`) - Main admin dashboard with system overview, statistics, and real-time monitoring
 - **Users** (`/admin/users`) - Complete user management with role assignment, status control, and detailed user profiles
 - **Clients** (`/admin/clients`) - Client management with search, filtering, and comprehensive client information
+  - **Add Client** (`/admin/clients/new`) - Create new client with full form validation
+  - **Edit Client** (`/admin/clients/[id]/edit`) - Update existing client information
+  - **Delete Client** - Remove clients with confirmation dialog
 - **Strategies** (`/admin/strategies`) - AI strategy management with creativity controls, tone settings, and strategy configuration
+  - **Add Strategy** (`/admin/strategies/new`) - Create new AI strategy with comprehensive configuration
+  - **Edit Strategy** (`/admin/strategies/[id]/edit`) - Update existing strategy parameters
+  - **Delete Strategy** - Remove strategies with confirmation dialog
 - **Bookings** (`/admin/bookings`) - Booking and appointment management with status tracking and client associations
 - **Chat** (`/admin/chat`) - AI chat interface for testing client interactions by spoofing client IDs, showing client profiles and conversation history
 
@@ -287,11 +304,20 @@ The admin interface provides comprehensive management capabilities through dedic
 ```
 components/
 ├── ui/              # Reusable UI components (shadcn/ui)
+├── customUI/        # Custom UI components
+│   ├── notification.tsx    # Notification system for user feedback
+│   └── bulk-actions.tsx    # Bulk operations component for data management
 ├── admin/           # Admin-specific components (header, sidebar)
 ├── auth/            # Authentication components (protected routes)
 ├── version1/        # Landing page components
 └── theme-provider.tsx # Theme management
 ```
+
+### Import Paths
+- **shadcn/ui components**: `@/components/ui/[component-name]`
+- **Custom UI components**: `@/components/customUI/[component-name]`
+- **Admin components**: `@/components/admin/[component-name]`
+- **Auth components**: `@/components/auth/[component-name]`
 
 ### State Management
 - **React Context API**: For global state management

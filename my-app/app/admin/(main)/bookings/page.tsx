@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, Eye, RefreshCw, Calendar, Clock, User, Building } from 'lucide-react';
+import { Search, Eye, RefreshCw, Calendar, Clock, User, Building, Edit } from 'lucide-react';
 import { Booking } from '@/types';
 import logger from '@/lib/logger';
 
@@ -41,6 +41,7 @@ export default function BookingsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [updatingStatus, setUpdatingStatus] = useState<number | null>(null);
 
   const calculateStats = (bookingsData: Booking[]) => {
     const stats = {
@@ -155,6 +156,34 @@ export default function BookingsPage() {
         .join(', ');
     } catch {
       return 'Invalid details format';
+    }
+  };
+
+  const handleStatusUpdate = async (bookingId: number, newStatus: string) => {
+    try {
+      setUpdatingStatus(bookingId);
+      await api.bookings.updateBookingStatus(bookingId, newStatus);
+      
+      // Update local state
+      setBookings(prev => prev.map(booking => 
+        booking.id === bookingId 
+          ? { ...booking, status: newStatus }
+          : booking
+      ));
+      
+      // Recalculate stats
+      const updatedBookings = bookings.map(booking => 
+        booking.id === bookingId 
+          ? { ...booking, status: newStatus }
+          : booking
+      );
+      calculateStats(updatedBookings);
+      
+    } catch (error) {
+      logger.error('Failed to update booking status:', error);
+      setError('Failed to update booking status');
+    } finally {
+      setUpdatingStatus(null);
     }
   };
 
@@ -314,9 +343,24 @@ export default function BookingsPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={getStatusBadgeVariant(booking.status)}>
-                        {booking.status}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={getStatusBadgeVariant(booking.status)}>
+                          {booking.status}
+                        </Badge>
+                        <select
+                          value={booking.status}
+                          onChange={(e) => handleStatusUpdate(booking.id, e.target.value)}
+                          disabled={updatingStatus === booking.id}
+                          className="text-xs border border-gray-300 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="confirmed">Confirmed</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                        {updatingStatus === booking.id && (
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center">
@@ -332,6 +376,13 @@ export default function BookingsPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(`/admin/bookings/${booking.id}/edit`, '_blank')}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
                         <Dialog>
                           <DialogTrigger asChild>
                             <Button

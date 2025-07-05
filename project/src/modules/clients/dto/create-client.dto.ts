@@ -28,6 +28,10 @@ export class CreateClientDto {
 
   @IsString()
   @IsOptional()
+  customId?: string;
+
+  @IsString()
+  @IsOptional()
   status?: string;
 
   @IsString()
