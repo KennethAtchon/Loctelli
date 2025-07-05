@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Eye, EyeOff } from 'lucide-react';
+import logger from '@/lib/logger';
 
 export default function AdminRegisterPage() {
   const router = useRouter();
@@ -30,12 +31,23 @@ export default function AdminRegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    
+    logger.debug('🔐 Admin register form submitted:', { email: formData.email });
+    
+    // Prevent multiple submissions
+    if (isLoading) {
+      logger.debug('🚫 Form already submitting, ignoring');
+      return;
+    }
+    
     setIsLoading(true);
     setError('');
     setSuccess('');
 
     try {
       await adminRegister(formData);
+      logger.debug('✅ Admin registration successful');
       setSuccess('Admin registration successful! You have been automatically logged in.');
       
       // Clear form
@@ -46,7 +58,10 @@ export default function AdminRegisterPage() {
         router.push('/admin/dashboard');
       }, 2000);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Registration failed. Please try again.');
+      logger.error('❌ Admin registration failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Registration failed. Please try again.';
+      setError(errorMessage);
+      logger.debug('📝 Set error message:', errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -87,10 +102,14 @@ export default function AdminRegisterPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               {error && (
                 <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription>
+                    {error}
+                    <br />
+                    <small className="text-xs opacity-75">Debug: Error state is active</small>
+                  </AlertDescription>
                 </Alert>
               )}
 
@@ -111,6 +130,7 @@ export default function AdminRegisterPage() {
                   value={formData.name}
                   onChange={handleInputChange}
                   placeholder="John Doe"
+                  disabled={isLoading}
                 />
               </div>
               
@@ -125,6 +145,7 @@ export default function AdminRegisterPage() {
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="admin@example.com"
+                  disabled={isLoading}
                 />
               </div>
               
@@ -141,11 +162,13 @@ export default function AdminRegisterPage() {
                     onChange={handleInputChange}
                     placeholder="Enter a strong password"
                     minLength={8}
+                    disabled={isLoading}
                   />
                   <button
                     type="button"
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     onClick={() => setShowPassword(!showPassword)}
+                    disabled={isLoading}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -157,7 +180,7 @@ export default function AdminRegisterPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="role">Admin Role</Label>
-                <Select value={formData.role} onValueChange={handleRoleChange}>
+                <Select value={formData.role} onValueChange={handleRoleChange} disabled={isLoading}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -178,6 +201,7 @@ export default function AdminRegisterPage() {
                   value={formData.authCode}
                   onChange={handleInputChange}
                   placeholder="Enter admin authorization code"
+                  disabled={isLoading}
                 />
                 <p className="text-xs text-gray-500">
                   Contact system administrator for the authorization code
@@ -198,13 +222,13 @@ export default function AdminRegisterPage() {
                 href="/admin/login" 
                 className="text-sm text-blue-600 hover:text-blue-500 block"
               >
-                Already have an admin account? Sign in
+                Already have an admin account? Sign in here
               </Link>
               <Link 
-                href="/auth/login" 
+                href="/auth/register" 
                 className="text-sm text-gray-600 hover:text-gray-500 block"
               >
-                Regular user login
+                Regular user registration
               </Link>
             </div>
           </CardContent>

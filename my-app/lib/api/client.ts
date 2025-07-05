@@ -230,15 +230,8 @@ export class ApiClient {
           return await retryResponse.json();
         } catch (refreshError) {
           logger.error('❌ Token refresh failed:', refreshError);
-          // If refresh fails, redirect to login
-          if (typeof window !== 'undefined') {
-            // Check if we're on an admin page
-            if (window.location.pathname.startsWith('/admin')) {
-              window.location.href = '/admin/login';
-            } else {
-              window.location.href = '/auth/login';
-            }
-          }
+          // Don't automatically redirect - let the components handle this
+          // This prevents page refreshes that lose error state
           throw new Error('Authentication failed. Please log in again.');
         }
       }

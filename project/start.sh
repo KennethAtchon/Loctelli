@@ -15,7 +15,7 @@ npx prisma generate
 
 # Run database seeding
 echo "Running database seeding..."
-npm run db:seed
+node prisma/seed.js
 
 # Start the application
 echo "Starting NestJS application..."

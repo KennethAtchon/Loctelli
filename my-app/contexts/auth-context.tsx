@@ -101,9 +101,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       AuthCookies.setAccessToken(response.access_token);
       AuthCookies.setRefreshToken(response.refresh_token);
       
-      // Get full user profile and set user
-      const profile = await api.auth.getProfile();
-      setUser(profile);
+      // Create a proper UserProfile object from the login response
+      const userProfile: UserProfile = {
+        ...response.user,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      setUser(userProfile);
     } catch (error) {
       logger.error('Login failed:', error);
       // Re-throw the error so the form can handle it

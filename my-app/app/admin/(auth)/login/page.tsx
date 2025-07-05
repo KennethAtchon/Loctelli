@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import logger from '@/lib/logger';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -30,18 +31,37 @@ export default function AdminLoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    
+    logger.debug('🔐 Admin login form submitted:', { email: formData.email });
+    
+    // Prevent multiple submissions
+    if (isSubmitting) {
+      logger.debug('🚫 Form already submitting, ignoring');
+      return;
+    }
+    
     setIsSubmitting(true);
     setError('');
 
     try {
       await adminLogin(formData);
+      logger.debug('✅ Admin login successful, redirecting...');
       router.push('/admin/dashboard');
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Login failed. Please try again.');
+      logger.error('❌ Admin login failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Login failed. Please try again.';
+      setError(errorMessage);
+      logger.debug('📝 Set error message:', errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Debug form state changes
+  useEffect(() => {
+    logger.debug('🔄 Admin form state changed:', { isSubmitting, error, isAuthenticated, isLoading });
+  }, [isSubmitting, error, isAuthenticated, isLoading]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -55,7 +75,11 @@ export default function AdminLoginPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">Checking authentication...</p>
+          <p className="text-sm text-gray-500 mt-2">This may take a few moments</p>
+        </div>
       </div>
     );
   }
@@ -85,10 +109,14 @@ export default function AdminLoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               {error && (
                 <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription>
+                    {error}
+                    <br />
+                    <small className="text-xs opacity-75">Debug: Error state is active</small>
+                  </AlertDescription>
                 </Alert>
               )}
               
@@ -103,6 +131,7 @@ export default function AdminLoginPage() {
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="admin@example.com"
+                  disabled={isSubmitting}
                 />
               </div>
               
@@ -117,6 +146,7 @@ export default function AdminLoginPage() {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="Enter your password"
+                  disabled={isSubmitting}
                 />
               </div>
               

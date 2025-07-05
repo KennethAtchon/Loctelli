@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
-import { useAdminAuth } from '@/contexts/admin-auth-context';
 import type { LoginDto } from '@/lib/api';
 
 import { Button } from '@/components/ui/button';
@@ -16,8 +15,7 @@ import logger from '@/lib/logger';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isAuthenticated: isUserAuthenticated, isLoading: isUserLoading } = useAuth();
-  const { isAuthenticated: isAdminAuthenticated, isLoading: isAdminLoading } = useAdminAuth();
+  const { login, isAuthenticated, isLoading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   
@@ -31,22 +29,12 @@ export default function LoginPage() {
     password: '',
   });
 
-  // Check if any auth context is still loading
-  const isLoading = isUserLoading || isAdminLoading;
-  const isAuthenticated = isUserAuthenticated || isAdminAuthenticated;
-
-
-
   // Redirect if already authenticated
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      if (isAdminAuthenticated) {
-        router.push('/admin/dashboard');
-      } else {
-        router.push('/admin/dashboard');
-      }
+      router.push('/admin/dashboard');
     }
-  }, [isAuthenticated, isAdminAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router]);
 
   // Fallback to prevent infinite loading
   useEffect(() => {
@@ -91,7 +79,6 @@ export default function LoginPage() {
     setError('');
 
     try {
-      // Test with invalid credentials first
       logger.debug('🧪 Testing login with credentials...');
       await login(formData);
       logger.debug('✅ Login successful, redirecting...');
@@ -111,6 +98,11 @@ export default function LoginPage() {
       setIsSubmitting(false);
     }
   };
+
+  // Debug form state changes
+  useEffect(() => {
+    logger.debug('🔄 Form state changed:', { isSubmitting, error, isAuthenticated, isLoading });
+  }, [isSubmitting, error, isAuthenticated, isLoading]);
 
   // Show loading state while checking authentication
   if (isLoading && !forceShowForm) {
@@ -173,8 +165,6 @@ export default function LoginPage() {
                 </Alert>
               )}
 
-
-
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -184,6 +174,7 @@ export default function LoginPage() {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
                   placeholder="Enter your email"
+                  disabled={isSubmitting}
                 />
               </div>
 
@@ -196,6 +187,7 @@ export default function LoginPage() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
                   placeholder="Enter your password"
+                  disabled={isSubmitting}
                 />
               </div>
 

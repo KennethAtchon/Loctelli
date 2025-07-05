@@ -115,28 +115,40 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const adminLogin = async (credentials: AdminLoginDto) => {
-    const response: AdminAuthResponse = await api.adminAuth.adminLogin(credentials);
-    
-    // Store admin tokens in cookies
-    AuthCookies.setAdminAccessToken(response.access_token);
-    AuthCookies.setAdminRefreshToken(response.refresh_token);
-    
-    // Set admin from login response (no need for additional API call)
-    setAdmin(response.admin);
+    try {
+      const response: AdminAuthResponse = await api.adminAuth.adminLogin(credentials);
+      
+      // Store admin tokens in cookies
+      AuthCookies.setAdminAccessToken(response.access_token);
+      AuthCookies.setAdminRefreshToken(response.refresh_token);
+      
+      // Set admin from login response (no need for additional API call)
+      setAdmin(response.admin);
+    } catch (error) {
+      logger.error('Admin login failed:', error);
+      // Re-throw the error so the form can handle it
+      throw error;
+    }
   };
 
   const adminRegister = async (data: AdminRegisterDto) => {
-    // First register the admin
-    await api.adminAuth.adminRegister(data);
-    
-    // Then automatically log them in with the same credentials
-    const loginCredentials: AdminLoginDto = {
-      email: data.email,
-      password: data.password,
-    };
-    
-    // Use the existing adminLogin method to handle the login
-    await adminLogin(loginCredentials);
+    try {
+      // First register the admin
+      await api.adminAuth.adminRegister(data);
+      
+      // Then automatically log them in with the same credentials
+      const loginCredentials: AdminLoginDto = {
+        email: data.email,
+        password: data.password,
+      };
+      
+      // Use the existing adminLogin method to handle the login
+      await adminLogin(loginCredentials);
+    } catch (error) {
+      logger.error('Admin registration failed:', error);
+      // Re-throw the error so the form can handle it
+      throw error;
+    }
   };
 
   const adminLogout = async () => {

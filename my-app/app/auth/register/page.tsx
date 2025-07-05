@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import logger from '@/lib/logger';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -28,11 +29,12 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('🔐 Register form submitted:', { email: formData.email });
+    
+    logger.debug('🔐 Register form submitted:', { email: formData.email });
     
     // Prevent multiple submissions
     if (isLoading) {
-      console.log('🚫 Form already submitting, ignoring');
+      logger.debug('🚫 Form already submitting, ignoring');
       return;
     }
     
@@ -42,7 +44,7 @@ export default function RegisterPage() {
 
     try {
       await register(formData);
-      console.log('✅ Registration successful');
+      logger.debug('✅ Registration successful');
       setSuccess('Registration successful! You have been automatically logged in.');
       
       // Clear form
@@ -53,10 +55,10 @@ export default function RegisterPage() {
         router.push('/');
       }, 2000);
     } catch (error) {
-      console.error('❌ Registration failed:', error);
+      logger.error('❌ Registration failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Registration failed. Please try again.';
       setError(errorMessage);
-      console.log('📝 Set error message:', errorMessage);
+      logger.debug('📝 Set error message:', errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +90,11 @@ export default function RegisterPage() {
             <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               {error && (
                 <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription>
+                    {error}
+                    <br />
+                    <small className="text-xs opacity-75">Debug: Error state is active</small>
+                  </AlertDescription>
                 </Alert>
               )}
 
@@ -107,6 +113,7 @@ export default function RegisterPage() {
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
                   placeholder="Enter your full name"
+                  disabled={isLoading}
                 />
               </div>
 
@@ -119,6 +126,7 @@ export default function RegisterPage() {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
                   placeholder="Enter your email"
+                  disabled={isLoading}
                 />
               </div>
 
@@ -131,6 +139,7 @@ export default function RegisterPage() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
                   placeholder="Enter your password"
+                  disabled={isLoading}
                 />
               </div>
 
@@ -142,6 +151,7 @@ export default function RegisterPage() {
                   value={formData.company || ''}
                   onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                   placeholder="Enter your company name"
+                  disabled={isLoading}
                 />
               </div>
 
@@ -153,6 +163,7 @@ export default function RegisterPage() {
                   value={formData.budget || ''}
                   onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
                   placeholder="Enter your budget range"
+                  disabled={isLoading}
                 />
               </div>
 
