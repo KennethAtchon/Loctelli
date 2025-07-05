@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import { ApiRequestOptions } from './types';
 import { API_CONFIG } from '../envUtils';
 import { AuthCookies } from '../cookies';
@@ -13,7 +12,7 @@ export class ApiClient {
     retries: 3,
   };
   private isRefreshing = false;
-  private refreshPromise: Promise<any> | null = null;
+  private refreshPromise: Promise<void> | null = null;
   private isRefreshRequest = false; // Flag to prevent recursive refresh attempts
 
   constructor(baseUrl: string = API_BASE_URL) {
@@ -62,9 +61,10 @@ export class ApiClient {
 
   // Refresh tokens automatically
   private async refreshTokens(): Promise<void> {
-    if (this.isRefreshing) {
+    if (this.isRefreshing && this.refreshPromise) {
       // If already refreshing, wait for the existing promise
-      return this.refreshPromise;
+      await this.refreshPromise;
+      return;
     }
 
     this.isRefreshing = true;
@@ -150,7 +150,7 @@ export class ApiClient {
     }
   }
 
-  protected async request<T>(
+  protected async request<T = unknown>(
     endpoint: string,
     options: RequestInit & ApiRequestOptions = {}
   ): Promise<T> {
@@ -264,8 +264,7 @@ export class ApiClient {
     return this.request<T>(endpoint, { method: 'GET', ...options });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  protected async post<T>(endpoint: string, data?: any, options?: ApiRequestOptions): Promise<T> {
+  protected async post<T>(endpoint: string, data?: unknown, options?: ApiRequestOptions): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
@@ -273,8 +272,7 @@ export class ApiClient {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  protected async patch<T>(endpoint: string, data?: any, options?: ApiRequestOptions): Promise<T> {
+  protected async patch<T>(endpoint: string, data?: unknown, options?: ApiRequestOptions): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'PATCH',
       body: data ? JSON.stringify(data) : undefined,
@@ -286,8 +284,7 @@ export class ApiClient {
     return this.request<T>(endpoint, { method: 'DELETE', ...options });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  protected async put<T>(endpoint: string, data?: any, options?: ApiRequestOptions): Promise<T> {
+  protected async put<T>(endpoint: string, data?: unknown, options?: ApiRequestOptions): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'PUT',
       body: data ? JSON.stringify(data) : undefined,
@@ -296,8 +293,7 @@ export class ApiClient {
   }
 
   // Helper method to build query strings
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  protected buildQueryString(params: Record<string, any>): string {
+  protected buildQueryString(params: Record<string, unknown>): string {
     const searchParams = new URLSearchParams();
     
     for (const [key, value] of Object.entries(params)) {

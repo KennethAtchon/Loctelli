@@ -10,7 +10,7 @@ export interface AdminRegisterDto {
   email: string;
   password: string;
   role?: string;
-  permissions?: any;
+  permissions?: Record<string, unknown>;
   authCode: string;
 }
 
@@ -19,7 +19,7 @@ export interface AdminProfile {
   name: string;
   email: string;
   role: string;
-  permissions: any;
+  permissions: Record<string, unknown>;
   isActive: boolean;
   lastLoginAt: string | null;
   createdAt: string;
@@ -102,7 +102,7 @@ export interface DetailedUser {
   isActive: boolean;
   company?: string;
   budget?: string;
-  bookingsTime?: any;
+  bookingsTime?: Record<string, unknown>;
   bookingEnabled: number;
   calendarId?: string;
   locationId?: string;

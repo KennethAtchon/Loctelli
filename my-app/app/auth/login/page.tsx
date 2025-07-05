@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { useAdminAuth } from '@/contexts/admin-auth-context';
 import type { LoginDto } from '@/lib/api';
-import { testApiConnection, testAuthEndpoint, testHealthEndpoint } from '@/lib/api/test-api-key';
+import { testApiConnection, testHealthEndpoint } from '@/lib/api/test-api-key';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

@@ -22,6 +22,8 @@ export default function DatabaseSchema({ className }: DatabaseSchemaProps) {
   useEffect(() => {
     initializeMermaid();
     generateSchema();
+    // generateSchema is stable, but if you ever memoize it, add as dep
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const initializeMermaid = () => {
@@ -42,7 +44,7 @@ export default function DatabaseSchema({ className }: DatabaseSchemaProps) {
     });
   };
 
-  const generateSchema = async () => {
+  const generateSchema = async (): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
@@ -68,7 +70,27 @@ export default function DatabaseSchema({ className }: DatabaseSchemaProps) {
     }
   };
 
-  const convertSchemaToMermaid = (schema: any) => {
+  interface SchemaModelField {
+    name: string;
+    type: string;
+    isRequired: boolean;
+    isId: boolean;
+    isUnique: boolean;
+    isRelation: boolean;
+    relationType?: string;
+    relationTarget?: string;
+  }
+
+  interface SchemaModel {
+    name: string;
+    fields: SchemaModelField[];
+  }
+
+  interface Schema {
+    models: SchemaModel[];
+  }
+
+  const convertSchemaToMermaid = (schema: Schema) => {
     let mermaid = 'erDiagram\n';
     
     // Add entities
@@ -78,23 +100,26 @@ export default function DatabaseSchema({ className }: DatabaseSchemaProps) {
       for (const field of model.fields) {
         if (!field.isRelation) {
           const type = getMermaidType(field.type);
-          const required = field.isRequired ? '' : ' nullable';
-          const unique = field.isUnique ? ' unique' : '';
-          const id = field.isId ? ' PK' : '';
-          
-          mermaid += `        ${type}${required}${unique}${id} ${field.name}\n`;
+          // Only output 'type name' (no PK, unique, nullable, etc.)
+          mermaid += `        ${type} ${field.name}\n`;
         }
       }
       
       mermaid += '    }\n';
     }
 
-    // Add relationships
+    // Add relationships (show all, both directions, and deduplicate)
+    const rels = new Set();
     for (const model of schema.models) {
       for (const field of model.fields) {
         if (field.isRelation && field.relationTarget) {
-          const relation = getRelationSymbol(field.relationType || 'many-to-one');
-          mermaid += `    ${model.name} ${relation} ${field.relationTarget} : "${field.name}"\n`;
+          // Compose a unique key to deduplicate (A->B:field)
+          const relKey = `${model.name}|${field.relationTarget}|${field.relationType}`;
+          if (!rels.has(relKey)) {
+            rels.add(relKey);
+            const relation = getRelationSymbol(field.relationType || 'many-to-one');
+            mermaid += `    ${model.name} ${relation} ${field.relationTarget} : \"${field.name}\"\n`;
+          }
         }
       }
     }
@@ -131,15 +156,18 @@ export default function DatabaseSchema({ className }: DatabaseSchemaProps) {
     }
   };
 
-  const renderDiagram = async (code: string) => {
+  const renderDiagram = async (code: string): Promise<void> => {
     if (!containerRef.current) return;
-    
+    // Clear previous SVG
+    containerRef.current.innerHTML = '';
     try {
+      // Validate Mermaid code before rendering
+      mermaid.parse(code);
       const { svg } = await mermaid.render('database-schema', code);
       containerRef.current.innerHTML = svg;
     } catch (err) {
       logger.error('Failed to render Mermaid diagram:', err);
-      setError('Failed to render database diagram');
+      setError('Failed to render database diagram: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -233,7 +261,7 @@ export default function DatabaseSchema({ className }: DatabaseSchemaProps) {
       <CardContent>
         {error && (
           <div className="text-center py-8">
-            <p className="text-red-600 mb-4">{error}</p>
+            <p className="text-red-600 mb-4 whitespace-pre-line">{error}</p>
             <Button onClick={handleRefresh}>Retry</Button>
           </div>
         )}

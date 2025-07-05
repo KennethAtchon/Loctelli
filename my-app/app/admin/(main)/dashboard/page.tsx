@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Users, Target, Calendar, MessageSquare, TrendingUp, TrendingDown, RefreshCw, Plus, Settings, Eye, User, Building } from 'lucide-react';
+import { Users, Target, Calendar, RefreshCw, Plus, Settings, Eye, Building } from 'lucide-react';
 import { DashboardStats, SystemStatus } from '@/lib/api/endpoints/admin-auth';
 import Link from 'next/link';
 import logger from '@/lib/logger';
@@ -19,7 +19,7 @@ interface DetailedUser {
   isActive: boolean;
   company?: string;
   budget?: string;
-  bookingsTime?: any;
+  bookingsTime?: unknown;
   bookingEnabled: number;
   calendarId?: string;
   locationId?: string;
@@ -247,7 +247,7 @@ export default function AdminDashboardPage() {
         <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => window.location.href = '/admin/users'}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.activeUsers}</div>

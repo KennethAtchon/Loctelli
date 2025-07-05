@@ -5,7 +5,6 @@ import { api } from '@/lib/api';
 import { useAdminAuth } from '@/contexts/admin-auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,7 +17,7 @@ export default function AdminSettingsPage() {
   const [newAuthCode, setNewAuthCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showAuthCode, setShowAuthCode] = useState(false);
-  const [error, setError] = useState('');
+  // const [error, setError] = useState<string | null>(null); // Removed as unused
 
   useEffect(() => {
     if (admin?.role === 'super_admin') {
@@ -31,8 +30,8 @@ export default function AdminSettingsPage() {
       setIsLoading(true);
       const response = await api.adminAuth.getCurrentAuthCode();
       setCurrentAuthCode(response.authCode);
-    } catch (error) {
-      setError('Failed to load current auth code');
+    } catch {
+      // setError('Failed to load current auth code');
     } finally {
       setIsLoading(false);
     }
@@ -44,8 +43,8 @@ export default function AdminSettingsPage() {
       const response = await api.adminAuth.generateAuthCode();
       setNewAuthCode(response.authCode);
       toast.success('New auth code generated successfully');
-    } catch (error) {
-      setError('Failed to generate new auth code');
+    } catch {
+      // setError('Failed to generate new auth code');
       toast.error('Failed to generate new auth code');
     } finally {
       setIsLoading(false);
@@ -88,12 +87,6 @@ export default function AdminSettingsPage() {
         <h1 className="text-3xl font-bold">Admin Settings</h1>
         <p className="text-gray-600">Manage admin settings and configurations</p>
       </div>
-
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
 
       {/* Admin Authorization Code Management */}
       <Card>

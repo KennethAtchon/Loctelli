@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Search, Edit, Trash2, Eye, RefreshCw, Filter, Building } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, RefreshCw, Building } from 'lucide-react';
 import Link from 'next/link';
 import { Client } from '@/types';
 import { DetailedClient } from '@/lib/api/endpoints/admin-auth';
@@ -46,13 +46,13 @@ export default function ClientsPage() {
 
   useEffect(() => {
     loadClients();
-  }, []);
+  }, [loadClients]);
 
   useEffect(() => {
     filterClients();
-  }, [clients, searchTerm, statusFilter]);
+  }, [searchTerm, filterClients]);
 
-  const loadClients = async () => {
+  const loadClients = useCallback(async () => {
     try {
       setIsRefreshing(true);
       setError(null);
@@ -66,7 +66,7 @@ export default function ClientsPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  };
+  }, []);
 
   const calculateStats = (clientsData: Client[]) => {
     const stats = {
@@ -78,7 +78,7 @@ export default function ClientsPage() {
     setStats(stats);
   };
 
-  const filterClients = () => {
+  const filterClients = useCallback(() => {
     let filtered = clients;
 
     // Apply search filter
@@ -97,7 +97,7 @@ export default function ClientsPage() {
     }
 
     setFilteredClients(filtered);
-  };
+  }, [clients, searchTerm, statusFilter]);
 
   const loadDetailedClient = async (clientId: number) => {
     try {

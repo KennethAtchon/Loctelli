@@ -2,6 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../infrastructure/prisma/prisma.service';
 import { RedisService } from '../infrastructure/redis/redis.service';
 
+type Field = {
+  name: string;
+  type: string;
+  isRequired: boolean;
+  isId: boolean;
+  isUnique: boolean;
+  isRelation: boolean;
+  relationType: string | null;
+  relationTarget: string | null;
+};
+
 @Injectable()
 export class GeneralService {
   constructor(
@@ -233,8 +244,27 @@ export class GeneralService {
       const schemaContent = fs.readFileSync(schemaPath, 'utf-8');
       
       // Parse the schema to extract model information
-      const models = this.parsePrismaSchema(schemaContent);
-      
+      const models: any[] = [];
+      const modelRegex = /model\s+(\w+)\s*\{([^}]+)\}/g;
+      let match: RegExpExecArray | null;
+
+      // First pass: collect all model names
+      const modelNames: string[] = [];
+      while ((match = modelRegex.exec(schemaContent)) !== null) {
+        modelNames.push(match[1]);
+      }
+
+      // Second pass: parse fields and relations
+      modelRegex.lastIndex = 0;
+      while ((match = modelRegex.exec(schemaContent)) !== null) {
+        const modelName = match[1];
+        const modelContent = match[2];
+        const fields = this.parseModelFields(modelContent, modelNames);
+        models.push({
+          name: modelName,
+          fields
+        });
+      }
       return {
         success: true,
         data: {
@@ -252,63 +282,41 @@ export class GeneralService {
     }
   }
 
-  private parsePrismaSchema(content: string): any[] {
-    const models: any[] = [];
-    const modelRegex = /model\s+(\w+)\s*\{([^}]+)\}/g;
-    let match;
-
-    while ((match = modelRegex.exec(content)) !== null) {
-      const modelName = match[1];
-      const modelContent = match[2];
-      const fields = this.parseModelFields(modelContent);
-      
-      models.push({
-        name: modelName,
-        fields
-      });
-    }
-
-    return models;
-  }
-
-  private parseModelFields(modelContent: string): any[] {
-    const fields: any[] = [];
+  private parseModelFields(modelContent: string, modelNames: string[]): Field[] {
+    let fields: any[] = [];
     const lines = modelContent.split('\n');
-
     for (const line of lines) {
       const trimmedLine = line.trim();
-      if (!trimmedLine || trimmedLine.startsWith('//') || trimmedLine.includes('@relation')) {
+      if (!trimmedLine || trimmedLine.startsWith('//')) {
         continue;
       }
-
+      // Match: name type? attributes
       const fieldMatch = trimmedLine.match(/^(\w+)\s+(\w+(?:\[\])?)\s*(\?)?\s*(.*)$/);
       if (fieldMatch) {
-        const [, name, type, optional, attributes] = fieldMatch;
-        
-        const field = {
+        const name: string = fieldMatch[1];
+        const type: string = fieldMatch[2];
+        const optional: string | undefined = fieldMatch[3];
+        const attributes: string = fieldMatch[4];
+        // Detect if this is a relation field (type is a model name or model name[])
+        const isRelation = modelNames.includes(type.replace('[]', ''));
+        let relationType: string | null = null;
+        let relationTarget: string | null = null;
+        if (isRelation) {
+          relationTarget = type.replace('[]', '');
+          relationType = type.endsWith('[]') ? 'one-to-many' : 'many-to-one';
+        }
+        fields.push({
           name,
           type: type.replace('[]', ''),
           isRequired: !optional,
           isId: attributes.includes('@id'),
           isUnique: attributes.includes('@unique'),
-          isRelation: type.includes('[]') || attributes.includes('@relation'),
-          relationType: type.includes('[]') ? 'one-to-many' : 'many-to-one',
-          relationTarget: this.extractRelationTarget(attributes)
-        };
-
-        fields.push(field);
+          isRelation,
+          relationType,
+          relationTarget
+        });
       }
     }
-
     return fields;
-  }
-
-  private extractRelationTarget(attributes: string) {
-    const relationMatch = attributes.match(/@relation\([^)]*\)/);
-    if (relationMatch) {
-      const targetMatch = relationMatch[0].match(/references:\s*\[(\w+)\]/);
-      return targetMatch ? targetMatch[1] : null;
-    }
-    return null;
   }
 }

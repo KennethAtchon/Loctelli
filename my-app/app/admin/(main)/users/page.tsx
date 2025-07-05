@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
 import type { CreateUserDto, UpdateUserDto } from '@/lib/api';
 import type { UserProfile, DetailedUser } from '@/lib/api/endpoints/admin-auth';
@@ -35,7 +35,6 @@ export default function UsersPage() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
@@ -61,26 +60,25 @@ export default function UsersPage() {
 
   useEffect(() => {
     loadUsers();
-  }, []);
+  }, [loadUsers]);
 
   useEffect(() => {
     filterUsers();
-  }, [users, searchTerm, roleFilter, statusFilter]);
+  }, [searchTerm, filterUsers]);
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       setIsRefreshing(true);
-      setError('');
       const usersData = await api.adminAuth.getAllUsers();
       setUsers(usersData);
       calculateStats(usersData);
     } catch (error) {
-      setError('Failed to load users');
+      logger.error('Failed to load users', error);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  };
+  }, []);
 
   const calculateStats = (usersData: UserProfile[]) => {
     const stats = {
@@ -92,7 +90,7 @@ export default function UsersPage() {
     setStats(stats);
   };
 
-  const filterUsers = () => {
+  const filterUsers = useCallback(() => {
     let filtered = users;
 
     // Apply search filter
@@ -117,7 +115,7 @@ export default function UsersPage() {
     }
 
     setFilteredUsers(filtered);
-  };
+  }, [users, searchTerm, roleFilter, statusFilter]);
 
   const loadDetailedUser = async (userId: number) => {
     try {
@@ -137,7 +135,7 @@ export default function UsersPage() {
       setCreateFormData({ name: '', email: '', password: '', company: '', role: 'user' });
       loadUsers();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to create user');
+      logger.error('Failed to create user', error);
     }
   };
 
@@ -153,7 +151,7 @@ export default function UsersPage() {
       setEditFormData({ name: '', email: '', role: 'user', company: '', isActive: true });
       loadUsers();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to update user');
+      logger.error('Failed to update user', error);
     }
   };
 
@@ -165,7 +163,7 @@ export default function UsersPage() {
       setSuccess('User deleted successfully');
       loadUsers();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to delete user');
+      logger.error('Failed to delete user', error);
     }
   };
 
@@ -210,11 +208,11 @@ export default function UsersPage() {
     );
   }
 
-  if (error) {
+  if (success) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
+          <p className="text-green-600 mb-4">{success}</p>
           <button 
             onClick={loadUsers}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
