@@ -21,18 +21,27 @@ const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefin
 export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const [admin, setAdmin] = useState<AdminProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authCheckInProgress, setAuthCheckInProgress] = useState(false);
 
   const isAuthenticated = !!admin;
 
   // Check for existing admin tokens and auto-login on mount
   useEffect(() => {
+    // Prevent multiple simultaneous auth checks during hot reloads
+    if (authCheckInProgress) {
+      logger.debug('🔄 Auth check already in progress, skipping...');
+      return;
+    }
+
     const checkAdminAuth = async () => {
+      setAuthCheckInProgress(true);
       logger.debug('🔍 Checking admin authentication...');
       
       // Add timeout to prevent infinite loading
       const timeoutId = setTimeout(() => {
         logger.warn('⚠️ Admin auth check timeout - forcing loading to false');
         setIsLoading(false);
+        setAuthCheckInProgress(false);
       }, 10000); // 10 second timeout
 
       try {
@@ -56,7 +65,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
             logger.error('❌ Admin profile request failed:', profileError);
             logger.error('❌ Error details:', {
               error: profileError,
-              response: profileError?.response,
+              message: profileError instanceof Error ? profileError.message : 'Unknown error',
             });
             
             // Check if it's a network error vs auth error
@@ -98,6 +107,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         clearTimeout(timeoutId);
         logger.debug('🏁 Admin auth check completed');
         setIsLoading(false);
+        setAuthCheckInProgress(false);
       }
     };
 

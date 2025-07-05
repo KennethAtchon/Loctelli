@@ -21,18 +21,27 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authCheckInProgress, setAuthCheckInProgress] = useState(false);
 
   const isAuthenticated = !!user;
 
   // Check for existing tokens and auto-login on mount
   useEffect(() => {
+    // Prevent multiple simultaneous auth checks during hot reloads
+    if (authCheckInProgress) {
+      logger.debug('🔄 Auth check already in progress, skipping...');
+      return;
+    }
+
     const checkAuth = async () => {
+      setAuthCheckInProgress(true);
       logger.debug('🔍 Checking user authentication...');
       
       // Add timeout to prevent infinite loading
       const timeoutId = setTimeout(() => {
         logger.warn('⚠️ User auth check timeout - forcing loading to false');
         setIsLoading(false);
+        setAuthCheckInProgress(false);
       }, 10000); // 10 second timeout
 
       try {
@@ -52,13 +61,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           logger.debug('❌ No user tokens found');
         }
       } catch (error) {
-        // Clear invalid tokens
-        AuthCookies.clearAll();
         logger.error('❌ Auto-login failed:', error);
+        
+        // Only clear tokens if the error is specifically auth-related
+        if (error instanceof Error) {
+          if (error.message.includes('401') || 
+              error.message.includes('Unauthorized') || 
+              error.message.includes('Authentication failed') ||
+              error.message.includes('Invalid token')) {
+            logger.debug('🔒 Auth error detected, clearing user tokens');
+            AuthCookies.clearUserTokens();
+          } else if (error.message.includes('Failed to fetch') || 
+                    error.message.includes('NetworkError') ||
+                    error.message.includes('timeout') ||
+                    error.message.includes('Request timeout')) {
+            logger.debug('🌐 Network error detected, keeping tokens for retry');
+            // Don't clear tokens for network errors - they might be temporary
+          } else {
+            logger.debug('❓ Unknown error type, keeping tokens for safety');
+            // Don't clear tokens for unknown errors
+          }
+        }
       } finally {
         clearTimeout(timeoutId);
         logger.debug('🏁 User auth check completed');
         setIsLoading(false);
+        setAuthCheckInProgress(false);
       }
     };
 

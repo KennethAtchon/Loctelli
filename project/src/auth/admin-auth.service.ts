@@ -224,6 +224,48 @@ export class AdminAuthService {
     return adminUser;
   }
 
+  async updateAdminProfile(adminId: number, profileData: {
+    name?: string;
+    email?: string;
+  }) {
+    const adminUser = await this.prisma.adminUser.findUnique({
+      where: { id: adminId },
+    });
+
+    if (!adminUser) {
+      throw new UnauthorizedException('Admin user not found');
+    }
+
+    // If email is being updated, check if it's already taken
+    if (profileData.email && profileData.email !== adminUser.email) {
+      const existingAdmin = await this.prisma.adminUser.findUnique({
+        where: { email: profileData.email },
+      });
+
+      if (existingAdmin) {
+        throw new BadRequestException('Email is already taken');
+      }
+    }
+
+    // Update admin profile
+    const updatedAdmin = await this.prisma.adminUser.update({
+      where: { id: adminId },
+      data: profileData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        permissions: true,
+        isActive: true,
+        lastLoginAt: true,
+        createdAt: true,
+      },
+    });
+
+    return updatedAdmin;
+  }
+
   async getAllUsers(adminId: number) {
     // Verify admin permissions
     const adminUser = await this.prisma.adminUser.findUnique({

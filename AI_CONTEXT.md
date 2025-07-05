@@ -15,7 +15,7 @@ Loctelli is a comprehensive CRM application with AI-powered sales automation cap
 - **Cache**: Redis 7-alpine
 - **Authentication**: Cookie-based JWT authentication with automatic login
 - **AI Integration**: OpenAI-powered chat responses and sales strategies
-- **UI Framework**: TailwindCSS with shadcn/ui components
+- **UI Framework**: TailwindCSS with shadcn/ui components and responsive design
 - **State Management**: React Context API with cookie-based persistence
 - **API Communication**: Next.js API proxy for secure backend communication
 
@@ -26,7 +26,7 @@ Loctelli is a comprehensive CRM application with AI-powered sales automation cap
 4. **Client Management**: Comprehensive client profiles with message history and status tracking
 5. **Booking System**: Appointment scheduling with calendar integration and status management
 6. **Chat System**: AI-powered messaging with strategy-based responses and real-time communication
-7. **Admin Dashboard**: Comprehensive admin panel with user management and system monitoring
+7. **Admin Dashboard**: Comprehensive admin panel with user management and system monitoring, featuring responsive sidebar with mobile modal support, flexible height stretching, and complete profile/settings management
 8. **Background Processes**: Automated booking management and sales bot services
 9. **Development Tools**: Database schema visualization and development utilities
 10. **API Proxy System**: Secure server-side communication between frontend and backend
@@ -161,9 +161,11 @@ The frontend communicates with the backend through a Next.js API proxy (`/api/pr
 - `POST /admin/auth/register` - Admin registration
 - `POST /admin/auth/refresh` - Admin token refresh
 - `GET /admin/auth/profile` - Get admin profile
+- `PUT /admin/auth/profile` - Update admin profile (name, email) - All admins
+- `POST /admin/auth/change-password` - Change admin password - All admins
 - `GET /admin/auth/users` - Get all users (admin only)
-- `POST /admin/auth/generate-auth-code` - Generate admin auth code
-- `GET /admin/auth/current-auth-code` - Get current auth code
+- `POST /admin/auth/generate-auth-code` - Generate admin auth code (super admin only)
+- `GET /admin/auth/current-auth-code` - Get current auth code (super admin only)
 
 ### Core API Modules
 
@@ -398,6 +400,11 @@ admin_refresh_token: string;    // 7 days TTL
 4. **Token Expiry**: Automatic refresh without user intervention
 5. **Logout**: All cookies cleared, user redirected to login
 6. **Session Persistence**: Users stay logged in across sessions
+
+### Development-Specific Considerations
+- **Hot Reload Protection**: Authentication contexts include debouncing to prevent unnecessary re-authentication during development hot reloads
+- **Error Handling**: More lenient error handling in development to prevent unnecessary token clearing on network errors
+- **Development Utilities**: `lib/dev-utils.ts` provides development-specific helpers for better debugging and error handling
 
 ### Implementation Files
 - `lib/cookies.ts` - Cookie management utility functions

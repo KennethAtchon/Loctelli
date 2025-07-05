@@ -10,7 +10,7 @@ A comprehensive CRM application built with NestJS backend and Next.js frontend, 
 - **Cache**: Redis 7-alpine (backend only)
 - **Authentication**: Cookie-based JWT authentication with automatic login (frontend & backend)
 - **AI Integration**: OpenAI-powered chat responses and sales strategies
-- **UI Framework**: TailwindCSS with shadcn/ui components
+- **UI Framework**: TailwindCSS with shadcn/ui components and responsive design
 - **State Management**: React Context API with cookie-based persistence
 - **API Communication**: Next.js API proxy for secure backend communication
 
@@ -63,7 +63,7 @@ Loctelli/
     │   ├── customUI/    # Custom UI components
     │   │   ├── notification.tsx    # Notification system for user feedback
     │   │   └── bulk-actions.tsx    # Bulk operations component
-    │   ├── admin/       # Admin-specific components
+    │   ├── admin/       # Admin-specific components (responsive sidebar, header)
     │   ├── auth/        # Auth components
     │   └── version1/    # Landing page components
 ```
@@ -198,6 +198,18 @@ npm run db:studio
 - **Backend API**: http://localhost:8000
 - **Database**: localhost:5432
 - **Redis**: localhost:6379
+
+## 📱 Responsive Design Features
+
+The admin dashboard features a fully responsive design:
+
+- **Desktop**: Traditional sidebar layout with fixed navigation
+- **Mobile/Tablet**: Collapsible sidebar that appears as a modal overlay
+- **User Profile**: Right-aligned profile information with dropdown menu
+- **Logout Functionality**: Integrated logout with proper session cleanup
+- **Touch-Friendly**: Optimized for touch interactions on mobile devices
+
+The responsive design ensures optimal user experience across all device sizes while maintaining full functionality of the admin interface.
 - **Prisma Studio**: http://localhost:5555
 
 ## 📊 Features

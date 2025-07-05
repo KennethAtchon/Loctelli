@@ -54,6 +54,30 @@ export class AdminAuthController {
     return this.adminAuthService.getAdminProfile(user.userId);
   }
 
+  @Put('profile')
+  @UseGuards(JwtAuthGuard)
+  async updateAdminProfile(
+    @CurrentUser() user,
+    @Body() profileData: {
+      name?: string;
+      email?: string;
+    }
+  ) {
+    return this.adminAuthService.updateAdminProfile(user.userId, profileData);
+  }
+
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  async changeAdminPassword(
+    @CurrentUser() user,
+    @Body() passwordData: {
+      oldPassword: string;
+      newPassword: string;
+    }
+  ) {
+    return this.adminAuthService.changeAdminPassword(user.userId, passwordData.oldPassword, passwordData.newPassword);
+  }
+
   @Get('users')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'super_admin')

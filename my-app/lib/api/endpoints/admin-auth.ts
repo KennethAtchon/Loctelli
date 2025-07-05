@@ -168,6 +168,16 @@ export interface DetailedClient {
   }>;
 }
 
+export interface UpdateAdminProfileDto {
+  name?: string;
+  email?: string;
+}
+
+export interface ChangeAdminPasswordDto {
+  oldPassword: string;
+  newPassword: string;
+}
+
 export class AdminAuthApi extends ApiClient {
   async adminLogin(data: AdminLoginDto): Promise<AdminAuthResponse> {
     return this.post<AdminAuthResponse>('/admin/auth/login', data);
@@ -187,6 +197,14 @@ export class AdminAuthApi extends ApiClient {
 
   async getAdminProfile(): Promise<AdminProfile> {
     return this.get<AdminProfile>('/admin/auth/profile');
+  }
+
+  async updateAdminProfile(data: UpdateAdminProfileDto): Promise<AdminProfile> {
+    return this.patch<AdminProfile>('/admin/auth/profile', data);
+  }
+
+  async changeAdminPassword(data: ChangeAdminPasswordDto): Promise<{ message: string }> {
+    return this.post<{ message: string }>('/admin/auth/change-password', data);
   }
 
   async getAllUsers(): Promise<UserProfile[]> {
