@@ -213,9 +213,9 @@ The frontend communicates with the backend through a Next.js API proxy (`/api/pr
 - `PATCH /bookings/:id/status` - Update booking status
 
 #### Chat API (`/chat`)
-- `POST /chat/send-message` - Send a message with AI response generation
-- `GET /chat/history/:clientId` - Get complete chat history for client
-- `GET /chat/history/:clientId?startDate=:startDate&endDate=:endDate` - Get chat history by date range
+- `POST /chat` - Send a message with AI response generation (requires clientId for context)
+- `GET /chat/:clientId/history` - Get complete chat history for client
+- `GET /chat/:clientId/history?startDate=:startDate&endDate=:endDate` - Get chat history by date range
 - `PATCH /chat/messages/:messageId/read` - Mark message as read
 - `DELETE /chat/messages/:messageId` - Delete message
 - `GET /chat/unread-count/:clientId` - Get unread messages count
@@ -266,6 +266,22 @@ interface ChatMessage {
 ```
 
 ## Frontend Architecture
+
+### Admin Interface Pages
+The admin interface provides comprehensive management capabilities through dedicated pages:
+
+#### Core Management Pages
+- **Dashboard** (`/admin/dashboard`) - Main admin dashboard with system overview, statistics, and real-time monitoring
+- **Users** (`/admin/users`) - Complete user management with role assignment, status control, and detailed user profiles
+- **Clients** (`/admin/clients`) - Client management with search, filtering, and comprehensive client information
+- **Strategies** (`/admin/strategies`) - AI strategy management with creativity controls, tone settings, and strategy configuration
+- **Bookings** (`/admin/bookings`) - Booking and appointment management with status tracking and client associations
+- **Chat** (`/admin/chat`) - AI chat interface for testing client interactions by spoofing client IDs, showing client profiles and conversation history
+
+#### System Management Pages
+- **Settings** (`/admin/settings`) - System configuration and admin authorization code management
+- **Development** (`/admin/dev`) - Development tools and utilities for system maintenance
+- **Database Schema** (`/admin/database-schema`) - Interactive database schema visualization with ERD diagrams
 
 ### Component Structure
 ```

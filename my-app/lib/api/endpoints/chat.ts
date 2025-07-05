@@ -1,13 +1,20 @@
 import { ApiClient } from '../client';
-import { ChatMessage, SendMessageDto } from '@/types';
+import { ChatMessage } from '@/types';
+
+export interface ChatMessageDto {
+  clientId: number;
+  content: string;
+  role?: string;
+  metadata?: Record<string, any>;
+}
 
 export class ChatApi extends ApiClient {
-  async sendMessage(data: SendMessageDto): Promise<ChatMessage> {
-    return this.post<ChatMessage>('/chat/send-message', data);
+  async sendMessage(data: ChatMessageDto): Promise<{ userMessage: any; aiMessage: any; client: any }> {
+    return this.post<{ userMessage: any; aiMessage: any; client: any }>('/chat', data);
   }
 
   async getChatHistory(clientId: number): Promise<ChatMessage[]> {
-    return this.get<ChatMessage[]>(`/chat/history/${clientId}`);
+    return this.get<ChatMessage[]>(`/chat/${clientId}/history`);
   }
 
   async getChatHistoryByDateRange(
@@ -15,7 +22,7 @@ export class ChatApi extends ApiClient {
     startDate: string, 
     endDate: string
   ): Promise<ChatMessage[]> {
-    return this.get<ChatMessage[]>(`/chat/history/${clientId}?startDate=${startDate}&endDate=${endDate}`);
+    return this.get<ChatMessage[]>(`/chat/${clientId}/history?startDate=${startDate}&endDate=${endDate}`);
   }
 
   async markMessageAsRead(messageId: string): Promise<void> {

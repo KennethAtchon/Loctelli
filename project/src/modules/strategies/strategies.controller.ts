@@ -13,9 +13,13 @@ export class StrategiesController {
   }
 
   @Get()
-  findAll(@Query('userId', ParseIntPipe) userId?: number) {
+  findAll(@Query('userId') userId?: string) {
     if (userId) {
-      return this.strategiesService.findByUserId(userId);
+      const parsedUserId = parseInt(userId, 10);
+      if (isNaN(parsedUserId)) {
+        throw new Error('Invalid userId parameter');
+      }
+      return this.strategiesService.findByUserId(parsedUserId);
     }
     return this.strategiesService.findAll();
   }

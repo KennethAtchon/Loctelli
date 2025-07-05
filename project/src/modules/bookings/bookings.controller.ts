@@ -14,14 +14,22 @@ export class BookingsController {
 
   @Get()
   findAll(
-    @Query('userId', ParseIntPipe) userId?: number,
-    @Query('clientId', ParseIntPipe) clientId?: number,
+    @Query('userId') userId?: string,
+    @Query('clientId') clientId?: string,
   ) {
     if (userId) {
-      return this.bookingsService.findByUserId(userId);
+      const parsedUserId = parseInt(userId, 10);
+      if (isNaN(parsedUserId)) {
+        throw new Error('Invalid userId parameter');
+      }
+      return this.bookingsService.findByUserId(parsedUserId);
     }
     if (clientId) {
-      return this.bookingsService.findByClientId(clientId);
+      const parsedClientId = parseInt(clientId, 10);
+      if (isNaN(parsedClientId)) {
+        throw new Error('Invalid clientId parameter');
+      }
+      return this.bookingsService.findByClientId(parsedClientId);
     }
     return this.bookingsService.findAll();
   }

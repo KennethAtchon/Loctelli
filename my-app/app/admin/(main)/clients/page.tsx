@@ -44,13 +44,15 @@ export default function ClientsPage() {
   const [selectedClient, setSelectedClient] = useState<DetailedClient | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  useEffect(() => {
-    loadClients();
-  }, [loadClients]);
-
-  useEffect(() => {
-    filterClients();
-  }, [searchTerm, filterClients]);
+  const calculateStats = (clientsData: Client[]) => {
+    const stats = {
+      totalClients: clientsData.length,
+      activeClients: clientsData.filter(c => c.status === 'active').length,
+      leadClients: clientsData.filter(c => c.status === 'lead').length,
+      inactiveClients: clientsData.filter(c => c.status === 'inactive').length,
+    };
+    setStats(stats);
+  };
 
   const loadClients = useCallback(async () => {
     try {
@@ -67,16 +69,6 @@ export default function ClientsPage() {
       setIsRefreshing(false);
     }
   }, []);
-
-  const calculateStats = (clientsData: Client[]) => {
-    const stats = {
-      totalClients: clientsData.length,
-      activeClients: clientsData.filter(c => c.status === 'active').length,
-      leadClients: clientsData.filter(c => c.status === 'lead').length,
-      inactiveClients: clientsData.filter(c => c.status === 'inactive').length,
-    };
-    setStats(stats);
-  };
 
   const filterClients = useCallback(() => {
     let filtered = clients;
@@ -98,6 +90,14 @@ export default function ClientsPage() {
 
     setFilteredClients(filtered);
   }, [clients, searchTerm, statusFilter]);
+
+  useEffect(() => {
+    loadClients();
+  }, [loadClients]);
+
+  useEffect(() => {
+    filterClients();
+  }, [filterClients]);
 
   const loadDetailedClient = async (clientId: number) => {
     try {

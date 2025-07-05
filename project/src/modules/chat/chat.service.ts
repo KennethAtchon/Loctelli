@@ -2,10 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { ChatMessageDto } from './dto/chat-message.dto';
 import { SendMessageDto } from './dto/send-message.dto';
+import { SalesBotService } from '../../background/bgprocess/sales-bot.service';
 
 @Injectable()
 export class ChatService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private salesBotService: SalesBotService
+  ) {}
 
   async sendMessage(chatMessageDto: ChatMessageDto) {
     const { clientId, content, role = 'user', metadata } = chatMessageDto;
@@ -20,8 +24,8 @@ export class ChatService {
       throw new NotFoundException(`Client with ID ${clientId} not found`);
     }
 
-    // Create the message object
-    const message = {
+    // Create the user message object
+    const userMessage = {
       content,
       role,
       timestamp: new Date().toISOString(),
@@ -31,15 +35,29 @@ export class ChatService {
     // Parse existing messages or initialize empty array
     const existingMessages = client.messageHistory ? JSON.parse(client.messageHistory as string) : [];
     
-    // Add new message
-    existingMessages.push(message);
+    // Add user message
+    existingMessages.push(userMessage);
+
+    // Generate AI response using SalesBotService
+    const aiResponse = await this.salesBotService.generateResponse(content, clientId);
+    
+    // Create the AI response object
+    const aiMessage = {
+      content: aiResponse,
+      role: 'assistant',
+      timestamp: new Date().toISOString(),
+      metadata: { generated: true }
+    };
+
+    // Add AI response to messages
+    existingMessages.push(aiMessage);
 
     // Update client with new message history
     const updatedClient = await this.prisma.client.update({
       where: { id: clientId },
       data: {
         messageHistory: JSON.stringify(existingMessages),
-        lastMessage: content,
+        lastMessage: aiResponse,
         lastMessageDate: new Date().toISOString(),
       } as any, // Type assertion to bypass type checking for dynamic fields
       include: {
@@ -49,7 +67,8 @@ export class ChatService {
     });
 
     return {
-      message,
+      userMessage,
+      aiMessage,
       client: updatedClient
     };
   }

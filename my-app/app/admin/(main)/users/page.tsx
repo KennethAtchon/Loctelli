@@ -58,13 +58,15 @@ export default function UsersPage() {
     isActive: true,
   });
 
-  useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
-
-  useEffect(() => {
-    filterUsers();
-  }, [searchTerm, filterUsers]);
+  const calculateStats = (usersData: UserProfile[]) => {
+    const stats = {
+      totalUsers: usersData.length,
+      activeUsers: usersData.filter(u => u.isActive).length,
+      inactiveUsers: usersData.filter(u => !u.isActive).length,
+      adminUsers: usersData.filter(u => u.role === 'admin').length,
+    };
+    setStats(stats);
+  };
 
   const loadUsers = useCallback(async () => {
     try {
@@ -79,16 +81,6 @@ export default function UsersPage() {
       setIsRefreshing(false);
     }
   }, []);
-
-  const calculateStats = (usersData: UserProfile[]) => {
-    const stats = {
-      totalUsers: usersData.length,
-      activeUsers: usersData.filter(u => u.isActive).length,
-      inactiveUsers: usersData.filter(u => !u.isActive).length,
-      adminUsers: usersData.filter(u => u.role === 'admin').length,
-    };
-    setStats(stats);
-  };
 
   const filterUsers = useCallback(() => {
     let filtered = users;
@@ -116,6 +108,14 @@ export default function UsersPage() {
 
     setFilteredUsers(filtered);
   }, [users, searchTerm, roleFilter, statusFilter]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
+
+  useEffect(() => {
+    filterUsers();
+  }, [filterUsers]);
 
   const loadDetailedUser = async (userId: number) => {
     try {

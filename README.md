@@ -216,6 +216,40 @@ npm run db:studio
 - **Simplified relationships**: Clean relationship syntax without labels to avoid parsing errors
 - **Export functionality**: Download diagrams as SVG for documentation
 
+### 🎯 Strategy Management (Admin)
+- **AI strategy management**: Create and manage AI-powered sales strategies
+- **Creativity controls**: Adjust AI response creativity levels (1-10 scale)
+- **Tone settings**: Configure communication tone (professional, friendly, casual)
+- **Strategy categorization**: Tag-based organization (sales, support, onboarding)
+- **Advanced filtering**: Filter strategies by tag, tone, and creativity level
+- **Detailed strategy views**: Complete strategy information with AI instructions
+- **Strategy duplication**: Easy strategy replication and modification
+- **Real-time statistics**: Live counts for total, active, high/low creativity strategies
+- **Search functionality**: Search strategies by name, tag, tone, or objective
+- **Responsive design**: Mobile-friendly strategy management interface
+
+### 📅 Booking Management (Admin)
+- **Comprehensive booking system**: Manage all appointments and meetings
+- **Status tracking**: Monitor booking status (confirmed, pending, cancelled)
+- **Client associations**: Link bookings to specific clients and users
+- **Advanced filtering**: Filter by status, type, and date ranges
+- **Search functionality**: Search bookings by client, user, or booking type
+- **Detailed booking views**: Complete booking information with client and user details
+- **Real-time statistics**: Live counts for total, confirmed, pending, and cancelled bookings
+- **Flexible details**: JSON-based booking information storage
+- **Responsive design**: Mobile-friendly booking management interface
+
+### 🤖 AI Chat Interface (Admin)
+- **Client ID spoofing**: Test AI responses by entering any client ID to simulate client interactions
+- **Client profile display**: Shows complete client information including name, email, company, status, and assigned strategy
+- **Real-time messaging**: Instant message exchange with AI assistant using client context
+- **Conversation management**: Clear chat history and start new conversations
+- **Message history**: Track conversation flow with timestamps and client metadata
+- **Typing indicators**: Visual feedback during AI response generation
+- **Error handling**: Graceful error display with retry functionality
+- **Keyboard shortcuts**: Enter to send, Shift+Enter for new lines
+- **Responsive design**: Full-screen chat interface optimized for all devices
+
 ### 🛠️ Development Tools
 - **Database schema visualization**: Interactive ERD diagrams using Mermaid.js
 - **Schema parsing**: Automatic parsing of Prisma schema files
