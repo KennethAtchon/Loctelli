@@ -10,7 +10,6 @@ import { Users, Target, Calendar, MessageSquare, TrendingUp, TrendingDown, Refre
 import { DashboardStats, SystemStatus } from '@/lib/api/endpoints/admin-auth';
 import Link from 'next/link';
 import logger from '@/lib/logger';
-import DatabaseSchema from '@/components/admin/database-schema';
 
 interface DetailedUser {
   id: number;
@@ -611,9 +610,6 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Database Schema */}
-      <DatabaseSchema />
 
       {/* System Status */}
       <Card>

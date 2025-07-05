@@ -28,7 +28,8 @@ Loctelli is a comprehensive CRM application with AI-powered sales automation cap
 6. **Chat System**: AI-powered messaging with strategy-based responses and real-time communication
 7. **Admin Dashboard**: Comprehensive admin panel with user management and system monitoring
 8. **Background Processes**: Automated booking management and sales bot services
-9. **API Proxy System**: Secure server-side communication between frontend and backend
+9. **Development Tools**: Database schema visualization and development utilities
+10. **API Proxy System**: Secure server-side communication between frontend and backend
 
 ## Data Models
 
@@ -191,6 +192,14 @@ The frontend communicates with the backend through a Next.js API proxy (`/api/pr
 - `GET /client?userId=:userId` - Get clients by user (admin only)
 - `GET /client?strategyId=:strategyId` - Get clients by strategy
 
+#### General API (`/general`)
+- `GET /general/dashboard-stats` - Get dashboard statistics
+- `GET /general/system-status` - Get system health status
+- `GET /general/recent-clients` - Get recent clients
+- `GET /general/users/:id/detailed` - Get detailed user information
+- `GET /general/clients/:id/detailed` - Get detailed client information
+- `GET /general/schema` - Get database schema for development tools
+
 #### Bookings API (`/booking`)
 - `GET /booking` - Get all bookings for current user
 - `GET /booking/:id` - Get booking by ID
@@ -215,10 +224,6 @@ The frontend communicates with the backend through a Next.js API proxy (`/api/pr
 - `GET /status` - System health check
 - `GET /status/health` - Health check endpoint
 - `GET /status/version` - Get API version
-
-#### General API (`/general`)
-- `GET /general/dashboard-stats` - Get aggregated dashboard statistics for admin
-- `GET /general/system-status` - Get system health status (database, Redis, etc.)
 - `GET /general/recent-clients` - Get recent clients with full details
 - `GET /general/users/:id/detailed` - Get detailed user information with all related data
 - `GET /general/clients/:id/detailed` - Get detailed client information with all related data

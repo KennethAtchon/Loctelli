@@ -14,14 +14,14 @@ export class ClientsController {
 
   @Get()
   findAll(
-    @Query('userId', ParseIntPipe) userId?: number,
-    @Query('strategyId', ParseIntPipe) strategyId?: number,
+    @Query('userId') userId?: string,
+    @Query('strategyId') strategyId?: string,
   ) {
     if (userId) {
-      return this.clientsService.findByUserId(userId);
+      return this.clientsService.findByUserId(parseInt(userId, 10));
     }
     if (strategyId) {
-      return this.clientsService.findByStrategyId(strategyId);
+      return this.clientsService.findByStrategyId(parseInt(strategyId, 10));
     }
     return this.clientsService.findAll();
   }

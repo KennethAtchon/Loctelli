@@ -198,6 +198,13 @@ npm run db:studio
 - **Real-time search**: Search by name, email, company, or phone
 - **Status filtering**: Filter by active, lead, inactive, or all clients
 - **Detailed client views**: Modal dialogs showing complete client information
+
+### 🛠️ Development Tools
+- **Database schema visualization**: Interactive ERD diagrams using Mermaid.js
+- **Schema parsing**: Automatic parsing of Prisma schema files
+- **Development utilities**: Tools for database exploration and debugging
+- **Real-time schema updates**: View current database structure
+- **Export capabilities**: Download schema diagrams as SVG files
 - **Client statistics**: Real-time counts for different client statuses
 - **Delete functionality**: Confirmation-based client deletion
 - **Responsive table**: Mobile-friendly client data display

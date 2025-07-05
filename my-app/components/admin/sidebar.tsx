@@ -11,6 +11,7 @@ import {
   MessageSquare,
   Settings,
   LogOut,
+  Database,
 } from 'lucide-react';
 
 const navigation = [
@@ -21,6 +22,7 @@ const navigation = [
   { name: 'Bookings', href: '/admin/bookings', icon: Calendar },
   { name: 'Chat', href: '/admin/chat', icon: MessageSquare },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
+  { name: 'Dev', href: '/admin/dev', icon: Database },
 ];
 
 export function Sidebar() {
