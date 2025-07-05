@@ -1,42 +1,57 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, HttpException, HttpStatus } from '@nestjs/common';
 import { ClientsService } from './clients.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 
 @Controller('client')
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
   @Post()
-  create(@Body() createClientDto: CreateClientDto) {
-    return this.clientsService.create(createClientDto);
+  create(@Body() createClientDto: CreateClientDto, @CurrentUser() user) {
+    // Ensure the client is created for the current user
+    return this.clientsService.create({ ...createClientDto, userId: user.userId });
   }
 
   @Get()
-  findAll(
-    @Query('userId') userId?: string,
-    @Query('strategyId') strategyId?: string,
-  ) {
+  findAll(@CurrentUser() user, @Query('userId') userId?: string, @Query('strategyId') strategyId?: string) {
     if (userId) {
-      return this.clientsService.findByUserId(parseInt(userId, 10));
+      const parsedUserId = parseInt(userId, 10);
+      if (isNaN(parsedUserId)) {
+        throw new HttpException('Invalid userId parameter', HttpStatus.BAD_REQUEST);
+      }
+      // Only allow viewing other users' clients if admin
+      if (user.role !== 'admin' && user.role !== 'super_admin' && user.userId !== parsedUserId) {
+        throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
+      }
+      return this.clientsService.findByUserId(parsedUserId);
     }
+    
     if (strategyId) {
-      return this.clientsService.findByStrategyId(parseInt(strategyId, 10));
+      const parsedStrategyId = parseInt(strategyId, 10);
+      if (isNaN(parsedStrategyId)) {
+        throw new HttpException('Invalid strategyId parameter', HttpStatus.BAD_REQUEST);
+      }
+      return this.clientsService.findByStrategyId(parsedStrategyId, user.userId, user.role);
     }
-    return this.clientsService.findAll();
+    
+    // Return current user's clients
+    return this.clientsService.findByUserId(user.userId);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.clientsService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user) {
+    return this.clientsService.findOne(id, user.userId, user.role);
   }
 
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateClientDto: UpdateClientDto,
+    @CurrentUser() user
   ) {
-    return this.clientsService.update(id, updateClientDto);
+    return this.clientsService.update(id, updateClientDto, user.userId, user.role);
   }
 
   @Post(':id/message')
@@ -48,7 +63,7 @@ export class ClientsController {
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.clientsService.remove(id);
+  remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user) {
+    return this.clientsService.remove(id, user.userId, user.role);
   }
 }

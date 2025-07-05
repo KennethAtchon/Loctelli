@@ -61,4 +61,10 @@ export class StatusService {
       environment: process.env.NODE_ENV || 'development',
     };
   }
+
+  async getVersion() {
+    return {
+      version: process.env.npm_package_version || '1.0.0',
+    };
+  }
 }

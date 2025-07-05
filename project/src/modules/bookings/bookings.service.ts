@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
@@ -22,7 +22,7 @@ export class BookingsService {
     });
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, userId: number, userRole: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id },
       include: {
@@ -33,6 +33,11 @@ export class BookingsService {
 
     if (!booking) {
       throw new NotFoundException(`Booking with ID ${id} not found`);
+    }
+
+    // Check if user has permission to access this booking
+    if (userRole !== 'admin' && userRole !== 'super_admin' && booking.userId !== userId) {
+      throw new ForbiddenException('Access denied');
     }
 
     return booking;
@@ -47,16 +52,44 @@ export class BookingsService {
     });
   }
 
-  async findByClientId(clientId: number) {
+  async findByClientId(clientId: number, userId: number, userRole: string) {
+    // First check if the client belongs to the user
+    const client = await this.prisma.client.findUnique({
+      where: { id: clientId },
+    });
+
+    if (!client) {
+      throw new NotFoundException(`Client with ID ${clientId} not found`);
+    }
+
+    // Check if user has permission to access this client's bookings
+    if (userRole !== 'admin' && userRole !== 'super_admin' && client.userId !== userId) {
+      throw new ForbiddenException('Access denied');
+    }
+
     return this.prisma.booking.findMany({
       where: { clientId },
       include: {
-        user: true,
+        client: true,
       },
     });
   }
 
-  async update(id: number, updateBookingDto: UpdateBookingDto) {
+  async update(id: number, updateBookingDto: UpdateBookingDto, userId: number, userRole: string) {
+    // Check if booking exists and user has permission
+    const booking = await this.prisma.booking.findUnique({
+      where: { id },
+    });
+
+    if (!booking) {
+      throw new NotFoundException(`Booking with ID ${id} not found`);
+    }
+
+    // Check if user has permission to update this booking
+    if (userRole !== 'admin' && userRole !== 'super_admin' && booking.userId !== userId) {
+      throw new ForbiddenException('Access denied');
+    }
+
     try {
       return await this.prisma.booking.update({
         where: { id },
@@ -67,7 +100,21 @@ export class BookingsService {
     }
   }
 
-  async remove(id: number) {
+  async remove(id: number, userId: number, userRole: string) {
+    // Check if booking exists and user has permission
+    const booking = await this.prisma.booking.findUnique({
+      where: { id },
+    });
+
+    if (!booking) {
+      throw new NotFoundException(`Booking with ID ${id} not found`);
+    }
+
+    // Check if user has permission to delete this booking
+    if (userRole !== 'admin' && userRole !== 'super_admin' && booking.userId !== userId) {
+      throw new ForbiddenException('Access denied');
+    }
+
     try {
       return await this.prisma.booking.delete({
         where: { id },

@@ -510,16 +510,22 @@ export default function UsersPage() {
                                 </div>
 
                                 {/* Created By Admin */}
-                                {selectedUser.createdByAdmin && (
-                                  <div>
-                                    <h3 className="font-semibold mb-3">Created By Admin</h3>
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
-                                      <div><strong>Admin ID:</strong> {selectedUser.createdByAdmin.id}</div>
-                                      <div><strong>Admin Name:</strong> {selectedUser.createdByAdmin.name}</div>
-                                      <div><strong>Admin Email:</strong> {selectedUser.createdByAdmin.email}</div>
-                                    </div>
+                                <div>
+                                  <h3 className="font-semibold mb-3">Created By Admin</h3>
+                                  <div className="grid grid-cols-2 gap-4 text-sm">
+                                    {selectedUser.createdByAdmin ? (
+                                      <>
+                                        <div><strong>Admin ID:</strong> {selectedUser.createdByAdmin.id}</div>
+                                        <div><strong>Admin Name:</strong> {selectedUser.createdByAdmin.name}</div>
+                                        <div><strong>Admin Email:</strong> {selectedUser.createdByAdmin.email}</div>
+                                      </>
+                                    ) : (
+                                      <div className="col-span-2 text-gray-500 italic">
+                                        Admin account has been deleted
+                                      </div>
+                                    )}
                                   </div>
-                                )}
+                                </div>
 
                                 {/* Strategies */}
                                 {selectedUser.strategies && selectedUser.strategies.length > 0 && (

@@ -10,11 +10,11 @@ export interface ChatMessageDto {
 
 export class ChatApi extends ApiClient {
   async sendMessage(data: ChatMessageDto): Promise<{ userMessage: unknown; aiMessage: unknown; client: unknown }> {
-    return this.post<{ userMessage: unknown; aiMessage: unknown; client: unknown }>('/chat', data);
+    return this.post<{ userMessage: unknown; aiMessage: unknown; client: unknown }>('/chat/send', data);
   }
 
   async getChatHistory(clientId: number): Promise<ChatMessage[]> {
-    return this.get<ChatMessage[]>(`/chat/${clientId}/history`);
+    return this.get<ChatMessage[]>(`/chat/messages/${clientId}`);
   }
 
   async getChatHistoryByDateRange(
@@ -22,7 +22,7 @@ export class ChatApi extends ApiClient {
     startDate: string, 
     endDate: string
   ): Promise<ChatMessage[]> {
-    return this.get<ChatMessage[]>(`/chat/${clientId}/history?startDate=${startDate}&endDate=${endDate}`);
+    return this.get<ChatMessage[]>(`/chat/messages/${clientId}?startDate=${startDate}&endDate=${endDate}`);
   }
 
   async markMessageAsRead(messageId: string): Promise<void> {

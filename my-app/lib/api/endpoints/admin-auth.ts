@@ -115,7 +115,7 @@ export interface DetailedUser {
     id: number;
     name: string;
     email: string;
-  };
+  } | null;
   strategies?: Array<{
     id: number;
     name: string;
@@ -229,6 +229,14 @@ export class AdminAuthApi extends ApiClient {
 
   async getCurrentAuthCode(): Promise<{ authCode: string; message: string }> {
     return this.get<{ authCode: string; message: string }>('/admin/auth/current-auth-code');
+  }
+
+  async getAllAdminAccounts(): Promise<AdminProfile[]> {
+    return this.get<AdminProfile[]>('/admin/auth/accounts');
+  }
+
+  async deleteAdminAccount(adminId: number): Promise<{ message: string }> {
+    return this.delete<{ message: string }>(`/admin/auth/accounts/${adminId}`);
   }
 
   async getDashboardStats(): Promise<DashboardStats> {

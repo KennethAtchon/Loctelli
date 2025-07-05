@@ -18,6 +18,7 @@ import { JwtAuthGuard } from './auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { Roles } from './decorators/roles.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
+import { Public } from './decorators/public.decorator';
 
 @Controller('admin/auth')
 export class AdminAuthController {
@@ -27,17 +28,20 @@ export class AdminAuthController {
   ) {}
 
   @Post('login')
+  @Public()
   @HttpCode(HttpStatus.OK)
   async adminLogin(@Body() loginDto: AdminLoginDto) {
     return this.adminAuthService.adminLogin(loginDto);
   }
 
   @Post('register')
+  @Public()
   async adminRegister(@Body() registerDto: AdminRegisterDto & { authCode: string }) {
     return this.adminAuthService.adminRegister(registerDto);
   }
 
   @Post('refresh')
+  @Public()
   async adminRefreshToken(@Body() body: { refresh_token: string }) {
     return this.adminAuthService.adminRefreshToken(body.refresh_token);
   }
@@ -146,5 +150,22 @@ export class AdminAuthController {
       authCode,
       message: 'Current admin authorization code',
     };
+  }
+
+  @Get('accounts')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('super_admin')
+  async getAllAdminAccounts(@CurrentUser() user) {
+    return this.adminAuthService.getAllAdminAccounts();
+  }
+
+  @Delete('accounts/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('super_admin')
+  async deleteAdminAccount(
+    @CurrentUser() user,
+    @Param('id', ParseIntPipe) adminId: number
+  ) {
+    return this.adminAuthService.deleteAdminAccount(user.userId, adminId);
   }
 } 

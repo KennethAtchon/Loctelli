@@ -11,23 +11,27 @@ import {
 import { AuthService, LoginDto, RegisterDto } from './auth.service';
 import { JwtAuthGuard } from './auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
+import { Public } from './decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post('login')
+  @Public()
   @HttpCode(HttpStatus.OK)
-  async login(@Body() loginDto: LoginDto) {
+  async login(@Body() loginDto: { email: string; password: string }) {
     return this.authService.login(loginDto);
   }
 
   @Post('register')
-  async register(@Body() registerDto: RegisterDto) {
+  @Public()
+  async register(@Body() registerDto: { name: string; email: string; password: string }) {
     return this.authService.register(registerDto);
   }
 
   @Post('refresh')
+  @Public()
   async refreshToken(@Body() body: { refresh_token: string }) {
     return this.authService.refreshToken(body.refresh_token);
   }
@@ -48,12 +52,8 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async changePassword(
     @CurrentUser() user,
-    @Body() body: { oldPassword: string; newPassword: string },
+    @Body() passwordData: { oldPassword: string; newPassword: string }
   ) {
-    return this.authService.changePassword(
-      user.userId,
-      body.oldPassword,
-      body.newPassword,
-    );
+    return this.authService.changePassword(user.userId, passwordData.oldPassword, passwordData.newPassword);
   }
 } 

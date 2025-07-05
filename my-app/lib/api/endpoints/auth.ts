@@ -10,7 +10,7 @@ export interface RegisterDto {
   email: string;
   password: string;
   company?: string;
-  role?: string;
+  budget?: string;
 }
 
 export interface AuthResponse {

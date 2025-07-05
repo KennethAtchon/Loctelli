@@ -1,822 +1,251 @@
-# Loctelli CRM - AI Context Documentation
+# Loctelli CRM System - AI Context
 
-This document provides comprehensive context for AI models to understand the Loctelli CRM system architecture, data models, and implementation details.
+## 🏗️ **System Architecture**
 
-## System Overview
+### **Frontend (Next.js 14)**
+- **Framework**: Next.js 14 with App Router
+- **UI Library**: Shadcn/ui components with Tailwind CSS
+- **State Management**: React Context for auth state
+- **API Client**: Custom API client with automatic token refresh
+- **Authentication**: JWT tokens stored in HTTP-only cookies
 
-Loctelli is a comprehensive CRM application with AI-powered sales automation capabilities. The system consists of a NestJS backend API and a Next.js frontend, with PostgreSQL database and Redis caching. The application features advanced authentication, client management, sales strategies, booking systems, and AI-powered chat integration with automated background processes.
+### **Backend (NestJS)**
+- **Framework**: NestJS with TypeScript
+- **Database**: PostgreSQL with Prisma ORM
+- **Caching**: Redis for session management
+- **Authentication**: JWT with refresh token rotation
+- **Security**: Multi-layer protection (API key + JWT + Role-based access)
 
-## Architecture Context
+## 🔐 **Security Architecture**
 
-### Technology Stack
-- **Backend**: NestJS 11 with TypeScript
-- **Frontend**: Next.js 15.2.4 with React 19
-- **Database**: PostgreSQL with Prisma ORM 6.9.0
-- **Cache**: Redis 7-alpine
-- **Authentication**: Cookie-based JWT authentication with automatic login
-- **AI Integration**: OpenAI-powered chat responses and sales strategies
-- **UI Framework**: TailwindCSS with shadcn/ui components and responsive design
-- **State Management**: React Context API with cookie-based persistence
-- **API Communication**: Next.js API proxy for secure backend communication
+### **Multi-Layer Security**
+1. **API Key Middleware**: Protects all routes except auth and status
+2. **Global JWT Guard**: Authenticates all requests (except public endpoints)
+3. **Role-Based Access Control**: Enforces user permissions
+4. **Resource-Level Authorization**: Users can only access their own data
 
-### Key Components
-1. **Authentication System**: Multi-level auth with admin and user roles, cookie-based with automatic login
-2. **User Management**: User profiles with company, budget tracking, and calendar integration
-3. **Sales Strategies**: AI-powered sales approaches with customizable parameters and objection handling
-4. **Client Management**: Comprehensive client profiles with message history and status tracking
-5. **Booking System**: Appointment scheduling with calendar integration and status management
-6. **Chat System**: AI-powered messaging with strategy-based responses and real-time communication
-7. **Admin Dashboard**: Comprehensive admin panel with user management and system monitoring, featuring responsive sidebar with mobile modal support, flexible height stretching, and complete profile/settings management
-8. **Background Processes**: Automated booking management and sales bot services
-9. **Development Tools**: Database schema visualization and development utilities
-10. **API Proxy System**: Secure server-side communication between frontend and backend
+### **Public Endpoints** (No Authentication Required)
+- `POST /auth/login` - User login
+- `POST /auth/register` - User registration
+- `POST /auth/refresh` - Token refresh
+- `POST /admin/auth/login` - Admin login
+- `POST /admin/auth/register` - Admin registration
+- `POST /admin/auth/refresh` - Admin token refresh
+- `GET /status` - System status
+- `GET /status/health` - Health check
+- `GET /status/version` - Version info
 
-## Data Models
+### **Authentication Flow**
+1. User logs in → receives access token (15min) + refresh token (7 days)
+2. Access token sent in `x-user-token` header for all requests
+3. On 401 response → automatic token refresh
+4. Refresh tokens stored in Redis with rotation
+5. Failed refresh → user logged out
 
-### Core Entities
+## 📡 **API Integration Status**
 
-#### User Entity
+### **✅ Fully Integrated Endpoints**
+
+#### **Authentication**
+- **User Auth**: `/auth/*` - Login, register, refresh, logout, profile, change-password
+- **Admin Auth**: `/admin/auth/*` - Login, register, refresh, logout, profile, change-password
+- **DTO Alignment**: Frontend and backend DTOs match perfectly
+
+#### **User Management**
+- **Users**: `/user/*` - CRUD operations with resource-level authorization
+- **Admin User Management**: `/admin/auth/users/*` - Admin-only user management
+- **Admin Account Management**: `/admin/auth/accounts/*` - Super admin account management
+
+#### **Core Features**
+- **Strategies**: `/strategy/*` - CRUD + duplication with user isolation
+- **Clients**: `/client/*` - CRUD + filtering by user/strategy
+- **Bookings**: `/booking/*` - CRUD + status updates
+- **Chat**: `/chat/*` - Message sending, history, read status (with placeholder implementations)
+
+#### **System**
+- **Status**: `/status/*` - Health, version, system status
+- **General**: `/general/*` - Dashboard stats, schema, detailed views
+
+### **🔧 Integration Fixes Applied**
+
+#### **1. Auth Registration DTO Alignment**
+- **Fixed**: Frontend now sends `budget` field instead of `role`
+- **Backend**: Expects `name`, `email`, `password`, `company?`, `budget?`
+- **Frontend**: Sends matching fields
+
+#### **2. Chat Endpoint Alignment**
+- **Fixed**: Frontend endpoints now match backend
+- **Send Message**: `POST /chat/send` ✅
+- **Get History**: `GET /chat/messages/{clientId}` ✅
+- **Added**: Placeholder implementations for read status endpoints
+
+#### **3. Strategy Duplication**
+- **Added**: `POST /strategy/{id}/duplicate` endpoint
+- **Backend**: Full implementation with authorization
+- **Frontend**: Already expected this endpoint
+
+#### **4. Status Endpoints**
+- **Added**: `GET /status/version` endpoint
+- **Backend**: Returns package version
+- **Frontend**: Already expected this endpoint
+
+### **📋 DTO Structure Verification**
+
+#### **User Registration**
 ```typescript
-interface User {
-  id: number;
+// Frontend & Backend Match ✅
+interface RegisterDto {
   name: string;
   email: string;
-  role: string; // "admin", "user", "manager"
-  isActive: boolean;
+  password: string;
   company?: string;
   budget?: string;
-  bookingsTime?: any; // JSON field for booking preferences
-  bookingEnabled: number; // 0 = False, 1 = True
-  calendarId?: string; // GoHighLevel calendar integration
-  locationId?: string; // GoHighLevel location integration
-  assignedUserId?: string; // External system user ID
-  lastLoginAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-  createdByAdminId?: number; // ID of admin who created this user
-  createdByAdmin?: AdminUser; // Relation to admin
-  strategies?: Strategy[];
-  clients?: Client[];
-  bookings?: Booking[];
 }
 ```
 
-#### Strategy Entity (AI-Powered Sales Approach)
+#### **Strategy Creation**
 ```typescript
-interface Strategy {
-  id: number;
+// Frontend & Backend Match ✅
+interface CreateStrategyDto {
   userId: number;
   name: string;
-  tag?: string; // Strategy categorization
-  tone?: string; // Communication tone (professional, casual, etc.)
-  aiInstructions?: string; // Specific AI instructions for response generation
-  objectionHandling?: string; // Pre-defined responses to common objections
-  qualificationPriority?: string; // What makes a good prospect
-  creativity?: number; // AI creativity level (1-10 scale)
-  aiObjective?: string; // Primary AI objective for this strategy
-  disqualificationCriteria?: string; // When to disqualify prospects
-  exampleConversation?: any; // JSON field for conversation templates
-  delayMin?: number; // Minimum delay in seconds for responses
-  delayMax?: number; // Maximum delay in seconds for responses
-  createdAt: Date;
-  updatedAt: Date;
-  user?: User;
-  clients?: Client[];
+  tag?: string;
+  tone?: string;
+  aiInstructions?: string;
+  objectionHandling?: string;
+  qualificationPriority?: string;
+  creativity?: number;
+  aiObjective?: string;
+  disqualificationCriteria?: string;
+  exampleConversation?: any;
+  delayMin?: number;
+  delayMax?: number;
 }
 ```
 
-#### Client Entity
+#### **Client Creation**
 ```typescript
-interface Client {
-  id: number;
+// Frontend & Backend Match ✅
+interface CreateClientDto {
   userId: number;
   strategyId: number;
   name: string;
   email?: string;
   phone?: string;
   company?: string;
-  position?: string; // Job title/position
-  customId?: string; // External system integration ID
-  messageHistory?: any; // JSON array of complete conversation history
-  status: string; // "lead", "prospect", "customer", "disqualified", etc.
-  notes?: string; // Additional notes and observations
-  lastMessage?: string; // Most recent message content
-  lastMessageDate?: string; // Timestamp of last message
-  user?: User;
-  strategy?: Strategy;
-  bookings?: Booking[];
+  position?: string;
+  customId?: string;
+  status?: string;
+  notes?: string;
+  messages?: any;
+  lastMessage?: string;
+  lastMessageDate?: string;
 }
 ```
 
-#### Booking Entity
+#### **Booking Creation**
 ```typescript
-interface Booking {
-  id: number;
+// Frontend & Backend Match ✅
+interface CreateBookingDto {
   userId: number;
-  clientId?: number; // Optional client association
-  bookingType: string; // Type of booking (consultation, meeting, demo)
-  details: any; // JSON object with booking details (date, duration, location, notes, agenda)
-  status: string; // "pending", "confirmed", "cancelled"
-  createdAt: Date;
-  updatedAt: Date;
-  user?: User;
-  client?: Client;
+  clientId?: number;
+  bookingType: string;
+  details: any;
+  status?: string;
 }
 ```
 
-#### AdminUser Entity
-```typescript
-interface AdminUser {
-  id: number;
-  name: string;
-  email: string;
-  password: string; // Hashed with bcrypt
-  role: string; // "admin", "super_admin"
-  isActive: boolean;
-  permissions?: any; // JSON field for granular permissions
-  lastLoginAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-  createdUsers?: User[]; // Users created by this admin
-}
-```
-
-## API Structure
-
-### API Proxy System
-The frontend communicates with the backend through a Next.js API proxy (`/api/proxy/[...path]`) that:
-- Handles API key authentication server-side
-- Forwards user authentication tokens
-- Provides secure communication between frontend and backend
-- Manages CORS and request/response handling
-
-### Authentication Endpoints
-- `POST /auth/login` - User login with cookie-based token storage
-- `POST /auth/register` - User registration
-- `POST /auth/refresh` - Token refresh with automatic cookie update
-- `GET /auth/profile` - Get current user profile
-- `POST /auth/change-password` - Change user password
-- `POST /auth/logout` - User logout
-- `POST /admin/auth/login` - Admin login with separate cookie storage
-- `POST /admin/auth/register` - Admin registration
-- `POST /admin/auth/refresh` - Admin token refresh
-- `GET /admin/auth/profile` - Get admin profile
-- `PUT /admin/auth/profile` - Update admin profile (name, email) - All admins
-- `POST /admin/auth/change-password` - Change admin password - All admins
-- `GET /admin/auth/users` - Get all users (admin only)
-- `POST /admin/auth/generate-auth-code` - Generate admin auth code (super admin only)
-- `GET /admin/auth/current-auth-code` - Get current auth code (super admin only)
-
-### Core API Modules
-
-#### Users API (`/user`)
-- `GET /user` - Get all users (admin only)
-- `GET /user/:id` - Get user by ID
-- `POST /user` - Create new user
-- `PUT /user/:id` - Update user
-- `DELETE /user/:id` - Delete user
-
-#### Strategies API (`/strategy`)
-- `GET /strategy` - Get all strategies for current user
-- `GET /strategy/:id` - Get strategy by ID
-- `POST /strategy` - Create new strategy
-- `PATCH /strategy/:id` - Update strategy
-- `DELETE /strategy/:id` - Delete strategy
-- `GET /strategy?userId=:userId` - Get strategies by user (admin only)
-- `POST /strategy/:id/duplicate` - Duplicate strategy
-
-#### Clients API (`/client`)
-- `GET /client` - Get all clients for current user
-- `GET /client/:id` - Get client by ID
-- `POST /client` - Create new client
-- `PATCH /client/:id` - Update client
-- `DELETE /client/:id` - Delete client
-- `GET /client?userId=:userId` - Get clients by user (admin only)
-- `GET /client?strategyId=:strategyId` - Get clients by strategy
-
-#### Bookings API (`/booking`)
-- `GET /booking` - Get all bookings (admin) or user bookings
-- `GET /booking/:id` - Get booking by ID
-- `POST /booking` - Create new booking (AI-generated)
-- `PATCH /booking/:id` - Update booking details
-- `PATCH /booking/:id/status` - Update booking status only
-- `DELETE /booking/:id` - Delete booking
-- `GET /booking?userId=:userId` - Get bookings by user
-- `GET /booking?clientId=:clientId` - Get bookings by client
-- `GET /booking?startDate=:startDate&endDate=:endDate` - Get bookings by date range
-
-#### General API (`/general`)
-- `GET /general/dashboard-stats` - Get dashboard statistics
-- `GET /general/system-status` - Get system health status
-- `GET /general/recent-clients` - Get recent clients
-- `GET /general/users/:id/detailed` - Get detailed user information
-- `GET /general/clients/:id/detailed` - Get detailed client information
-- `GET /general/database-schema` - Get database schema for ERD visualization
-- `GET /general/schema` - Get database schema for development tools
-
-#### Bookings API (`/booking`)
-- `GET /booking` - Get all bookings for current user
-- `GET /booking/:id` - Get booking by ID
-- `POST /booking` - Create new booking
-- `PATCH /booking/:id` - Update booking
-- `DELETE /booking/:id` - Delete booking
-- `GET /booking?userId=:userId` - Get bookings by user (admin only)
-- `GET /bookings?clientId=:clientId` - Get bookings by client
-- `GET /bookings?startDate=:startDate&endDate=:endDate` - Get bookings by date range
-- `PATCH /bookings/:id/status` - Update booking status
-
-#### Chat API (`/chat`)
-- `POST /chat` - Send a message with AI response generation (requires clientId for context)
-- `GET /chat/:clientId/history` - Get complete chat history for client
-- `GET /chat/:clientId/history?startDate=:startDate&endDate=:endDate` - Get chat history by date range
-- `PATCH /chat/messages/:messageId/read` - Mark message as read
-- `DELETE /chat/messages/:messageId` - Delete message
-- `GET /chat/unread-count/:clientId` - Get unread messages count
-- `PATCH /chat/mark-all-read/:clientId` - Mark all messages as read
-
-#### Status API (`/status`)
-- `GET /status` - System health check
-- `GET /status/health` - Health check endpoint
-- `GET /status/version` - Get API version
-- `GET /general/recent-clients` - Get recent clients with full details
-- `GET /general/users/:id/detailed` - Get detailed user information with all related data
-- `GET /general/clients/:id/detailed` - Get detailed client information with all related data
-- `GET /general` - General endpoint test
-- `POST /general` - General endpoint test
-
-## AI Integration Points
-
-### Chat System
-The chat system uses OpenAI to generate intelligent responses based on:
-1. **Sales Strategy Context**: Uses the client's assigned strategy for response generation
-2. **Message History**: Considers previous conversation context and tone
-3. **Client Profile**: Incorporates client information (company, position, status)
-4. **Custom Instructions**: Follows AI instructions defined in the strategy
-5. **Objection Handling**: Uses pre-defined responses for common objections
-6. **Creativity Control**: Adjusts response creativity based on strategy settings
-
-### Strategy-Based AI Responses
-Each client is assigned a sales strategy that contains:
-- **AI Instructions**: Specific instructions for the AI model on how to respond
-- **Tone**: Desired communication tone (professional, casual, friendly, etc.)
-- **Objection Handling**: Pre-defined responses to common sales objections
-- **Qualification Criteria**: What makes a good prospect for this strategy
-- **Creativity Level**: Controls response creativity (1-10 scale)
-- **AI Objective**: Primary goal for the AI in conversations
-- **Disqualification Criteria**: When to disqualify prospects
-- **Delay Settings**: Natural response timing (min/max seconds)
-
-### Message Structure
-```typescript
-interface ChatMessage {
-  id: string;
-  clientId: number;
-  message: string;
-  sender: 'user' | 'client';
-  timestamp: Date;
-  status: 'sent' | 'delivered' | 'read';
-}
-```
-
-## Frontend Architecture
-
-### Admin Interface Pages
-The admin interface provides comprehensive management capabilities through dedicated pages:
-
-#### Core Management Pages
-- **Dashboard** (`/admin/dashboard`) - Main admin dashboard with system overview, statistics, and real-time monitoring
-- **Users** (`/admin/users`) - Complete user management with role assignment, status control, and detailed user profiles
-- **Clients** (`/admin/clients`) - Client management with search, filtering, and comprehensive client information
-  - **Add Client** (`/admin/clients/new`) - Create new client with full form validation
-  - **Edit Client** (`/admin/clients/[id]/edit`) - Update existing client information
-  - **Delete Client** - Remove clients with confirmation dialog
-- **Strategies** (`/admin/strategies`) - AI strategy management with creativity controls, tone settings, and strategy configuration
-  - **Add Strategy** (`/admin/strategies/new`) - Create new AI strategy with comprehensive configuration
-  - **Edit Strategy** (`/admin/strategies/[id]/edit`) - Update existing strategy parameters
-  - **Delete Strategy** - Remove strategies with confirmation dialog
-- **Bookings** (`/admin/bookings`) - Booking and appointment management with status tracking and client associations
-- **Chat** (`/admin/chat`) - AI chat interface for testing client interactions by spoofing client IDs, showing client profiles and conversation history
-
-#### System Management Pages
-- **Settings** (`/admin/settings`) - System configuration and admin authorization code management
-- **Development** (`/admin/dev`) - Development tools and utilities for system maintenance
-- **Database Schema** (`/admin/database-schema`) - Interactive database schema visualization with ERD diagrams
-
-### Component Structure
-```
-components/
-├── ui/              # Reusable UI components (shadcn/ui)
-├── customUI/        # Custom UI components
-│   ├── notification.tsx    # Notification system for user feedback
-│   └── bulk-actions.tsx    # Bulk operations component for data management
-├── admin/           # Admin-specific components (header, sidebar)
-├── auth/            # Authentication components (protected routes)
-├── version1/        # Landing page components
-└── theme-provider.tsx # Theme management
-```
-
-### Import Paths
-- **shadcn/ui components**: `@/components/ui/[component-name]`
-- **Custom UI components**: `@/components/customUI/[component-name]`
-- **Admin components**: `@/components/admin/[component-name]`
-- **Auth components**: `@/components/auth/[component-name]`
-
-### State Management
-- **React Context API**: For global state management
-- **Auth Context**: Handles user authentication state with automatic login
-- **Admin Auth Context**: Separate admin authentication with automatic login
-- **Cookie-based persistence**: Tokens stored in secure HTTP cookies
-- **Automatic token refresh**: Seamless token renewal without user intervention
-- **Session persistence**: Users remain logged in across browser sessions
-
-### API Client
-Modular API client with separate modules for each endpoint:
-- **API key authorization**: Handled server-side through proxy
-- **Automatic authentication**: Includes tokens from cookies in all requests
-- **Token refresh handling**: Automatically refreshes expired tokens
-- **Request retry logic**: Retries failed requests with new tokens
-- **Error handling**: Comprehensive error handling and user feedback
-- `AuthApi` - User authentication operations
-- `AdminAuthApi` - Admin authentication operations
-- `UsersApi` - User management operations
-- `ClientsApi` - Client management operations
-- `StrategiesApi` - Strategy management operations
-- `BookingsApi` - Booking management operations
-- `ChatApi` - Chat functionality and AI integration
-- `StatusApi` - System status and health checks
-
-## Database Schema
-
-### Key Relationships
-1. **AdminUser → User**: One-to-many (admins can create multiple users)
-2. **User → Strategy**: One-to-many (users can have multiple strategies)
-3. **User → Client**: One-to-many (users can have multiple clients)
-4. **Strategy → Client**: One-to-many (strategies can be used by multiple clients)
-5. **User → Booking**: One-to-many (users can have multiple bookings)
-6. **Client → Booking**: One-to-many (clients can have multiple bookings)
-
-### Important Fields
-- **messageHistory**: JSON field storing complete conversation history with timestamps
-- **permissions**: JSON field for granular admin permissions and access control
-- **bookingsTime**: JSON field for user booking preferences and availability
-- **exampleConversation**: JSON field for strategy conversation templates
-- **details**: JSON field in bookings for flexible booking information storage
-- **createdByAdminId**: Foreign key linking users to their creating admin
-
-## Cookie-Based Authentication System
-
-### Overview
-The application uses secure HTTP cookies for authentication token storage, providing automatic login functionality and enhanced security compared to localStorage.
-
-### Key Features
-- **Automatic Login**: Users are automatically logged in when they visit the app if they have valid authentication cookies
-- **Secure Token Storage**: Tokens stored in HTTP cookies with secure settings (httpOnly, secure, sameSite)
-- **Automatic Token Refresh**: Access tokens are automatically refreshed when they expire
-- **Separate Admin/User Tokens**: Clear separation between admin and user authentication flows
-- **Session Persistence**: Users remain logged in across browser sessions
-
-### Cookie Structure
-```typescript
-// Regular User Tokens
-access_token: string;     // 1 hour TTL
-refresh_token: string;    // 7 days TTL
-
-// Admin Tokens
-admin_access_token: string;     // 1 hour TTL
-admin_refresh_token: string;    // 7 days TTL
-```
-
-### Cookie Security Settings
-- **Path**: `/` (available across the entire domain)
-- **Secure**: `true` in production (HTTPS only)
-- **SameSite**: `strict` (prevents CSRF attacks)
-- **HttpOnly**: `true` when supported by server
-- **MaxAge**: Configurable expiration times
-
-### Authentication Flow
-1. **API Key Authorization**: All requests include API key in `x-api-key` header (server-side)
-2. **Login**: Tokens stored in cookies, user automatically logged in
-3. **API Requests**: Tokens automatically included in request headers
-4. **Token Expiry**: Automatic refresh without user intervention
-5. **Logout**: All cookies cleared, user redirected to login
-6. **Session Persistence**: Users stay logged in across sessions
-
-### Development-Specific Considerations
-- **Hot Reload Protection**: Authentication contexts include debouncing to prevent unnecessary re-authentication during development hot reloads
-- **Error Handling**: More lenient error handling in development to prevent unnecessary token clearing on network errors
-- **Development Utilities**: `lib/dev-utils.ts` provides development-specific helpers for better debugging and error handling
-
-### Implementation Files
-- `lib/cookies.ts` - Cookie management utility functions
-- `contexts/auth-context.tsx` - User authentication context with automatic login
-- `contexts/admin-auth-context.tsx` - Admin authentication context with automatic login
-- `lib/api/client.ts` - API client with automatic token handling
-- `components/auth/protected-route.tsx` - Route protection component
-- `components/auth/admin-protected-route.tsx` - Admin route protection component
-- `app/api/proxy/[...path]/route.ts` - API proxy for secure backend communication
-
-## CORS Configuration
-
-The backend is configured with CORS to allow cross-origin requests from the frontend:
-
-```typescript
-app.enableCors({
-  origin: [
-    'http://localhost:3000',
-    'http://loctelli_frontend:3000',
-    'http://frontend:3000',
-    process.env.FRONTEND_URL,
-  ].filter(Boolean),
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type', 
-    'Authorization', 
-    'X-API-Key',
-    'x-api-key',
-    'X-User-Token',
-    'x-user-token'
-  ],
-});
-```
-
-### Allowed Headers
-- `Content-Type`: Standard content type header
-- `Authorization`: Standard authorization header
-- `X-API-Key` / `x-api-key`: API key for backend authorization
-- `X-User-Token` / `x-user-token`: User authentication tokens
-
-## Security Considerations
-
-### Authentication & Authorization
-- **JWT-based authentication** with secure token rotation (15min access, 7-day refresh)
-- **Password complexity requirements** (8+ chars, uppercase, lowercase, numbers, special chars)
-- **Admin password requirements** (12+ chars with enhanced security)
-- **Rate limiting** on authentication endpoints (5 attempts per 15 minutes)
-- **Session management** with automatic token refresh and rotation
-- **Role-based access control** (admin, user, manager) with granular permissions
-- **Secure cookie storage** with httpOnly, secure, and sameSite flags
-- **API key authentication** for all backend requests (server-side only)
-
-### Data Protection & Input Validation
-- **Comprehensive input validation** middleware for all requests
-- **XSS protection** through input sanitization and CSP headers
-- **SQL injection prevention** through Prisma ORM and parameterized queries
-- **CSRF protection** through SameSite cookies and CSRF tokens
-- **Request size limits** (10MB max) to prevent DoS attacks
-- **Content-Type validation** for all POST/PUT/PATCH requests
-- **HTML sanitization** for user-generated content
-
-### API Security
-- **Security headers** (CSP, X-Frame-Options, X-Content-Type-Options, HSTS)
-- **CORS protection** with strict origin validation
-- **Rate limiting** with Redis-based tracking
-- **Request sanitization** for all inputs (body, query, params)
-- **Error handling** without information disclosure
-- **API versioning** support for future security updates
-
-### Infrastructure Security
-- **Environment variable validation** on startup with secure defaults
-- **Secure secret generation** utilities for development
-- **File permission checks** for sensitive configuration files
-- **SSL/TLS enforcement** in production environments
-- **Database connection security** with SSL support
-- **Redis authentication** with password protection
-
-### Security Monitoring & Logging
-- **Comprehensive security logging** for all authentication events
-- **Rate limiting monitoring** and alerting capabilities
-- **Failed authentication tracking** with IP-based blocking
-- **Security check script** for deployment validation
-- **Audit trail** for sensitive operations
-- **Performance monitoring** with security metrics
-
-## Integration Points
-
-### External Integrations
-- **GoHighLevel**: Calendar and location integration for booking management
-- **OpenAI**: AI-powered chat responses and conversation generation
-- **Redis**: Caching and session management
-- **PostgreSQL**: Primary data storage with Prisma ORM
-
-### Webhook Support
-- Contact creation webhooks for external system integration
-- Outbound message webhooks for communication tracking
-- General webhook event handling for extensibility
-
-## Development Workflow
-
-### Backend Development
-- NestJS CLI for module generation and scaffolding
-- Prisma for database management and migrations
-- Jest for unit and integration testing
-- ESLint for code quality and consistency
-- Background processes for automated tasks
-- API key middleware for route protection
-
-### Frontend Development
-- Next.js App Router for modern React development
-- TypeScript for type safety and better development experience
-- TailwindCSS for utility-first styling
-- shadcn/ui for consistent component library
-- React Context API for state management
-- API proxy for secure backend communication
-
-### Database Management
-- Prisma Migrate for schema changes and versioning
-- Prisma Studio for database visualization and management
-- Automatic client generation for type safety
-- Migration rollback capabilities
-
-## Common Patterns
-
-### API Response Format
-```typescript
-interface ApiResponse<T> {
-  data: T;
-  message?: string;
-  success: boolean;
-  timestamp?: string;
-}
-```
-
-### Error Handling
-```typescript
-interface ApiError {
-  message: string;
-  status: number;
-  code?: string;
-  details?: any;
-}
-```
-
-### Pagination
-```typescript
-interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-  hasNext: boolean;
-  hasPrev: boolean;
-}
-```
-
-## Environment Configuration
-
-### Backend Environment Variables
-- `DATABASE_URL`: PostgreSQL connection string
-- `REDIS_URL`: Redis connection string
-- `JWT_SECRET`: JWT signing secret for access tokens
-- `JWT_REFRESH_SECRET`: JWT signing secret for refresh tokens
-- `NODE_ENV`: Environment mode (development, production, test)
-- `OPENAI_API_KEY`: OpenAI API key for AI integration
-- `API_KEY`: Internal API key for service-to-service communication
-- `FRONTEND_URL`: Frontend URL for CORS configuration
-
-### Frontend Environment Variables
-- `NEXT_PUBLIC_API_URL`: Backend API URL for client-side requests (defaults to proxy)
-- `BACKEND_URL`: Backend URL for proxy communication
-- `API_KEY`: **Required** - API key for backend authorization (server-side only)
-- `NODE_ENV`: Environment mode
-- `NEXT_PUBLIC_APP_URL`: Application URL for cookie settings
-
-## Deployment
-
-### Docker Configuration
-- Multi-service Docker Compose setup
-- PostgreSQL 15-alpine and Redis 7-alpine containers with health checks
-- Volume persistence for data storage
-- Environment-specific configurations
-- Health checks for all services
-
-### Production Considerations
-- Environment-specific configurations
-- Database migrations and seeding
-- Static asset optimization
-- API rate limiting and security
-- Monitoring and logging setup
-- SSL/TLS certificate configuration
-- Backup and recovery procedures
-
-## Background Processes
-
-### Automated Tasks
-- **Free Slot Cron Service**: Automated booking slot management
-- **Sales Bot Service**: AI-powered sales automation
-- **Background Process Module**: Centralized background task management
-
-## Package Versions
-
-### Backend Dependencies
-- **NestJS**: 11.0.1
-- **Prisma**: 6.9.0
-- **PostgreSQL**: 15-alpine
-- **Redis**: 7-alpine
-- **JWT**: 11.0.0
-- **Passport**: 11.0.0
-- **bcrypt**: 5.1.1
-- **class-validator**: 0.14.2
-
-### Frontend Dependencies
-- **Next.js**: 15.2.4
-- **React**: 19
-- **TypeScript**: 5
-- **TailwindCSS**: 3.4.17
-- **shadcn/ui**: Latest components
-- **Framer Motion**: Latest
-- **React Hook Form**: 7.54.1
-- **Zod**: 3.24.1
-
-## Admin Dashboard Features
-
-### Dashboard Statistics
-The admin dashboard provides real-time statistics including:
-- **Total Users**: Count of all registered users
-- **Active Users**: Count of users with active status
-- **Total Strategies**: Count of all sales strategies
-- **Total Bookings**: Count of all appointments/bookings
-- **Total Clients**: Count of all client records
-- **Recent Users**: Latest 5 users who joined the platform
-- **Growth Rates**: Percentage changes from previous month (mock data for now)
-
-### System Status Monitoring
-Real-time system health monitoring including:
-- **Database Status**: PostgreSQL connection health
-- **API Server Status**: Backend service availability
-- **Redis Cache Status**: Cache service connectivity
-- **File Storage Status**: Storage service availability
-
-### Interactive Features
-- **Refresh Button**: Manual data refresh with loading states
-- **Clickable Cards**: Stats cards navigate to relevant admin pages
-- **Action Buttons**: Quick access to user management and settings
-- **Real-time Updates**: Live system status with color-coded badges
-- **Error Handling**: Graceful error display with retry functionality
-- **Detailed User Views**: Modal dialogs showing complete user information
-- **Detailed Client Views**: Modal dialogs showing complete client information
-- **View Buttons**: Eye icon buttons to view all details for each user/client
-- **Related Data Display**: Shows strategies, clients, bookings, and admin relationships
-
-### Dashboard Integration
-- **Backend Integration**: Real data from database queries
-- **API Endpoints**: Dedicated endpoints for stats and system status
-- **Performance Optimized**: Parallel API calls for faster loading
-- **Responsive Design**: Mobile-friendly layout with proper spacing
-- **Modal Dialogs**: Detailed information displayed in scrollable modals
-- **Data Relationships**: Shows connections between users, clients, strategies, and bookings
-- **Database Schema Visualization**: Interactive ERD diagram showing database structure and relationships
-
-## Database Schema Visualization
-
-### Real-time Schema Display
-The admin dashboard includes a comprehensive database schema visualization:
-
-#### Interactive ERD Diagram
-- **Mermaid.js Integration**: Uses Mermaid.js for professional entity relationship diagrams
-- **Real-time Generation**: Schema diagram generated dynamically from Prisma schema
-- **Live Updates**: Automatically reflects schema changes when Prisma schema is modified
-- **Interactive Controls**: Zoom in/out, download, and refresh functionality
-
-#### Schema Features
-- **Entity Display**: All database tables shown with field types and constraints
-- **Relationship Mapping**: Visual representation of foreign key relationships
-- **Field Details**: Shows primary keys, unique constraints, nullable fields
-- **Type Information**: Displays Prisma data types with Mermaid equivalents
-
-#### Backend Integration
-- **API Endpoint**: `/general/schema` provides real-time schema data
-- **Schema Parsing**: Backend parses Prisma schema file and returns structured data
-- **Error Handling**: Graceful fallback if schema file cannot be read
-- **Performance**: Cached schema data with file modification tracking
-
-#### UI/UX Features
-- **Responsive Design**: Mobile-friendly diagram display
-- **Zoom Controls**: Interactive zoom in/out with reset functionality
-- **Download Option**: Export diagram as SVG for documentation
-- **Code View**: Collapsible section showing raw Mermaid code
-- **Loading States**: Smooth loading indicators during generation
-- **Error Handling**: Graceful fallback to hardcoded schema if API fails
-- **Debug Logging**: Detailed logging for troubleshooting Mermaid syntax issues
-- **Simplified Relationships**: Clean relationship syntax without labels to avoid parsing errors
-
-## Client Management Features
-
-### Clients Page Integration
-The clients page provides comprehensive client management with full backend integration:
-
-#### Real-time Data
-- **Live Client Data**: Real client information from database
-- **Dynamic Statistics**: Real-time counts for total, active, lead, and inactive clients
-- **Automatic Refresh**: Manual refresh with loading states
-- **Error Handling**: Graceful error display with retry functionality
-
-#### Search and Filtering
-- **Real-time Search**: Search by name, email, company, or phone
-- **Status Filtering**: Filter by active, lead, inactive, or all clients
-- **Dynamic Results**: Live filtering with result counts
-- **Empty States**: Helpful messages when no results found
-
-#### Detailed Client Views
-- **Complete Information**: All client fields displayed in modal dialogs
-- **Related Data**: Shows assigned user, strategy, and bookings
-- **Timestamps**: Creation, update, and last message dates
-- **Notes and Messages**: Full notes and last message content
-- **Responsive Modals**: Scrollable dialogs for large datasets
-
-#### Action Functionality
-- **View Details**: Eye icon buttons for complete client information
-- **Edit Clients**: Links to edit pages (when implemented)
-- **Delete Clients**: Confirmation-based deletion with automatic refresh
-- **Add Clients**: Quick access to client creation
-
-#### UI/UX Features
-- **Loading States**: Spinners and skeleton loading
-- **Status Badges**: Color-coded status indicators
-- **Responsive Table**: Mobile-friendly data display
-- **Empty States**: Helpful messaging when no data available
-- **Real-time Updates**: Automatic data refresh after actions
-
-## User Management Features
-
-### Users Page Integration
-The users page provides comprehensive user management with full backend integration:
-
-#### Real-time Data
-- **Live User Data**: Real user information from database
-- **Dynamic Statistics**: Real-time counts for total, active, inactive, and admin users
-- **Automatic Refresh**: Manual refresh with loading states
-- **Error Handling**: Graceful error display with retry functionality
-
-#### Search and Filtering
-- **Real-time Search**: Search by name, email, or company
-- **Role Filtering**: Filter by user, manager, admin, or all roles
-- **Status Filtering**: Filter by active, inactive, or all users
-- **Dynamic Results**: Live filtering with result counts
-- **Empty States**: Helpful messages when no results found
-
-#### Detailed User Views
-- **Complete Information**: All user fields displayed in modal dialogs
-- **Related Data**: Shows strategies, clients, bookings, and admin relationships
-- **Integration Details**: Calendar ID, location ID, and assigned user ID
-- **Timestamps**: Creation, update, and last login dates
-- **Admin Audit Trail**: Shows which admin created each user
-
-#### Action Functionality
-- **View Details**: Eye icon buttons for complete user information
-- **Edit Users**: Full user editing with role and status management
-- **Delete Users**: Confirmation-based deletion with automatic refresh
-- **Create Users**: User creation with role assignment
-- **Status Toggle**: Enable/disable user accounts
-
-#### UI/UX Features
-- **Loading States**: Spinners and skeleton loading
-- **Role Badges**: Color-coded role indicators (admin=red, manager=secondary, user=outline)
-- **Status Badges**: Active/inactive status indicators
-- **Responsive Table**: Mobile-friendly data display
-- **Empty States**: Helpful messaging when no data available
-- **Real-time Updates**: Automatic data refresh after actions
-
-## Settings Management Features
-
-### Settings Page Integration
-The settings page provides admin configuration management with role-based access:
-
-#### Authorization Code Management
-- **Current Code Display**: Shows current admin authorization code
-- **Code Generation**: Generate new secure authorization codes
-- **Security Features**: Password masking with show/hide toggle
-- **Copy Functionality**: One-click copy to clipboard
-- **Environment Integration**: Instructions for environment variable setup
-
-#### Role-based Access Control
-- **Super Admin Only**: Settings access restricted to super admin role
-- **Access Denied**: Clear messaging for unauthorized users
-- **Security Information**: Best practices and security guidelines
-- **Environment Configuration**: Admin auth code environment variable management
-
-#### Security Features
-- **Password Masking**: Auth codes hidden by default with toggle
-- **Copy to Clipboard**: Secure copying with success notifications
-- **Code Generation**: Secure random code generation
-- **Expiration Tracking**: Code expiration information
-- **Security Guidelines**: Best practices documentation
-
-#### UI/UX Features
-- **Loading States**: Spinners during code generation
-- **Success Notifications**: Toast notifications for actions
-- **Error Handling**: Graceful error display
-- **Security Information**: Comprehensive security documentation
-- **Responsive Design**: Mobile-friendly layout
-
-## Logging Utility (Frontend)
-
-A streamlined logger is implemented using the `loglevel` library in `my-app/lib/logger.ts`:
-
-- **Environment-based log levels**: In production, only warnings and errors are logged. In development, debug/info logs are enabled.
-- **Runtime control**: You can change the log level at runtime using `setLogLevel`.
-- **Usage**: Import `logger` and use `logger.debug`, `logger.info`, `logger.warn`, `logger.error` instead of `console.log`/`console.warn`/`console.error`.
+## 🎯 **User Registration System**
+
+### **Self-Service Registration**
+- **Frontend**: Complete registration form at `/auth/register`
+- **Backend**: Public endpoint with validation
+- **Security**: Password complexity requirements, email validation
+- **Flow**: Register → Success message → Redirect to login
+
+### **Admin User Creation**
+- **Admin Panel**: Admins can create users via `/admin/auth/users`
+- **Authorization**: Only admins and super admins
+- **Audit Trail**: Tracks which admin created each user
+
+## 🔄 **Token Management**
+
+### **Automatic Refresh**
+- **Frontend**: Detects 401 responses and automatically refreshes tokens
+- **Backend**: Validates refresh tokens from Redis
+- **Security**: Token rotation on refresh
+- **Fallback**: Failed refresh logs user out
+
+### **Token Storage**
+- **Access Tokens**: 15 minutes expiration
+- **Refresh Tokens**: 7 days expiration, stored in Redis
+- **Headers**: `x-user-token` for authentication
+- **Cookies**: HTTP-only cookies for secure storage
+
+## 🛡️ **Authorization Rules**
+
+### **Resource-Level Access**
+- **Users**: Can only access their own data
+- **Admins**: Can access all user data
+- **Super Admins**: Can manage admin accounts
+
+### **Endpoint Protection**
+- **Public**: Auth and status endpoints
+- **Authenticated**: All other endpoints require valid JWT
+- **Role-Based**: Admin endpoints require admin role
+- **Resource-Owned**: Users can only modify their own resources
+
+## 📊 **Data Flow**
+
+### **Request Flow**
+1. Frontend sends request with auth headers
+2. API proxy adds API key
+3. Backend validates JWT token
+4. Backend checks resource ownership
+5. Backend returns data with proper authorization
+
+### **Error Handling**
+- **401**: Token refresh attempted
+- **403**: Access denied (logged)
+- **404**: Resource not found
+- **422**: Validation errors
+- **500**: Server errors (logged)
+
+## 🚀 **Deployment**
+
+### **Docker Setup**
+- **Frontend**: Next.js container
+- **Backend**: NestJS container
+- **Database**: PostgreSQL container
+- **Cache**: Redis container
+- **Proxy**: Nginx for API routing
+
+### **Environment Variables**
+- **Database**: Connection strings
+- **Redis**: Cache configuration
+- **JWT**: Secret keys and expiration
+- **API Key**: Backend protection
+- **Admin Auth Code**: Admin registration
+
+## 📝 **Development Notes**
+
+### **Hot Reload Compatibility**
+- **Frontend**: Properly handles auth state during development
+- **Backend**: Maintains session state across restarts
+- **Tokens**: Preserved during development reloads
+
+### **API Testing**
+- **Endpoints**: All endpoints tested and aligned
+- **DTOs**: Frontend and backend types match
+- **Authorization**: Proper access control implemented
+- **Error Handling**: Comprehensive error responses
+
+### **Security Considerations**
+- **Input Validation**: All endpoints validate input
+- **SQL Injection**: Protected via Prisma ORM
+- **XSS**: Frontend sanitizes output
+- **CSRF**: Protected via same-origin policy
+- **Rate Limiting**: Implemented on sensitive endpoints
 
 ```typescript
 import logger, { setLogLevel } from '@/lib/logger';

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
@@ -23,7 +23,7 @@ export class ClientsService {
     });
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, userId: number, userRole: string) {
     const client = await this.prisma.client.findUnique({
       where: { id },
       include: {
@@ -35,6 +35,11 @@ export class ClientsService {
 
     if (!client) {
       throw new NotFoundException(`Client with ID ${id} not found`);
+    }
+
+    // Check if user has permission to access this client
+    if (userRole !== 'admin' && userRole !== 'super_admin' && client.userId !== userId) {
+      throw new ForbiddenException('Access denied');
     }
 
     return client;
@@ -50,17 +55,45 @@ export class ClientsService {
     });
   }
 
-  async findByStrategyId(strategyId: number) {
+  async findByStrategyId(strategyId: number, userId: number, userRole: string) {
+    // First check if the strategy belongs to the user
+    const strategy = await this.prisma.strategy.findUnique({
+      where: { id: strategyId },
+    });
+
+    if (!strategy) {
+      throw new NotFoundException(`Strategy with ID ${strategyId} not found`);
+    }
+
+    // Check if user has permission to access this strategy's clients
+    if (userRole !== 'admin' && userRole !== 'super_admin' && strategy.userId !== userId) {
+      throw new ForbiddenException('Access denied');
+    }
+
     return this.prisma.client.findMany({
       where: { strategyId },
       include: {
-        user: true,
+        strategy: true,
         bookings: true,
       },
     });
   }
 
-  async update(id: number, updateClientDto: UpdateClientDto) {
+  async update(id: number, updateClientDto: UpdateClientDto, userId: number, userRole: string) {
+    // Check if client exists and user has permission
+    const client = await this.prisma.client.findUnique({
+      where: { id },
+    });
+
+    if (!client) {
+      throw new NotFoundException(`Client with ID ${id} not found`);
+    }
+
+    // Check if user has permission to update this client
+    if (userRole !== 'admin' && userRole !== 'super_admin' && client.userId !== userId) {
+      throw new ForbiddenException('Access denied');
+    }
+
     try {
       return await this.prisma.client.update({
         where: { id },
@@ -98,7 +131,21 @@ export class ClientsService {
     });
   }
 
-  async remove(id: number) {
+  async remove(id: number, userId: number, userRole: string) {
+    // Check if client exists and user has permission
+    const client = await this.prisma.client.findUnique({
+      where: { id },
+    });
+
+    if (!client) {
+      throw new NotFoundException(`Client with ID ${id} not found`);
+    }
+
+    // Check if user has permission to delete this client
+    if (userRole !== 'admin' && userRole !== 'super_admin' && client.userId !== userId) {
+      throw new ForbiddenException('Access denied');
+    }
+
     try {
       return await this.prisma.client.delete({
         where: { id },

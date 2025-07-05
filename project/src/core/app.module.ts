@@ -4,6 +4,7 @@ import {
   MiddlewareConsumer,
   RequestMethod,
 } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from '../infrastructure/prisma/prisma.module';
@@ -24,6 +25,7 @@ import { AuthModule } from '../auth/auth.module';
 import { SecurityHeadersMiddleware } from '../infrastructure/middleware/security-headers.middleware';
 import { RateLimitMiddleware } from '../infrastructure/middleware/rate-limit.middleware';
 import { InputValidationMiddleware } from '../infrastructure/middleware/input-validation.middleware';
+import { JwtAuthGuard } from '../auth/auth.guard';
 
 @Module({
   imports: [
@@ -43,7 +45,13 @@ import { InputValidationMiddleware } from '../infrastructure/middleware/input-va
     GeneralModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

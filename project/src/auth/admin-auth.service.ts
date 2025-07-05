@@ -458,4 +458,73 @@ export class AdminAuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
+
+  async getAllAdminAccounts() {
+    return this.prisma.adminUser.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        lastLoginAt: true,
+        createdAt: true,
+        updatedAt: true,
+        permissions: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
+  async deleteAdminAccount(adminId: number, targetAdminId: number) {
+    // Verify the requesting admin is a super admin
+    const requestingAdmin = await this.prisma.adminUser.findUnique({
+      where: { id: adminId },
+    });
+
+    if (!requestingAdmin || requestingAdmin.role !== 'super_admin') {
+      throw new UnauthorizedException('Super admin access required');
+    }
+
+    // Prevent self-deletion
+    if (adminId === targetAdminId) {
+      throw new BadRequestException('You cannot delete your own account');
+    }
+
+    // Check if target admin exists
+    const targetAdmin = await this.prisma.adminUser.findUnique({
+      where: { id: targetAdminId },
+    });
+
+    if (!targetAdmin) {
+      throw new UnauthorizedException('Admin account not found');
+    }
+
+    // Get count of users created by this admin
+    const usersCreatedByAdmin = await this.prisma.user.count({
+      where: { createdByAdminId: targetAdminId },
+    });
+
+    // Update all users created by this admin to remove the reference
+    if (usersCreatedByAdmin > 0) {
+      await this.prisma.user.updateMany({
+        where: { createdByAdminId: targetAdminId },
+        data: { createdByAdminId: null },
+      });
+    }
+
+    // Delete the admin account
+    await this.prisma.adminUser.delete({
+      where: { id: targetAdminId },
+    });
+
+    // Invalidate any existing refresh tokens for the deleted admin
+    await this.redisService.delCache(`admin_refresh:${targetAdminId}`);
+
+    return { 
+      message: `Admin account deleted successfully. ${usersCreatedByAdmin} user(s) created by this admin have been updated to remove the admin reference.` 
+    };
+  }
 } 

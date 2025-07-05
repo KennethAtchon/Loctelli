@@ -9,15 +9,40 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Copy, Eye, EyeOff, RefreshCw, User, Mail, Lock, Save, Shield } from 'lucide-react';
+import { User, Lock, Save, Shield, Trash2, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+
+interface AdminAccount {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+  lastLoginAt: string | null;
+  createdAt: string;
+}
 
 export default function AdminSettingsPage() {
   const { admin, refreshAdmin } = useAdminAuth();
-  const [currentAuthCode, setCurrentAuthCode] = useState('');
-  const [newAuthCode, setNewAuthCode] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [showAuthCode, setShowAuthCode] = useState(false);
   
   // Profile management state
   const [profileData, setProfileData] = useState({
@@ -39,6 +64,11 @@ export default function AdminSettingsPage() {
   });
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
 
+  // Admin accounts management state
+  const [adminAccounts, setAdminAccounts] = useState<AdminAccount[]>([]);
+  const [isLoadingAdmins, setIsLoadingAdmins] = useState(false);
+  const [isDeletingAdmin, setIsDeletingAdmin] = useState<number | null>(null);
+
   useEffect(() => {
     if (admin) {
       setProfileData({
@@ -48,38 +78,20 @@ export default function AdminSettingsPage() {
     }
     
     if (admin?.role === 'super_admin') {
-      loadCurrentAuthCode();
+      loadAdminAccounts();
     }
   }, [admin]);
 
-  const loadCurrentAuthCode = async () => {
+  const loadAdminAccounts = async () => {
     try {
-      setIsLoading(true);
-      const response = await api.adminAuth.getCurrentAuthCode();
-      setCurrentAuthCode(response.authCode);
+      setIsLoadingAdmins(true);
+      const accounts = await api.adminAuth.getAllAdminAccounts();
+      setAdminAccounts(accounts);
     } catch (error) {
-      toast.error('Failed to load current auth code');
+      toast.error('Failed to load admin accounts');
     } finally {
-      setIsLoading(false);
+      setIsLoadingAdmins(false);
     }
-  };
-
-  const generateNewAuthCode = async () => {
-    try {
-      setIsLoading(true);
-      const response = await api.adminAuth.generateAuthCode();
-      setNewAuthCode(response.authCode);
-      toast.success('New auth code generated successfully');
-    } catch (error) {
-      toast.error('Failed to generate new auth code');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard');
   };
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
@@ -131,6 +143,29 @@ export default function AdminSettingsPage() {
     } finally {
       setIsPasswordLoading(false);
     }
+  };
+
+  const handleDeleteAdmin = async (adminId: number) => {
+    if (adminId === admin?.id) {
+      toast.error('You cannot delete your own account');
+      return;
+    }
+
+    try {
+      setIsDeletingAdmin(adminId);
+      await api.adminAuth.deleteAdminAccount(adminId);
+      toast.success('Admin account deleted successfully');
+      loadAdminAccounts(); // Refresh the list
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to delete admin account');
+    } finally {
+      setIsDeletingAdmin(null);
+    }
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Never';
+    return new Date(dateString).toLocaleDateString();
   };
 
   return (
@@ -188,7 +223,7 @@ export default function AdminSettingsPage() {
             </div>
             <Button type="submit" disabled={isProfileLoading}>
               {isProfileLoading ? (
-                <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
@@ -281,7 +316,7 @@ export default function AdminSettingsPage() {
             
             <Button type="submit" disabled={isPasswordLoading}>
               {isPasswordLoading ? (
-                <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
               ) : (
                 <Lock className="h-4 w-4 mr-2" />
               )}
@@ -296,139 +331,107 @@ export default function AdminSettingsPage() {
         <>
           <Separator />
           
-          {/* Admin Authorization Code Management */}
+          {/* Admin Accounts Management */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Shield className="h-5 w-5" />
-                Admin Authorization Code
+                Admin Accounts
                 <Badge variant="default">Super Admin Only</Badge>
               </CardTitle>
               <CardDescription>
-                Manage the authorization code required for admin registration
+                View and manage all admin accounts in the system
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Current Auth Code */}
-              <div className="space-y-2">
-                <Label>Current Authorization Code</Label>
-                <div className="flex items-center space-x-2">
-                  <div className="relative flex-1">
-                    <Input
-                      type={showAuthCode ? 'text' : 'password'}
-                      value={currentAuthCode}
-                      readOnly
-                      className="font-mono"
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      onClick={() => setShowAuthCode(!showAuthCode)}
-                    >
-                      {showAuthCode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => copyToClipboard(currentAuthCode)}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
+            <CardContent>
+              {isLoadingAdmins ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  <span className="ml-2">Loading admin accounts...</span>
                 </div>
-                <p className="text-xs text-gray-500">
-                  This is the current authorization code used for admin registration
-                </p>
-              </div>
-
-              {/* Generate New Auth Code */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-medium">Generate New Authorization Code</h3>
-                    <p className="text-xs text-gray-500">
-                      Create a new secure authorization code
-                    </p>
-                  </div>
-                  <Button
-                    onClick={generateNewAuthCode}
-                    disabled={isLoading}
-                    size="sm"
-                  >
-                    {isLoading ? (
-                      <RefreshCw className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4" />
-                    )}
-                    Generate New Code
-                  </Button>
+              ) : (
+                <div className="space-y-4">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Last Login</TableHead>
+                        <TableHead>Created</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {adminAccounts.map((account) => (
+                        <TableRow key={account.id}>
+                          <TableCell className="font-medium">{account.name}</TableCell>
+                          <TableCell>{account.email}</TableCell>
+                          <TableCell>
+                            <Badge variant={account.role === 'super_admin' ? 'default' : 'secondary'}>
+                              {account.role === 'super_admin' ? 'Super Admin' : 'Admin'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={account.isActive ? 'default' : 'destructive'}>
+                              {account.isActive ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{formatDate(account.lastLoginAt)}</TableCell>
+                          <TableCell>{formatDate(account.createdAt)}</TableCell>
+                          <TableCell className="text-right">
+                            {account.id !== admin?.id && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    disabled={isDeletingAdmin === account.id}
+                                  >
+                                    {isDeletingAdmin === account.id ? (
+                                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                    ) : (
+                                      <Trash2 className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Admin Account</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete the admin account for{' '}
+                                      <strong>{account.name}</strong> ({account.email})?
+                                      <br />
+                                      <br />
+                                      This action cannot be undone and will immediately revoke all access for this admin.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDeleteAdmin(account.id)}
+                                      className="bg-red-600 hover:bg-red-700"
+                                    >
+                                      Delete Account
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  
+                  {adminAccounts.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      No admin accounts found.
+                    </div>
+                  )}
                 </div>
-
-                {newAuthCode && (
-                  <div className="space-y-2">
-                    <Label>New Authorization Code</Label>
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        value={newAuthCode}
-                        readOnly
-                        className="font-mono bg-green-50"
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => copyToClipboard(newAuthCode)}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="secondary">New</Badge>
-                      <p className="text-xs text-gray-500">
-                        Copy this code and update your environment variable ADMIN_AUTH_CODE
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Security Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Security Information</CardTitle>
-              <CardDescription>
-                Important security notes about admin authorization codes
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium">Environment Variable</h3>
-                <p className="text-xs text-gray-600">
-                  Set the ADMIN_AUTH_CODE environment variable in your .env file to change the authorization code.
-                </p>
-                <code className="block text-xs bg-gray-100 p-2 rounded">
-                  ADMIN_AUTH_CODE=your_secure_code_here
-                </code>
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium">Security Best Practices</h3>
-                <ul className="text-xs text-gray-600 space-y-1">
-                  <li>• Use a strong, random authorization code</li>
-                  <li>• Keep the code secure and don't share it publicly</li>
-                  <li>• Change the code periodically for better security</li>
-                  <li>• Only share the code with trusted administrators</li>
-                </ul>
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium">How It Works</h3>
-                <p className="text-xs text-gray-600">
-                  When someone tries to register as an admin, they must provide the correct authorization code.
-                  This prevents unauthorized admin account creation and ensures only trusted individuals can become administrators.
-                </p>
-              </div>
+              )}
             </CardContent>
           </Card>
         </>
@@ -451,7 +454,7 @@ export default function AdminSettingsPage() {
               <h3 className="text-sm font-medium">Your Access Level</h3>
               <p className="text-xs text-gray-600">
                 As a regular admin, you have access to user management, system monitoring, and your own profile settings.
-                System-level configurations like authorization codes are restricted to super administrators.
+                System-level configurations and admin account management are restricted to super administrators.
               </p>
             </div>
 
@@ -469,8 +472,8 @@ export default function AdminSettingsPage() {
             <div className="space-y-2">
               <h3 className="text-sm font-medium">Need More Access?</h3>
               <p className="text-xs text-gray-600">
-                If you need access to system-level configurations, please contact a super administrator.
-                Super admins can manage authorization codes and perform system-wide administrative tasks.
+                If you need access to system-level configurations or admin account management, please contact a super administrator.
+                Super admins can manage admin accounts and perform system-wide administrative tasks.
               </p>
             </div>
           </CardContent>
