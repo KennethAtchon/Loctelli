@@ -66,19 +66,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (credentials: LoginDto) => {
-    const response: AuthResponse = await api.auth.login(credentials);
-    
-    // Store tokens in cookies
-    AuthCookies.setAccessToken(response.access_token);
-    AuthCookies.setRefreshToken(response.refresh_token);
-    
-    // Get full user profile and set user
-    const profile = await api.auth.getProfile();
-    setUser(profile);
+    try {
+      const response: AuthResponse = await api.auth.login(credentials);
+      
+      // Store tokens in cookies
+      AuthCookies.setAccessToken(response.access_token);
+      AuthCookies.setRefreshToken(response.refresh_token);
+      
+      // Get full user profile and set user
+      const profile = await api.auth.getProfile();
+      setUser(profile);
+    } catch (error) {
+      logger.error('Login failed:', error);
+      // Re-throw the error so the form can handle it
+      throw error;
+    }
   };
 
   const register = async (data: RegisterDto) => {
-    await api.auth.register(data);
+    try {
+      await api.auth.register(data);
+    } catch (error) {
+      logger.error('Registration failed:', error);
+      // Re-throw the error so the form can handle it
+      throw error;
+    }
   };
 
   const logout = async () => {

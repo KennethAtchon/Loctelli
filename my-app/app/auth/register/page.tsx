@@ -26,12 +26,22 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    console.log('🔐 Register form submitted:', { email: formData.email });
+    
+    // Prevent multiple submissions
+    if (isLoading) {
+      console.log('🚫 Form already submitting, ignoring');
+      return;
+    }
+    
     setIsLoading(true);
     setError('');
     setSuccess('');
 
     try {
       await register(formData);
+      console.log('✅ Registration successful');
       setSuccess('Registration successful! Please sign in with your new account.');
       
       // Clear form
@@ -42,7 +52,10 @@ export default function RegisterPage() {
         router.push('/auth/login');
       }, 2000);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Registration failed. Please try again.');
+      console.error('❌ Registration failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Registration failed. Please try again.';
+      setError(errorMessage);
+      console.log('📝 Set error message:', errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -71,7 +84,7 @@ export default function RegisterPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               {error && (
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>

@@ -213,7 +213,18 @@ export class ApiClient {
           
           if (!retryResponse.ok) {
             const errorData = await retryResponse.json().catch(() => ({}));
-            throw new Error(`HTTP error! status: ${retryResponse.status}, message: ${errorData.message || retryResponse.statusText}`);
+            
+            // Extract error message from different possible formats
+            let errorMessage = retryResponse.statusText;
+            if (errorData.message) {
+              errorMessage = errorData.message;
+            } else if (errorData.error) {
+              errorMessage = errorData.error;
+            } else if (typeof errorData === 'string') {
+              errorMessage = errorData;
+            }
+            
+            throw new Error(errorMessage);
           }
           
           return await retryResponse.json();
@@ -239,7 +250,18 @@ export class ApiClient {
           statusText: response.statusText,
           errorData
         });
-        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message || response.statusText}`);
+        
+        // Extract error message from different possible formats
+        let errorMessage = response.statusText;
+        if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (errorData.error) {
+          errorMessage = errorData.error;
+        } else if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        }
+        
+        throw new Error(errorMessage);
       }
       
       return await response.json();

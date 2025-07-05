@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Search, Edit, Trash2, Eye, RefreshCw, Target, MessageSquare } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, RefreshCw, Target } from 'lucide-react';
 import Link from 'next/link';
 import { Strategy } from '@/types';
 import logger from '@/lib/logger';
@@ -40,15 +40,14 @@ export default function StrategiesPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
   const [tagFilter, setTagFilter] = useState<string>('all');
 
   const calculateStats = (strategiesData: Strategy[]) => {
     const stats = {
       totalStrategies: strategiesData.length,
       activeStrategies: strategiesData.filter(s => s.aiObjective === 'active').length,
-      highCreativity: strategiesData.filter(s => s.creativity >= 7).length,
-      lowCreativity: strategiesData.filter(s => s.creativity <= 3).length,
+      highCreativity: strategiesData.filter(s => (s.creativity ?? 0) >= 7).length,
+      lowCreativity: strategiesData.filter(s => (s.creativity ?? 0) <= 3).length,
     };
     setStats(stats);
   };
@@ -129,8 +128,9 @@ export default function StrategiesPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateInput: string | Date) => {
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -280,12 +280,12 @@ export default function StrategiesPage() {
                       <Badge variant="outline">{strategy.tag}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={getToneBadgeVariant(strategy.tone)}>
+                      <Badge variant={getToneBadgeVariant(strategy.tone ?? '')}>
                         {strategy.tone}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={getCreativityBadgeVariant(strategy.creativity)}>
+                      <Badge variant={getCreativityBadgeVariant(strategy.creativity ?? 0)}>
                         {strategy.creativity}/10
                       </Badge>
                     </TableCell>
@@ -300,7 +300,6 @@ export default function StrategiesPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => setSelectedStrategy(strategy)}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -323,7 +322,7 @@ export default function StrategiesPage() {
                               </div>
                               <div>
                                 <h4 className="font-semibold">Tone</h4>
-                                <Badge variant={getToneBadgeVariant(strategy.tone)}>
+                                <Badge variant={getToneBadgeVariant(strategy.tone ?? '')}>
                                   {strategy.tone}
                                 </Badge>
                               </div>
@@ -342,7 +341,7 @@ export default function StrategiesPage() {
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
                                   <h4 className="font-semibold">Creativity Level</h4>
-                                  <Badge variant={getCreativityBadgeVariant(strategy.creativity)}>
+                                  <Badge variant={getCreativityBadgeVariant(strategy.creativity ?? 0)}>
                                     {strategy.creativity}/10
                                   </Badge>
                                 </div>

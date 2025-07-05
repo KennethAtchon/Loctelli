@@ -5,12 +5,12 @@ export interface ChatMessageDto {
   clientId: number;
   content: string;
   role?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export class ChatApi extends ApiClient {
-  async sendMessage(data: ChatMessageDto): Promise<{ userMessage: any; aiMessage: any; client: any }> {
-    return this.post<{ userMessage: any; aiMessage: any; client: any }>('/chat', data);
+  async sendMessage(data: ChatMessageDto): Promise<{ userMessage: unknown; aiMessage: unknown; client: unknown }> {
+    return this.post<{ userMessage: unknown; aiMessage: unknown; client: unknown }>('/chat', data);
   }
 
   async getChatHistory(clientId: number): Promise<ChatMessage[]> {

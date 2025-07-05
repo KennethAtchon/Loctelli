@@ -16,27 +16,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Search, Eye, RefreshCw, Calendar, Clock, User, Building } from 'lucide-react';
+import { Booking } from '@/types';
 import logger from '@/lib/logger';
-
-interface Booking {
-  id: number;
-  userId: number;
-  clientId: number;
-  bookingType: string;
-  details: any;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  client?: {
-    name: string;
-    email: string;
-    company: string;
-  };
-  user?: {
-    name: string;
-    email: string;
-  };
-}
 
 interface BookingStats {
   totalBookings: number;
@@ -58,7 +39,6 @@ export default function BookingsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
@@ -149,8 +129,9 @@ export default function BookingsPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateInput: string | Date) => {
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -159,7 +140,7 @@ export default function BookingsPage() {
     });
   };
 
-  const formatBookingDetails = (details: any) => {
+  const formatBookingDetails = (details: Record<string, unknown>) => {
     if (!details) return 'No details available';
     
     try {
@@ -356,7 +337,6 @@ export default function BookingsPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => setSelectedBooking(booking)}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>

@@ -20,6 +20,11 @@ export default function LoginPage() {
   const { isAuthenticated: isAdminAuthenticated, isLoading: isAdminLoading } = useAdminAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  
+  // Debug error state changes
+  useEffect(() => {
+    logger.debug('🔍 Error state changed:', error);
+  }, [error]);
 
   const [formData, setFormData] = useState<LoginDto>({
     email: '',
@@ -71,15 +76,37 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    
+    const timestamp = new Date().toISOString();
+    logger.debug(`🔐 Login form submitted at ${timestamp}:`, { email: formData.email });
+    
+    // Prevent multiple submissions
+    if (isSubmitting) {
+      logger.debug('🚫 Form already submitting, ignoring');
+      return;
+    }
+    
     setIsSubmitting(true);
     setError('');
 
     try {
+      // Test with invalid credentials first
+      logger.debug('🧪 Testing login with credentials...');
       await login(formData);
+      logger.debug('✅ Login successful, redirecting...');
       // Redirect to admin dashboard
       router.push('/admin/dashboard');
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Login failed. Please try again.');
+      logger.error('❌ Login failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Login failed. Please try again.';
+      setError(errorMessage);
+      logger.debug('📝 Set error message:', errorMessage);
+      
+      // Force a small delay to ensure the error state is set
+      setTimeout(() => {
+        logger.debug('⏰ Error state should be visible now');
+      }, 100);
     } finally {
       setIsSubmitting(false);
     }
@@ -126,10 +153,23 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form 
+              onSubmit={handleSubmit} 
+              className="space-y-4" 
+              noValidate
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  logger.debug('🔑 Enter key pressed');
+                }
+              }}
+            >
               {error && (
                 <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription>
+                    {error}
+                    <br />
+                    <small className="text-xs opacity-75">Debug: Error state is active</small>
+                  </AlertDescription>
                 </Alert>
               )}
 
