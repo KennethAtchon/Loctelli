@@ -50,6 +50,7 @@ export default function UsersPage() {
     password: '',
     company: '',
     role: 'user',
+    bookingEnabled: 1,
   });
   const [editFormData, setEditFormData] = useState<UpdateUserDto>({
     name: '',
@@ -57,6 +58,7 @@ export default function UsersPage() {
     role: 'user',
     company: '',
     isActive: true,
+    bookingEnabled: 1,
   });
 
   const calculateStats = (usersData: UserProfile[]) => {
@@ -144,7 +146,7 @@ export default function UsersPage() {
       await api.adminAuth.createUser(createFormData);
       setSuccess('User created successfully');
       setIsCreateDialogOpen(false);
-      setCreateFormData({ name: '', email: '', password: '', company: '', role: 'user' });
+      setCreateFormData({ name: '', email: '', password: '', company: '', role: 'user', bookingEnabled: 1 });
       loadUsers();
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(''), 3000);
@@ -164,7 +166,7 @@ export default function UsersPage() {
       setSuccess('User updated successfully');
       setIsEditDialogOpen(false);
       setEditingUser(null);
-      setEditFormData({ name: '', email: '', role: 'user', company: '', isActive: true });
+      setEditFormData({ name: '', email: '', role: 'user', company: '', isActive: true, bookingEnabled: 1 });
       loadUsers();
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(''), 3000);
@@ -198,6 +200,7 @@ export default function UsersPage() {
       role: user.role,
       company: user.company || '',
       isActive: user.isActive,
+      bookingEnabled: user.bookingEnabled || 1,
     });
     setIsEditDialogOpen(true);
   };
@@ -311,6 +314,14 @@ export default function UsersPage() {
                       <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="booking-enabled"
+                    checked={createFormData.bookingEnabled === 1}
+                    onCheckedChange={(checked) => setCreateFormData(prev => ({ ...prev, bookingEnabled: checked ? 1 : 0 }))}
+                  />
+                  <Label htmlFor="booking-enabled">Enable Booking Functionality</Label>
                 </div>
                 <Button type="submit" className="w-full">Create User</Button>
               </form>
@@ -439,6 +450,7 @@ export default function UsersPage() {
                   <TableHead>Role</TableHead>
                   <TableHead>Company</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Booking</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Last Login</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -458,6 +470,11 @@ export default function UsersPage() {
                     <TableCell>
                       <Badge variant={user.isActive ? 'default' : 'secondary'}>
                         {user.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={user.bookingEnabled ? 'default' : 'secondary'}>
+                        {user.bookingEnabled ? 'Enabled' : 'Disabled'}
                       </Badge>
                     </TableCell>
                     <TableCell>{formatDate(user.createdAt)}</TableCell>
@@ -684,6 +701,14 @@ export default function UsersPage() {
                 onCheckedChange={(checked) => setEditFormData(prev => ({ ...prev, isActive: checked }))}
               />
               <Label htmlFor="edit-active">Active</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="edit-booking-enabled"
+                checked={editFormData.bookingEnabled === 1}
+                onCheckedChange={(checked) => setEditFormData(prev => ({ ...prev, bookingEnabled: checked ? 1 : 0 }))}
+              />
+              <Label htmlFor="edit-booking-enabled">Enable Booking Functionality</Label>
             </div>
             <Button type="submit" className="w-full">Update User</Button>
           </form>

@@ -12,9 +12,14 @@ interface ChatMessage {
   content: string;
 }
 
-interface MessageHistory {
-  from: string;
-  message: string;
+// Updated interface to match PromptHelperService
+interface MessageHistoryItem {
+  from?: string;
+  message?: string;
+  role?: string;
+  content?: string;
+  timestamp?: string;
+  metadata?: any;
 }
 
 @Injectable()
@@ -79,23 +84,27 @@ export class SalesBotService implements OnModuleInit {
         where: { id: client.strategyId }
       });
       
-      // Append message to history
-      await this.appendMessageToHistory(client, 'user', message);
-      
-      // Get message history
+      // Get message history first (before appending new message)
       const history = client.messageHistory ? 
-        (JSON.parse(client.messageHistory as string) as MessageHistory[]).slice(-this.maxHistory) : 
+        (JSON.parse(client.messageHistory as string) as MessageHistoryItem[]).slice(-this.maxHistory) : 
         [];
       
       this.logger.debug(`Using history with ${history.length} messages for clientId=${clientId}`);
       
-      // Generate prompt
+      // Generate prompt with existing history
       const prompt = await this.promptHelper.composePrompt(client, user, strategy, history);
+      
+      // Add the latest user message to the prompt
+      prompt.push({ role: 'user', content: message });
+      
+      this.logger.log(`[generateResponse] Final messages array length: ${prompt.length}`);
+      this.logger.debug(`[generateResponse] Final messages: ${JSON.stringify(prompt.map(m => ({ role: m.role, contentLength: m.content.length, contentPreview: m.content.substring(0, 50) })))}`);
       
       // Create bot response
       const botResponse = await this.createBotResponse(prompt);
       
-      // Append bot response to history
+      // Append both user message and bot response to history
+      await this.appendMessageToHistory(client, 'user', message);
       await this.appendMessageToHistory(client, 'bot', botResponse);
       
       // Check for booking confirmation
@@ -150,7 +159,7 @@ export class SalesBotService implements OnModuleInit {
       // Example follow-up message
       const message = {
         content: `Hi ${client.name}, just checking in to see how you're doing.`,
-        role: 'system',
+        role: 'assistant',
         timestamp: new Date().toISOString(),
         metadata: { automated: true }
       };
@@ -191,7 +200,15 @@ export class SalesBotService implements OnModuleInit {
     }
     this.logger.debug(`[appendMessageToHistory] message preview: ${message.substring(0, Math.min(50, message.length))}...`);
     
-    const newMessage = { from: fromRole, message };
+    // Convert fromRole to standard role format
+    const role = fromRole === 'bot' ? 'assistant' : 'user';
+    
+    // Use new format with role and content
+    const newMessage = { 
+      role, 
+      content: message,
+      timestamp: new Date().toISOString()
+    };
     
     // Parse existing messages or initialize empty array
     const existingMessages = client.messageHistory ? 

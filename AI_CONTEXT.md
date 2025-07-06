@@ -130,6 +130,76 @@
 - **Configuration**: Added validation for `DEFAULT_ADMIN_PASSWORD` in security config
 - **Documentation**: Updated security check script to validate the new environment variable
 
+#### **11. Chat System Fixes - CRITICAL BUG RESOLUTION**
+- **Fixed**: Chat history not loading when client is selected
+- **Fixed**: Message format mismatch between frontend and backend
+- **Fixed**: Bot not reading previous messages and repeating greetings
+- **Fixed**: Double message processing causing duplication
+- **Fixed**: AI repeating same generic responses instead of responding to user messages
+- **Fixed**: Latest user message not being included in OpenAI API calls (CRITICAL FIX)
+
+**Frontend Changes:**
+- **Added**: `loadChatHistory()` function to fetch existing chat history when client is selected
+- **Added**: Message format conversion from backend format to frontend format
+- **Added**: Loading states for chat history
+- **Fixed**: Clear chat now only clears view, not database
+- **Enhanced**: Better error handling and user feedback
+
+**Backend Changes:**
+- **Fixed**: `PromptHelperService` now handles both message formats (`from/message` and `role/content`)
+- **Added**: `convertMessageFormat()` method to standardize message processing
+- **Fixed**: `ChatService` no longer duplicates message history management
+- **Fixed**: `SalesBotService` now properly handles message history without duplication
+- **Fixed**: **CRITICAL FIX** - Latest user message now properly included in OpenAI API calls
+- **Enhanced**: Better logging and error handling in message processing
+
+**AI Prompt Template Fixes:**
+- **Fixed**: Updated default prompt template instructions to be conversational and responsive
+- **Changed**: From aggressive sales instructions to helpful assistant instructions
+- **Updated**: System prompt now encourages direct responses to user messages
+- **Improved**: AI now answers questions and responds to specific user input instead of pushing sales agenda
+- **Database**: Updated existing prompt templates in database with new instructions
+
+**Message Format Compatibility:**
+- **Old Format**: `{ from: 'user', message: 'content' }`
+- **New Format**: `{ role: 'user', content: 'content' }`
+- **Support**: System now handles both formats seamlessly
+- **Storage**: Backend now consistently stores messages in new format with role/content
+- **Frontend**: Enhanced conversion logic handles both old and new formats for backward compatibility
+
+**CRITICAL FIX - OpenAI API Integration:**
+- **Problem**: Latest user message was not being included in the messages array sent to OpenAI API
+- **Root Cause**: Race condition between appending user message to database and reading history for prompt composition
+- **Solution**: Modified `SalesBotService.generateResponse()` to:
+  1. Get existing history first (before appending new message)
+  2. Compose prompt with existing history
+  3. Manually add latest user message to the prompt array
+  4. Send complete messages array to OpenAI API
+  5. Append both user message and bot response to database after API call
+- **Result**: AI now receives the complete conversation context including the latest user message ✅
+
+**ENHANCEMENT - Owner vs Client Context Clarity:**
+- **Problem**: AI couldn't distinguish between company owner details and client details
+- **Solution**: Enhanced `PromptHelperService` with clear separation:
+  1. **`buildOwnerPrompt()`**: Shows company owner details (who we work for)
+  2. **`buildClientPrompt()`**: Shows client details (who we're talking to)
+  3. **Updated system prompt**: Clearly distinguishes between owner and client roles
+  4. **Enhanced default template**: Instructions now clarify "you work FOR the company owner and are talking TO the client"
+- **Client Information Now Included**: Name, email, phone, company, position, custom ID, status, notes
+- **Owner Information Enhanced**: Name, company, email, budget range, booking enabled status
+- **Result**: AI now has complete context about both the company it represents and the client it's talking to ✅
+
+**Result**: Chat system now properly loads existing conversation history, maintains context across messages, and AI responds directly to user messages instead of repeating generic sales pitches ✅
+
+**ENHANCEMENT - Chat History Loading Fix:**
+- **Problem**: When revisiting conversations, only user messages were showing, not the combined chat history
+- **Root Cause**: Message format mismatch between backend storage (old format) and frontend expectations (new format)
+- **Solution**: 
+  1. **Backend**: Updated `appendMessageToHistory()` to store messages in new format (`role`/`content`) consistently
+  2. **Frontend**: Enhanced `loadChatHistory()` conversion logic to handle both old and new message formats
+  3. **Backward Compatibility**: System now supports both message formats seamlessly
+- **Result**: Complete conversation history now loads correctly when revisiting chats, showing both user and AI messages ✅
+
 ### **📋 DTO Structure Verification - ALL MATCH ✅**
 
 #### **User Registration**
@@ -300,6 +370,15 @@ interface CreateBookingDto {
 - **Admin Panel**: Admins can create users via `/admin/auth/users`
 - **Authorization**: Only admins and super admins
 - **Audit Trail**: Tracks which admin created each user
+
+### **User Creation Defaults**
+- **Booking Enabled**: New users have `bookingEnabled: 1` (enabled) by default
+- **Database Schema**: `bookingEnabled` field defaults to `1` in Prisma schema
+- **Backend DTO**: `CreateUserDto` has `bookingEnabled?: number = 1` default
+- **Frontend Form**: Admin user creation form includes `bookingEnabled: 1` in initial state with toggle switch
+- **Frontend Toggle**: Admins can enable/disable booking functionality via toggle switch in create/edit forms
+- **Table Display**: Users table shows booking enabled/disabled status with badges
+- **Migration**: Applied migration `20250706031355_update_booking_enabled_default` to update existing database
 
 ## 🔄 **Token Management**
 

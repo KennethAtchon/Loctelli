@@ -39,6 +39,7 @@ export default function ChatPage() {
   const [error, setError] = useState<string | null>(null);
   const [clientProfile, setClientProfile] = useState<DetailedClient | null>(null);
   const [isLoadingClient, setIsLoadingClient] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -61,6 +62,7 @@ export default function ChatPage() {
   const loadClientProfile = async (id: string) => {
     if (!id.trim()) {
       setClientProfile(null);
+      setMessages([]);
       return;
     }
 
@@ -72,18 +74,69 @@ export default function ChatPage() {
       if (isNaN(clientIdNum)) {
         setError('Please enter a valid client ID (number)');
         setClientProfile(null);
+        setMessages([]);
         return;
       }
 
       const client = await api.adminAuth.getDetailedClient(clientIdNum);
       setClientProfile(client);
       setError(null);
+      
+      // Load chat history for this client
+      await loadChatHistory(clientIdNum);
     } catch (error) {
       logger.error('Failed to load client profile:', error);
       setError('Client not found. Please check the client ID.');
       setClientProfile(null);
+      setMessages([]);
     } finally {
       setIsLoadingClient(false);
+    }
+  };
+
+  const loadChatHistory = async (clientIdNum: number) => {
+    try {
+      setIsLoadingHistory(true);
+      const history = await api.chat.getChatHistory(clientIdNum);
+      
+      // Convert backend message format to frontend format
+      const convertedMessages: ChatMessage[] = history.map((msg: any, index: number) => {
+        // Handle both old format (from/message) and new format (role/content)
+        let role: 'user' | 'assistant';
+        let content: string;
+        
+        if (msg.role && msg.content) {
+          // New format
+          role = msg.role === 'assistant' ? 'assistant' : 'user';
+          content = msg.content;
+        } else if (msg.from && msg.message) {
+          // Old format
+          role = msg.from === 'bot' ? 'assistant' : 'user';
+          content = msg.message;
+        } else {
+          // Fallback
+          role = 'user';
+          content = msg.content || msg.message || '';
+        }
+        
+        return {
+          id: `${clientIdNum}-${index}`,
+          role,
+          content,
+          timestamp: new Date(msg.timestamp || Date.now()),
+          metadata: {
+            clientId: clientIdNum,
+            clientName: clientProfile?.name
+          }
+        };
+      });
+      
+      setMessages(convertedMessages);
+    } catch (error) {
+      logger.error('Failed to load chat history:', error);
+      setMessages([]);
+    } finally {
+      setIsLoadingHistory(false);
     }
   };
 
@@ -93,6 +146,7 @@ export default function ChatPage() {
       loadClientProfile(value);
     } else {
       setClientProfile(null);
+      setMessages([]);
       setError(null);
     }
   };
@@ -161,7 +215,7 @@ export default function ChatPage() {
   };
 
   const clearChat = () => {
-    if (confirm('Are you sure you want to clear the chat history?')) {
+    if (confirm('Are you sure you want to clear the chat history? This will only clear the current view, not the database.')) {
       setMessages([]);
       setError(null);
     }
@@ -278,7 +332,7 @@ export default function ChatPage() {
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full p-4">
           <div className="space-y-4">
-            {messages.length === 0 && !isLoading && (
+            {messages.length === 0 && !isLoading && !isLoadingHistory && (
               <div className="text-center py-12">
                 <Bot className="mx-auto h-12 w-12 text-gray-400" />
                 <h3 className="mt-2 text-sm font-medium text-gray-900">Start a conversation</h3>
@@ -288,6 +342,13 @@ export default function ChatPage() {
                     : 'Enter a client ID to start chatting'
                   }
                 </p>
+              </div>
+            )}
+
+            {isLoadingHistory && (
+              <div className="text-center py-12">
+                <Loader2 className="mx-auto h-8 w-8 animate-spin text-gray-400" />
+                <p className="mt-2 text-sm text-gray-500">Loading chat history...</p>
               </div>
             )}
 

@@ -27,7 +27,7 @@ export class CreateUserDto {
 
   @IsInt()
   @IsOptional()
-  bookingEnabled?: number = 0;
+  bookingEnabled?: number = 1;
 
   @IsString()
   @IsOptional()

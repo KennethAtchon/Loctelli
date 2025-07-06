@@ -93,9 +93,40 @@ Loctelli/
 - **Strategy Management**: Create and manage sales strategies
 - **Client Management**: Track and manage client relationships
 - **Booking System**: Handle appointment scheduling
-- **Chat Integration**: AI-powered conversation management
+- **Chat Integration**: AI-powered conversation management with full conversation history
 - **Prompt Template System**: Global AI prompt template management with activation controls and strategy integration
 - **Real-time Updates**: Live data synchronization
+
+## 💬 **Chat System Features**
+
+### **AI-Powered Conversations**
+- **Context-Aware**: AI maintains conversation context across all messages
+- **Strategy-Based**: Responses tailored to specific sales strategies
+- **Client-Specific**: Personalized interactions based on client profiles
+- **Owner-Client Clarity**: AI clearly understands the difference between company owner (who it represents) and client (who it's talking to)
+- **Rich Client Context**: AI has access to client's name, email, phone, company, position, status, notes, and custom ID
+- **Company Context**: AI knows company owner details, budget range, and booking capabilities
+- **Booking Integration**: Automatic booking creation from AI responses
+- **Responsive AI**: AI responds directly to user messages instead of generic sales pitches
+- **Conversational**: Natural, helpful responses that answer user questions and address specific needs
+
+### **Conversation Management**
+- **Full History**: Complete conversation history loaded when client is selected
+- **Real-time Chat**: Live message sending and receiving
+- **Message Persistence**: All conversations stored in database
+- **Format Compatibility**: Supports both old and new message formats seamlessly
+
+### **Admin Testing Interface**
+- **Client Spoofing**: Test AI responses by impersonating any client
+- **Strategy Testing**: Verify different strategies with the same client
+- **Conversation Simulation**: Full conversation flow testing
+- **History Loading**: Automatic loading of existing conversations
+
+### **Recent Critical Fixes**
+- **Fixed OpenAI API Integration**: Resolved issue where latest user messages weren't being included in AI responses
+- **Enhanced Message Processing**: Improved conversation context handling and message format compatibility
+- **Better AI Responsiveness**: AI now responds directly to user messages instead of repeating generic greetings
+- **Improved Context Clarity**: AI now clearly distinguishes between company owner details and client details
 
 ## **Prompt Template & Strategy Integration**
 
@@ -198,9 +229,6 @@ npm run db:generate
 
 # Run migrations
 npm run db:migrate
-
-# Start the backend
-npm run start:dev
 ```
 
 ### 4. Frontend Setup
@@ -260,6 +288,7 @@ The responsive design ensures optimal user experience across all device sizes wh
 - **Company association**: Link users to companies and manage organizational structure
 - **Integration settings**: Configure calendar and location integrations
 - **Bulk operations**: Manage multiple users simultaneously
+- **Booking enabled by default**: New users have booking functionality enabled by default with toggle control
 
 ### 🏢 Client Management
 - **Full CRUD functionality**: Add, edit, delete, and view client information
@@ -421,6 +450,7 @@ The responsive design ensures optimal user experience across all device sizes wh
 - **Real-time statistics**: Live user counts (total, active, inactive, admin users)
 - **Detailed user views**: Comprehensive user information with related strategies, clients, and bookings
 - **Role management**: User role assignment and status toggling
+- **Booking functionality control**: Toggle booking enabled/disabled for each user with visual indicators
 - **Integration details**: Calendar, location, and external system integration tracking
 - **Admin audit trail**: Track which admin created each user
 - **User activity monitoring**: Last login tracking and activity status

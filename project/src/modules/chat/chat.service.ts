@@ -25,7 +25,7 @@ export class ChatService {
       throw new NotFoundException(`Client with ID ${clientId} not found`);
     }
 
-    // Create the user message object
+    // Create the user message object for response
     const userMessage = {
       content,
       role,
@@ -33,16 +33,10 @@ export class ChatService {
       metadata: metadata || {}
     };
 
-    // Parse existing messages or initialize empty array
-    const existingMessages = client.messageHistory ? JSON.parse(client.messageHistory as string) : [];
-    
-    // Add user message
-    existingMessages.push(userMessage);
-
-    // Generate AI response using SalesBotService
+    // Generate AI response using SalesBotService (this will handle message history)
     const aiResponse = await this.salesBotService.generateResponse(content, clientId);
     
-    // Create the AI response object
+    // Create the AI response object for response
     const aiMessage = {
       content: aiResponse,
       role: 'assistant',
@@ -50,17 +44,9 @@ export class ChatService {
       metadata: { generated: true }
     };
 
-    // Add AI response to messages
-    existingMessages.push(aiMessage);
-
-    // Update client with new message history
-    const updatedClient = await this.prisma.client.update({
+    // Get updated client data
+    const updatedClient = await this.prisma.client.findUnique({
       where: { id: clientId },
-      data: {
-        messageHistory: JSON.stringify(existingMessages),
-        lastMessage: aiResponse,
-        lastMessageDate: new Date().toISOString(),
-      } as any, // Type assertion to bypass type checking for dynamic fields
       include: {
         user: true,
         strategy: true,

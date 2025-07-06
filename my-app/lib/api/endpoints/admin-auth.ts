@@ -39,6 +39,7 @@ export interface UserProfile {
   role: string;
   company: string | null;
   isActive: boolean;
+  bookingEnabled: number;
   lastLoginAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -55,6 +56,7 @@ export interface CreateUserDto {
   password: string;
   company?: string;
   role?: string;
+  bookingEnabled?: number;
 }
 
 export interface UpdateUserDto {
@@ -63,6 +65,7 @@ export interface UpdateUserDto {
   role?: string;
   company?: string;
   isActive?: boolean;
+  bookingEnabled?: number;
 }
 
 export interface DashboardStats {
