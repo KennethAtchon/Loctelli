@@ -26,10 +26,10 @@ export class WebhooksService {
         return this.handleBookingCreated(payload);
       case 'booking.updated':
         return this.handleBookingUpdated(payload);
-      case 'client.created':
-        return this.handleClientCreated(payload);
-      case 'client.updated':
-        return this.handleClientUpdated(payload);
+      case 'lead.created':
+        return this.handleLeadCreated(payload);
+      case 'lead.updated':
+        return this.handleLeadUpdated(payload);
       case 'contact.created':
         return this.handleContactCreated(payload);
       case 'outbound.message':
@@ -60,16 +60,16 @@ export class WebhooksService {
     return { status: 'processed', type: 'booking.updated' };
   }
 
-  private async handleClientCreated(payload: any) {
-    this.logger.log('Processing client.created webhook');
+  private async handleLeadCreated(payload: any) {
+    this.logger.log('Processing lead.created webhook');
     // Implementation would depend on the specific payload structure
-    return { status: 'processed', type: 'client.created' };
+    return { status: 'processed', type: 'lead.created' };
   }
 
-  private async handleClientUpdated(payload: any) {
-    this.logger.log('Processing client.updated webhook');
+  private async handleLeadUpdated(payload: any) {
+    this.logger.log('Processing lead.updated webhook');
     // Implementation would depend on the specific payload structure
-    return { status: 'processed', type: 'client.updated' };
+    return { status: 'processed', type: 'lead.updated' };
   }
 
   /**
@@ -100,7 +100,7 @@ export class WebhooksService {
           `${contactData.firstName} ${contactData.lastName}` : 
           contactData.firstName || contactData.lastName || 'Unknown');
       
-      const client = await this.prisma.lead.create({
+      const lead = await this.prisma.lead.create({
         data: {
           userId,
           strategyId,
@@ -112,14 +112,14 @@ export class WebhooksService {
       });
       
       return {
-        status: 'client_created',
-        client: {
-          id: client.id,
-          userId: client.userId,
-          strategyId: client.strategyId,
-          name: client.name,
-          customId: client.customId,
-          status: client.status
+        status: 'lead_created',
+        lead: {
+          id: lead.id,
+          userId: lead.userId,
+          strategyId: lead.strategyId,
+          name: lead.name,
+          customId: lead.customId,
+          status: lead.status
         }
       };
     } catch (error) {
@@ -150,14 +150,14 @@ export class WebhooksService {
         };
       }
       
-      // Find client by contactId (maps to customId in Lead model)
-      const client = await this.prisma.lead.findFirst({
+      // Find lead by contactId (maps to customId in Lead model)
+      const lead = await this.prisma.lead.findFirst({
         where: { customId: messageData.contactId }
       });
       
-      if (!client) {
+      if (!lead) {
         throw new HttpException(
-          { status: 'error', message: `No client found with customId/contactId ${messageData.contactId}` },
+          { status: 'error', message: `No lead found with customId/contactId ${messageData.contactId}` },
           HttpStatus.NOT_FOUND
         );
       }
@@ -165,7 +165,7 @@ export class WebhooksService {
       // Generate a response using the message body from the payload
       const message = messageData.body || '';
       // This would call your AI response generation service
-      const response = await this.generateResponse(message, client.id);
+      const response = await this.generateResponse(message, lead.id);
       
       return {
         status: 'success',
@@ -184,13 +184,13 @@ export class WebhooksService {
   }
   
   /**
-   * Generate a response to a client message
+   * Generate a response to a lead message
    * This is a placeholder for the actual AI response generation
    */
   private async generateResponse(message: string, leadId: number): Promise<string> {
     // In a real implementation, this would call your AI service
     // For now, we'll return a simple response
-    this.logger.log(`Generating response for client ${leadId} to message: ${message}`);
+    this.logger.log(`Generating response for lead ${leadId} to message: ${message}`);
     return `Thank you for your message: "${message}". Our team will get back to you shortly.`;
   }
 }

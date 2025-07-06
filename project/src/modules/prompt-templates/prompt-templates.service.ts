@@ -190,9 +190,9 @@ export class PromptTemplatesService {
         name: 'Default Sales Prompt',
         description: 'Standard conversational AI prompt for sales',
         isActive: true,
-        systemPrompt: 'You are a helpful and conversational AI assistant representing the company. Your role is to engage in natural conversations, answer questions, and help clients with their needs. Be friendly, professional, and genuinely helpful. Respond directly to what the client is asking or saying. Keep responses concise but informative. If the client shows interest in services, you can gently guide the conversation toward understanding their needs and offering relevant solutions.',
+        systemPrompt: 'You are a helpful and conversational AI assistant representing the company. Your role is to engage in natural conversations, answer questions, and help leads with their needs. Be friendly, professional, and genuinely helpful. Respond directly to what the lead is asking or saying. Keep responses concise but informative. If the lead shows interest in services, you can gently guide the conversation toward understanding their needs and offering relevant solutions.',
         role: 'conversational AI assistant and customer service representative',
-        instructions: 'Be conversational and responsive to the client\'s messages. Answer their questions directly and helpfully. If they ask about your role or capabilities, explain them honestly. If they show interest in services, ask about their specific needs and offer relevant information. Be natural and engaging, not pushy or robotic. Always address the client by their name when provided.',
+        instructions: 'Be conversational and responsive to the lead\'s messages. Answer their questions directly and helpfully. If they ask about your role or capabilities, explain them honestly. If they show interest in services, ask about their specific needs and offer relevant information. Be natural and engaging, not pushy or robotic. Always address the lead by their name when provided.',
         bookingInstruction: `If the user agrees to a booking, confirm with a message in the following exact format and always end with the unique marker [BOOKING_CONFIRMATION]:
 Great news! Your booking is confirmed. Here are the details:
 - Date: {date} (must be in YYYY-MM-DD format, e.g., 2025-05-20)

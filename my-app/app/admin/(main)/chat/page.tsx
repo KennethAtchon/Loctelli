@@ -26,7 +26,7 @@ interface ChatMessage {
   timestamp: Date;
   metadata?: {
     leadId?: number;
-    clientName?: string;
+    leadName?: string;
   };
 }
 
@@ -37,8 +37,8 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [clientProfile, setClientProfile] = useState<DetailedLead | null>(null);
-  const [isLoadingClient, setIsLoadingClient] = useState(false);
+  const [leadProfile, setleadProfile] = useState<DetailedLead | null>(null);
+  const [isLoadinglead, setIsLoadinglead] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -59,38 +59,38 @@ export default function ChatPage() {
     };
   }, []);
 
-  const loadClientProfile = async (id: string) => {
+  const loadleadProfile = async (id: string) => {
     if (!id.trim()) {
-      setClientProfile(null);
+      setleadProfile(null);
       setMessages([]);
       return;
     }
 
     try {
-      setIsLoadingClient(true);
+      setIsLoadinglead(true);
       setError(null);
       const leadIdNum = parseInt(id, 10);
       
       if (isNaN(leadIdNum)) {
-        setError('Please enter a valid client ID (number)');
-        setClientProfile(null);
+        setError('Please enter a valid lead ID (number)');
+        setleadProfile(null);
         setMessages([]);
         return;
       }
 
-      const client = await api.adminAuth.getDetailedLead(leadIdNum);
-      setClientProfile(client);
+      const lead = await api.adminAuth.getDetailedLead(leadIdNum);
+      setleadProfile(lead);
       setError(null);
       
-      // Load chat history for this client
+      // Load chat history for this lead
       await loadChatHistory(leadIdNum);
     } catch (error) {
-      logger.error('Failed to load client profile:', error);
-      setError('Lead not found. Please check the client ID.');
-      setClientProfile(null);
+      logger.error('Failed to load lead profile:', error);
+      setError('Lead not found. Please check the lead ID.');
+      setleadProfile(null);
       setMessages([]);
     } finally {
-      setIsLoadingClient(false);
+      setIsLoadinglead(false);
     }
   };
 
@@ -126,7 +126,7 @@ export default function ChatPage() {
           timestamp: new Date(msg.timestamp || Date.now()),
           metadata: {
             leadId: leadIdNum,
-            clientName: clientProfile?.name
+            leadName: leadProfile?.name
           }
         };
       });
@@ -143,9 +143,9 @@ export default function ChatPage() {
   const handleleadIdChange = (value: string) => {
     setleadId(value);
     if (value.trim()) {
-      loadClientProfile(value);
+      loadleadProfile(value);
     } else {
-      setClientProfile(null);
+      setleadProfile(null);
       setMessages([]);
       setError(null);
     }
@@ -178,7 +178,7 @@ export default function ChatPage() {
       // Show typing indicator
       setIsTyping(true);
 
-      // Send message to API with client ID
+      // Send message to API with lead ID
       const response = await api.chat.sendMessage({
         leadId: parseInt(leadId, 10),
         content: userMessage,
@@ -194,7 +194,7 @@ export default function ChatPage() {
         content: (response.aiMessage as any).content || 'No response received',
         metadata: {
           leadId: parseInt(leadId, 10),
-          clientName: clientProfile?.name
+          leadName: leadProfile?.name
         }
       });
 
@@ -258,7 +258,7 @@ export default function ChatPage() {
             <MessageSquare className="h-6 w-6 text-blue-600" />
             <div>
               <h1 className="text-xl font-semibold text-gray-900">AI Chat Assistant</h1>
-              <p className="text-sm text-gray-500">Test AI responses by spoofing client ID</p>
+              <p className="text-sm text-gray-500">Test AI responses by spoofing lead ID</p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -278,43 +278,43 @@ export default function ChatPage() {
           </div>
           <Input
             type="number"
-            placeholder="Enter client ID to spoof..."
+            placeholder="Enter lead ID to spoof..."
             value={leadId}
             onChange={(e) => handleleadIdChange(e.target.value)}
             className="w-48"
           />
-          {isLoadingClient && (
+          {isLoadinglead && (
             <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
           )}
         </div>
         
         {/* Lead Profile Display */}
-        {clientProfile && (
+        {leadProfile && (
           <div className="mt-3 p-3 bg-white border rounded-lg">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium text-gray-900">{clientProfile.name}</h3>
+                <h3 className="font-medium text-gray-900">{leadProfile.name}</h3>
                 <p className="text-sm text-gray-500">
-                  {clientProfile.email} • {clientProfile.company || 'No company'}
+                  {leadProfile.email} • {leadProfile.company || 'No company'}
                 </p>
-                {clientProfile.phone && (
-                  <p className="text-sm text-gray-500">{clientProfile.phone}</p>
+                {leadProfile.phone && (
+                  <p className="text-sm text-gray-500">{leadProfile.phone}</p>
                 )}
               </div>
               <div className="flex items-center space-x-2">
-                <Badge variant={getStatusBadgeVariant(clientProfile.status)}>
-                  {clientProfile.status}
+                <Badge variant={getStatusBadgeVariant(leadProfile.status)}>
+                  {leadProfile.status}
                 </Badge>
-                {clientProfile.strategy && (
+                {leadProfile.strategy && (
                   <Badge variant="outline">
-                    {clientProfile.strategy.name}
+                    {leadProfile.strategy.name}
                   </Badge>
                 )}
               </div>
             </div>
-            {clientProfile.notes && (
+            {leadProfile.notes && (
               <p className="text-sm text-gray-600 mt-2 italic">
-                "{clientProfile.notes}"
+                "{leadProfile.notes}"
               </p>
             )}
           </div>
@@ -337,9 +337,9 @@ export default function ChatPage() {
                 <Bot className="mx-auto h-12 w-12 text-gray-400" />
                 <h3 className="mt-2 text-sm font-medium text-gray-900">Start a conversation</h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  {clientProfile 
-                    ? `Chatting as: ${clientProfile.name}`
-                    : 'Enter a client ID to start chatting'
+                  {leadProfile 
+                    ? `Chatting as: ${leadProfile.name}`
+                    : 'Enter a lead ID to start chatting'
                   }
                 </p>
               </div>
@@ -417,13 +417,13 @@ export default function ChatPage() {
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder={clientProfile ? "Type your message..." : "Enter a client ID first..."}
-            disabled={!clientProfile || isLoading}
+            placeholder={leadProfile ? "Type your message..." : "Enter a lead ID first..."}
+            disabled={!leadProfile || isLoading}
             className="flex-1"
           />
           <Button
             onClick={sendMessage}
-            disabled={!inputMessage.trim() || isLoading || !clientProfile}
+            disabled={!inputMessage.trim() || isLoading || !leadProfile}
             className="px-4"
           >
             {isLoading ? (
@@ -434,9 +434,9 @@ export default function ChatPage() {
           </Button>
         </div>
         <div className="mt-2 text-xs text-gray-500">
-          {clientProfile 
+          {leadProfile 
             ? "Press Enter to send, Shift+Enter for new line"
-            : "Please enter a valid client ID to start chatting"
+            : "Please enter a valid lead ID to start chatting"
           }
         </div>
       </div>

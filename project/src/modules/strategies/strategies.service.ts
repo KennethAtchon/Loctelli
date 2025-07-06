@@ -43,7 +43,7 @@ export class StrategiesService {
     return this.prisma.strategy.findMany({
       include: {
         user: true,
-        clients: true,
+        leads: true,
       },
     });
   }
@@ -53,7 +53,7 @@ export class StrategiesService {
       where: { id },
       include: {
         user: true,
-        clients: true,
+        leads: true,
       },
     });
 
@@ -68,7 +68,7 @@ export class StrategiesService {
     return this.prisma.strategy.findMany({
       where: { userId },
       include: {
-        clients: true,
+        leads: true,
       },
     });
   }

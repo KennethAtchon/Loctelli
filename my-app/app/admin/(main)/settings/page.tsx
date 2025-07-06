@@ -465,7 +465,7 @@ export default function AdminSettingsPage() {
                 <li>• Monitor system activity and statistics</li>
                 <li>• Update your profile information</li>
                 <li>• Change your account password</li>
-                <li>• Access client and booking management</li>
+                <li>• Access lead and booking management</li>
               </ul>
             </div>
 

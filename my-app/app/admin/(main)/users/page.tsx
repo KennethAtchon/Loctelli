@@ -574,16 +574,16 @@ export default function UsersPage() {
                                   </div>
                                 )}
 
-                                {/* Clients */}
+                                {/* Leads */}
                                 {selectedUser.leads && selectedUser.leads.length > 0 && (
                                   <div>
-                                    <h3 className="font-semibold mb-3">Clients ({selectedUser.leads.length})</h3>
+                                    <h3 className="font-semibold mb-3">Leads ({selectedUser.leads.length})</h3>
                                     <div className="space-y-2">
-                                      {selectedUser.leads.map((client) => (
-                                        <div key={client.id} className="p-2 border rounded">
-                                          <div className="font-medium">{client.name}</div>
+                                      {selectedUser.leads.map((lead) => (
+                                        <div key={lead.id} className="p-2 border rounded">
+                                          <div className="font-medium">{lead.name}</div>
                                           <div className="text-sm text-gray-600">
-                                            Email: {client.email || 'N/A'} | Status: {client.status}
+                                            Email: {lead.email || 'N/A'} | Status: {lead.status}
                                           </div>
                                         </div>
                                       ))}

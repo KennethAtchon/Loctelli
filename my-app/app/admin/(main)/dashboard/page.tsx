@@ -40,7 +40,7 @@ interface DetailedUser {
     tag?: string;
     tone?: string;
   }>;
-  clients?: Array<{
+  leads?: Array<{
     id: number;
     name: string;
     email?: string;
@@ -89,12 +89,12 @@ interface DetailedLead {
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
-  const [recentClients, setRecentClients] = useState<DetailedLead[]>([]);
+  const [recentLeads, setRecentLeads] = useState<DetailedLead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<DetailedUser | null>(null);
-  const [selectedClient, setSelectedClient] = useState<DetailedLead | null>(null);
+  const [selectedlead, setSelectedlead] = useState<DetailedLead | null>(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -111,14 +111,14 @@ export default function AdminDashboardPage() {
     try {
       setIsRefreshing(true);
       setError(null);
-      const [dashboardStats, status, clients] = await Promise.all([
+      const [dashboardStats, status, leads] = await Promise.all([
         api.adminAuth.getDashboardStats(),
         api.adminAuth.getSystemStatus(),
-        api.adminAuth.getRecentClients()
+        api.adminAuth.getRecentLeads()
       ]);
       setStats(dashboardStats);
       setSystemStatus(status);
-      setRecentClients(clients);
+      setRecentLeads(leads);
     } catch (error) {
       logger.error('Failed to load dashboard data:', error);
       setError('Failed to load dashboard data');
@@ -139,10 +139,10 @@ export default function AdminDashboardPage() {
 
   const loadDetailedLead = async (leadId: number) => {
     try {
-      const client = await api.adminAuth.getDetailedLead(leadId);
-      setSelectedClient(client);
+      const lead = await api.adminAuth.getDetailedLead(leadId);
+      setSelectedlead(lead);
     } catch (error) {
-      logger.error('Failed to load client details:', error);
+      logger.error('Failed to load lead details:', error);
     }
   };
 
@@ -418,16 +418,16 @@ export default function AdminDashboardPage() {
                                 </div>
                               )}
 
-                              {/* Clients */}
+                              {/* Leads */}
                               {selectedUser.leads && selectedUser.leads.length > 0 && (
                                 <div>
-                                  <h3 className="font-semibold mb-3">Clients ({selectedUser.leads.length})</h3>
+                                  <h3 className="font-semibold mb-3">Leads ({selectedUser.leads.length})</h3>
                                   <div className="space-y-2">
-                                    {selectedUser.leads.map((client) => (
-                                      <div key={client.id} className="p-2 border rounded">
-                                        <div className="font-medium">{client.name}</div>
+                                    {selectedUser.leads.map((lead) => (
+                                      <div key={lead.id} className="p-2 border rounded">
+                                        <div className="font-medium">{lead.name}</div>
                                         <div className="text-sm text-gray-600">
-                                          Email: {client.email || 'N/A'} | Status: {client.status}
+                                          Email: {lead.email || 'N/A'} | Status: {lead.status}
                                         </div>
                                       </div>
                                     ))}
@@ -468,9 +468,9 @@ export default function AdminDashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>Recent Clients</CardTitle>
+              <CardTitle>Recent Leads</CardTitle>
               <CardDescription>
-                Latest clients added to the platform
+                Latest leads added to the platform
               </CardDescription>
             </div>
             <Link href="/admin/leads">
@@ -482,53 +482,53 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentClients.length > 0 ? (
-                recentClients.map((client) => (
-                  <div key={client.id} className="flex items-center space-x-4 p-2 rounded hover:bg-gray-50 transition-colors">
+              {recentLeads.length > 0 ? (
+                recentLeads.map((lead) => (
+                  <div key={lead.id} className="flex items-center space-x-4 p-2 rounded hover:bg-gray-50 transition-colors">
                     <div className="h-8 w-8 rounded-full bg-blue-300 flex items-center justify-center">
                       <Building className="h-4 w-4 text-blue-700" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium">{client.name}</p>
-                      <p className="text-xs text-gray-500">{client.email || 'No email'}</p>
-                      {client.company && (
-                        <p className="text-xs text-gray-400">{client.company}</p>
+                      <p className="text-sm font-medium">{lead.name}</p>
+                      <p className="text-xs text-gray-500">{lead.email || 'No email'}</p>
+                      {lead.company && (
+                        <p className="text-xs text-gray-400">{lead.company}</p>
                       )}
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge variant="outline">{client.status}</Badge>
+                      <Badge variant="outline">{lead.status}</Badge>
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => loadDetailedLead(client.id)}
+                            onClick={() => loadDetailedLead(lead.id)}
                           >
                             <Eye className="h-3 w-3" />
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                           <DialogHeader>
-                            <DialogTitle>Lead Details - {client.name}</DialogTitle>
+                            <DialogTitle>Lead Details - {lead.name}</DialogTitle>
                             <DialogDescription>
-                              Complete client information and related data
+                              Complete lead information and related data
                             </DialogDescription>
                           </DialogHeader>
-                          {selectedClient && selectedClient.id === client.id && (
+                          {selectedlead && selectedlead.id === lead.id && (
                             <div className="space-y-6">
                               {/* Basic Information */}
                               <div>
                                 <h3 className="font-semibold mb-3">Basic Information</h3>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
-                                  <div><strong>ID:</strong> {selectedClient.id}</div>
-                                  <div><strong>Name:</strong> {selectedClient.name}</div>
-                                  <div><strong>Email:</strong> {selectedClient.email || 'N/A'}</div>
-                                  <div><strong>Phone:</strong> {selectedClient.phone || 'N/A'}</div>
-                                  <div><strong>Company:</strong> {selectedClient.company || 'N/A'}</div>
-                                  <div><strong>Position:</strong> {selectedClient.position || 'N/A'}</div>
-                                  <div><strong>Custom ID:</strong> {selectedClient.customId || 'N/A'}</div>
+                                  <div><strong>ID:</strong> {selectedlead.id}</div>
+                                  <div><strong>Name:</strong> {selectedlead.name}</div>
+                                  <div><strong>Email:</strong> {selectedlead.email || 'N/A'}</div>
+                                  <div><strong>Phone:</strong> {selectedlead.phone || 'N/A'}</div>
+                                  <div><strong>Company:</strong> {selectedlead.company || 'N/A'}</div>
+                                  <div><strong>Position:</strong> {selectedlead.position || 'N/A'}</div>
+                                  <div><strong>Custom ID:</strong> {selectedlead.customId || 'N/A'}</div>
                                   <div><strong>Status:</strong> 
-                                    <Badge variant="outline" className="ml-2">{selectedClient.status}</Badge>
+                                    <Badge variant="outline" className="ml-2">{selectedlead.status}</Badge>
                                   </div>
                                 </div>
                               </div>
@@ -537,58 +537,58 @@ export default function AdminDashboardPage() {
                               <div>
                                 <h3 className="font-semibold mb-3">Timestamps</h3>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
-                                  <div><strong>Created:</strong> {formatDate(selectedClient.createdAt)}</div>
-                                  <div><strong>Updated:</strong> {formatDate(selectedClient.updatedAt)}</div>
-                                  <div><strong>Last Message:</strong> {selectedClient.lastMessageDate ? formatDate(selectedClient.lastMessageDate) : 'No messages'}</div>
+                                  <div><strong>Created:</strong> {formatDate(selectedlead.createdAt)}</div>
+                                  <div><strong>Updated:</strong> {formatDate(selectedlead.updatedAt)}</div>
+                                  <div><strong>Last Message:</strong> {selectedlead.lastMessageDate ? formatDate(selectedlead.lastMessageDate) : 'No messages'}</div>
                                 </div>
                               </div>
 
                               {/* Notes */}
-                              {selectedClient.notes && (
+                              {selectedlead.notes && (
                                 <div>
                                   <h3 className="font-semibold mb-3">Notes</h3>
-                                  <p className="text-sm bg-gray-50 p-3 rounded">{selectedClient.notes}</p>
+                                  <p className="text-sm bg-gray-50 p-3 rounded">{selectedlead.notes}</p>
                                 </div>
                               )}
 
                               {/* Last Message */}
-                              {selectedClient.lastMessage && (
+                              {selectedlead.lastMessage && (
                                 <div>
                                   <h3 className="font-semibold mb-3">Last Message</h3>
-                                  <p className="text-sm bg-gray-50 p-3 rounded">{selectedClient.lastMessage}</p>
+                                  <p className="text-sm bg-gray-50 p-3 rounded">{selectedlead.lastMessage}</p>
                                 </div>
                               )}
 
                               {/* Assigned User */}
-                              {selectedClient.user && (
+                              {selectedlead.user && (
                                 <div>
                                   <h3 className="font-semibold mb-3">Assigned User</h3>
                                   <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div><strong>User ID:</strong> {selectedClient.user.id}</div>
-                                    <div><strong>User Name:</strong> {selectedClient.user.name}</div>
-                                    <div><strong>User Email:</strong> {selectedClient.user.email}</div>
+                                    <div><strong>User ID:</strong> {selectedlead.user.id}</div>
+                                    <div><strong>User Name:</strong> {selectedlead.user.name}</div>
+                                    <div><strong>User Email:</strong> {selectedlead.user.email}</div>
                                   </div>
                                 </div>
                               )}
 
                               {/* Assigned Strategy */}
-                              {selectedClient.strategy && (
+                              {selectedlead.strategy && (
                                 <div>
                                   <h3 className="font-semibold mb-3">Assigned Strategy</h3>
                                   <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div><strong>Strategy ID:</strong> {selectedClient.strategy.id}</div>
-                                    <div><strong>Strategy Name:</strong> {selectedClient.strategy.name}</div>
-                                    <div><strong>Strategy Tag:</strong> {selectedClient.strategy.tag || 'N/A'}</div>
+                                    <div><strong>Strategy ID:</strong> {selectedlead.strategy.id}</div>
+                                    <div><strong>Strategy Name:</strong> {selectedlead.strategy.name}</div>
+                                    <div><strong>Strategy Tag:</strong> {selectedlead.strategy.tag || 'N/A'}</div>
                                   </div>
                                 </div>
                               )}
 
                               {/* Bookings */}
-                              {selectedClient.bookings && selectedClient.bookings.length > 0 && (
+                              {selectedlead.bookings && selectedlead.bookings.length > 0 && (
                                 <div>
-                                  <h3 className="font-semibold mb-3">Bookings ({selectedClient.bookings.length})</h3>
+                                  <h3 className="font-semibold mb-3">Bookings ({selectedlead.bookings.length})</h3>
                                   <div className="space-y-2">
-                                    {selectedClient.bookings.map((booking) => (
+                                    {selectedlead.bookings.map((booking) => (
                                       <div key={booking.id} className="p-2 border rounded">
                                         <div className="font-medium">{booking.bookingType}</div>
                                         <div className="text-sm text-gray-600">
@@ -607,7 +607,7 @@ export default function AdminDashboardPage() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-gray-500">No recent clients</p>
+                <p className="text-sm text-gray-500">No recent leads</p>
               )}
             </div>
           </CardContent>

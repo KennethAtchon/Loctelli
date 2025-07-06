@@ -24,7 +24,7 @@ export class LeadsService {
   }
 
   async findOne(id: number, userId: number, userRole: string) {
-    const client = await this.prisma.lead.findUnique({
+    const lead = await this.prisma.lead.findUnique({
       where: { id },
       include: {
         user: true,
@@ -33,16 +33,16 @@ export class LeadsService {
       },
     });
 
-    if (!client) {
+    if (!lead) {
       throw new NotFoundException(`Lead with ID ${id} not found`);
     }
 
-    // Check if user has permission to access this client
-    if (userRole !== 'admin' && userRole !== 'super_admin' && client.userId !== userId) {
+    // Check if user has permission to access this lead
+    if (userRole !== 'admin' && userRole !== 'super_admin' && lead.userId !== userId) {
       throw new ForbiddenException('Access denied');
     }
 
-    return client;
+    return lead;
   }
 
   async findByUserId(userId: number) {
@@ -65,7 +65,7 @@ export class LeadsService {
       throw new NotFoundException(`Strategy with ID ${strategyId} not found`);
     }
 
-    // Check if user has permission to access this strategy's clients
+    // Check if user has permission to access this strategy's leads
     if (userRole !== 'admin' && userRole !== 'super_admin' && strategy.userId !== userId) {
       throw new ForbiddenException('Access denied');
     }
@@ -80,17 +80,17 @@ export class LeadsService {
   }
 
   async update(id: number, updateLeadDto: UpdateLeadDto, userId: number, userRole: string) {
-    // Check if client exists and user has permission
-    const client = await this.prisma.lead.findUnique({
+    // Check if lead exists and user has permission
+    const lead = await this.prisma.lead.findUnique({
       where: { id },
     });
 
-    if (!client) {
+    if (!lead) {
       throw new NotFoundException(`Lead with ID ${id} not found`);
     }
 
-    // Check if user has permission to update this client
-    if (userRole !== 'admin' && userRole !== 'super_admin' && client.userId !== userId) {
+    // Check if user has permission to update this lead
+    if (userRole !== 'admin' && userRole !== 'super_admin' && lead.userId !== userId) {
       throw new ForbiddenException('Access denied');
     }
 
@@ -105,22 +105,22 @@ export class LeadsService {
   }
 
   async appendMessage(id: number, message: any) {
-    const client = await this.prisma.lead.findUnique({
+    const lead = await this.prisma.lead.findUnique({
       where: { id },
       select: { messageHistory: true },
     });
 
-    if (!client) {
+    if (!lead) {
       throw new NotFoundException(`Lead with ID ${id} not found`);
     }
 
     // Parse existing messages or initialize empty array
-    const existingMessages = client.messageHistory ? JSON.parse(client.messageHistory as string) : [];
+    const existingMessages = lead.messageHistory ? JSON.parse(lead.messageHistory as string) : [];
     
     // Add new message
     existingMessages.push(message);
 
-    // Update client with new messages array
+    // Update lead with new messages array
     return this.prisma.lead.update({
       where: { id },
       data: {
@@ -132,17 +132,17 @@ export class LeadsService {
   }
 
   async remove(id: number, userId: number, userRole: string) {
-    // Check if client exists and user has permission
-    const client = await this.prisma.lead.findUnique({
+    // Check if lead exists and user has permission
+    const lead = await this.prisma.lead.findUnique({
       where: { id },
     });
 
-    if (!client) {
+    if (!lead) {
       throw new NotFoundException(`Lead with ID ${id} not found`);
     }
 
-    // Check if user has permission to delete this client
-    if (userRole !== 'admin' && userRole !== 'super_admin' && client.userId !== userId) {
+    // Check if user has permission to delete this lead
+    if (userRole !== 'admin' && userRole !== 'super_admin' && lead.userId !== userId) {
       throw new ForbiddenException('Access denied');
     }
 

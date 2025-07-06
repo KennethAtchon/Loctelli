@@ -47,7 +47,7 @@ $ npm run db:migrate:dev
 # Reset database (development only)
 $ npm run db:migrate:reset
 
-# Generate Prisma client
+# Generate Prisma lead
 $ npm run db:generate
 
 # Open Prisma Studio
@@ -89,7 +89,7 @@ src/
 │   └── middleware/         # Custom middleware
 ├── modules/                # Business logic modules
 │   ├── users/              # User management
-│   ├── clients/            # Lead management
+│   ├── leads/            # Lead management
 │   ├── strategies/         # Strategy management
 │   ├── bookings/           # Booking management
 │   └── chat/               # Chat functionality

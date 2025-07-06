@@ -102,7 +102,7 @@ check_ssl() {
     fi
     
     if command -v openssl >/dev/null 2>&1; then
-        if openssl s_client -connect "$domain:443" -servername "$domain" </dev/null 2>/dev/null | grep -q "Verify return code: 0"; then
+        if openssl s_lead -connect "$domain:443" -servername "$domain" </dev/null 2>/dev/null | grep -q "Verify return code: 0"; then
             print_status "PASS" "SSL certificate for $domain is valid"
         else
             print_status "FAIL" "SSL certificate for $domain is invalid or missing"
@@ -236,7 +236,7 @@ if [ ! -z "$DATABASE_URL" ]; then
             print_status "FAIL" "Cannot connect to database"
         fi
     else
-        print_status "WARN" "PostgreSQL client not available, skipping database connection check"
+        print_status "WARN" "PostgreSQL lead not available, skipping database connection check"
     fi
 fi
 

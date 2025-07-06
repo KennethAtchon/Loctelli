@@ -9,8 +9,8 @@ echo "Starting application with automatic migrations..."
 echo "Running database migrations..."
 npx prisma migrate deploy
 
-# Generate Prisma client (in case it's not already generated)
-echo "Generating Prisma client..."
+# Generate Prisma lead (in case it's not already generated)
+echo "Generating Prisma lead..."
 npx prisma generate
 
 # Run database seeding

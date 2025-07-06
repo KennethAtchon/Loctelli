@@ -20,7 +20,7 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Generate Prisma client
+# Generate Prisma lead
 RUN npx prisma generate
 
 # Build the application

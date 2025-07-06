@@ -51,9 +51,9 @@ export class SalesBotService implements OnModuleInit {
   // }
   
   /**
-   * Generate a response for a client message
-   * @param message The client's message
-   * @param leadId The client's ID
+   * Generate a response for a lead message
+   * @param message The lead's message
+   * @param leadId The lead's ID
    * @returns The bot's response
    */
   async generateResponse(message: string, leadId: number): Promise<string> {
@@ -65,34 +65,34 @@ export class SalesBotService implements OnModuleInit {
     this.logger.log(`[generateResponse] message preview: ${message.substring(0, Math.min(50, message.length))}...`);
     
     try {
-      // Get client from database
-      const client = await this.prisma.lead.findUnique({
+      // Get lead from database
+      const lead = await this.prisma.lead.findUnique({
         where: { id: leadId }
       });
       
-      if (!client) {
-        this.logger.warn(`No client found for leadId=${leadId}`);
+      if (!lead) {
+        this.logger.warn(`No lead found for leadId=${leadId}`);
         return "Sorry, I couldn't find your information.";
       }
       
       // Get user and strategy
       const user = await this.prisma.user.findUnique({
-        where: { id: client.userId }
+        where: { id: lead.userId }
       });
       
       const strategy = await this.prisma.strategy.findUnique({
-        where: { id: client.strategyId }
+        where: { id: lead.strategyId }
       });
       
       // Get message history first (before appending new message)
-      const history = client.messageHistory ? 
-        (JSON.parse(client.messageHistory as string) as MessageHistoryItem[]).slice(-this.maxHistory) : 
+      const history = lead.messageHistory ? 
+        (JSON.parse(lead.messageHistory as string) as MessageHistoryItem[]).slice(-this.maxHistory) : 
         [];
       
       this.logger.debug(`Using history with ${history.length} messages for leadId=${leadId}`);
       
       // Generate prompt with existing history
-      const prompt = await this.promptHelper.composePrompt(client, user, strategy, history);
+      const prompt = await this.promptHelper.composePrompt(lead, user, strategy, history);
       
       // Add the latest user message to the prompt
       prompt.push({ role: 'user', content: message });
@@ -104,8 +104,8 @@ export class SalesBotService implements OnModuleInit {
       const botResponse = await this.createBotResponse(prompt);
       
       // Append both user message and bot response to history
-      await this.appendMessageToHistory(client, 'user', message);
-      await this.appendMessageToHistory(client, 'bot', botResponse);
+      await this.appendMessageToHistory(lead, 'user', message);
+      await this.appendMessageToHistory(lead, 'bot', botResponse);
       
       // Check for booking confirmation
       if (user && user.bookingEnabled) {
@@ -125,12 +125,12 @@ export class SalesBotService implements OnModuleInit {
 
   private async processFollowUps() {
     try {
-      this.logger.log('Processing follow-ups for clients');
+      this.logger.log('Processing follow-ups for leads');
       
-      // Find clients that need follow-up (example logic)
-      const clients = await this.prisma.lead.findMany({
+      // Find leads that need follow-up (example logic)
+      const leads = await this.prisma.lead.findMany({
         where: {
-          // Example: clients with no messages in the last 7 days
+          // Example: leads with no messages in the last 7 days
           lastMessageDate: {
             lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
           }
@@ -141,38 +141,38 @@ export class SalesBotService implements OnModuleInit {
         }
       });
       
-      this.logger.log(`Found ${clients.length} clients requiring follow-up`);
+      this.logger.log(`Found ${leads.length} leads requiring follow-up`);
       
-      // Process each client
-      for (const client of clients) {
-        await this.sendFollowUpMessage(client);
+      // Process each lead
+      for (const lead of leads) {
+        await this.sendFollowUpMessage(lead);
       }
     } catch (error) {
       this.logger.error('Error processing follow-ups', error);
     }
   }
   
-  private async sendFollowUpMessage(client: any) {
+  private async sendFollowUpMessage(lead: any) {
     try {
-      this.logger.log(`Sending follow-up to client ${client.id}`);
+      this.logger.log(`Sending follow-up to lead ${lead.id}`);
       
       // Example follow-up message
       const message = {
-        content: `Hi ${client.name}, just checking in to see how you're doing.`,
+        content: `Hi ${lead.name}, just checking in to see how you're doing.`,
         role: 'assistant',
         timestamp: new Date().toISOString(),
         metadata: { automated: true }
       };
       
       // Parse existing messages or initialize empty array
-      const existingMessages = client.messageHistory ? JSON.parse(client.messageHistory as string) : [];
+      const existingMessages = lead.messageHistory ? JSON.parse(lead.messageHistory as string) : [];
       
       // Add new message
       existingMessages.push(message);
       
-      // Update client with new message
+      // Update lead with new message
       await this.prisma.lead.update({
-        where: { id: client.id },
+        where: { id: lead.id },
         data: {
           messageHistory: JSON.stringify(existingMessages),
           lastMessage: message.content,
@@ -180,20 +180,20 @@ export class SalesBotService implements OnModuleInit {
         } as any,
       });
       
-      this.logger.log(`Follow-up sent to client ${client.id}`);
+      this.logger.log(`Follow-up sent to lead ${lead.id}`);
     } catch (error) {
-      this.logger.error(`Error sending follow-up to client ${client.id}`, error);
+      this.logger.error(`Error sending follow-up to lead ${lead.id}`, error);
     }
   }
   
   /**
-   * Append a message to the client's message history
-   * @param client The client object
+   * Append a message to the lead's message history
+   * @param lead The lead object
    * @param fromRole The role of the message sender ('user' or 'bot')
    * @param message The message content
    */
-  private async appendMessageToHistory(client: any, fromRole: string, message: string): Promise<void> {
-    this.logger.debug(`[appendMessageToHistory] leadId=${client.id}, fromRole=${fromRole}, typeof message=${typeof message}, message=${JSON.stringify(message)}`);
+  private async appendMessageToHistory(lead: any, fromRole: string, message: string): Promise<void> {
+    this.logger.debug(`[appendMessageToHistory] leadId=${lead.id}, fromRole=${fromRole}, typeof message=${typeof message}, message=${JSON.stringify(message)}`);
     if (!message || typeof message !== 'string') {
       this.logger.error(`[appendMessageToHistory] Invalid message:`, message);
       return;
@@ -211,16 +211,16 @@ export class SalesBotService implements OnModuleInit {
     };
     
     // Parse existing messages or initialize empty array
-    const existingMessages = client.messageHistory ? 
-      JSON.parse(client.messageHistory as string) : 
+    const existingMessages = lead.messageHistory ? 
+      JSON.parse(lead.messageHistory as string) : 
       [];
     
     // Add new message
     existingMessages.push(newMessage);
     
-    // Update client with new message history
+    // Update lead with new message history
     await this.prisma.lead.update({
-      where: { id: client.id },
+      where: { id: lead.id },
       data: {
         messageHistory: JSON.stringify(existingMessages),
         lastMessage: message,
@@ -228,7 +228,7 @@ export class SalesBotService implements OnModuleInit {
       } as any,
     });
     
-    this.logger.log(`Message appended to history for leadId=${client.id}, history_length=${existingMessages.length}`);
+    this.logger.log(`Message appended to history for leadId=${lead.id}, history_length=${existingMessages.length}`);
   }
   
   /**

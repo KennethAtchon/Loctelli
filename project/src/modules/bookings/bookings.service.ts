@@ -17,7 +17,7 @@ export class BookingsService {
     return this.prisma.booking.findMany({
       include: {
         user: true,
-        client: true,
+        lead: true,
       },
     });
   }
@@ -27,7 +27,7 @@ export class BookingsService {
       where: { id },
       include: {
         user: true,
-        client: true,
+        lead: true,
       },
     });
 
@@ -47,30 +47,30 @@ export class BookingsService {
     return this.prisma.booking.findMany({
       where: { userId },
       include: {
-        client: true,
+        lead: true,
       },
     });
   }
 
   async findByleadId(leadId: number, userId: number, userRole: string) {
-    // First check if the client belongs to the user
-    const client = await this.prisma.lead.findUnique({
+    // First check if the lead belongs to the user
+    const lead = await this.prisma.lead.findUnique({
       where: { id: leadId },
     });
 
-    if (!client) {
+    if (!lead) {
       throw new NotFoundException(`Lead with ID ${leadId} not found`);
     }
 
-    // Check if user has permission to access this client's bookings
-    if (userRole !== 'admin' && userRole !== 'super_admin' && client.userId !== userId) {
+    // Check if user has permission to access this lead's bookings
+    if (userRole !== 'admin' && userRole !== 'super_admin' && lead.userId !== userId) {
       throw new ForbiddenException('Access denied');
     }
 
     return this.prisma.booking.findMany({
       where: { leadId },
       include: {
-        client: true,
+        lead: true,
       },
     });
   }

@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 
-describe('ClientsController (e2e)', () => {
+describe('LeadsController (e2e)', () => {
   let app: INestApplication;
   let prismaService: PrismaService;
   let userId: number;
@@ -52,11 +52,11 @@ describe('ClientsController (e2e)', () => {
     await app.close();
   });
 
-  const testClient = {
+  const testLead = {
     name: 'Test Lead',
     userId: null, // Will be set in beforeEach
     strategyId: null, // Will be set in beforeEach
-    email: 'client@example.com',
+    email: 'lead@example.com',
     phone: '123-456-7890',
     company: 'Test Company',
     position: 'CEO',
@@ -66,21 +66,21 @@ describe('ClientsController (e2e)', () => {
   let leadId: number;
 
   beforeEach(() => {
-    testClient.userId = userId;
-    testClient.strategyId = strategyId;
+    testLead.userId = userId;
+    testLead.strategyId = strategyId;
   });
 
   describe('/leads (POST)', () => {
-    it('should create a new client', () => {
+    it('should create a new lead', () => {
       return request(app.getHttpServer())
         .post('/leads')
         .set('x-api-key', process.env.API_KEY)
-        .send(testClient)
+        .send(testLead)
         .expect(201)
         .then(response => {
           expect(response.body).toHaveProperty('id');
-          expect(response.body.name).toBe(testClient.name);
-          expect(response.body.email).toBe(testClient.email);
+          expect(response.body.name).toBe(testLead.name);
+          expect(response.body.email).toBe(testLead.email);
           expect(response.body.userId).toBe(userId);
           expect(response.body.strategyId).toBe(strategyId);
           
@@ -88,7 +88,7 @@ describe('ClientsController (e2e)', () => {
         });
     });
 
-    it('should not create a client with invalid data', () => {
+    it('should not create a lead with invalid data', () => {
       return request(app.getHttpServer())
         .post('/leads')
         .set('x-api-key', process.env.API_KEY)
@@ -101,7 +101,7 @@ describe('ClientsController (e2e)', () => {
   });
 
   describe('/leads (GET)', () => {
-    it('should return all clients', () => {
+    it('should return all leads', () => {
       return request(app.getHttpServer())
         .get('/leads')
         .set('x-api-key', process.env.API_KEY)
@@ -117,21 +117,21 @@ describe('ClientsController (e2e)', () => {
   });
 
   describe('/leads/:id (GET)', () => {
-    it('should return a client by id', () => {
+    it('should return a lead by id', () => {
       return request(app.getHttpServer())
         .get(`/leads/${leadId}`)
         .set('x-api-key', process.env.API_KEY)
         .expect(200)
         .then(response => {
           expect(response.body).toHaveProperty('id', leadId);
-          expect(response.body).toHaveProperty('name', testClient.name);
-          expect(response.body).toHaveProperty('email', testClient.email);
+          expect(response.body).toHaveProperty('name', testLead.name);
+          expect(response.body).toHaveProperty('email', testLead.email);
           expect(response.body).toHaveProperty('user');
           expect(response.body).toHaveProperty('strategy');
         });
     });
 
-    it('should return 404 for non-existent client', () => {
+    it('should return 404 for non-existent lead', () => {
       return request(app.getHttpServer())
         .get('/leads/9999')
         .set('x-api-key', process.env.API_KEY)
@@ -140,7 +140,7 @@ describe('ClientsController (e2e)', () => {
   });
 
   describe('/leads/user/:userId (GET)', () => {
-    it('should return clients for a specific user', () => {
+    it('should return leads for a specific user', () => {
       return request(app.getHttpServer())
         .get(`/leads/user/${userId}`)
         .set('x-api-key', process.env.API_KEY)
@@ -154,7 +154,7 @@ describe('ClientsController (e2e)', () => {
   });
 
   describe('/leads/:id (PATCH)', () => {
-    it('should update a client', () => {
+    it('should update a lead', () => {
       const updatedName = 'Updated Lead';
       
       return request(app.getHttpServer())
@@ -165,13 +165,13 @@ describe('ClientsController (e2e)', () => {
         .then(response => {
           expect(response.body).toHaveProperty('id', leadId);
           expect(response.body).toHaveProperty('name', updatedName);
-          expect(response.body).toHaveProperty('email', testClient.email);
+          expect(response.body).toHaveProperty('email', testLead.email);
         });
     });
   });
 
   describe('/leads/:id (DELETE)', () => {
-    it('should delete a client', () => {
+    it('should delete a lead', () => {
       return request(app.getHttpServer())
         .delete(`/leads/${leadId}`)
         .set('x-api-key', process.env.API_KEY)
@@ -181,7 +181,7 @@ describe('ClientsController (e2e)', () => {
         });
     });
 
-    it('should return 404 after client is deleted', () => {
+    it('should return 404 after lead is deleted', () => {
       return request(app.getHttpServer())
         .get(`/leads/${leadId}`)
         .set('x-api-key', process.env.API_KEY)

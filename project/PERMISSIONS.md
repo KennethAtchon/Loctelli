@@ -76,7 +76,7 @@ if (user.role !== 'admin' && user.role !== 'super_admin' && user.userId !== id) 
 
 ### Admin-Only Controllers (AdminGuard)
 - `strategies.controller.ts` - All endpoints require admin access
-- `clients.controller.ts` - All endpoints require admin access
+- `leads.controller.ts` - All endpoints require admin access
 - `bookings.controller.ts` - All endpoints require admin access
 
 ### Role-Based Controllers (RolesGuard)
@@ -86,7 +86,7 @@ if (user.role !== 'admin' && user.role !== 'super_admin' && user.userId !== id) 
 - `general.controller.ts` - Admin-only endpoints with RolesGuard
 
 ### Mixed Permission Controllers
-- `chat.controller.ts` - Manual permission checks for client ownership + some public endpoints
+- `chat.controller.ts` - Manual permission checks for lead ownership + some public endpoints
 
 ### Public Controllers
 - `status.controller.ts` - All endpoints are public (health checks)

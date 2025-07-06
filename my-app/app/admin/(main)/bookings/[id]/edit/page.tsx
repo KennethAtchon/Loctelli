@@ -22,7 +22,7 @@ export default function EditBookingPage() {
 
   const [booking, setBooking] = useState<Booking | null>(null);
   const [users, setUsers] = useState<any[]>([]);
-  const [clients, setClients] = useState<any[]>([]);
+  const [leads, setLeads] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,9 +56,9 @@ export default function EditBookingPage() {
         const usersData = await api.users.getUsers();
         setUsers(usersData);
 
-        // Load clients for dropdown
-        const clientsData = await api.leads.getClients();
-        setClients(clientsData);
+        // Load leads for dropdown
+        const leadsData = await api.leads.getLeads();
+        setLeads(leadsData);
 
       } catch (error) {
         logger.error('Failed to load booking data:', error);
@@ -205,13 +205,13 @@ export default function EditBookingPage() {
                   onValueChange={(value) => handleInputChange('leadId', value ? Number(value) : undefined)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a client (optional)" />
+                    <SelectValue placeholder="Select a lead (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No client</SelectItem>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id.toString()}>
-                        {client.name} ({client.company || 'No company'})
+                    <SelectItem value="">No lead</SelectItem>
+                    {leads.map((lead) => (
+                      <SelectItem key={lead.id} value={lead.id.toString()}>
+                        {lead.name} ({lead.company || 'No company'})
                       </SelectItem>
                     ))}
                   </SelectContent>

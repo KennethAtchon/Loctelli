@@ -37,11 +37,11 @@ export class GeneralController {
     return this.generalService.getSystemStatus();
   }
 
-  @Get('recent-clients')
+  @Get('recent-leads')
   @UseGuards(RolesGuard)
   @Roles('admin', 'super_admin')
-  async getRecentClients() {
-    return this.generalService.getRecentClients();
+  async getRecentLeads() {
+    return this.generalService.getRecentLeads();
   }
 
   @Get('users/:id/detailed')
@@ -51,7 +51,7 @@ export class GeneralController {
     return this.generalService.getDetailedUser(id);
   }
 
-  @Get('clients/:id/detailed')
+  @Get('leads/:id/detailed')
   @UseGuards(RolesGuard)
   @Roles('admin', 'super_admin')
   async getDetailedLead(@Param('id', ParseIntPipe) id: number) {

@@ -1,6 +1,6 @@
 # Loctelli CRM
 
-A comprehensive CRM application built with NestJS backend and Next.js frontend, featuring client management, sales strategies, booking system, and AI-powered chat integration with advanced authentication, admin capabilities, and automated background processes.
+A comprehensive CRM application built with NestJS backend and Next.js frontend, featuring lead management, sales strategies, booking system, and AI-powered chat integration with advanced authentication, admin capabilities, and automated background processes.
 
 ## 🏗️ Architecture
 
@@ -31,7 +31,7 @@ Loctelli/
 │   │   │   └── guards/   # Role-based guards
 │   │   ├── modules/      # Core business modules
 │   │   │   ├── users/    # User management
-│   │   │   ├── clients/  # Lead management
+│   │   │   ├── leads/  # Lead management
 │   │   │   ├── strategies/ # Sales strategies
 │   │   │   ├── bookings/ # Booking management
 │   │   │   ├── chat/     # Chat functionality
@@ -74,8 +74,8 @@ Loctelli/
 - `@/components/customUI/` - Custom UI components
 - `@/components/admin/` - Admin-specific components
 - `@/components/auth/` - Authentication components
-    ├── lib/             # Utilities and API clients
-    │   ├── api/         # API client modules
+    ├── lib/             # Utilities and API leads
+    │   ├── api/         # API lead modules
     │   ├── cookies.ts   # Cookie management
     │   ├── envUtils.ts  # Environment utilities
     │   └── utils.ts     # Utility functions
@@ -91,7 +91,7 @@ Loctelli/
 - **User Authentication**: Secure login/register with JWT tokens and automatic login after registration
 - **Admin Panel**: Comprehensive admin interface for user management
 - **Strategy Management**: Create and manage sales strategies
-- **Lead Management**: Track and manage client relationships
+- **Lead Management**: Track and manage lead relationships
 - **Booking System**: Handle appointment scheduling
 - **Chat Integration**: AI-powered conversation management with full conversation history
 - **Prompt Template System**: Global AI prompt template management with activation controls and strategy integration
@@ -102,23 +102,23 @@ Loctelli/
 ### **AI-Powered Conversations**
 - **Context-Aware**: AI maintains conversation context across all messages
 - **Strategy-Based**: Responses tailored to specific sales strategies
-- **Lead-Specific**: Personalized interactions based on client profiles
-- **Owner-Lead Clarity**: AI clearly understands the difference between company owner (who it represents) and client (who it's talking to)
-- **Rich Lead Context**: AI has access to client's name, email, phone, company, position, status, notes, and custom ID
+- **Lead-Specific**: Personalized interactions based on lead profiles
+- **Owner-Lead Clarity**: AI clearly understands the difference between company owner (who it represents) and lead (who it's talking to)
+- **Rich Lead Context**: AI has access to lead's name, email, phone, company, position, status, notes, and custom ID
 - **Company Context**: AI knows company owner details, budget range, and booking capabilities
 - **Booking Integration**: Automatic booking creation from AI responses
 - **Responsive AI**: AI responds directly to user messages instead of generic sales pitches
 - **Conversational**: Natural, helpful responses that answer user questions and address specific needs
 
 ### **Conversation Management**
-- **Full History**: Complete conversation history loaded when client is selected
+- **Full History**: Complete conversation history loaded when lead is selected
 - **Real-time Chat**: Live message sending and receiving
 - **Message Persistence**: All conversations stored in database
 - **Format Compatibility**: Supports both old and new message formats seamlessly
 
 ### **Admin Testing Interface**
-- **Lead Spoofing**: Test AI responses by impersonating any client
-- **Strategy Testing**: Verify different strategies with the same client
+- **Lead Spoofing**: Test AI responses by impersonating any lead
+- **Strategy Testing**: Verify different strategies with the same lead
 - **Conversation Simulation**: Full conversation flow testing
 - **History Loading**: Automatic loading of existing conversations
 
@@ -126,7 +126,7 @@ Loctelli/
 - **Fixed OpenAI API Integration**: Resolved issue where latest user messages weren't being included in AI responses
 - **Enhanced Message Processing**: Improved conversation context handling and message format compatibility
 - **Better AI Responsiveness**: AI now responds directly to user messages instead of repeating generic greetings
-- **Improved Context Clarity**: AI now clearly distinguishes between company owner details and client details
+- **Improved Context Clarity**: AI now clearly distinguishes between company owner details and lead details
 
 ## **Prompt Template & Strategy Integration**
 
@@ -224,7 +224,7 @@ npm install
 # Start the database and Redis
 docker-compose up -d db redis
 
-# Generate Prisma client
+# Generate Prisma lead
 npm run db:generate
 
 # Run migrations
@@ -291,13 +291,13 @@ The responsive design ensures optimal user experience across all device sizes wh
 - **Booking enabled by default**: New users have booking functionality enabled by default with toggle control
 
 ### 🏢 Lead Management
-- **Full CRUD functionality**: Add, edit, delete, and view client information
-- **Comprehensive client profiles**: Name, email, phone, company, position, custom ID
+- **Full CRUD functionality**: Add, edit, delete, and view lead information
+- **Comprehensive lead profiles**: Name, email, phone, company, position, custom ID
 - **Status tracking**: Lead, active, inactive status management
-- **Strategy assignment**: Link clients to AI sales strategies
-- **Notes and history**: Track client interactions and notes
-- **Search and filtering**: Find clients by name, email, company, or status
-- **Bulk operations**: Manage multiple clients at once
+- **Strategy assignment**: Link leads to AI sales strategies
+- **Notes and history**: Track lead interactions and notes
+- **Search and filtering**: Find leads by name, email, company, or status
+- **Bulk operations**: Manage multiple leads at once
 
 ### 🎯 Strategy Management
 - **AI strategy creation**: Build custom AI conversation strategies
@@ -340,17 +340,17 @@ The responsive design ensures optimal user experience across all device sizes wh
 - **Fallback schema**: Offline schema display when API is unavailable
 
 ### 👤 Lead Management
-- **Comprehensive client profiles**: Store all client information
-- **Status tracking**: Monitor client progression through sales funnel
+- **Comprehensive lead profiles**: Store all lead information
+- **Status tracking**: Monitor lead progression through sales funnel
 - **Message history**: Complete conversation history with timestamps
 - **Notes and annotations**: Add context and observations
 - **Custom IDs**: Integration with external systems
 - **Company and position tracking**: Professional context
-- **Strategy assignment**: Link clients to specific sales strategies
-- **Advanced filtering**: Filter clients by various criteria
+- **Strategy assignment**: Link leads to specific sales strategies
+- **Advanced filtering**: Filter leads by various criteria
 - **Real-time search**: Search by name, email, company, or phone
-- **Status filtering**: Filter by active, lead, inactive, or all clients
-- **Detailed client views**: Modal dialogs showing complete client information
+- **Status filtering**: Filter by active, lead, inactive, or all leads
+- **Detailed lead views**: Modal dialogs showing complete lead information
 
 ### 🗄️ Database Schema Visualization
 - **Interactive ERD diagrams**: Real-time database schema visualization using Mermaid.js
@@ -380,20 +380,20 @@ The responsive design ensures optimal user experience across all device sizes wh
 - **Quick status updates**: Inline status dropdown for rapid booking management
 - **Booking editing**: Full editing capabilities for booking details, dates, and information
 
-- **Lead associations**: Link bookings to specific clients and users
+- **Lead associations**: Link bookings to specific leads and users
 - **Advanced filtering**: Filter by status, type, and date ranges
-- **Search functionality**: Search bookings by client, user, or booking type
-- **Detailed booking views**: Complete booking information with client and user details
+- **Search functionality**: Search bookings by lead, user, or booking type
+- **Detailed booking views**: Complete booking information with lead and user details
 - **Real-time statistics**: Live counts for total, confirmed, pending, and cancelled bookings
 - **Flexible details**: JSON-based booking information storage with structured fields (date, duration, location, notes, agenda)
 - **Responsive design**: Mobile-friendly booking management interface
 
 ### 🤖 AI Chat Interface (Admin)
-- **Lead ID spoofing**: Test AI responses by entering any client ID to simulate client interactions
-- **Lead profile display**: Shows complete client information including name, email, company, status, and assigned strategy
-- **Real-time messaging**: Instant message exchange with AI assistant using client context
+- **Lead ID spoofing**: Test AI responses by entering any lead ID to simulate lead interactions
+- **Lead profile display**: Shows complete lead information including name, email, company, status, and assigned strategy
+- **Real-time messaging**: Instant message exchange with AI assistant using lead context
 - **Conversation management**: Clear chat history and start new conversations
-- **Message history**: Track conversation flow with timestamps and client metadata
+- **Message history**: Track conversation flow with timestamps and lead metadata
 - **Typing indicators**: Visual feedback during AI response generation
 - **Error handling**: Graceful error display with retry functionality
 - **Keyboard shortcuts**: Enter to send, Shift+Enter for new lines
@@ -405,15 +405,15 @@ The responsive design ensures optimal user experience across all device sizes wh
 - **Development utilities**: Tools for database exploration and debugging
 - **Real-time schema updates**: View current database structure
 - **Export capabilities**: Download schema diagrams as SVG files
-- **Lead statistics**: Real-time counts for different client statuses
-- **Delete functionality**: Confirmation-based client deletion
-- **Responsive table**: Mobile-friendly client data display
+- **Lead statistics**: Real-time counts for different lead statuses
+- **Delete functionality**: Confirmation-based lead deletion
+- **Responsive table**: Mobile-friendly lead data display
 
 ### 📅 Booking System
 - **Appointment scheduling**: Create and manage meetings
 - **Calendar integration**: Sync with external calendar systems
 - **Status management**: Track booking status (pending, confirmed, cancelled, completed)
-- **Lead association**: Link bookings to specific clients
+- **Lead association**: Link bookings to specific leads
 - **Flexible details**: JSON-based booking information storage
 - **Date range filtering**: Filter bookings by time periods
 
@@ -438,17 +438,17 @@ The responsive design ensures optimal user experience across all device sizes wh
 - **Error handling**: Graceful error display with retry functionality
 - **Responsive design**: Mobile-friendly dashboard layout
 - **Detailed user views**: Modal dialogs showing complete user information with all fields
-- **Detailed client views**: Modal dialogs showing complete client information with all fields
-- **View buttons**: Eye icon buttons to view all details for each user and client
-- **Related data display**: Shows strategies, clients, bookings, and admin relationships
-- **Recent clients section**: Latest clients added to the platform with detailed information
+- **Detailed lead views**: Modal dialogs showing complete lead information with all fields
+- **View buttons**: Eye icon buttons to view all details for each user and lead
+- **Related data display**: Shows strategies, leads, bookings, and admin relationships
+- **Recent leads section**: Latest leads added to the platform with detailed information
 - **Database schema visualization**: Interactive ERD diagram showing database structure and relationships
 
 ### 👥 User Management (Admin)
 - **Complete user management**: Full CRUD operations with role-based access control
 - **Advanced search & filtering**: Search by name, email, company with role and status filters
 - **Real-time statistics**: Live user counts (total, active, inactive, admin users)
-- **Detailed user views**: Comprehensive user information with related strategies, clients, and bookings
+- **Detailed user views**: Comprehensive user information with related strategies, leads, and bookings
 - **Role management**: User role assignment and status toggling
 - **Booking functionality control**: Toggle booking enabled/disabled for each user with visual indicators
 - **Integration details**: Calendar, location, and external system integration tracking
@@ -543,7 +543,7 @@ npm run db:migrate
 # Reset database (development only)
 npm run db:reset
 
-# Generate Prisma client
+# Generate Prisma lead
 npm run db:generate
 ```
 
@@ -675,7 +675,7 @@ The backend provides a comprehensive REST API with the following main endpoints:
 
 ### Core Modules
 - **Users**: `/user/*` - User management with role-based access
-- **Clients**: `/client/*` - Lead management with strategy assignment
+- **Leads**: `/lead/*` - Lead management with strategy assignment
 - **Strategies**: `/strategy/*` - Sales strategy management
 - **Bookings**: `/booking/*` - Booking management with calendar integration
 - **Chat**: `/chat/*` - AI-powered messaging functionality
@@ -737,7 +737,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 For support and questions:
 - Check the documentation in each module
-- Review the API client documentation
+- Review the API lead documentation
 - Open an issue on GitHub
 
 ## 🔄 Version History

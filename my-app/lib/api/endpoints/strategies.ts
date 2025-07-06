@@ -1,7 +1,7 @@
-import { ApiClient } from '../client';
+import { Apilead } from '../lead';
 import { Strategy, CreateStrategyDto } from '@/types';
 
-export class StrategiesApi extends ApiClient {
+export class StrategiesApi extends Apilead {
   async getStrategies(): Promise<Strategy[]> {
     return this.get<Strategy[]>('/strategy');
   }

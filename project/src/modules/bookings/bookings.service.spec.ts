@@ -49,7 +49,7 @@ describe('BookingsService', () => {
       expect(mockPrismaService.booking.findMany).toHaveBeenCalledWith({
         include: {
           user: true,
-          client: true,
+          lead: true,
         },
       });
     });
@@ -66,7 +66,7 @@ describe('BookingsService', () => {
         where: { id: 1 },
         include: {
           user: true,
-          client: true,
+          lead: true,
         },
       });
     });
@@ -91,14 +91,14 @@ describe('BookingsService', () => {
       expect(mockPrismaService.booking.findMany).toHaveBeenCalledWith({
         where: { userId: 1 },
         include: {
-          client: true,
+          lead: true,
         },
       });
     });
   });
 
   describe('findByleadId', () => {
-    it('should return bookings for a specific client', async () => {
+    it('should return bookings for a specific lead', async () => {
       const expectedBookings = [
         { id: 1, userId: 1, leadId: 1, bookingType: 'call', details: {}, status: 'pending' },
       ];

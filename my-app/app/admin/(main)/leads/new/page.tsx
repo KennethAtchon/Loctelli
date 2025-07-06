@@ -17,7 +17,7 @@ import { Strategy } from '@/types';
 import type { UserProfile } from '@/lib/api/endpoints/admin-auth';
 import logger from '@/lib/logger';
 
-export default function NewClientPage() {
+export default function NewLeadPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');

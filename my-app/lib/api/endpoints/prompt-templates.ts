@@ -1,4 +1,4 @@
-import { ApiClient } from '../client';
+import { Apilead } from '../lead';
 
 export interface PromptTemplate {
   id: number;
@@ -38,7 +38,7 @@ export interface CreatePromptTemplateDto {
 
 export interface UpdatePromptTemplateDto extends Partial<CreatePromptTemplateDto> {}
 
-export class PromptTemplatesApi extends ApiClient {
+export class PromptTemplatesApi extends Apilead {
   async getAll(): Promise<PromptTemplate[]> {
     return this.get<PromptTemplate[]>('/admin/prompt-templates');
   }

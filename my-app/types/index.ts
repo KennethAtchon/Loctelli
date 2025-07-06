@@ -16,7 +16,7 @@ export interface User {
   createdAt: Date;
   updatedAt: Date;
   strategies?: Strategy[];
-  clients?: Lead[];
+  leads?: Lead[];
   bookings?: Booking[];
 }
 
@@ -40,7 +40,7 @@ export interface Strategy {
   createdAt: Date;
   updatedAt: Date;
   user?: User;
-  clients?: Lead[];
+  leads?: Lead[];
 }
 
 // Lead types (belong to Users)
@@ -96,7 +96,7 @@ export interface Booking {
   createdAt: Date;
   updatedAt: Date;
   user?: User;
-  client?: Lead;
+  lead?: Lead;
 }
 
 // API Response types
@@ -190,7 +190,7 @@ export interface ChatMessage {
   id: string;
   leadId: number;
   message: string;
-  sender: 'user' | 'client';
+  sender: 'user' | 'lead';
   timestamp: Date;
   status: 'sent' | 'delivered' | 'read';
 }
@@ -218,7 +218,7 @@ export interface AuthUser {
 // Dashboard types
 export interface DashboardStats {
   totalUsers: number;
-  totalClients: number;
+  totalLeads: number;
   totalStrategies: number;
   totalBookings: number;
   recentBookings: Booking[];

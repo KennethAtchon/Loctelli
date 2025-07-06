@@ -31,7 +31,7 @@ export class GeneralService {
         activeUsers,
         totalStrategies,
         totalBookings,
-        totalClients,
+        totalLeads,
         recentUsers
       ] = await Promise.all([
         this.prisma.user.count(),
@@ -108,7 +108,7 @@ export class GeneralService {
         activeUsers,
         totalStrategies,
         totalBookings,
-        totalClients,
+        totalLeads,
         recentUsers,
         growthRates: {
           users: usersGrowth,
@@ -158,7 +158,7 @@ export class GeneralService {
     }
   }
 
-  async getRecentClients() {
+  async getRecentLeads() {
     try {
       return await this.prisma.lead.findMany({
         take: 5,
@@ -191,7 +191,7 @@ export class GeneralService {
         }
       });
     } catch (error) {
-      throw new Error(`Failed to fetch recent clients: ${error.message}`);
+      throw new Error(`Failed to fetch recent leads: ${error.message}`);
     }
   }
 
@@ -215,7 +215,7 @@ export class GeneralService {
               tone: true,
             }
           },
-          clients: {
+          leads: {
             select: {
               id: true,
               name: true,
@@ -246,7 +246,7 @@ export class GeneralService {
 
   async getDetailedLead(leadId: number) {
     try {
-      const client = await this.prisma.lead.findUnique({
+      const lead = await this.prisma.lead.findUnique({
         where: { id: leadId },
         include: {
           user: {
@@ -274,13 +274,13 @@ export class GeneralService {
         }
       });
 
-      if (!client) {
+      if (!lead) {
         throw new Error(`Lead with ID ${leadId} not found`);
       }
 
-      return client;
+      return lead;
     } catch (error) {
-      throw new Error(`Failed to fetch detailed client: ${error.message}`);
+      throw new Error(`Failed to fetch detailed lead: ${error.message}`);
     }
   }
 

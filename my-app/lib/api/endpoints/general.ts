@@ -1,4 +1,4 @@
-import { ApiClient } from '../client';
+import { Apilead } from '../lead';
 
 export interface DatabaseSchema {
   models: Array<{
@@ -25,7 +25,7 @@ export interface SchemaResponse {
   details?: string;
 }
 
-export class GeneralApi extends ApiClient {
+export class GeneralApi extends Apilead {
   async getDatabaseSchema(): Promise<SchemaResponse> {
     return this.get<SchemaResponse>('/general/schema');
   }

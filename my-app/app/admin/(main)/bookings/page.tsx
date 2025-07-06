@@ -239,7 +239,7 @@ export default function BookingsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Bookings</h1>
-          <p className="text-gray-600">Manage client appointments and meeting schedules.</p>
+          <p className="text-gray-600">Manage lead appointments and meeting schedules.</p>
         </div>
         <div className="flex gap-2">
           <Button 
@@ -294,7 +294,7 @@ export default function BookingsPage() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
                   type="text"
-                  placeholder="Search bookings by client, user, or type..."
+                  placeholder="Search bookings by lead, user, or type..."
                   className="pl-10"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -329,7 +329,7 @@ export default function BookingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>All Bookings ({filteredBookings.length})</CardTitle>
-          <CardDescription>A list of all client bookings and appointments.</CardDescription>
+          <CardDescription>A list of all lead bookings and appointments.</CardDescription>
         </CardHeader>
         <CardContent>
           {filteredBookings.length > 0 ? (

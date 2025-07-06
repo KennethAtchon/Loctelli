@@ -6,7 +6,7 @@
 - **Framework**: Next.js 14 with App Router
 - **UI Library**: Shadcn/ui components with Tailwind CSS
 - **State Management**: React Context for auth state
-- **API Lead**: Custom API client with automatic token refresh
+- **API Lead**: Custom API lead with automatic token refresh
 - **Authentication**: JWT tokens stored in HTTP-only cookies
 
 ### **Backend (NestJS)**
@@ -59,7 +59,7 @@
 
 #### **Core Features**
 - **Strategies**: `/strategy/*` - CRUD + duplication with user isolation + prompt template integration
-- **Clients**: `/client/*` - CRUD + filtering by user/strategy
+- **Leads**: `/lead/*` - CRUD + filtering by user/strategy
 - **Bookings**: `/booking/*` - CRUD + status updates
 - **Chat**: `/chat/*` - Message sending, history, read status (with placeholder implementations)
 - **Prompt Templates**: `/admin/prompt-templates/*` - CRUD + activation + default management
@@ -131,7 +131,7 @@
 - **Documentation**: Updated security check script to validate the new environment variable
 
 #### **11. Chat System Fixes - CRITICAL BUG RESOLUTION**
-- **Fixed**: Chat history not loading when client is selected
+- **Fixed**: Chat history not loading when lead is selected
 - **Fixed**: Message format mismatch between frontend and backend
 - **Fixed**: Bot not reading previous messages and repeating greetings
 - **Fixed**: Double message processing causing duplication
@@ -139,7 +139,7 @@
 - **Fixed**: Latest user message not being included in OpenAI API calls (CRITICAL FIX)
 
 **Frontend Changes:**
-- **Added**: `loadChatHistory()` function to fetch existing chat history when client is selected
+- **Added**: `loadChatHistory()` function to fetch existing chat history when lead is selected
 - **Added**: Message format conversion from backend format to frontend format
 - **Added**: Loading states for chat history
 - **Fixed**: Clear chat now only clears view, not database
@@ -179,15 +179,15 @@
 - **Result**: AI now receives the complete conversation context including the latest user message ✅
 
 **ENHANCEMENT - Owner vs Lead Context Clarity:**
-- **Problem**: AI couldn't distinguish between company owner details and client details
+- **Problem**: AI couldn't distinguish between company owner details and lead details
 - **Solution**: Enhanced `PromptHelperService` with clear separation:
   1. **`buildOwnerPrompt()`**: Shows company owner details (who we work for)
-  2. **`buildClientPrompt()`**: Shows client details (who we're talking to)
-  3. **Updated system prompt**: Clearly distinguishes between owner and client roles
-  4. **Enhanced default template**: Instructions now clarify "you work FOR the company owner and are talking TO the client"
+  2. **`buildleadPrompt()`**: Shows lead details (who we're talking to)
+  3. **Updated system prompt**: Clearly distinguishes between owner and lead roles
+  4. **Enhanced default template**: Instructions now clarify "you work FOR the company owner and are talking TO the lead"
 - **Lead Information Now Included**: Name, email, phone, company, position, custom ID, status, notes
 - **Owner Information Enhanced**: Name, company, email, budget range, booking enabled status
-- **Result**: AI now has complete context about both the company it represents and the client it's talking to ✅
+- **Result**: AI now has complete context about both the company it represents and the lead it's talking to ✅
 
 **Result**: Chat system now properly loads existing conversation history, maintains context across messages, and AI responds directly to user messages instead of repeating generic sales pitches ✅
 
@@ -312,12 +312,12 @@ interface CreateBookingDto {
 - `POST /strategy/:id/duplicate` - ✅ Matches
 
 #### **Lead Endpoints** ✅
-- `GET /client` - ✅ Matches
-- `GET /client/:id` - ✅ Matches
-- `POST /client` - ✅ Matches
-- `PATCH /client/:id` - ✅ Matches
-- `DELETE /client/:id` - ✅ Matches
-- `POST /client/:id/message` - ✅ Matches
+- `GET /lead` - ✅ Matches
+- `GET /lead/:id` - ✅ Matches
+- `POST /lead` - ✅ Matches
+- `PATCH /lead/:id` - ✅ Matches
+- `DELETE /lead/:id` - ✅ Matches
+- `POST /lead/:id/message` - ✅ Matches
 
 #### **Booking Endpoints** ✅
 - `GET /booking` - ✅ Matches
@@ -343,7 +343,7 @@ interface CreateBookingDto {
 #### **General Endpoints** ✅
 - `GET /general/dashboard-stats` - ✅ Matches
 - `GET /general/system-status` - ✅ Matches
-- `GET /general/recent-clients` - ✅ Matches
+- `GET /general/recent-leads` - ✅ Matches
 - `GET /general/users/:id/detailed` - ✅ Matches
 - `GET /general/leads/:id/detailed` - ✅ Matches
 - `GET /general/schema` - ✅ Matches

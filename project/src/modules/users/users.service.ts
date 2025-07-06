@@ -3,7 +3,7 @@ import { GhlService } from '../../ghl/ghl.service';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from '@prisma/client';
+import { User } from '@prisma/lead';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -29,7 +29,7 @@ export class UsersService {
     return this.prisma.user.findMany({
       include: {
         strategies: true,
-        clients: true,
+        leads: true,
         bookings: true,
       },
     });
@@ -40,7 +40,7 @@ export class UsersService {
       where: { id },
       include: {
         strategies: true,
-        clients: true,
+        leads: true,
         bookings: true,
       },
     });

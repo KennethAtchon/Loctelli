@@ -238,8 +238,8 @@ function generateFallbackERD(): string {
     
     AdminUser ||--o{ User : "createdUsers"
     User ||--o{ Strategy : "strategies"
-    User ||--o{ Lead : "clients"
+    User ||--o{ Lead : "leads"
     User ||--o{ Booking : "bookings"
-    Strategy ||--o{ Lead : "clients"
+    Strategy ||--o{ Lead : "leads"
     Lead }o--o{ Booking : "bookings"`;
 } 

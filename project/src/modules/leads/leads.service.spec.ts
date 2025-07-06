@@ -8,7 +8,7 @@ describe('LeadsService', () => {
   let prismaService: PrismaService;
 
   const mockPrismaService = {
-    client: {
+    lead: {
       findMany: jest.fn(),
       findUnique: jest.fn(),
       create: jest.fn(),

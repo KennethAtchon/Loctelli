@@ -1,4 +1,4 @@
-import { ApiClient } from '../client';
+import { Apilead } from '../lead';
 
 export interface AdminLoginDto {
   email: string;
@@ -73,7 +73,7 @@ export interface DashboardStats {
   activeUsers: number;
   totalStrategies: number;
   totalBookings: number;
-  totalClients: number;
+  totalLeads: number;
   recentUsers: Array<{
     id: number;
     name: string;
@@ -125,7 +125,7 @@ export interface DetailedUser {
     tag?: string;
     tone?: string;
   }>;
-  clients?: Array<{
+  leads?: Array<{
     id: number;
     name: string;
     email?: string;
@@ -213,7 +213,7 @@ export interface DetailedLead {
   }>;
 }
 
-export class AdminAuthApi extends ApiClient {
+export class AdminAuthApi extends Apilead {
   async adminLogin(data: AdminLoginDto): Promise<AdminAuthResponse> {
     return this.post<AdminAuthResponse>('/admin/auth/login', data);
   }
@@ -282,8 +282,8 @@ export class AdminAuthApi extends ApiClient {
     return this.get<SystemStatus>('/general/system-status');
   }
 
-  async getRecentClients(): Promise<DetailedLead[]> {
-    return this.get<DetailedLead[]>('/general/recent-clients');
+  async getRecentLeads(): Promise<DetailedLead[]> {
+    return this.get<DetailedLead[]>('/general/recent-leads');
   }
 
   async getDetailedUser(userId: number): Promise<DetailedUser> {

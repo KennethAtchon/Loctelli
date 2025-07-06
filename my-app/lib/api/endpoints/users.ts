@@ -1,7 +1,7 @@
-import { ApiClient } from '../client';
+import { Apilead } from '../lead';
 import { User, CreateUserDto } from '@/types';
 
-export class UsersApi extends ApiClient {
+export class UsersApi extends Apilead {
   async getUsers(): Promise<User[]> {
     return this.get<User[]>('/user');
   }
