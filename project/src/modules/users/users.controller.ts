@@ -1,19 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, HttpException, HttpStatus, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, HttpException, HttpStatus, Query, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { JwtAuthGuard } from '../../auth/auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
 
 @Controller('user')
+@UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'super_admin')
   create(@Body() createUserDto: CreateUserDto, @CurrentUser() user) {
-    // Only admins can create users
-    if (user.role !== 'admin' && user.role !== 'super_admin') {
-      throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
-    }
     return this.usersService.create(createUserDto);
   }
 
@@ -68,11 +70,9 @@ export class UsersController {
   }
 
   @Post('import-ghl-users')
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'super_admin')
   importGhlUsers(@CurrentUser() user) {
-    // Only admins can import users
-    if (user.role !== 'admin' && user.role !== 'super_admin') {
-      throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
-    }
     return this.usersService.importGhlUsers();
   }
 }

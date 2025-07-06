@@ -9,6 +9,7 @@ import { AdminAuthController } from './admin-auth.controller';
 import { AdminAuthCodeService } from './admin-auth-code.service';
 import { JwtStrategy } from './jwt.strategy';
 import { RolesGuard } from './guards/roles.guard';
+import { AdminGuard } from './guards/admin.guard';
 import { PrismaModule } from '../infrastructure/prisma/prisma.module';
 import { RedisModule } from '../infrastructure/redis/redis.module';
 
@@ -26,7 +27,7 @@ import { RedisModule } from '../infrastructure/redis/redis.module';
       inject: [ConfigService],
     }),
   ],
-  providers: [AuthService, AdminAuthService, AdminAuthCodeService, JwtStrategy, RolesGuard],
+  providers: [AuthService, AdminAuthService, AdminAuthCodeService, JwtStrategy, RolesGuard, AdminGuard],
   controllers: [AuthController, AdminAuthController],
   exports: [AuthService, AdminAuthService],
 })

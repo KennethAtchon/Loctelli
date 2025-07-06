@@ -1,29 +1,31 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { Admin } from '../../auth/decorators/admin.decorator';
+import { AdminGuard } from '../../auth/guards/admin.guard';
 
 @Controller('booking')
+@UseGuards(AdminGuard)
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
   @Post()
-  create(@Body() createBookingDto: CreateBookingDto, @CurrentUser() user) {
-    // Ensure the booking is created for the current user
-    return this.bookingsService.create({ ...createBookingDto, userId: user.userId });
+  @Admin()
+  create(@Body() createBookingDto: CreateBookingDto) {
+    // Admin users can create bookings for any regular user
+    // The userId should be provided in the DTO by the frontend
+    return this.bookingsService.create(createBookingDto);
   }
 
   @Get()
+  @Admin()
   findAll(@CurrentUser() user, @Query('userId') userId?: string, @Query('clientId') clientId?: string) {
     if (userId) {
       const parsedUserId = parseInt(userId, 10);
       if (isNaN(parsedUserId)) {
         throw new HttpException('Invalid userId parameter', HttpStatus.BAD_REQUEST);
-      }
-      // Only allow viewing other users' bookings if admin
-      if (user.role !== 'admin' && user.role !== 'super_admin' && user.userId !== parsedUserId) {
-        throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
       }
       return this.bookingsService.findByUserId(parsedUserId);
     }
@@ -36,16 +38,18 @@ export class BookingsController {
       return this.bookingsService.findByClientId(parsedClientId, user.userId, user.role);
     }
     
-    // Return current user's bookings
-    return this.bookingsService.findByUserId(user.userId);
+    // Admin users can see all bookings
+    return this.bookingsService.findAll();
   }
 
   @Get(':id')
+  @Admin()
   findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user) {
     return this.bookingsService.findOne(id, user.userId, user.role);
   }
 
   @Patch(':id')
+  @Admin()
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateBookingDto: UpdateBookingDto,
@@ -55,6 +59,7 @@ export class BookingsController {
   }
 
   @Patch(':id/status')
+  @Admin()
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: { status: string },
@@ -64,6 +69,7 @@ export class BookingsController {
   }
 
   @Delete(':id')
+  @Admin()
   remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user) {
     return this.bookingsService.remove(id, user.userId, user.role);
   }

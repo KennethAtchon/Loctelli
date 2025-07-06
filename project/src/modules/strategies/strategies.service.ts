@@ -61,11 +61,6 @@ export class StrategiesService {
       throw new NotFoundException(`Strategy with ID ${id} not found`);
     }
 
-    // Check if user has permission to access this strategy
-    if (userRole !== 'admin' && userRole !== 'super_admin' && strategy.userId !== userId) {
-      throw new ForbiddenException('Access denied');
-    }
-
     return strategy;
   }
 
@@ -79,18 +74,13 @@ export class StrategiesService {
   }
 
   async update(id: number, updateStrategyDto: UpdateStrategyDto, userId: number, userRole: string) {
-    // Check if strategy exists and user has permission
+    // Check if strategy exists
     const strategy = await this.prisma.strategy.findUnique({
       where: { id },
     });
 
     if (!strategy) {
       throw new NotFoundException(`Strategy with ID ${id} not found`);
-    }
-
-    // Check if user has permission to update this strategy
-    if (userRole !== 'admin' && userRole !== 'super_admin' && strategy.userId !== userId) {
-      throw new ForbiddenException('Access denied');
     }
 
     try {
@@ -104,18 +94,13 @@ export class StrategiesService {
   }
 
   async remove(id: number, userId: number, userRole: string) {
-    // Check if strategy exists and user has permission
+    // Check if strategy exists
     const strategy = await this.prisma.strategy.findUnique({
       where: { id },
     });
 
     if (!strategy) {
       throw new NotFoundException(`Strategy with ID ${id} not found`);
-    }
-
-    // Check if user has permission to delete this strategy
-    if (userRole !== 'admin' && userRole !== 'super_admin' && strategy.userId !== userId) {
-      throw new ForbiddenException('Access denied');
     }
 
     try {
@@ -128,7 +113,7 @@ export class StrategiesService {
   }
 
   async duplicate(id: number, userId: number, userRole: string) {
-    // Check if strategy exists and user has permission
+    // Check if strategy exists
     const strategy = await this.prisma.strategy.findUnique({
       where: { id },
     });
@@ -137,15 +122,10 @@ export class StrategiesService {
       throw new NotFoundException(`Strategy with ID ${id} not found`);
     }
 
-    // Check if user has permission to duplicate this strategy
-    if (userRole !== 'admin' && userRole !== 'super_admin' && strategy.userId !== userId) {
-      throw new ForbiddenException('Access denied');
-    }
-
     // Create a duplicate strategy with "(Copy)" suffix
     const duplicateData: CreateStrategyDto = {
       name: `${strategy.name} (Copy)`,
-      userId: userId,
+      userId: strategy.userId, // Keep the same user assignment
       tag: strategy.tag || undefined,
       tone: strategy.tone || undefined,
       aiInstructions: strategy.aiInstructions || undefined,

@@ -114,7 +114,7 @@ export default function EditClientPage() {
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'strategyId' ? parseInt(value) : value,
+      [name]: name === 'strategyId' || name === 'userId' ? parseInt(value) || 0 : value,
     }));
   };
 

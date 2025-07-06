@@ -280,6 +280,11 @@ export class ApiClient {
   }
 
   protected async post<T>(endpoint: string, data?: unknown, options?: ApiRequestOptions): Promise<T> {
+    logger.debug('📤 POST Request:', {
+      endpoint,
+      data: data ? JSON.stringify(data, null, 2) : 'No data'
+    });
+    
     return this.request<T>(endpoint, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,

@@ -77,7 +77,7 @@ export class PromptHelperService {
       ...Object.entries(fields).map(([k, v]) => `  ${k}: ${v}`)
     ].join('\n');
     
-    this.logger.debug(`Strategy prompt built: ${strategyPrompt.substring(0, 100)}...`);
+    this.logger.debug(`Strategy prompt built: ${strategyPrompt ? strategyPrompt.substring(0, 100) + '...' : 'undefined'}`);
     return strategyPrompt;
   }
 
@@ -136,7 +136,7 @@ export class PromptHelperService {
     const systemPrompt = this.promptBuilder.build();
 
     this.logger.log(`System prompt built for clientId=${client.id}, length=${systemPrompt.length}`);
-    this.logger.debug(`System prompt content: ${systemPrompt.substring(0, 200)}...`);
+    this.logger.debug(`System prompt content: ${systemPrompt ? systemPrompt.substring(0, 200) + '...' : 'undefined'}`);
     return systemPrompt;
   }
 
@@ -149,29 +149,26 @@ export class PromptHelperService {
    * @returns Array of messages for OpenAI API
    */
   async composePrompt(client: any, user: any, strategy: any, history: MessageHistory[]): Promise<ChatMessage[]> {
-    this.logger.debug(`Composing prompt for clientId=${client.id}, history_length=${history.length}`);
-    
+    this.logger.debug(`[composePrompt] clientId=${client.id}, history_length=${history.length}`);
     const messages: ChatMessage[] = [
-      { 
-        role: "system", 
-        content: await this.buildSystemPrompt(client, user, strategy) 
+      {
+        role: 'system',
+        content: await this.buildSystemPrompt(client, user, strategy)
       }
     ];
-    
     for (const msg of history) {
-      const role = msg.from === "bot" ? "assistant" : "user";
-      messages.push({ 
-        role, 
-        content: msg.message 
-      });
+      const role = msg.from === 'bot' ? 'assistant' : 'user';
+      this.logger.debug(`[composePrompt] history message typeof=${typeof msg.message}, value=${JSON.stringify(msg.message)}`);
+      if (msg.message && typeof msg.message === 'string') {
+        messages.push({
+          role,
+          content: msg.message
+        });
+      } else {
+        this.logger.warn(`[composePrompt] Skipping message with invalid content:`, msg);
+      }
     }
-    
-    this.logger.log(`Prompt composed with ${messages.length} messages for clientId=${client.id}`);
-    this.logger.debug(`Prompt messages: ${JSON.stringify(messages.map(m => ({ 
-      role: m.role, 
-      content: m.content.substring(0, 50) + '...' 
-    })))}`);
-    
+    this.logger.log(`[composePrompt] Final messages array: ${JSON.stringify(messages.map(m => ({ role: m.role, typeofContent: typeof m.content, content: m.content })))}`);
     return messages;
   }
 }

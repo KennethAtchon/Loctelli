@@ -1,11 +1,14 @@
-import { Controller, Post, Body, Get, Param, ParseIntPipe, HttpException, HttpStatus, Patch, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, ParseIntPipe, HttpException, HttpStatus, Patch, Delete, UseGuards } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { ChatMessageDto } from './dto/chat-message.dto';
 import { SendMessageDto } from './dto/send-message.dto';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import { JwtAuthGuard } from '../../auth/auth.guard';
+import { Public } from '../../auth/decorators/public.decorator';
 
 @Controller('chat')
+@UseGuards(JwtAuthGuard)
 export class ChatController {
   constructor(
     private readonly chatService: ChatService,
@@ -103,11 +106,13 @@ export class ChatController {
   }
 
   @Post('send_message')
+  @Public()
   sendMessageByCustomId(@Body() sendMessageDto: SendMessageDto) {
     return this.chatService.sendMessageByCustomId(sendMessageDto);
   }
 
   @Post('general')
+  @Public()
   generalChatEndpoint(@Body() data: any) {
     return this.chatService.handleGeneralChat(data);
   }

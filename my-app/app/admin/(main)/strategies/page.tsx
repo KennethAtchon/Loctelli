@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Table,
   TableBody,
@@ -39,6 +40,7 @@ export default function StrategiesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [tagFilter, setTagFilter] = useState<string>('all');
 
@@ -97,14 +99,26 @@ export default function StrategiesPage() {
     filterStrategies();
   }, [filterStrategies]);
 
+  // Cleanup success/error messages on unmount
+  useEffect(() => {
+    return () => {
+      setSuccess(null);
+      setError(null);
+    };
+  }, []);
+
   const deleteStrategy = async (strategyId: number) => {
     if (confirm('Are you sure you want to delete this strategy?')) {
       try {
+        setError(null);
         await api.strategies.deleteStrategy(strategyId);
+        setSuccess('Strategy deleted successfully');
         await loadStrategies(); // Reload the list
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccess(null), 3000);
       } catch (error) {
         logger.error('Failed to delete strategy:', error);
-        alert('Failed to delete strategy');
+        setError('Failed to delete strategy. Please try again.');
       }
     }
   };
@@ -147,24 +161,31 @@ export default function StrategiesPage() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button 
-            onClick={loadStrategies}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="space-y-6">
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>
+            {error}
+            <Button 
+              variant="link" 
+              className="p-0 h-auto text-destructive underline ml-2"
+              onClick={loadStrategies}
+            >
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {success && (
+        <Alert>
+          <AlertDescription>{success}</AlertDescription>
+        </Alert>
+      )}
+
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>

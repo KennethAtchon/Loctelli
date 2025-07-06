@@ -80,14 +80,30 @@ export default function NewStrategyPage() {
       return;
     }
     
+    if (!formData.name.trim()) {
+      setError('Please enter a strategy name');
+      return;
+    }
+    
+    if (!formData.aiInstructions?.trim()) {
+      setError('Please enter AI instructions');
+      return;
+    }
+    
     setIsLoading(true);
     setError('');
 
     try {
+      console.log('Creating strategy with data:', formData);
       await api.strategies.createStrategy(formData);
       router.push('/admin/strategies');
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to create strategy');
+      console.error('Strategy creation error:', error);
+      if (error instanceof Error) {
+        setError(`Failed to create strategy: ${error.message}`);
+      } else {
+        setError('Failed to create strategy. Please check your input and try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -104,7 +120,7 @@ export default function NewStrategyPage() {
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: name === 'userId' || name === 'promptTemplateId' ? parseInt(value) || 0 : value,
     }));
   };
 

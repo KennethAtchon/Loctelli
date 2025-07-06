@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Table,
   TableBody,
@@ -38,6 +39,7 @@ export default function BookingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -104,6 +106,14 @@ export default function BookingsPage() {
     filterBookings();
   }, [filterBookings]);
 
+  // Cleanup success/error messages on unmount
+  useEffect(() => {
+    return () => {
+      setSuccess(null);
+      setError(null);
+    };
+  }, []);
+
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
       case 'confirmed':
@@ -162,6 +172,7 @@ export default function BookingsPage() {
   const handleStatusUpdate = async (bookingId: number, newStatus: string) => {
     try {
       setUpdatingStatus(bookingId);
+      setError(null);
       await api.bookings.updateBookingStatus(bookingId, newStatus);
       
       // Update local state
@@ -179,9 +190,13 @@ export default function BookingsPage() {
       );
       calculateStats(updatedBookings);
       
+      setSuccess('Booking status updated successfully');
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(null), 3000);
+      
     } catch (error) {
       logger.error('Failed to update booking status:', error);
-      setError('Failed to update booking status');
+      setError('Failed to update booking status. Please try again.');
     } finally {
       setUpdatingStatus(null);
     }
@@ -195,24 +210,31 @@ export default function BookingsPage() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button 
-            onClick={loadBookings}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="space-y-6">
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>
+            {error}
+            <Button 
+              variant="link" 
+              className="p-0 h-auto text-destructive underline ml-2"
+              onClick={loadBookings}
+            >
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {success && (
+        <Alert>
+          <AlertDescription>{success}</AlertDescription>
+        </Alert>
+      )}
+
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>

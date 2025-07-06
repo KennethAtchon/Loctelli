@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Send, 
   Trash2, 
@@ -49,6 +50,13 @@ export default function ChatPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Cleanup error state on unmount
+  useEffect(() => {
+    return () => {
+      setError(null);
+    };
+  }, []);
 
   const loadClientProfile = async (id: string) => {
     if (!id.trim()) {
@@ -129,7 +137,7 @@ export default function ChatPage() {
       // Add assistant response to chat
       addMessage({
         role: 'assistant',
-        content: response.aiMessage.content,
+        content: (response.aiMessage as any).content || 'No response received',
         metadata: {
           clientId: parseInt(clientId, 10),
           clientName: clientProfile?.name
@@ -181,6 +189,14 @@ export default function ChatPage() {
 
   return (
     <div className="h-screen flex flex-col">
+      {error && (
+        <div className="p-4">
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </div>
+      )}
+      
       {/* Header */}
       <div className="border-b bg-white p-4">
         <div className="flex items-center justify-between">

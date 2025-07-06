@@ -1,29 +1,30 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
 import { ClientsService } from './clients.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { Admin } from '../../auth/decorators/admin.decorator';
+import { AdminGuard } from '../../auth/guards/admin.guard';
 
 @Controller('client')
+@UseGuards(AdminGuard)
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
   @Post()
+  @Admin()
   create(@Body() createClientDto: CreateClientDto, @CurrentUser() user) {
-    // Ensure the client is created for the current user
-    return this.clientsService.create({ ...createClientDto, userId: user.userId });
+    // Admin users can create clients for any regular user
+    return this.clientsService.create(createClientDto);
   }
 
   @Get()
+  @Admin()
   findAll(@CurrentUser() user, @Query('userId') userId?: string, @Query('strategyId') strategyId?: string) {
     if (userId) {
       const parsedUserId = parseInt(userId, 10);
       if (isNaN(parsedUserId)) {
         throw new HttpException('Invalid userId parameter', HttpStatus.BAD_REQUEST);
-      }
-      // Only allow viewing other users' clients if admin
-      if (user.role !== 'admin' && user.role !== 'super_admin' && user.userId !== parsedUserId) {
-        throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
       }
       return this.clientsService.findByUserId(parsedUserId);
     }
@@ -36,16 +37,18 @@ export class ClientsController {
       return this.clientsService.findByStrategyId(parsedStrategyId, user.userId, user.role);
     }
     
-    // Return current user's clients
-    return this.clientsService.findByUserId(user.userId);
+    // Admin users can see all clients
+    return this.clientsService.findAll();
   }
 
   @Get(':id')
+  @Admin()
   findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user) {
     return this.clientsService.findOne(id, user.userId, user.role);
   }
 
   @Patch(':id')
+  @Admin()
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateClientDto: UpdateClientDto,
@@ -63,6 +66,7 @@ export class ClientsController {
   }
 
   @Delete(':id')
+  @Admin()
   remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user) {
     return this.clientsService.remove(id, user.userId, user.role);
   }

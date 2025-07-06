@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Table,
   TableBody,
@@ -40,6 +41,7 @@ export default function ClientsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClient, setSelectedClient] = useState<DetailedClient | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -99,6 +101,14 @@ export default function ClientsPage() {
     filterClients();
   }, [filterClients]);
 
+  // Cleanup success/error messages on unmount
+  useEffect(() => {
+    return () => {
+      setSuccess(null);
+      setError(null);
+    };
+  }, []);
+
   const loadDetailedClient = async (clientId: number) => {
     try {
       const client = await api.adminAuth.getDetailedClient(clientId);
@@ -111,11 +121,15 @@ export default function ClientsPage() {
   const deleteClient = async (clientId: number) => {
     if (confirm('Are you sure you want to delete this client?')) {
       try {
+        setError(null);
         await api.clients.deleteClient(clientId);
+        setSuccess('Client deleted successfully');
         await loadClients(); // Reload the list
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccess(null), 3000);
       } catch (error) {
         logger.error('Failed to delete client:', error);
-        alert('Failed to delete client');
+        setError('Failed to delete client. Please try again.');
       }
     }
   };
@@ -151,24 +165,31 @@ export default function ClientsPage() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button 
-            onClick={loadClients}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="space-y-6">
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>
+            {error}
+            <Button 
+              variant="link" 
+              className="p-0 h-auto text-destructive underline ml-2"
+              onClick={loadClients}
+            >
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {success && (
+        <Alert>
+          <AlertDescription>{success}</AlertDescription>
+        </Alert>
+      )}
+
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>

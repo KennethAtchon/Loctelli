@@ -36,6 +36,7 @@ export default function UsersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -71,11 +72,13 @@ export default function UsersPage() {
   const loadUsers = useCallback(async () => {
     try {
       setIsRefreshing(true);
+      setError('');
       const usersData = await api.adminAuth.getAllUsers();
       setUsers(usersData);
       calculateStats(usersData);
     } catch (error) {
       logger.error('Failed to load users', error);
+      setError('Failed to load users. Please try again.');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -117,6 +120,14 @@ export default function UsersPage() {
     filterUsers();
   }, [filterUsers]);
 
+  // Cleanup success message on unmount
+  useEffect(() => {
+    return () => {
+      setSuccess('');
+      setError('');
+    };
+  }, []);
+
   const loadDetailedUser = async (userId: number) => {
     try {
       const user = await api.adminAuth.getDetailedUser(userId);
@@ -129,13 +140,17 @@ export default function UsersPage() {
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      setError('');
       await api.adminAuth.createUser(createFormData);
       setSuccess('User created successfully');
       setIsCreateDialogOpen(false);
       setCreateFormData({ name: '', email: '', password: '', company: '', role: 'user' });
       loadUsers();
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
       logger.error('Failed to create user', error);
+      setError('Failed to create user. Please try again.');
     }
   };
 
@@ -144,14 +159,18 @@ export default function UsersPage() {
     if (!editingUser) return;
     
     try {
+      setError('');
       await api.adminAuth.updateUser(editingUser.id, editFormData);
       setSuccess('User updated successfully');
       setIsEditDialogOpen(false);
       setEditingUser(null);
       setEditFormData({ name: '', email: '', role: 'user', company: '', isActive: true });
       loadUsers();
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
       logger.error('Failed to update user', error);
+      setError('Failed to update user. Please try again.');
     }
   };
 
@@ -159,11 +178,15 @@ export default function UsersPage() {
     if (!confirm('Are you sure you want to delete this user?')) return;
     
     try {
+      setError('');
       await api.adminAuth.deleteUser(userId);
       setSuccess('User deleted successfully');
       loadUsers();
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
       logger.error('Failed to delete user', error);
+      setError('Failed to delete user. Please try again.');
     }
   };
 
@@ -204,22 +227,6 @@ export default function UsersPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
-
-  if (success) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <p className="text-green-600 mb-4">{success}</p>
-          <button 
-            onClick={loadUsers}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Retry
-          </button>
-        </div>
       </div>
     );
   }
@@ -402,6 +409,12 @@ export default function UsersPage() {
           </div>
         </CardContent>
       </Card>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       {success && (
         <Alert>

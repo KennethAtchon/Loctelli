@@ -52,7 +52,12 @@ export class SalesBotService implements OnModuleInit {
    * @returns The bot's response
    */
   async generateResponse(message: string, clientId: number): Promise<string> {
-    this.logger.log(`Generating response for clientId=${clientId}, message=${message.substring(0, 50)}...`);
+    this.logger.log(`[generateResponse] clientId=${clientId}, typeof message=${typeof message}, message=${JSON.stringify(message)}`);
+    if (!message || typeof message !== 'string') {
+      this.logger.error(`[generateResponse] Invalid message:`, message);
+      return 'Invalid message input.';
+    }
+    this.logger.log(`[generateResponse] message preview: ${message.substring(0, Math.min(50, message.length))}...`);
     
     try {
       // Get client from database
@@ -101,7 +106,7 @@ export class SalesBotService implements OnModuleInit {
         }
       }
       
-      this.logger.log(`Response generated for clientId=${clientId}: ${botResponse.substring(0, 50)}...`);
+      this.logger.log(`Response generated for clientId=${clientId}: ${botResponse ? botResponse.substring(0, 50) + '...' : 'undefined'}`);
       return botResponse;
     } catch (error) {
       this.logger.error(`Error generating response for clientId=${clientId}: ${error}`);
@@ -179,7 +184,12 @@ export class SalesBotService implements OnModuleInit {
    * @param message The message content
    */
   private async appendMessageToHistory(client: any, fromRole: string, message: string): Promise<void> {
-    this.logger.debug(`Appending message to history for clientId=${client.id}, role=${fromRole}, message=${message.substring(0, 50)}...`);
+    this.logger.debug(`[appendMessageToHistory] clientId=${client.id}, fromRole=${fromRole}, typeof message=${typeof message}, message=${JSON.stringify(message)}`);
+    if (!message || typeof message !== 'string') {
+      this.logger.error(`[appendMessageToHistory] Invalid message:`, message);
+      return;
+    }
+    this.logger.debug(`[appendMessageToHistory] message preview: ${message.substring(0, Math.min(50, message.length))}...`);
     
     const newMessage = { from: fromRole, message };
     
@@ -210,10 +220,12 @@ export class SalesBotService implements OnModuleInit {
    * @returns The bot's response
    */
   private async createBotResponse(messages: ChatMessage[]): Promise<string> {
-    this.logger.log('Creating bot response via OpenAI API');
-    this.logger.debug(`Input messages: ${JSON.stringify(messages.map(m => ({ 
-      role: m.role, 
-      content: m.content.substring(0, 50) + '...' 
+    this.logger.log('[createBotResponse] Creating bot response via OpenAI API');
+    this.logger.debug(`[createBotResponse] Input messages: ${JSON.stringify(messages.map(m => ({
+      role: m.role,
+      typeofContent: typeof m.content,
+      content: m.content ? m.content.substring(0, Math.min(50, m.content.length)) + '...' : 'undefined',
+      rawContent: m.content
     })))}`);
     
     try {
@@ -238,7 +250,7 @@ export class SalesBotService implements OnModuleInit {
       
       const botResponse = response.data.choices[0].message.content;
       this.logger.log('Bot response generated successfully');
-      this.logger.debug(`Bot response: ${botResponse.substring(0, 100)}...`);
+      this.logger.debug(`Bot response: ${botResponse ? botResponse.substring(0, 100) + '...' : 'undefined'}`);
       return botResponse;
     } catch (error) {
       this.logger.error(`OpenAI API error: ${error}`);

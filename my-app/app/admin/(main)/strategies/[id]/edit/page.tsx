@@ -113,7 +113,7 @@ export default function EditStrategyPage() {
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: name === 'userId' || name === 'promptTemplateId' ? parseInt(value) || 0 : value,
     }));
   };
 

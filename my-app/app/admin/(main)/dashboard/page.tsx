@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Users, Target, Calendar, RefreshCw, Plus, Eye, Building } from 'lucide-react';
 import { DashboardStats, SystemStatus } from '@/lib/api/endpoints/admin-auth';
 import Link from 'next/link';
@@ -32,7 +33,7 @@ interface DetailedUser {
     id: number;
     name: string;
     email: string;
-  };
+  } | null;
   strategies?: Array<{
     id: number;
     name: string;
@@ -97,6 +98,13 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     loadDashboardData();
+  }, []);
+
+  // Cleanup error state on unmount
+  useEffect(() => {
+    return () => {
+      setError(null);
+    };
   }, []);
 
   const loadDashboardData = async () => {
@@ -171,21 +179,7 @@ export default function AdminDashboardPage() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button 
-            onClick={loadDashboardData}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
+
 
   if (!stats || !systemStatus) {
     return (
@@ -197,6 +191,21 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>
+            {error}
+            <Button 
+              variant="link" 
+              className="p-0 h-auto text-destructive underline ml-2"
+              onClick={loadDashboardData}
+            >
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
