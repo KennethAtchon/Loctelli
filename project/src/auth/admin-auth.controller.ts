@@ -11,6 +11,7 @@ import {
   HttpCode,
   HttpStatus,
   ParseIntPipe,
+  BadRequestException,
 } from '@nestjs/common';
 import { AdminAuthService, AdminLoginDto, AdminRegisterDto } from './admin-auth.service';
 import { AdminAuthCodeService } from './admin-auth-code.service';
@@ -37,6 +38,13 @@ export class AdminAuthController {
   @Post('register')
   @Public()
   async adminRegister(@Body() registerDto: AdminRegisterDto & { authCode: string }) {
+    // Validate the authorization code before proceeding with registration
+    const isValidAuthCode = this.adminAuthCodeService.validateAuthCode(registerDto.authCode);
+    
+    if (!isValidAuthCode) {
+      throw new BadRequestException('Invalid authorization code. Please contact the system administrator.');
+    }
+    
     return this.adminAuthService.adminRegister(registerDto);
   }
 

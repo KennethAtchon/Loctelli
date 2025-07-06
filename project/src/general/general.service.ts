@@ -53,7 +53,56 @@ export class GeneralService {
         })
       ]);
 
-      // Calculate percentage changes (mock data for now)
+      // Calculate growth rates based on this month vs last month
+      const now = new Date();
+      const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+
+      // Users
+      const usersThisMonth = await this.prisma.user.count({
+        where: { createdAt: { gte: startOfThisMonth } }
+      });
+      const usersLastMonth = await this.prisma.user.count({
+        where: { createdAt: { gte: startOfLastMonth, lt: startOfThisMonth } }
+      });
+      const usersGrowth = usersLastMonth === 0
+        ? (usersThisMonth > 0 ? 100 : 0)
+        : Math.round(((usersThisMonth - usersLastMonth) / usersLastMonth) * 100);
+
+      // Active Users
+      const activeUsersThisMonth = await this.prisma.user.count({
+        where: { isActive: true, createdAt: { gte: startOfThisMonth } }
+      });
+      const activeUsersLastMonth = await this.prisma.user.count({
+        where: { isActive: true, createdAt: { gte: startOfLastMonth, lt: startOfThisMonth } }
+      });
+      const activeUsersGrowth = activeUsersLastMonth === 0
+        ? (activeUsersThisMonth > 0 ? 100 : 0)
+        : Math.round(((activeUsersThisMonth - activeUsersLastMonth) / activeUsersLastMonth) * 100);
+
+      // Strategies
+      const strategiesThisMonth = await this.prisma.strategy.count({
+        where: { createdAt: { gte: startOfThisMonth } }
+      });
+      const strategiesLastMonth = await this.prisma.strategy.count({
+        where: { createdAt: { gte: startOfLastMonth, lt: startOfThisMonth } }
+      });
+      const strategiesGrowth = strategiesLastMonth === 0
+        ? (strategiesThisMonth > 0 ? 100 : 0)
+        : Math.round(((strategiesThisMonth - strategiesLastMonth) / strategiesLastMonth) * 100);
+
+      // Bookings
+      const bookingsThisMonth = await this.prisma.booking.count({
+        where: { createdAt: { gte: startOfThisMonth } }
+      });
+      const bookingsLastMonth = await this.prisma.booking.count({
+        where: { createdAt: { gte: startOfLastMonth, lt: startOfThisMonth } }
+      });
+      const bookingsGrowth = bookingsLastMonth === 0
+        ? (bookingsThisMonth > 0 ? 100 : 0)
+        : Math.round(((bookingsThisMonth - bookingsLastMonth) / bookingsLastMonth) * 100);
+
       const stats = {
         totalUsers,
         activeUsers,
@@ -62,10 +111,10 @@ export class GeneralService {
         totalClients,
         recentUsers,
         growthRates: {
-          users: 12, // Mock percentage
-          activeUsers: 8,
-          strategies: 5,
-          bookings: -2
+          users: usersGrowth,
+          activeUsers: activeUsersGrowth,
+          strategies: strategiesGrowth,
+          bookings: bookingsGrowth
         }
       };
 

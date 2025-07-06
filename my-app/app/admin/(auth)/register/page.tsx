@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
 import logger from '@/lib/logger';
 
 export default function AdminRegisterPage() {
@@ -21,6 +21,13 @@ export default function AdminRegisterPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordValidation, setPasswordValidation] = useState({
+    hasMinLength: false,
+    hasUppercase: false,
+    hasLowercase: false,
+    hasNumber: false,
+    hasSpecialChar: false,
+  });
   const [formData, setFormData] = useState<AdminRegisterDto>({
     name: '',
     email: '',
@@ -28,6 +35,20 @@ export default function AdminRegisterPage() {
     authCode: '',
     role: 'admin',
   });
+
+  // Real-time password validation
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const password = e.target.value;
+    setFormData({ ...formData, password });
+    
+    setPasswordValidation({
+      hasMinLength: password.length >= 8,
+      hasUppercase: /[A-Z]/.test(password),
+      hasLowercase: /[a-z]/.test(password),
+      hasNumber: /\d/.test(password),
+      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,7 +180,7 @@ export default function AdminRegisterPage() {
                     autoComplete="new-password"
                     required
                     value={formData.password}
-                    onChange={handleInputChange}
+                    onChange={handlePasswordChange}
                     placeholder="Enter a strong password"
                     minLength={8}
                     disabled={isLoading}
@@ -173,6 +194,36 @@ export default function AdminRegisterPage() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                
+                {/* Real-time Password Validation */}
+                {formData.password && (
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs font-medium text-gray-700 mb-2">Password Requirements:</p>
+                    <div className="space-y-1">
+                      <div className={`flex items-center text-xs ${passwordValidation.hasMinLength ? 'text-green-600' : 'text-gray-500'}`}>
+                        {passwordValidation.hasMinLength ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+                        At least 8 characters
+                      </div>
+                      <div className={`flex items-center text-xs ${passwordValidation.hasUppercase ? 'text-green-600' : 'text-gray-500'}`}>
+                        {passwordValidation.hasUppercase ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+                        At least one uppercase letter
+                      </div>
+                      <div className={`flex items-center text-xs ${passwordValidation.hasLowercase ? 'text-green-600' : 'text-gray-500'}`}>
+                        {passwordValidation.hasLowercase ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+                        At least one lowercase letter
+                      </div>
+                      <div className={`flex items-center text-xs ${passwordValidation.hasNumber ? 'text-green-600' : 'text-gray-500'}`}>
+                        {passwordValidation.hasNumber ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+                        At least one number
+                      </div>
+                      <div className={`flex items-center text-xs ${passwordValidation.hasSpecialChar ? 'text-green-600' : 'text-gray-500'}`}>
+                        {passwordValidation.hasSpecialChar ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+                        At least one special character
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 <p className="text-xs text-gray-500">
                   Password must be at least 8 characters long
                 </p>
