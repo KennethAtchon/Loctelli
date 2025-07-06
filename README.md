@@ -98,6 +98,15 @@ Loctelli/
 - **Real-time Updates**: Live data synchronization
 - **Comprehensive Testing**: Unit tests, integration tests, and E2E tests with 80%+ coverage goals
 
+## 🚀 **Planned Features**
+
+### **SubAccounts Multi-Tenant System**
+- **Multi-Client Support**: Manage multiple client organizations within a single system
+- **Data Isolation**: Complete separation between client data and operations
+- **Scalable Management**: Efficient admin management of multiple SubAccounts
+- **Resource Sharing**: Global prompt templates shared across all SubAccounts
+- **Flexible User Management**: Users organized within specific SubAccounts
+
 ## 💬 **Chat System Features**
 
 ### **AI-Powered Conversations**

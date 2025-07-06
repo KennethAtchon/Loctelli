@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ChatService } from './chat.service';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
-import { SalesBotService } from '../../background/bgprocess/sales-bot.service';
+import { SalesBotService } from './sales-bot.service';
 import { NotFoundException } from '@nestjs/common';
 import { ChatMessageDto } from './dto/chat-message.dto';
 import { SendMessageDto } from './dto/send-message.dto';

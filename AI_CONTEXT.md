@@ -15,6 +15,19 @@
 - **Caching**: Redis for session management
 - **Authentication**: JWT with refresh token rotation
 - **Security**: Multi-layer protection (API key + JWT + Role-based access)
+- **Module Organization**: Well-structured modules with clear separation of concerns
+
+### **Chat System Architecture**
+- **SalesBotService**: Core AI response generation service (moved from background to chat module)
+- **PromptHelperService**: Prompt composition and management
+- **ChatService**: Message handling and conversation management
+- **Background Processes**: Separate module for scheduled tasks (FreeSlotCronService)
+
+### **Multi-Tenant Architecture (Planned)**
+- **SubAccounts**: Multi-tenant support for client organizations
+- **Data Isolation**: Complete separation between SubAccounts
+- **Global Resources**: Shared prompt templates across all SubAccounts
+- **Scalable Management**: Admin management of multiple client organizations
 
 ## 🔐 **Security Architecture**
 
@@ -535,24 +548,39 @@ interface CreateBookingDto {
 ## 🛡️ **Authorization Rules**
 
 ### **Resource-Level Access**
-- **Users**: Can only access their own data
-- **Admins**: Can access all user data
-- **Super Admins**: Can manage admin accounts
+- **Users**: Can only access their own data within their SubAccount
+- **Admins**: Can access all user data within their created SubAccounts
+- **Super Admins**: Can manage admin accounts and all SubAccounts
+
+### **SubAccount Isolation (Planned)**
+- **Data Separation**: Complete isolation between SubAccounts
+- **Cross-SubAccount Access**: Users cannot access data from other SubAccounts
+- **Admin Scope**: Admins can only manage SubAccounts they created
+- **Global Resources**: Prompt templates remain accessible across all SubAccounts
 
 ### **Endpoint Protection**
 - **Public**: Auth and status endpoints
 - **Authenticated**: All other endpoints require valid JWT
 - **Role-Based**: Admin endpoints require admin role
-- **Resource-Owned**: Users can only modify their own resources
+- **Resource-Owned**: Users can only modify their own resources within their SubAccount
 
 ## 📊 **Data Flow**
 
-### **Request Flow**
+### **Current Request Flow**
 1. Frontend sends request with auth headers
 2. API proxy adds API key
 3. Backend validates JWT token
-4. Backend checks resource ownership
-5. Backend returns data with proper authorization
+
+### **Planned SubAccount Flow**
+1. Frontend sends request with auth headers
+2. API proxy adds API key
+3. Backend validates JWT token
+4. Backend validates SubAccount access (if applicable)
+5. Backend filters data by SubAccount context
+4. Backend validates SubAccount access (if applicable)
+5. Backend filters data by SubAccount context
+6. Backend checks resource ownership
+7. Backend returns data with proper authorization
 
 ### **Error Handling**
 - **401**: Token refresh attempted
