@@ -13,10 +13,6 @@ export class CreatePromptTemplateDto {
   @IsOptional()
   isActive?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  isDefault?: boolean;
-
   @IsString()
   @IsNotEmpty()
   systemPrompt: string;

@@ -5,7 +5,6 @@ export interface PromptTemplate {
   name: string;
   description?: string;
   isActive: boolean;
-  isDefault: boolean;
   systemPrompt: string;
   role: string;
   instructions?: string;
@@ -27,7 +26,6 @@ export interface CreatePromptTemplateDto {
   name: string;
   description?: string;
   isActive?: boolean;
-  isDefault?: boolean;
   systemPrompt: string;
   role?: string;
   instructions?: string;

@@ -55,10 +55,11 @@ export default function NewStrategyPage() {
         setUsers(regularUsers);
         setPromptTemplates(templatesData);
         
-        // Set default prompt template if available
+        // Set active prompt template as default selection if available
         if (templatesData.length > 0) {
-          const defaultTemplate = templatesData.find(t => t.isDefault) || templatesData[0];
-          setFormData(prev => ({ ...prev, promptTemplateId: defaultTemplate.id }));
+          const activeTemplate = templatesData.find(t => t.isActive);
+          const fallbackTemplate = activeTemplate || templatesData[0];
+          setFormData(prev => ({ ...prev, promptTemplateId: fallbackTemplate.id }));
         }
       } catch (error) {
         logger.error('Failed to load data:', error);
@@ -194,6 +195,9 @@ export default function NewStrategyPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="promptTemplateId">Prompt Template *</Label>
+                  <p className="text-sm text-gray-500">
+                    Choose any prompt template. The active template will be used if none is selected.
+                  </p>
                   <Select
                     value={formData.promptTemplateId?.toString() || ''}
                     onValueChange={(value) => handleSelectChange('promptTemplateId', value)}
@@ -204,7 +208,7 @@ export default function NewStrategyPage() {
                     <SelectContent>
                       {promptTemplates.map((template) => (
                         <SelectItem key={template.id} value={template.id.toString()}>
-                          {template.name} {template.isDefault && '(Default)'} {template.isActive && '(Active)'}
+                          {template.name} {template.isActive && '(Active)'}
                         </SelectItem>
                       ))}
                     </SelectContent>

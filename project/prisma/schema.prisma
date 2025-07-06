@@ -112,7 +112,6 @@ model PromptTemplate {
   name                String
   description         String?   @db.Text
   isActive            Boolean   @default(false) // Only one can be active globally
-  isDefault           Boolean   @default(false) // Marks the default template
   systemPrompt        String    @db.Text // The main system prompt
   role                String    @default("conversational AI and sales representative")
   instructions        String?   @db.Text // Additional instructions

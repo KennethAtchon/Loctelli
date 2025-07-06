@@ -12,13 +12,13 @@ export class StrategiesService {
   ) {}
 
   async create(createStrategyDto: CreateStrategyDto) {
-    // If no promptTemplateId is provided, get the default template
+    // If no promptTemplateId is provided, get the active template as fallback
     if (!createStrategyDto.promptTemplateId) {
-      const defaultTemplate = await this.promptTemplatesService.getDefaultTemplate();
-      if (defaultTemplate) {
-        createStrategyDto.promptTemplateId = defaultTemplate.id;
-      } else {
-        // If no default template exists, get the first available template
+      try {
+        const activeTemplate = await this.promptTemplatesService.getActive();
+        createStrategyDto.promptTemplateId = activeTemplate.id;
+      } catch (error) {
+        // If no active template exists, get the first available template
         const templates = await this.promptTemplatesService.findAll();
         if (templates.length > 0) {
           createStrategyDto.promptTemplateId = templates[0].id;

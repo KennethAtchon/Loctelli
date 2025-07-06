@@ -323,7 +323,7 @@ export default function EditPromptTemplatePage() {
                   <div>
                     <Label htmlFor="isActive">Set as Active</Label>
                     <p className="text-sm text-gray-500">
-                      This template will be used for all new conversations
+                      This template will be used as the default choice for new strategies
                     </p>
                   </div>
                   <Switch
@@ -333,19 +333,7 @@ export default function EditPromptTemplatePage() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="isDefault">Set as Default</Label>
-                    <p className="text-sm text-gray-500">
-                      This template will be used as fallback
-                    </p>
-                  </div>
-                  <Switch
-                    id="isDefault"
-                    checked={formData.isDefault || false}
-                    onCheckedChange={(checked) => handleInputChange('isDefault', checked)}
-                  />
-                </div>
+
               </CardContent>
             </Card>
 

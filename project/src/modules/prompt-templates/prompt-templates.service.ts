@@ -72,11 +72,6 @@ export class PromptTemplatesService {
       await this.deactivateAllTemplates();
     }
 
-    // If this template is being set as default, unset other defaults
-    if (createDto.isDefault) {
-      await this.unsetOtherDefaults();
-    }
-
     return this.prisma.promptTemplate.create({
       data: {
         ...createDto,
@@ -105,11 +100,6 @@ export class PromptTemplatesService {
       await this.deactivateAllTemplates();
     }
 
-    // If this template is being set as default, unset other defaults
-    if (updateDto.isDefault) {
-      await this.unsetOtherDefaults();
-    }
-
     return this.prisma.promptTemplate.update({
       where: { id },
       data: updateDto,
@@ -130,16 +120,12 @@ export class PromptTemplatesService {
 
     const template = await this.findOne(id);
 
-    // Prevent deletion of default template
-    if (template.isDefault) {
-      throw new BadRequestException('Cannot delete the default template');
-    }
-
-    // If deleting active template, activate the default template
+    // If deleting active template, activate the first available template
     if (template.isActive) {
-      const defaultTemplate = await this.getDefaultTemplate();
-      if (defaultTemplate) {
-        await this.activate(defaultTemplate.id);
+      const templates = await this.findAll();
+      const otherTemplates = templates.filter(t => t.id !== id);
+      if (otherTemplates.length > 0) {
+        await this.activate(otherTemplates[0].id);
       }
     }
 
@@ -180,36 +166,30 @@ export class PromptTemplatesService {
     });
 
     if (!activeTemplate) {
-      // If no active template, try to get default template
-      const defaultTemplate = await this.getDefaultTemplate();
-      if (defaultTemplate) {
-        // Activate the default template
-        return this.activate(defaultTemplate.id);
+      // If no active template, get the first available template as fallback
+      const templates = await this.findAll();
+      if (templates.length > 0) {
+        return templates[0];
       }
-      throw new NotFoundException('No active prompt template found');
+      throw new NotFoundException('No prompt templates found');
     }
 
     return activeTemplate;
   }
 
-  async getDefaultTemplate() {
-    this.logger.debug('Getting default prompt template');
-    return this.prisma.promptTemplate.findFirst({
-      where: { isDefault: true },
-    });
-  }
-
-  async ensureDefaultExists(adminId: number) {
-    this.logger.debug('Ensuring default prompt template exists');
+  async ensureActiveExists(adminId: number) {
+    this.logger.debug('Ensuring active prompt template exists');
     
-    const defaultTemplate = await this.getDefaultTemplate();
-    if (!defaultTemplate) {
-      this.logger.log('Creating default prompt template');
+    const activeTemplate = await this.prisma.promptTemplate.findFirst({
+      where: { isActive: true },
+    });
+    
+    if (!activeTemplate) {
+      this.logger.log('Creating active prompt template');
       return this.create({
         name: 'Default Sales Prompt',
         description: 'Standard conversational AI prompt for sales',
         isActive: true,
-        isDefault: true,
         systemPrompt: 'You are a helpful and conversational AI assistant representing the company. Your role is to engage in natural conversations, answer questions, and help clients with their needs. Be friendly, professional, and genuinely helpful. Respond directly to what the client is asking or saying. Keep responses concise but informative. If the client shows interest in services, you can gently guide the conversation toward understanding their needs and offering relevant solutions.',
         role: 'conversational AI assistant and customer service representative',
         instructions: 'Be conversational and responsive to the client\'s messages. Answer their questions directly and helpfully. If they ask about your role or capabilities, explain them honestly. If they show interest in services, ask about their specific needs and offer relevant information. Be natural and engaging, not pushy or robotic. Always address the client by their name when provided.',
@@ -230,7 +210,7 @@ Do not use the [BOOKING_CONFIRMATION] marker unless a booking is truly confirmed
       }, adminId);
     }
     
-    return defaultTemplate;
+    return activeTemplate;
   }
 
   private async deactivateAllTemplates() {
@@ -240,13 +220,7 @@ Do not use the [BOOKING_CONFIRMATION] marker unless a booking is truly confirmed
     });
   }
 
-  private async unsetOtherDefaults() {
-    this.logger.debug('Unsetting other default templates');
-    await this.prisma.promptTemplate.updateMany({
-      where: { isDefault: true },
-      data: { isDefault: false },
-    });
-  }
+
 
   async validateOnlyOneActive() {
     this.logger.debug('Validating only one template is active');

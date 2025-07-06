@@ -200,6 +200,17 @@
   3. **Backward Compatibility**: System now supports both message formats seamlessly
 - **Result**: Complete conversation history now loads correctly when revisiting chats, showing both user and AI messages ✅
 
+#### **12. Prompt Template Active/Default Logic Fix**
+- **Problem**: `isActive` and `isDefault` had conflicting goals - active template was auto-activating default template
+- **Root Cause**: `getActive()` method was automatically activating the default template when no active template existed
+- **Solution**: 
+  1. **Removed auto-activation**: `getActive()` now returns default template as fallback without activating it
+  2. **Updated strategy creation**: Now uses active template as default choice for new strategies
+  3. **Clear separation**: Active = default choice for strategies, Default = fallback when no active exists
+  4. **User choice preserved**: Users can always select any template, active/default only affects auto-assignment
+- **Frontend Updates**: Updated descriptions to clarify template status meanings
+- **Result**: Clear, non-conflicting template status system where users have full choice while maintaining sensible defaults ✅
+
 ### **📋 DTO Structure Verification - ALL MATCH ✅**
 
 #### **User Registration**
@@ -500,10 +511,16 @@ All previous console statements in the frontend have been replaced with this log
 - **Prompt Templates** are created and managed by admins. Each template can be set as active or default.
 - **Strategies** must always be linked to a prompt template (`promptTemplateId` is required in the schema).
 - When creating a new strategy:
-  - The frontend admin form now allows selection of a prompt template from all available templates.
-  - If no template is selected, the backend will automatically assign the system default prompt template.
+  - The frontend admin form allows selection of any prompt template from all available templates.
+  - If no template is selected, the backend automatically assigns the **active template** as the default choice.
+  - If no active template exists, it falls back to the default template.
 - The backend enforces that every strategy has a valid `promptTemplateId`.
 - The chat system uses the prompt template linked to the strategy for all AI responses.
+
+### **Template Status Meanings**
+- **Active Template**: Used as the default choice when creating new strategies (if user doesn't select one)
+- **Default Template**: Used as fallback when no active template exists
+- **Users can always choose any template**: The active/default status only affects auto-assignment
 
 ### **Frontend Support**
 - The strategy creation form fetches all prompt templates and presents them in a dropdown.
