@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsInt, IsJSON } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsJSON, IsNumber } from 'class-validator';
 
 export class CreateBookingDto {
   @IsInt()
@@ -17,4 +17,8 @@ export class CreateBookingDto {
   @IsString()
   @IsOptional()
   status?: string = 'pending';
+
+  @IsNumber()
+  @IsOptional()
+  subAccountId?: number;
 }

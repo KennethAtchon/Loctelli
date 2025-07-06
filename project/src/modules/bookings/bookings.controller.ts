@@ -13,15 +13,23 @@ export class BookingsController {
 
   @Post()
   @Admin()
-  create(@Body() createBookingDto: CreateBookingDto) {
-    // Admin users can create bookings for any regular user
-    // The userId should be provided in the DTO by the frontend
-    return this.bookingsService.create(createBookingDto);
+  create(@Body() createBookingDto: CreateBookingDto, @CurrentUser() user) {
+    // Admin users can create bookings for any regular user within their SubAccounts
+    if (user.type === 'admin') {
+      // For admin users, subAccountId should be provided in the DTO
+      if (!createBookingDto.subAccountId) {
+        throw new HttpException('subAccountId is required for booking creation', HttpStatus.BAD_REQUEST);
+      }
+      return this.bookingsService.create(createBookingDto, createBookingDto.subAccountId);
+    } else {
+      // Regular users can only create bookings in their own SubAccount
+      return this.bookingsService.create(createBookingDto, user.subAccountId);
+    }
   }
 
   @Get()
   @Admin()
-  findAll(@CurrentUser() user, @Query('userId') userId?: string, @Query('leadId') leadId?: string) {
+  findAll(@CurrentUser() user, @Query('userId') userId?: string, @Query('leadId') leadId?: string, @Query('subAccountId') subAccountId?: string) {
     if (userId) {
       const parsedUserId = parseInt(userId, 10);
       if (isNaN(parsedUserId)) {
@@ -38,8 +46,20 @@ export class BookingsController {
       return this.bookingsService.findByleadId(parsedleadId, user.userId, user.role);
     }
     
-    // Admin users can see all bookings
-    return this.bookingsService.findAll();
+    // Handle SubAccount filtering
+    if (user.type === 'admin') {
+      // Admin can view bookings in specific SubAccount or all their SubAccounts
+      const parsedSubAccountId = subAccountId ? parseInt(subAccountId, 10) : undefined;
+      if (parsedSubAccountId) {
+        return this.bookingsService.findAllBySubAccount(parsedSubAccountId);
+      } else {
+        // Return all bookings from all SubAccounts owned by this admin
+        return this.bookingsService.findAllByAdmin(user.userId);
+      }
+    } else {
+      // Regular users can only view bookings in their own SubAccount
+      return this.bookingsService.findAllBySubAccount(user.subAccountId);
+    }
   }
 
   @Get(':id')

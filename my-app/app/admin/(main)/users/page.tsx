@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
 import type { CreateUserDto, UpdateUserDto } from '@/lib/api';
 import type { UserProfile, DetailedUser } from '@/lib/api/endpoints/admin-auth';
+import type { SubAccount } from '@/lib/api/endpoints/admin-subaccounts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -44,6 +45,8 @@ export default function UsersPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
   const [selectedUser, setSelectedUser] = useState<DetailedUser | null>(null);
+  const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
+  const [selectedSubAccountId, setSelectedSubAccountId] = useState<number>(0);
   const [createFormData, setCreateFormData] = useState<CreateUserDto>({
     name: '',
     email: '',
@@ -87,6 +90,18 @@ export default function UsersPage() {
     }
   }, []);
 
+  const loadSubAccounts = useCallback(async () => {
+    try {
+      const subAccountsData = await api.adminSubAccounts.getAllSubAccounts();
+      setSubAccounts(subAccountsData);
+      if (subAccountsData.length > 0 && selectedSubAccountId === 0) {
+        setSelectedSubAccountId(subAccountsData[0].id);
+      }
+    } catch (error) {
+      logger.error('Failed to load SubAccounts', error);
+    }
+  }, [selectedSubAccountId]);
+
   const filterUsers = useCallback(() => {
     let filtered = users;
 
@@ -116,7 +131,8 @@ export default function UsersPage() {
 
   useEffect(() => {
     loadUsers();
-  }, [loadUsers]);
+    loadSubAccounts();
+  }, [loadUsers, loadSubAccounts]);
 
   useEffect(() => {
     filterUsers();
@@ -141,9 +157,16 @@ export default function UsersPage() {
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (selectedSubAccountId === 0) {
+      setError('Please select a SubAccount');
+      return;
+    }
     try {
       setError('');
-      await api.adminAuth.createUser(createFormData);
+      await api.adminAuth.createUser({
+        ...createFormData,
+        subAccountId: selectedSubAccountId,
+      });
       setSuccess('User created successfully');
       setIsCreateDialogOpen(false);
       setCreateFormData({ name: '', email: '', password: '', company: '', role: 'user', bookingEnabled: 1 });
@@ -312,6 +335,24 @@ export default function UsersPage() {
                       <SelectItem value="user">User</SelectItem>
                       <SelectItem value="manager">Manager</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="subAccount">SubAccount *</Label>
+                  <Select
+                    value={selectedSubAccountId.toString()}
+                    onValueChange={(value) => setSelectedSubAccountId(parseInt(value))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a SubAccount" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {subAccounts.map((subAccount) => (
+                        <SelectItem key={subAccount.id} value={subAccount.id.toString()}>
+                          {subAccount.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

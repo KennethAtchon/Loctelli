@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsInt, IsEmail, IsJSON } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsEmail, IsJSON, IsNumber } from 'class-validator';
 
 export class CreateLeadDto {
   @IsInt()
@@ -49,4 +49,8 @@ export class CreateLeadDto {
   @IsString()
   @IsOptional()
   lastMessageDate?: string;
+
+  @IsNumber()
+  @IsOptional()
+  subAccountId?: number;
 }

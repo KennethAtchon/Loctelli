@@ -13,7 +13,7 @@ export class UsersService {
     private ghlService: GhlService
   ) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto, subAccountId: number) {
     // Hash password if provided
     const data = { ...createUserDto };
     if (data.password) {
@@ -21,7 +21,23 @@ export class UsersService {
     }
     
     return this.prisma.user.create({
-      data,
+      data: {
+        ...data,
+        subAccountId, // New required field
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        company: true,
+        isActive: true,
+        subAccount: {
+          select: { id: true, name: true }
+        },
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 
@@ -32,6 +48,49 @@ export class UsersService {
         leads: true,
         bookings: true,
       },
+    });
+  }
+
+  async findAllBySubAccount(subAccountId: number) {
+    return this.prisma.user.findMany({
+      where: { subAccountId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        company: true,
+        isActive: true,
+        lastLoginAt: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async findAllByAdmin(adminId: number) {
+    return this.prisma.user.findMany({
+      where: {
+        subAccount: {
+          createdByAdminId: adminId
+        }
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        company: true,
+        isActive: true,
+        lastLoginAt: true,
+        createdAt: true,
+        updatedAt: true,
+        subAccount: {
+          select: { id: true, name: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
     });
   }
 

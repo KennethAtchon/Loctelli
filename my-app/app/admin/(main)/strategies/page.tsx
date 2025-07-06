@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
+import type { SubAccount } from '@/lib/api/endpoints/admin-subaccounts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,7 @@ import { Plus, Search, Edit, Trash2, Eye, RefreshCw, Target } from 'lucide-react
 import Link from 'next/link';
 import { Strategy } from '@/types';
 import logger from '@/lib/logger';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface StrategyStats {
   totalStrategies: number;
@@ -43,6 +45,8 @@ export default function StrategiesPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [tagFilter, setTagFilter] = useState<string>('all');
+  const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
+  const [selectedSubAccountId, setSelectedSubAccountId] = useState<number>(0);
 
   const calculateStats = (strategiesData: Strategy[]) => {
     const stats = {
@@ -58,7 +62,7 @@ export default function StrategiesPage() {
     try {
       setIsRefreshing(true);
       setError(null);
-      const strategiesData = await api.strategies.getStrategies();
+      const strategiesData = await api.strategies.getStrategies(selectedSubAccountId > 0 ? { subAccountId: selectedSubAccountId } : undefined);
       setStrategies(strategiesData);
       calculateStats(strategiesData);
     } catch (error) {
@@ -68,7 +72,19 @@ export default function StrategiesPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, []);
+  }, [selectedSubAccountId]);
+
+  const loadSubAccounts = useCallback(async () => {
+    try {
+      const subAccountsData = await api.adminSubAccounts.getAllSubAccounts();
+      setSubAccounts(subAccountsData);
+      if (subAccountsData.length > 0 && selectedSubAccountId === 0) {
+        setSelectedSubAccountId(subAccountsData[0].id);
+      }
+    } catch (error) {
+      logger.error('Failed to load SubAccounts', error);
+    }
+  }, [selectedSubAccountId]);
 
   const filterStrategies = useCallback(() => {
     let filtered = strategies;
@@ -93,7 +109,8 @@ export default function StrategiesPage() {
 
   useEffect(() => {
     loadStrategies();
-  }, [loadStrategies]);
+    loadSubAccounts();
+  }, [loadStrategies, loadSubAccounts]);
 
   useEffect(() => {
     filterStrategies();
@@ -258,6 +275,22 @@ export default function StrategiesPage() {
                 />
               </div>
             </div>
+            <Select
+              value={selectedSubAccountId.toString()}
+              onValueChange={(value) => setSelectedSubAccountId(parseInt(value))}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Select SubAccount" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">All SubAccounts</SelectItem>
+                {subAccounts.map((subAccount) => (
+                  <SelectItem key={subAccount.id} value={subAccount.id.toString()}>
+                    {subAccount.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <select
               value={tagFilter}
               onChange={(e) => setTagFilter(e.target.value)}

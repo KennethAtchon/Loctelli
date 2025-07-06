@@ -98,14 +98,20 @@ Loctelli/
 - **Real-time Updates**: Live data synchronization
 - **Comprehensive Testing**: Unit tests, integration tests, and E2E tests with 80%+ coverage goals
 
-## 🚀 **Planned Features**
+## 🚀 **Implemented Features**
 
-### **SubAccounts Multi-Tenant System**
+### **SubAccounts Multi-Tenant System ✅**
 - **Multi-Client Support**: Manage multiple client organizations within a single system
 - **Data Isolation**: Complete separation between client data and operations
 - **Scalable Management**: Efficient admin management of multiple SubAccounts
 - **Resource Sharing**: Global prompt templates shared across all SubAccounts
 - **Flexible User Management**: Users organized within specific SubAccounts
+- **Database Schema**: Updated with SubAccount model and relationships
+- **Backend API**: Complete CRUD operations for SubAccounts (`/admin/subaccounts/*`)
+- **Frontend UI**: SubAccounts management interface with create, edit, delete functionality
+- **Authorization**: SubAccount-level access control with admin-only management
+- **Data Migration**: SQL migration script for existing data
+- **Testing**: Unit tests for SubAccounts service with comprehensive coverage
 
 ## 💬 **Chat System Features**
 

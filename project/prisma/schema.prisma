@@ -25,6 +25,25 @@ model AdminUser {
   updatedAt       DateTime    @updatedAt
   createdUsers    User[]      // Users created by this admin
   promptTemplates PromptTemplate[] // Prompt templates created by this admin
+  subAccounts     SubAccount[] // SubAccounts created by this admin
+}
+
+model SubAccount {
+  id              Int         @id @default(autoincrement())
+  name            String      // SubAccount name (e.g., "Acme Corp", "TechStart Inc")
+  description     String?     @db.Text // Optional description
+  isActive        Boolean     @default(true)
+  settings        Json?       // SubAccount-specific settings
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // Relationships
+  createdByAdminId Int
+  createdByAdmin  AdminUser   @relation(fields: [createdByAdminId], references: [id])
+  users           User[]      // Users belonging to this SubAccount
+  strategies      Strategy[]  // Strategies created within this SubAccount
+  leads           Lead[]      // Leads created within this SubAccount
+  bookings        Booking[]   // Bookings created within this SubAccount
 }
 
 model User {
@@ -44,8 +63,8 @@ model User {
   lastLoginAt     DateTime?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
-  createdByAdminId Int?       // ID of the admin who created this user
-  createdByAdmin  AdminUser?  @relation(fields: [createdByAdminId], references: [id])
+  subAccountId    Int         // Required: User must belong to a SubAccount
+  subAccount      SubAccount  @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
   strategies      Strategy[]
   leads           Lead[]      // Leads created by this user
   bookings        Booking[]
@@ -54,6 +73,8 @@ model User {
 model Strategy {
   id                      Int        @id @default(autoincrement())
   userId                  Int
+  subAccountId            Int        // Required: Strategy belongs to a SubAccount
+  subAccount              SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
   name                    String
   tag                     String?
   tone                    String?
@@ -78,6 +99,8 @@ model Lead {
   id             Int       @id @default(autoincrement())
   userId         Int
   strategyId     Int
+  subAccountId   Int       // Required: Lead belongs to a SubAccount
+  subAccount     SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
   name           String
   email          String?
   phone          String?
@@ -98,6 +121,8 @@ model Booking {
   id           Int      @id @default(autoincrement())
   userId       Int
   leadId       Int?
+  subAccountId Int      // Required: Booking belongs to a SubAccount
+  subAccount   SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
   bookingType  String
   details      Json
   status       String   @default("pending")

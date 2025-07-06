@@ -14,13 +14,22 @@ export class LeadsController {
   @Post()
   @Admin()
   create(@Body() createLeadDto: CreateLeadDto, @CurrentUser() user) {
-    // Admin users can create leads for any regular user
-    return this.leadsService.create(createLeadDto);
+    // Admin users can create leads for any regular user within their SubAccounts
+    if (user.type === 'admin') {
+      // For admin users, subAccountId should be provided in the DTO
+      if (!createLeadDto.subAccountId) {
+        throw new HttpException('subAccountId is required for lead creation', HttpStatus.BAD_REQUEST);
+      }
+      return this.leadsService.create(createLeadDto, createLeadDto.subAccountId);
+    } else {
+      // Regular users can only create leads in their own SubAccount
+      return this.leadsService.create(createLeadDto, user.subAccountId);
+    }
   }
 
   @Get()
   @Admin()
-  findAll(@CurrentUser() user, @Query('userId') userId?: string, @Query('strategyId') strategyId?: string) {
+  findAll(@CurrentUser() user, @Query('userId') userId?: string, @Query('strategyId') strategyId?: string, @Query('subAccountId') subAccountId?: string) {
     if (userId) {
       const parsedUserId = parseInt(userId, 10);
       if (isNaN(parsedUserId)) {
@@ -37,8 +46,20 @@ export class LeadsController {
       return this.leadsService.findByStrategyId(parsedStrategyId, user.userId, user.role);
     }
     
-    // Admin users can see all leads
-    return this.leadsService.findAll();
+    // Handle SubAccount filtering
+    if (user.type === 'admin') {
+      // Admin can view leads in specific SubAccount or all their SubAccounts
+      const parsedSubAccountId = subAccountId ? parseInt(subAccountId, 10) : undefined;
+      if (parsedSubAccountId) {
+        return this.leadsService.findAllBySubAccount(parsedSubAccountId);
+      } else {
+        // Return all leads from all SubAccounts owned by this admin
+        return this.leadsService.findAllByAdmin(user.userId);
+      }
+    } else {
+      // Regular users can only view leads in their own SubAccount
+      return this.leadsService.findAllBySubAccount(user.subAccountId);
+    }
   }
 
   @Get(':id')

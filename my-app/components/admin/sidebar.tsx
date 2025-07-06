@@ -17,12 +17,14 @@ import {
   Menu,
   X,
   FileText,
+  Building2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const navigation = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+  { name: 'SubAccounts', href: '/admin/subaccounts', icon: Building2 },
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Strategies', href: '/admin/strategies', icon: Target },
   { name: 'Leads', href: '/admin/leads', icon: Users },

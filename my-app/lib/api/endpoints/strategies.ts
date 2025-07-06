@@ -2,8 +2,16 @@ import { ApiClient } from '../client';
 import { Strategy, CreateStrategyDto } from '@/types';
 
 export class StrategiesApi extends ApiClient {
-  async getStrategies(): Promise<Strategy[]> {
-    return this.get<Strategy[]>('/strategy');
+  async getStrategies(params?: { subAccountId?: number; userId?: number }): Promise<Strategy[]> {
+    const queryParams = new URLSearchParams();
+    if (params?.subAccountId) {
+      queryParams.append('subAccountId', params.subAccountId.toString());
+    }
+    if (params?.userId) {
+      queryParams.append('userId', params.userId.toString());
+    }
+    const queryString = queryParams.toString();
+    return this.get<Strategy[]>(`/strategy${queryString ? `?${queryString}` : ''}`);
   }
 
   async getStrategy(id: number): Promise<Strategy> {

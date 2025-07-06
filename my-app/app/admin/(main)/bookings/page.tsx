@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
+import type { SubAccount } from '@/lib/api/endpoints/admin-subaccounts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +20,7 @@ import {
 import { Search, Eye, RefreshCw, Calendar, Clock, User, Building, Edit } from 'lucide-react';
 import { Booking } from '@/types';
 import logger from '@/lib/logger';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface BookingStats {
   totalBookings: number;
@@ -44,6 +46,8 @@ export default function BookingsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [updatingStatus, setUpdatingStatus] = useState<number | null>(null);
+  const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
+  const [selectedSubAccountId, setSelectedSubAccountId] = useState<number>(0);
 
   const calculateStats = (bookingsData: Booking[]) => {
     const stats = {
@@ -59,7 +63,7 @@ export default function BookingsPage() {
     try {
       setIsRefreshing(true);
       setError(null);
-      const bookingsData = await api.bookings.getBookings();
+      const bookingsData = await api.bookings.getBookings(selectedSubAccountId > 0 ? { subAccountId: selectedSubAccountId } : undefined);
       setBookings(bookingsData);
       calculateStats(bookingsData);
     } catch (error) {
@@ -69,7 +73,19 @@ export default function BookingsPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, []);
+  }, [selectedSubAccountId]);
+
+  const loadSubAccounts = useCallback(async () => {
+    try {
+      const subAccountsData = await api.adminSubAccounts.getAllSubAccounts();
+      setSubAccounts(subAccountsData);
+      if (subAccountsData.length > 0 && selectedSubAccountId === 0) {
+        setSelectedSubAccountId(subAccountsData[0].id);
+      }
+    } catch (error) {
+      logger.error('Failed to load SubAccounts', error);
+    }
+  }, [selectedSubAccountId]);
 
   const filterBookings = useCallback(() => {
     let filtered = bookings;
@@ -100,7 +116,8 @@ export default function BookingsPage() {
 
   useEffect(() => {
     loadBookings();
-  }, [loadBookings]);
+    loadSubAccounts();
+  }, [loadBookings, loadSubAccounts]);
 
   useEffect(() => {
     filterBookings();
@@ -301,6 +318,22 @@ export default function BookingsPage() {
                 />
               </div>
             </div>
+            <Select
+              value={selectedSubAccountId.toString()}
+              onValueChange={(value) => setSelectedSubAccountId(parseInt(value))}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Select SubAccount" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">All SubAccounts</SelectItem>
+                {subAccounts.map((subAccount) => (
+                  <SelectItem key={subAccount.id} value={subAccount.id.toString()}>
+                    {subAccount.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}

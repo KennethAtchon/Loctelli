@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsInt, IsJSON } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsJSON, IsNumber } from 'class-validator';
 
 export class CreateStrategyDto {
   @IsInt()
@@ -54,4 +54,8 @@ export class CreateStrategyDto {
   @IsInt()
   @IsOptional()
   promptTemplateId?: number;
+
+  @IsNumber()
+  @IsOptional()
+  subAccountId?: number;
 }

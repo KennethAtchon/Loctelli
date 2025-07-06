@@ -7,9 +7,12 @@ import { UpdateLeadDto } from './dto/update-lead.dto';
 export class LeadsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(CreateLeadDto: CreateLeadDto) {
+  async create(CreateLeadDto: CreateLeadDto, subAccountId: number) {
     return this.prisma.lead.create({
-      data: CreateLeadDto,
+      data: {
+        ...CreateLeadDto,
+        subAccountId, // Add SubAccount context
+      },
     });
   }
 
@@ -19,6 +22,35 @@ export class LeadsService {
         user: true,
         strategy: true,
         bookings: true,
+      },
+    });
+  }
+
+  async findAllBySubAccount(subAccountId: number) {
+    return this.prisma.lead.findMany({
+      where: { subAccountId },
+      include: {
+        user: true,
+        strategy: true,
+        bookings: true,
+      },
+    });
+  }
+
+  async findAllByAdmin(adminId: number) {
+    return this.prisma.lead.findMany({
+      where: {
+        subAccount: {
+          createdByAdminId: adminId
+        }
+      },
+      include: {
+        user: true,
+        strategy: true,
+        bookings: true,
+        subAccount: {
+          select: { id: true, name: true }
+        }
       },
     });
   }

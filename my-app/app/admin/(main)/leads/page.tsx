@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
+import type { SubAccount } from '@/lib/api/endpoints/admin-subaccounts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +22,7 @@ import Link from 'next/link';
 import { Lead } from '@/types';
 import { DetailedLead } from '@/lib/api/endpoints/admin-auth';
 import logger from '@/lib/logger';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface LeadStats {
   totalLeads: number;
@@ -45,6 +47,8 @@ export default function LeadsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLead, setSelectedLead] = useState<DetailedLead | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
+  const [selectedSubAccountId, setSelectedSubAccountId] = useState<number>(0);
 
   const calculateStats = (leadsData: Lead[]) => {
     const stats = {
@@ -60,7 +64,7 @@ export default function LeadsPage() {
     try {
       setIsRefreshing(true);
       setError(null);
-      const leadsData = await api.leads.getLeads();
+      const leadsData = await api.leads.getLeads(selectedSubAccountId > 0 ? { subAccountId: selectedSubAccountId } : undefined);
       setLeads(leadsData);
       calculateStats(leadsData);
     } catch (error) {
@@ -70,7 +74,19 @@ export default function LeadsPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, []);
+  }, [selectedSubAccountId]);
+
+  const loadSubAccounts = useCallback(async () => {
+    try {
+      const subAccountsData = await api.adminSubAccounts.getAllSubAccounts();
+      setSubAccounts(subAccountsData);
+      if (subAccountsData.length > 0 && selectedSubAccountId === 0) {
+        setSelectedSubAccountId(subAccountsData[0].id);
+      }
+    } catch (error) {
+      logger.error('Failed to load SubAccounts', error);
+    }
+  }, [selectedSubAccountId]);
 
   const filterLeads = useCallback(() => {
     let filtered = leads;
@@ -95,7 +111,8 @@ export default function LeadsPage() {
 
   useEffect(() => {
     loadLeads();
-  }, [loadLeads]);
+    loadSubAccounts();
+  }, [loadLeads, loadSubAccounts]);
 
   useEffect(() => {
     filterLeads();
@@ -262,6 +279,22 @@ export default function LeadsPage() {
                 />
               </div>
             </div>
+            <Select
+              value={selectedSubAccountId.toString()}
+              onValueChange={(value) => setSelectedSubAccountId(parseInt(value))}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Select SubAccount" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">All SubAccounts</SelectItem>
+                {subAccounts.map((subAccount) => (
+                  <SelectItem key={subAccount.id} value={subAccount.id.toString()}>
+                    {subAccount.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}

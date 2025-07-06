@@ -7,9 +7,12 @@ import { UpdateBookingDto } from './dto/update-booking.dto';
 export class BookingsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createBookingDto: CreateBookingDto) {
+  async create(createBookingDto: CreateBookingDto, subAccountId: number) {
     return this.prisma.booking.create({
-      data: createBookingDto,
+      data: {
+        ...createBookingDto,
+        subAccountId, // Add SubAccount context
+      },
     });
   }
 
@@ -18,6 +21,33 @@ export class BookingsService {
       include: {
         user: true,
         lead: true,
+      },
+    });
+  }
+
+  async findAllBySubAccount(subAccountId: number) {
+    return this.prisma.booking.findMany({
+      where: { subAccountId },
+      include: {
+        user: true,
+        lead: true,
+      },
+    });
+  }
+
+  async findAllByAdmin(adminId: number) {
+    return this.prisma.booking.findMany({
+      where: {
+        subAccount: {
+          createdByAdminId: adminId
+        }
+      },
+      include: {
+        user: true,
+        lead: true,
+        subAccount: {
+          select: { id: true, name: true }
+        }
       },
     });
   }

@@ -2,8 +2,25 @@ import { ApiClient } from '../client';
 import { Booking, CreateBookingDto } from '@/types';
 
 export class BookingsApi extends ApiClient {
-  async getBookings(): Promise<Booking[]> {
-    return this.get<Booking[]>('/booking');
+  async getBookings(params?: { subAccountId?: number; userId?: number; leadId?: number; startDate?: string; endDate?: string }): Promise<Booking[]> {
+    const queryParams = new URLSearchParams();
+    if (params?.subAccountId) {
+      queryParams.append('subAccountId', params.subAccountId.toString());
+    }
+    if (params?.userId) {
+      queryParams.append('userId', params.userId.toString());
+    }
+    if (params?.leadId) {
+      queryParams.append('leadId', params.leadId.toString());
+    }
+    if (params?.startDate) {
+      queryParams.append('startDate', params.startDate);
+    }
+    if (params?.endDate) {
+      queryParams.append('endDate', params.endDate);
+    }
+    const queryString = queryParams.toString();
+    return this.get<Booking[]>(`/booking${queryString ? `?${queryString}` : ''}`);
   }
 
   async getBooking(id: number): Promise<Booking> {

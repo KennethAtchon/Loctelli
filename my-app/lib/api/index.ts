@@ -8,11 +8,13 @@ import { PromptTemplatesApi } from './endpoints/prompt-templates';
 import { StatusApi } from './endpoints/status';
 import { AuthApi } from './endpoints/auth';
 import { AdminAuthApi } from './endpoints/admin-auth';
+import { AdminSubAccountsApi } from './endpoints/admin-subaccounts';
 import { GeneralApi } from './endpoints/general';
 
 export class Api extends ApiClient {
   public auth: AuthApi;
   public adminAuth: AdminAuthApi;
+  public adminSubAccounts: AdminSubAccountsApi;
   public users: UsersApi;
   public leads: LeadsApi;
   public strategies: StrategiesApi;
@@ -28,6 +30,7 @@ export class Api extends ApiClient {
     // Initialize all endpoint APIs
     this.auth = new AuthApi(baseUrl);
     this.adminAuth = new AdminAuthApi(baseUrl);
+    this.adminSubAccounts = new AdminSubAccountsApi(baseUrl);
     this.users = new UsersApi(baseUrl);
     this.leads = new LeadsApi(baseUrl);
     this.strategies = new StrategiesApi(baseUrl);
@@ -45,6 +48,7 @@ export const api = new Api();
 // Export individual APIs for direct use if needed
 export { AuthApi } from './endpoints/auth';
 export { AdminAuthApi } from './endpoints/admin-auth';
+export { AdminSubAccountsApi } from './endpoints/admin-subaccounts';
 export { UsersApi } from './endpoints/users';
 export { LeadsApi } from './endpoints/leads';
 export { StrategiesApi } from './endpoints/strategies';
@@ -64,4 +68,10 @@ export type {
   AdminAuthResponse, 
   CreateUserDto, 
   UpdateUserDto 
-} from './endpoints/admin-auth'; 
+} from './endpoints/admin-auth';
+export type { 
+  SubAccount, 
+  DetailedSubAccount, 
+  CreateSubAccountDto, 
+  UpdateSubAccountDto 
+} from './endpoints/admin-subaccounts'; 

@@ -14,13 +14,22 @@ export class StrategiesController {
   @Post()
   @Admin()
   create(@Body() createStrategyDto: CreateStrategyDto, @CurrentUser() user) {
-    // Admin users can create strategies for any regular user
-    return this.strategiesService.create(createStrategyDto);
+    // Admin users can create strategies for any regular user within their SubAccounts
+    if (user.type === 'admin') {
+      // For admin users, subAccountId should be provided in the DTO
+      if (!createStrategyDto.subAccountId) {
+        throw new HttpException('subAccountId is required for strategy creation', HttpStatus.BAD_REQUEST);
+      }
+      return this.strategiesService.create(createStrategyDto, createStrategyDto.subAccountId);
+    } else {
+      // Regular users can only create strategies in their own SubAccount
+      return this.strategiesService.create(createStrategyDto, user.subAccountId);
+    }
   }
 
   @Get()
   @Admin()
-  findAll(@CurrentUser() user, @Query('userId') userId?: string) {
+  findAll(@CurrentUser() user, @Query('userId') userId?: string, @Query('subAccountId') subAccountId?: string) {
     if (userId) {
       const parsedUserId = parseInt(userId, 10);
       if (isNaN(parsedUserId)) {
@@ -29,8 +38,20 @@ export class StrategiesController {
       return this.strategiesService.findByUserId(parsedUserId);
     }
     
-    // Admin users can see all strategies
-    return this.strategiesService.findAll();
+    // Handle SubAccount filtering
+    if (user.type === 'admin') {
+      // Admin can view strategies in specific SubAccount or all their SubAccounts
+      const parsedSubAccountId = subAccountId ? parseInt(subAccountId, 10) : undefined;
+      if (parsedSubAccountId) {
+        return this.strategiesService.findAllBySubAccount(parsedSubAccountId);
+      } else {
+        // Return all strategies from all SubAccounts owned by this admin
+        return this.strategiesService.findAllByAdmin(user.userId);
+      }
+    } else {
+      // Regular users can only view strategies in their own SubAccount
+      return this.strategiesService.findAllBySubAccount(user.subAccountId);
+    }
   }
 
   @Get(':id')

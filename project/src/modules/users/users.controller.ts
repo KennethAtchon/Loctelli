@@ -16,11 +16,21 @@ export class UsersController {
   @UseGuards(RolesGuard)
   @Roles('admin', 'super_admin')
   create(@Body() createUserDto: CreateUserDto, @CurrentUser() user) {
-    return this.usersService.create(createUserDto);
+    // For admin users, subAccountId should be provided in the DTO
+    // For regular users, they can only create users in their own SubAccount
+    if (user.type === 'admin') {
+      if (!createUserDto.subAccountId) {
+        throw new HttpException('subAccountId is required for admin user creation', HttpStatus.BAD_REQUEST);
+      }
+      return this.usersService.create(createUserDto, createUserDto.subAccountId);
+    } else {
+      // Regular users can only create users in their own SubAccount
+      return this.usersService.create(createUserDto, user.subAccountId);
+    }
   }
 
   @Get()
-  findAll(@CurrentUser() user, @Query('userId') userId?: string) {
+  findAll(@CurrentUser() user, @Query('userId') userId?: string, @Query('subAccountId') subAccountId?: string) {
     // If userId is provided, check if current user has permission to view that user's data
     if (userId) {
       const parsedUserId = parseInt(userId, 10);
@@ -34,8 +44,20 @@ export class UsersController {
       return this.usersService.findOne(parsedUserId);
     }
     
-    // Return current user's data
-    return this.usersService.findOne(user.userId);
+    // Handle SubAccount filtering
+    if (user.type === 'admin') {
+      // Admin can view users in specific SubAccount or all their SubAccounts
+      const parsedSubAccountId = subAccountId ? parseInt(subAccountId, 10) : undefined;
+      if (parsedSubAccountId) {
+        return this.usersService.findAllBySubAccount(parsedSubAccountId);
+      } else {
+        // Return all users from all SubAccounts owned by this admin
+        return this.usersService.findAllByAdmin(user.userId);
+      }
+    } else {
+      // Regular users can only view users in their own SubAccount
+      return this.usersService.findAllBySubAccount(user.subAccountId);
+    }
   }
 
   @Get(':id')

@@ -11,7 +11,7 @@ export class StrategiesService {
     private promptTemplatesService: PromptTemplatesService
   ) {}
 
-  async create(createStrategyDto: CreateStrategyDto) {
+  async create(createStrategyDto: CreateStrategyDto, subAccountId: number) {
     // If no promptTemplateId is provided, get the active template as fallback
     if (!createStrategyDto.promptTemplateId) {
       try {
@@ -31,7 +31,8 @@ export class StrategiesService {
     // Ensure promptTemplateId is set before creating
     const strategyData = {
       ...createStrategyDto,
-      promptTemplateId: createStrategyDto.promptTemplateId!
+      promptTemplateId: createStrategyDto.promptTemplateId!,
+      subAccountId, // Add SubAccount context
     };
 
     return this.prisma.strategy.create({
@@ -44,6 +45,42 @@ export class StrategiesService {
       include: {
         user: true,
         leads: true,
+      },
+    });
+  }
+
+  async findAllBySubAccount(subAccountId: number) {
+    return this.prisma.strategy.findMany({
+      where: { subAccountId },
+      include: {
+        user: true,
+        leads: true,
+      },
+    });
+  }
+
+  async findAllByUser(userId: number) {
+    return this.prisma.strategy.findMany({
+      where: { userId },
+      include: {
+        leads: true,
+      },
+    });
+  }
+
+  async findAllByAdmin(adminId: number) {
+    return this.prisma.strategy.findMany({
+      where: {
+        subAccount: {
+          createdByAdminId: adminId
+        }
+      },
+      include: {
+        user: true,
+        leads: true,
+        subAccount: {
+          select: { id: true, name: true }
+        }
       },
     });
   }
@@ -140,10 +177,11 @@ export class StrategiesService {
       promptTemplateId: strategy.promptTemplateId,
     };
 
-    // Ensure promptTemplateId is set
+    // Ensure promptTemplateId is set and include SubAccount context
     const strategyData = {
       ...duplicateData,
-      promptTemplateId: duplicateData.promptTemplateId!
+      promptTemplateId: duplicateData.promptTemplateId!,
+      subAccountId: strategy.subAccountId, // Keep the same SubAccount
     };
 
     return this.prisma.strategy.create({

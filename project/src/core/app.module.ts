@@ -14,6 +14,7 @@ import { LeadsModule } from '../modules/leads/leads.module';
 import { BookingsModule } from '../modules/bookings/bookings.module';
 import { ChatModule } from '../modules/chat/chat.module';
 import { PromptTemplatesModule } from '../modules/prompt-templates/prompt-templates.module';
+import { SubAccountsModule } from '../modules/subaccounts/subaccounts.module';
 import { WebhooksModule } from '../webhooks/webhooks.module';
 import { StatusModule } from '../status/status.module';
 import { BgProcessModule } from '../background/bgprocess/bgprocess.module';
@@ -40,6 +41,7 @@ import { JwtAuthGuard } from '../auth/auth.guard';
     BookingsModule,
     ChatModule,
     PromptTemplatesModule,
+    SubAccountsModule,
     WebhooksModule,
     StatusModule,
     BgProcessModule,

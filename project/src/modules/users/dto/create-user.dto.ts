@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsInt, IsEmail } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsEmail, IsNumber } from 'class-validator';
 
 export class CreateUserDto {
   @IsString()
@@ -40,4 +40,8 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   assignedUserId?: string;
+
+  @IsNumber()
+  @IsOptional()
+  subAccountId?: number;
 }

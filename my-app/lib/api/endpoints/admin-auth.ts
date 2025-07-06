@@ -57,6 +57,7 @@ export interface CreateUserDto {
   company?: string;
   role?: string;
   bookingEnabled?: number;
+  subAccountId?: number;
 }
 
 export interface UpdateUserDto {
@@ -181,37 +182,7 @@ export interface ChangeAdminPasswordDto {
   newPassword: string;
 }
 
-export interface DetailedLead {
-  id: number;
-  name: string;
-  email?: string;
-  phone?: string;
-  company?: string;
-  position?: string;
-  customId?: string;
-  status: string;
-  notes?: string;
-  lastMessage?: string;
-  lastMessageDate?: string;
-  createdAt: Date;
-  updatedAt: Date;
-  user?: {
-    id: number;
-    name: string;
-    email: string;
-  };
-  strategy?: {
-    id: number;
-    name: string;
-    tag?: string;
-  };
-  bookings?: Array<{
-    id: number;
-    bookingType: string;
-    status: string;
-    createdAt: Date;
-  }>;
-}
+
 
 export class AdminAuthApi extends ApiClient {
   async adminLogin(data: AdminLoginDto): Promise<AdminAuthResponse> {
@@ -288,10 +259,6 @@ export class AdminAuthApi extends ApiClient {
 
   async getDetailedUser(userId: number): Promise<DetailedUser> {
     return this.get<DetailedUser>(`/general/users/${userId}/detailed`);
-  }
-
-  async getDetailedLead(leadId: number): Promise<DetailedLead> {
-    return this.get<DetailedLead>(`/general/leads/${leadId}/detailed`);
   }
 
   async getDetailedLead(leadId: number): Promise<DetailedLead> {

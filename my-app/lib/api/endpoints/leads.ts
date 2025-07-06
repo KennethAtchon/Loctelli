@@ -2,8 +2,19 @@ import { ApiClient } from '../client';
 import { Lead, CreateLeadDto } from '@/types';
 
 export class LeadsApi extends ApiClient {
-  async getLeads(): Promise<Lead[]> {
-    return this.get<Lead[]>('/lead');
+  async getLeads(params?: { subAccountId?: number; userId?: number; strategyId?: number }): Promise<Lead[]> {
+    const queryParams = new URLSearchParams();
+    if (params?.subAccountId) {
+      queryParams.append('subAccountId', params.subAccountId.toString());
+    }
+    if (params?.userId) {
+      queryParams.append('userId', params.userId.toString());
+    }
+    if (params?.strategyId) {
+      queryParams.append('strategyId', params.strategyId.toString());
+    }
+    const queryString = queryParams.toString();
+    return this.get<Lead[]>(`/lead${queryString ? `?${queryString}` : ''}`);
   }
 
   async getLead(id: number): Promise<Lead> {
