@@ -2,7 +2,7 @@ import { IsString, IsOptional, IsInt, IsObject } from 'class-validator';
 
 export class ChatMessageDto {
   @IsInt()
-  clientId: number;
+  leadId: number;
 
   @IsString()
   content: string;

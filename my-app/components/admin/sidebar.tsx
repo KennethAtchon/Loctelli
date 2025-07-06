@@ -25,7 +25,7 @@ const navigation = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Strategies', href: '/admin/strategies', icon: Target },
-  { name: 'Clients', href: '/admin/clients', icon: Users },
+  { name: 'Leads', href: '/admin/leads', icon: Users },
   { name: 'Bookings', href: '/admin/bookings', icon: Calendar },
   { name: 'Chat', href: '/admin/chat', icon: MessageSquare },
   { name: 'Prompt Builder', href: '/admin/prompt-templates', icon: FileText },

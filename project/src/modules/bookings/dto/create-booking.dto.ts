@@ -6,7 +6,7 @@ export class CreateBookingDto {
 
   @IsInt()
   @IsOptional()
-  clientId?: number;
+  leadId?: number;
 
   @IsString()
   bookingType: string;

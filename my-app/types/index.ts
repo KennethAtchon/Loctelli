@@ -16,7 +16,7 @@ export interface User {
   createdAt: Date;
   updatedAt: Date;
   strategies?: Strategy[];
-  clients?: Client[];
+  clients?: Lead[];
   bookings?: Booking[];
 }
 
@@ -40,11 +40,32 @@ export interface Strategy {
   createdAt: Date;
   updatedAt: Date;
   user?: User;
-  clients?: Client[];
+  clients?: Lead[];
 }
 
-// Client types (belong to Users)
-export interface Client {
+// Lead types (belong to Users)
+export interface Lead {
+  id: number;
+  userId: number;
+  strategyId: number;
+  name: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+  position?: string;
+  customId?: string;
+  messageHistory?: any;
+  status: string;
+  notes?: string;
+  lastMessage?: string;
+  lastMessageDate?: string;
+  user?: User;
+  strategy?: Strategy;
+  bookings?: Booking[];
+}
+
+// Lead types (belong to Users)
+export interface Lead {
   id: number;
   userId: number;
   strategyId: number;
@@ -68,14 +89,14 @@ export interface Client {
 export interface Booking {
   id: number;
   userId: number;
-  clientId?: number;
+  leadId?: number;
   bookingType: string;
   details: any;
   status: string;
   createdAt: Date;
   updatedAt: Date;
   user?: User;
-  client?: Client;
+  client?: Lead;
 }
 
 // API Response types
@@ -124,7 +145,23 @@ export interface CreateStrategyDto {
   promptTemplateId?: number;
 }
 
-export interface CreateClientDto {
+export interface CreateLeadDto {
+  userId: number;
+  strategyId: number;
+  name: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+  position?: string;
+  customId?: string;
+  status?: string;
+  notes?: string;
+  messages?: any;
+  lastMessage?: string;
+  lastMessageDate?: string;
+}
+
+export interface CreateLeadDto {
   userId: number;
   strategyId: number;
   name: string;
@@ -142,7 +179,7 @@ export interface CreateClientDto {
 
 export interface CreateBookingDto {
   userId: number;
-  clientId?: number;
+  leadId?: number;
   bookingType: string;
   details: any;
   status?: string;
@@ -151,7 +188,7 @@ export interface CreateBookingDto {
 // Chat types
 export interface ChatMessage {
   id: string;
-  clientId: number;
+  leadId: number;
   message: string;
   sender: 'user' | 'client';
   timestamp: Date;
@@ -159,7 +196,7 @@ export interface ChatMessage {
 }
 
 export interface SendMessageDto {
-  clientId: number;
+  leadId: number;
   message: string;
   strategyId?: number;
 }

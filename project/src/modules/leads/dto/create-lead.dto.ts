@@ -1,6 +1,6 @@
 import { IsString, IsOptional, IsInt, IsEmail, IsJSON } from 'class-validator';
 
-export class CreateClientDto {
+export class CreateLeadDto {
   @IsInt()
   userId: number;
 

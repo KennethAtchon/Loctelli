@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,21 +12,25 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { CreateClientDto } from '@/types';
-import { Strategy } from '@/types';
+import { Lead, CreateLeadDto, Strategy } from '@/types';
 import type { UserProfile } from '@/lib/api/endpoints/admin-auth';
 import logger from '@/lib/logger';
 
-export default function NewClientPage() {
+export default function EditLeadPage() {
   const router = useRouter();
+  const params = useParams();
+  const leadId = parseInt(params.id as string);
+  
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingLead, setIsLoadingLead] = useState(true);
   const [error, setError] = useState('');
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [strategies, setStrategies] = useState<Strategy[]>([]);
+  const [lead, setLead] = useState<Lead | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<number>(0);
-  const [formData, setFormData] = useState<CreateClientDto>({
-    userId: 0, // Will be set when user selects from dropdown
-    strategyId: 0, // Will be set when strategy selects from dropdown
+  const [formData, setFormData] = useState<CreateLeadDto>({
+    userId: 0,
+    strategyId: 0,
     name: '',
     email: '',
     phone: '',
@@ -37,59 +41,63 @@ export default function NewClientPage() {
     notes: '',
   });
 
-  // Load users for the dropdown
+  // Load lead data, users, and strategies
   useEffect(() => {
-    const loadUsers = async () => {
+    const loadData = async () => {
       try {
-        const usersData = await api.adminAuth.getAllUsers();
+        setIsLoadingLead(true);
+        const [leadData, usersData] = await Promise.all([
+          api.leads.getLead(leadId),
+          api.adminAuth.getAllUsers()
+        ]);
+        
+        setLead(leadData);
+        setSelectedUserId(leadData.userId);
+        
         // Filter out admin users, only show regular users
         const regularUsers = usersData.filter(user => user.role !== 'admin');
         setUsers(regularUsers);
-      } catch (error) {
-        logger.error('Failed to load users:', error);
-      }
-    };
-    loadUsers();
-  }, []);
-
-  // Load strategies for the selected user
-  useEffect(() => {
-    const loadStrategies = async () => {
-      if (selectedUserId === 0) {
-        setStrategies([]);
-        return;
-      }
-      try {
-        const strategiesData = await api.strategies.getStrategiesByUser(selectedUserId);
+        
+        // Load strategies for the selected user
+        const strategiesData = await api.strategies.getStrategiesByUser(leadData.userId);
         setStrategies(strategiesData);
+        
+        // Populate form with existing data
+        setFormData({
+          userId: leadData.userId,
+          strategyId: leadData.strategyId,
+          name: leadData.name,
+          email: leadData.email || '',
+          phone: leadData.phone || '',
+          company: leadData.company || '',
+          position: leadData.position || '',
+          customId: leadData.customId || '',
+          status: leadData.status,
+          notes: leadData.notes || '',
+        });
       } catch (error) {
-        logger.error('Failed to load strategies:', error);
+        logger.error('Failed to load lead data:', error);
+        setError('Failed to load lead data');
+      } finally {
+        setIsLoadingLead(false);
       }
     };
-    loadStrategies();
-  }, [selectedUserId]);
+
+    if (leadId) {
+      loadData();
+    }
+  }, [leadId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.userId || formData.userId === 0) {
-      setError('Please select a user for this client');
-      return;
-    }
-    
-    if (!formData.strategyId || formData.strategyId === 0) {
-      setError('Please select a strategy for this client');
-      return;
-    }
-    
     setIsLoading(true);
     setError('');
 
     try {
-      await api.clients.createClient(formData);
-      router.push('/admin/clients');
+      await api.leads.updateLead(leadId, formData);
+      router.push('/admin/leads');
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to create client');
+      setError(error instanceof Error ? error.message : 'Failed to update lead');
     } finally {
       setIsLoading(false);
     }
@@ -110,27 +118,48 @@ export default function NewClientPage() {
     }));
   };
 
+  if (isLoadingLead) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  if (error && !lead) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Link href="/admin/leads">
+            <Button>Back to Leads</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center gap-4">
-        <Link href="/admin/clients">
+        <Link href="/admin/leads">
           <Button variant="outline" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Clients
+            Back to Leads
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Add New Client</h1>
-          <p className="text-gray-600">Create a new client record</p>
+          <h1 className="text-3xl font-bold text-gray-900">Edit Lead</h1>
+          <p className="text-gray-600">Update lead information</p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Client Information</CardTitle>
+          <CardTitle>Lead Information</CardTitle>
           <CardDescription>
-            Enter the client's details below. All fields marked with * are required.
+            Update the lead's details below. All fields marked with * are required.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -152,6 +181,12 @@ export default function NewClientPage() {
                       const userId = parseInt(value);
                       setSelectedUserId(userId);
                       setFormData(prev => ({ ...prev, userId, strategyId: 0 }));
+                      // Reload strategies for the new user
+                      api.strategies.getStrategiesByUser(userId).then(strategiesData => {
+                        setStrategies(strategiesData);
+                      }).catch(error => {
+                        logger.error('Failed to load strategies:', error);
+                      });
                     }}
                   >
                     <SelectTrigger>
@@ -168,19 +203,18 @@ export default function NewClientPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="strategyId">Strategy *</Label>
+                  <Label htmlFor="strategyId">Assign Strategy *</Label>
                   <Select
                     value={formData.strategyId.toString()}
                     onValueChange={(value) => handleSelectChange('strategyId', value)}
-                    disabled={selectedUserId === 0}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder={selectedUserId === 0 ? "Select a user first" : "Select a strategy"} />
+                      <SelectValue placeholder="Select a strategy" />
                     </SelectTrigger>
                     <SelectContent>
                       {strategies.map((strategy) => (
                         <SelectItem key={strategy.id} value={strategy.id.toString()}>
-                          {strategy.name}
+                          {strategy.name} {strategy.tag && `(${strategy.tag})`}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -188,15 +222,15 @@ export default function NewClientPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name *</Label>
+                  <Label htmlFor="name">Name *</Label>
                   <Input
                     id="name"
                     name="name"
                     type="text"
-                    required
                     value={formData.name}
                     onChange={handleInputChange}
-                    placeholder="John Doe"
+                    placeholder="Enter lead name"
+                    required
                   />
                 </div>
 
@@ -208,7 +242,7 @@ export default function NewClientPage() {
                     type="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    placeholder="john@example.com"
+                    placeholder="Enter email address"
                   />
                 </div>
 
@@ -220,10 +254,13 @@ export default function NewClientPage() {
                     type="tel"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    placeholder="+1 (555) 123-4567"
+                    placeholder="Enter phone number"
                   />
                 </div>
+              </div>
 
+              {/* Additional Information */}
+              <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="company">Company</Label>
                   <Input
@@ -232,13 +269,10 @@ export default function NewClientPage() {
                     type="text"
                     value={formData.company}
                     onChange={handleInputChange}
-                    placeholder="Acme Corporation"
+                    placeholder="Enter company name"
                   />
                 </div>
-              </div>
 
-              {/* Additional Information */}
-              <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="position">Position</Label>
                   <Input
@@ -247,7 +281,7 @@ export default function NewClientPage() {
                     type="text"
                     value={formData.position}
                     onChange={handleInputChange}
-                    placeholder="CEO, Manager, etc."
+                    placeholder="Enter job position"
                   />
                 </div>
 
@@ -259,11 +293,9 @@ export default function NewClientPage() {
                     type="text"
                     value={formData.customId}
                     onChange={handleInputChange}
-                    placeholder="Optional custom identifier"
+                    placeholder="Enter custom identifier"
                   />
                 </div>
-
-
 
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
@@ -292,31 +324,27 @@ export default function NewClientPage() {
                 name="notes"
                 value={formData.notes}
                 onChange={handleInputChange}
-                placeholder="Additional notes about this client..."
+                placeholder="Additional notes about this lead..."
                 rows={4}
               />
             </div>
 
             {/* Form Actions */}
-            <div className="flex gap-4 pt-4">
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="flex-1"
-              >
+            <div className="flex gap-4">
+              <Button type="submit" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Creating...
+                    Updating...
                   </>
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
-                    Create Client
+                    Update Lead
                   </>
                 )}
               </Button>
-              <Link href="/admin/clients">
+              <Link href="/admin/leads">
                 <Button type="button" variant="outline">
                   Cancel
                 </Button>

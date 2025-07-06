@@ -139,7 +139,7 @@ export interface DetailedUser {
   }>;
 }
 
-export interface DetailedClient {
+export interface DetailedLead {
   id: number;
   name: string;
   email?: string;
@@ -179,6 +179,38 @@ export interface UpdateAdminProfileDto {
 export interface ChangeAdminPasswordDto {
   oldPassword: string;
   newPassword: string;
+}
+
+export interface DetailedLead {
+  id: number;
+  name: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+  position?: string;
+  customId?: string;
+  status: string;
+  notes?: string;
+  lastMessage?: string;
+  lastMessageDate?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  strategy?: {
+    id: number;
+    name: string;
+    tag?: string;
+  };
+  bookings?: Array<{
+    id: number;
+    bookingType: string;
+    status: string;
+    createdAt: Date;
+  }>;
 }
 
 export class AdminAuthApi extends ApiClient {
@@ -250,15 +282,19 @@ export class AdminAuthApi extends ApiClient {
     return this.get<SystemStatus>('/general/system-status');
   }
 
-  async getRecentClients(): Promise<DetailedClient[]> {
-    return this.get<DetailedClient[]>('/general/recent-clients');
+  async getRecentClients(): Promise<DetailedLead[]> {
+    return this.get<DetailedLead[]>('/general/recent-clients');
   }
 
   async getDetailedUser(userId: number): Promise<DetailedUser> {
     return this.get<DetailedUser>(`/general/users/${userId}/detailed`);
   }
 
-  async getDetailedClient(clientId: number): Promise<DetailedClient> {
-    return this.get<DetailedClient>(`/general/clients/${clientId}/detailed`);
+  async getDetailedLead(leadId: number): Promise<DetailedLead> {
+    return this.get<DetailedLead>(`/general/leads/${leadId}/detailed`);
+  }
+
+  async getDetailedLead(leadId: number): Promise<DetailedLead> {
+    return this.get<DetailedLead>(`/general/leads/${leadId}/detailed`);
   }
 } 

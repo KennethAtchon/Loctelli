@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,25 +12,21 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { Client, CreateClientDto, Strategy } from '@/types';
+import { CreateLeadDto } from '@/types';
+import { Strategy } from '@/types';
 import type { UserProfile } from '@/lib/api/endpoints/admin-auth';
 import logger from '@/lib/logger';
 
-export default function EditClientPage() {
+export default function NewClientPage() {
   const router = useRouter();
-  const params = useParams();
-  const clientId = parseInt(params.id as string);
-  
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingClient, setIsLoadingClient] = useState(true);
   const [error, setError] = useState('');
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [strategies, setStrategies] = useState<Strategy[]>([]);
-  const [client, setClient] = useState<Client | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<number>(0);
-  const [formData, setFormData] = useState<CreateClientDto>({
-    userId: 0,
-    strategyId: 0,
+  const [formData, setFormData] = useState<CreateLeadDto>({
+    userId: 0, // Will be set when user selects from dropdown
+    strategyId: 0, // Will be set when strategy selects from dropdown
     name: '',
     email: '',
     phone: '',
@@ -41,63 +37,59 @@ export default function EditClientPage() {
     notes: '',
   });
 
-  // Load client data, users, and strategies
+  // Load users for the dropdown
   useEffect(() => {
-    const loadData = async () => {
+    const loadUsers = async () => {
       try {
-        setIsLoadingClient(true);
-        const [clientData, usersData] = await Promise.all([
-          api.clients.getClient(clientId),
-          api.adminAuth.getAllUsers()
-        ]);
-        
-        setClient(clientData);
-        setSelectedUserId(clientData.userId);
-        
+        const usersData = await api.adminAuth.getAllUsers();
         // Filter out admin users, only show regular users
         const regularUsers = usersData.filter(user => user.role !== 'admin');
         setUsers(regularUsers);
-        
-        // Load strategies for the selected user
-        const strategiesData = await api.strategies.getStrategiesByUser(clientData.userId);
-        setStrategies(strategiesData);
-        
-        // Populate form with existing data
-        setFormData({
-          userId: clientData.userId,
-          strategyId: clientData.strategyId,
-          name: clientData.name,
-          email: clientData.email || '',
-          phone: clientData.phone || '',
-          company: clientData.company || '',
-          position: clientData.position || '',
-          customId: clientData.customId || '',
-          status: clientData.status,
-          notes: clientData.notes || '',
-        });
       } catch (error) {
-        logger.error('Failed to load client data:', error);
-        setError('Failed to load client data');
-      } finally {
-        setIsLoadingClient(false);
+        logger.error('Failed to load users:', error);
       }
     };
+    loadUsers();
+  }, []);
 
-    if (clientId) {
-      loadData();
-    }
-  }, [clientId]);
+  // Load strategies for the selected user
+  useEffect(() => {
+    const loadStrategies = async () => {
+      if (selectedUserId === 0) {
+        setStrategies([]);
+        return;
+      }
+      try {
+        const strategiesData = await api.strategies.getStrategiesByUser(selectedUserId);
+        setStrategies(strategiesData);
+      } catch (error) {
+        logger.error('Failed to load strategies:', error);
+      }
+    };
+    loadStrategies();
+  }, [selectedUserId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.userId || formData.userId === 0) {
+      setError('Please select a user for this lead');
+      return;
+    }
+    
+    if (!formData.strategyId || formData.strategyId === 0) {
+      setError('Please select a strategy for this lead');
+      return;
+    }
+    
     setIsLoading(true);
     setError('');
 
     try {
-      await api.clients.updateClient(clientId, formData);
-      router.push('/admin/clients');
+      await api.leads.createLead(formData);
+      router.push('/admin/leads');
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to update client');
+      setError(error instanceof Error ? error.message : 'Failed to create lead');
     } finally {
       setIsLoading(false);
     }
@@ -118,48 +110,27 @@ export default function EditClientPage() {
     }));
   };
 
-  if (isLoadingClient) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
-
-  if (error && !client) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <Link href="/admin/clients">
-            <Button>Back to Clients</Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center gap-4">
-        <Link href="/admin/clients">
+        <Link href="/admin/leads">
           <Button variant="outline" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Clients
+            Back to Leads
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Edit Client</h1>
-          <p className="text-gray-600">Update client information</p>
+          <h1 className="text-3xl font-bold text-gray-900">Add New Lead</h1>
+          <p className="text-gray-600">Create a new lead record</p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Client Information</CardTitle>
+          <CardTitle>Lead Information</CardTitle>
           <CardDescription>
-            Update the client's details below. All fields marked with * are required.
+            Enter the lead's details below. All fields marked with * are required.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -181,12 +152,6 @@ export default function EditClientPage() {
                       const userId = parseInt(value);
                       setSelectedUserId(userId);
                       setFormData(prev => ({ ...prev, userId, strategyId: 0 }));
-                      // Reload strategies for the new user
-                      api.strategies.getStrategiesByUser(userId).then(strategiesData => {
-                        setStrategies(strategiesData);
-                      }).catch(error => {
-                        logger.error('Failed to load strategies:', error);
-                      });
                     }}
                   >
                     <SelectTrigger>
@@ -298,8 +263,6 @@ export default function EditClientPage() {
                   />
                 </div>
 
-
-
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
                   <Select
@@ -327,7 +290,7 @@ export default function EditClientPage() {
                 name="notes"
                 value={formData.notes}
                 onChange={handleInputChange}
-                placeholder="Additional notes about this client..."
+                placeholder="Additional notes about this lead..."
                 rows={4}
               />
             </div>
@@ -342,16 +305,16 @@ export default function EditClientPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Updating...
+                    Creating...
                   </>
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
-                    Update Client
+                    Create Lead
                   </>
                 )}
               </Button>
-              <Link href="/admin/clients">
+              <Link href="/admin/leads">
                 <Button type="button" variant="outline">
                   Cancel
                 </Button>

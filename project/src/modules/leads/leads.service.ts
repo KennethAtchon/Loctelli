@@ -1,20 +1,20 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
-import { CreateClientDto } from './dto/create-client.dto';
-import { UpdateClientDto } from './dto/update-client.dto';
+import { CreateLeadDto } from './dto/create-lead.dto';
+import { UpdateLeadDto } from './dto/update-lead.dto';
 
 @Injectable()
-export class ClientsService {
+export class LeadsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createClientDto: CreateClientDto) {
-    return this.prisma.client.create({
-      data: createClientDto,
+  async create(CreateLeadDto: CreateLeadDto) {
+    return this.prisma.lead.create({
+      data: CreateLeadDto,
     });
   }
 
   async findAll() {
-    return this.prisma.client.findMany({
+    return this.prisma.lead.findMany({
       include: {
         user: true,
         strategy: true,
@@ -24,7 +24,7 @@ export class ClientsService {
   }
 
   async findOne(id: number, userId: number, userRole: string) {
-    const client = await this.prisma.client.findUnique({
+    const client = await this.prisma.lead.findUnique({
       where: { id },
       include: {
         user: true,
@@ -34,7 +34,7 @@ export class ClientsService {
     });
 
     if (!client) {
-      throw new NotFoundException(`Client with ID ${id} not found`);
+      throw new NotFoundException(`Lead with ID ${id} not found`);
     }
 
     // Check if user has permission to access this client
@@ -46,7 +46,7 @@ export class ClientsService {
   }
 
   async findByUserId(userId: number) {
-    return this.prisma.client.findMany({
+    return this.prisma.lead.findMany({
       where: { userId },
       include: {
         strategy: true,
@@ -70,7 +70,7 @@ export class ClientsService {
       throw new ForbiddenException('Access denied');
     }
 
-    return this.prisma.client.findMany({
+    return this.prisma.lead.findMany({
       where: { strategyId },
       include: {
         strategy: true,
@@ -79,14 +79,14 @@ export class ClientsService {
     });
   }
 
-  async update(id: number, updateClientDto: UpdateClientDto, userId: number, userRole: string) {
+  async update(id: number, updateLeadDto: UpdateLeadDto, userId: number, userRole: string) {
     // Check if client exists and user has permission
-    const client = await this.prisma.client.findUnique({
+    const client = await this.prisma.lead.findUnique({
       where: { id },
     });
 
     if (!client) {
-      throw new NotFoundException(`Client with ID ${id} not found`);
+      throw new NotFoundException(`Lead with ID ${id} not found`);
     }
 
     // Check if user has permission to update this client
@@ -95,23 +95,23 @@ export class ClientsService {
     }
 
     try {
-      return await this.prisma.client.update({
+      return await this.prisma.lead.update({
         where: { id },
-        data: updateClientDto,
+        data: updateLeadDto,
       });
     } catch (error) {
-      throw new NotFoundException(`Client with ID ${id} not found`);
+      throw new NotFoundException(`Lead with ID ${id} not found`);
     }
   }
 
   async appendMessage(id: number, message: any) {
-    const client = await this.prisma.client.findUnique({
+    const client = await this.prisma.lead.findUnique({
       where: { id },
       select: { messageHistory: true },
     });
 
     if (!client) {
-      throw new NotFoundException(`Client with ID ${id} not found`);
+      throw new NotFoundException(`Lead with ID ${id} not found`);
     }
 
     // Parse existing messages or initialize empty array
@@ -121,7 +121,7 @@ export class ClientsService {
     existingMessages.push(message);
 
     // Update client with new messages array
-    return this.prisma.client.update({
+    return this.prisma.lead.update({
       where: { id },
       data: {
         messageHistory: JSON.stringify(existingMessages),
@@ -133,12 +133,12 @@ export class ClientsService {
 
   async remove(id: number, userId: number, userRole: string) {
     // Check if client exists and user has permission
-    const client = await this.prisma.client.findUnique({
+    const client = await this.prisma.lead.findUnique({
       where: { id },
     });
 
     if (!client) {
-      throw new NotFoundException(`Client with ID ${id} not found`);
+      throw new NotFoundException(`Lead with ID ${id} not found`);
     }
 
     // Check if user has permission to delete this client
@@ -147,11 +147,11 @@ export class ClientsService {
     }
 
     try {
-      return await this.prisma.client.delete({
+      return await this.prisma.lead.delete({
         where: { id },
       });
     } catch (error) {
-      throw new NotFoundException(`Client with ID ${id} not found`);
+      throw new NotFoundException(`Lead with ID ${id} not found`);
     }
   }
 }

@@ -52,14 +52,14 @@ export class BookingsService {
     });
   }
 
-  async findByClientId(clientId: number, userId: number, userRole: string) {
+  async findByleadId(leadId: number, userId: number, userRole: string) {
     // First check if the client belongs to the user
-    const client = await this.prisma.client.findUnique({
-      where: { id: clientId },
+    const client = await this.prisma.lead.findUnique({
+      where: { id: leadId },
     });
 
     if (!client) {
-      throw new NotFoundException(`Client with ID ${clientId} not found`);
+      throw new NotFoundException(`Lead with ID ${leadId} not found`);
     }
 
     // Check if user has permission to access this client's bookings
@@ -68,7 +68,7 @@ export class BookingsService {
     }
 
     return this.prisma.booking.findMany({
-      where: { clientId },
+      where: { leadId },
       include: {
         client: true,
       },

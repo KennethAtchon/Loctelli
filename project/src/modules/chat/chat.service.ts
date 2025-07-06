@@ -13,16 +13,16 @@ export class ChatService {
   ) {}
 
   async sendMessage(chatMessageDto: ChatMessageDto) {
-    const { clientId, content, role = 'user', metadata } = chatMessageDto;
+    const { leadId, content, role = 'user', metadata } = chatMessageDto;
     
     // Find the client
-    const client = await this.prisma.client.findUnique({
-      where: { id: clientId },
+    const client = await this.prisma.lead.findUnique({
+      where: { id: leadId },
       select: { id: true, messageHistory: true, strategyId: true, userId: true }
     });
 
     if (!client) {
-      throw new NotFoundException(`Client with ID ${clientId} not found`);
+      throw new NotFoundException(`Lead with ID ${leadId} not found`);
     }
 
     // Create the user message object for response
@@ -34,7 +34,7 @@ export class ChatService {
     };
 
     // Generate AI response using SalesBotService (this will handle message history)
-    const aiResponse = await this.salesBotService.generateResponse(content, clientId);
+    const aiResponse = await this.salesBotService.generateResponse(content, leadId);
     
     // Create the AI response object for response
     const aiMessage = {
@@ -45,8 +45,8 @@ export class ChatService {
     };
 
     // Get updated client data
-    const updatedClient = await this.prisma.client.findUnique({
-      where: { id: clientId },
+    const updatedClient = await this.prisma.lead.findUnique({
+      where: { id: leadId },
       include: {
         user: true,
         strategy: true,
@@ -60,14 +60,14 @@ export class ChatService {
     };
   }
 
-  async getMessageHistory(clientId: number) {
-    const client = await this.prisma.client.findUnique({
-      where: { id: clientId },
+  async getMessageHistory(leadId: number) {
+    const client = await this.prisma.lead.findUnique({
+      where: { id: leadId },
       select: { messageHistory: true }
     });
 
     if (!client) {
-      throw new NotFoundException(`Client with ID ${clientId} not found`);
+      throw new NotFoundException(`Lead with ID ${leadId} not found`);
     }
 
     return client.messageHistory ? JSON.parse(client.messageHistory as string) : [];
@@ -82,7 +82,7 @@ export class ChatService {
     const { customId } = sendMessageDto;
     
     // Find client by customId
-    const client = await this.prisma.client.findFirst({
+    const client = await this.prisma.lead.findFirst({
       where: { customId },
     });
     
@@ -105,10 +105,10 @@ export class ChatService {
    * Generate a response to a client message
    * This is a placeholder for the actual AI response generation
    * @param message The message to respond to
-   * @param clientId The client ID
+   * @param leadId The client ID
    * @returns The generated response
    */
-  private async generateResponse(message: string, clientId: number): Promise<string> {
+  private async generateResponse(message: string, leadId: number): Promise<string> {
     // In a real implementation, this would call your AI service
     // For now, we'll return a simple response
     return `Thank you for your message. Our team will get back to you shortly.`;

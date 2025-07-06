@@ -2,7 +2,7 @@ import { ApiClient } from '../client';
 import { ChatMessage } from '@/types';
 
 export interface ChatMessageDto {
-  clientId: number;
+  leadId: number;
   content: string;
   role?: string;
   metadata?: Record<string, unknown>;
@@ -13,16 +13,16 @@ export class ChatApi extends ApiClient {
     return this.post<{ userMessage: unknown; aiMessage: unknown; client: unknown }>('/chat/send', data);
   }
 
-  async getChatHistory(clientId: number): Promise<ChatMessage[]> {
-    return this.get<ChatMessage[]>(`/chat/messages/${clientId}`);
+  async getChatHistory(leadId: number): Promise<ChatMessage[]> {
+    return this.get<ChatMessage[]>(`/chat/messages/${leadId}`);
   }
 
   async getChatHistoryByDateRange(
-    clientId: number, 
+    leadId: number, 
     startDate: string, 
     endDate: string
   ): Promise<ChatMessage[]> {
-    return this.get<ChatMessage[]>(`/chat/messages/${clientId}?startDate=${startDate}&endDate=${endDate}`);
+    return this.get<ChatMessage[]>(`/chat/messages/${leadId}?startDate=${startDate}&endDate=${endDate}`);
   }
 
   async markMessageAsRead(messageId: string): Promise<void> {
@@ -33,11 +33,11 @@ export class ChatApi extends ApiClient {
     return this.delete<void>(`/chat/messages/${messageId}`);
   }
 
-  async getUnreadMessagesCount(clientId: number): Promise<number> {
-    return this.get<number>(`/chat/unread-count/${clientId}`);
+  async getUnreadMessagesCount(leadId: number): Promise<number> {
+    return this.get<number>(`/chat/unread-count/${leadId}`);
   }
 
-  async markAllAsRead(clientId: number): Promise<void> {
-    return this.patch<void>(`/chat/mark-all-read/${clientId}`);
+  async markAllAsRead(leadId: number): Promise<void> {
+    return this.patch<void>(`/chat/mark-all-read/${leadId}`);
   }
 } 

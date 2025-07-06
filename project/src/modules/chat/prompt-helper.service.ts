@@ -62,7 +62,7 @@ export class PromptHelperService {
 
   /**
    * Build client section of the system prompt
-   * @param client Client entity from database (the person we're talking to)
+   * @param client Lead entity from database (the person we're talking to)
    * @returns Formatted client prompt section
    */
   buildClientPrompt(client: any): string {
@@ -70,7 +70,7 @@ export class PromptHelperService {
     
     if (!client) {
       this.logger.warn('No client data provided for prompt');
-      return 'Client: Unknown';
+      return 'Lead: Unknown';
     }
     
     const clientPrompt = [
@@ -85,7 +85,7 @@ export class PromptHelperService {
       `  Notes: ${client.notes || 'N/A'}`
     ].join('\n');
     
-    this.logger.debug(`Client prompt built: ${clientPrompt}`);
+    this.logger.debug(`Lead prompt built: ${clientPrompt}`);
     return clientPrompt;
   }
 
@@ -125,13 +125,13 @@ export class PromptHelperService {
 
   /**
    * Construct the system prompt for the AI
-   * @param client Client entity from database
+   * @param client Lead entity from database
    * @param user User entity from database
    * @param strategy Strategy entity from database
    * @returns Complete system prompt
    */
   async buildSystemPrompt(client: any, user: any, strategy: any): Promise<string> {
-    this.logger.debug(`Building system prompt for clientId=${client.id}`);
+    this.logger.debug(`Building system prompt for leadId=${client.id}`);
 
     // Get active template
     const activeTemplate = await this.promptTemplatesService.getActive();
@@ -178,7 +178,7 @@ export class PromptHelperService {
     
     const systemPrompt = this.promptBuilder.build();
 
-    this.logger.log(`System prompt built for clientId=${client.id}, length=${systemPrompt.length}`);
+    this.logger.log(`System prompt built for leadId=${client.id}, length=${systemPrompt.length}`);
     this.logger.debug(`System prompt content: ${systemPrompt ? systemPrompt.substring(0, 200) + '...' : 'undefined'}`);
     return systemPrompt;
   }
@@ -228,14 +228,14 @@ export class PromptHelperService {
 
   /**
    * Compose the full prompt with system message and conversation history
-   * @param client Client entity from database
+   * @param client Lead entity from database
    * @param user User entity from database
    * @param strategy Strategy entity from database
    * @param history Conversation history
    * @returns Array of messages for OpenAI API
    */
   async composePrompt(client: any, user: any, strategy: any, history: MessageHistoryItem[]): Promise<ChatMessage[]> {
-    this.logger.debug(`[composePrompt] clientId=${client.id}, history_length=${history.length}`);
+    this.logger.debug(`[composePrompt] leadId=${client.id}, history_length=${history.length}`);
     const messages: ChatMessage[] = [
       {
         role: 'system',

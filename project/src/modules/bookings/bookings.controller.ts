@@ -21,7 +21,7 @@ export class BookingsController {
 
   @Get()
   @Admin()
-  findAll(@CurrentUser() user, @Query('userId') userId?: string, @Query('clientId') clientId?: string) {
+  findAll(@CurrentUser() user, @Query('userId') userId?: string, @Query('leadId') leadId?: string) {
     if (userId) {
       const parsedUserId = parseInt(userId, 10);
       if (isNaN(parsedUserId)) {
@@ -30,12 +30,12 @@ export class BookingsController {
       return this.bookingsService.findByUserId(parsedUserId);
     }
     
-    if (clientId) {
-      const parsedClientId = parseInt(clientId, 10);
-      if (isNaN(parsedClientId)) {
-        throw new HttpException('Invalid clientId parameter', HttpStatus.BAD_REQUEST);
+    if (leadId) {
+      const parsedleadId = parseInt(leadId, 10);
+      if (isNaN(parsedleadId)) {
+        throw new HttpException('Invalid leadId parameter', HttpStatus.BAD_REQUEST);
       }
-      return this.bookingsService.findByClientId(parsedClientId, user.userId, user.role);
+      return this.bookingsService.findByleadId(parsedleadId, user.userId, user.role);
     }
     
     // Admin users can see all bookings

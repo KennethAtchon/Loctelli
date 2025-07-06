@@ -26,8 +26,8 @@ export class BookingsApi extends ApiClient {
     return this.get<Booking[]>(`/booking?userId=${userId}`);
   }
 
-  async getBookingsByClient(clientId: number): Promise<Booking[]> {
-    return this.get<Booking[]>(`/booking?clientId=${clientId}`);
+  async getBookingsByClient(leadId: number): Promise<Booking[]> {
+    return this.get<Booking[]>(`/booking?leadId=${leadId}`);
   }
 
   async getBookingsByDateRange(startDate: string, endDate: string): Promise<Booking[]> {

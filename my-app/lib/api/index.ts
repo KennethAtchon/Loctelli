@@ -1,6 +1,6 @@
 import { ApiClient } from './client';
 import { UsersApi } from './endpoints/users';
-import { ClientsApi } from './endpoints/clients';
+import { LeadsApi } from './endpoints/leads';
 import { StrategiesApi } from './endpoints/strategies';
 import { BookingsApi } from './endpoints/bookings';
 import { ChatApi } from './endpoints/chat';
@@ -14,7 +14,7 @@ export class Api extends ApiClient {
   public auth: AuthApi;
   public adminAuth: AdminAuthApi;
   public users: UsersApi;
-  public clients: ClientsApi;
+  public leads: LeadsApi;
   public strategies: StrategiesApi;
   public bookings: BookingsApi;
   public chat: ChatApi;
@@ -29,7 +29,7 @@ export class Api extends ApiClient {
     this.auth = new AuthApi(baseUrl);
     this.adminAuth = new AdminAuthApi(baseUrl);
     this.users = new UsersApi(baseUrl);
-    this.clients = new ClientsApi(baseUrl);
+    this.leads = new LeadsApi(baseUrl);
     this.strategies = new StrategiesApi(baseUrl);
     this.bookings = new BookingsApi(baseUrl);
     this.chat = new ChatApi(baseUrl);
@@ -46,7 +46,7 @@ export const api = new Api();
 export { AuthApi } from './endpoints/auth';
 export { AdminAuthApi } from './endpoints/admin-auth';
 export { UsersApi } from './endpoints/users';
-export { ClientsApi } from './endpoints/clients';
+export { LeadsApi } from './endpoints/leads';
 export { StrategiesApi } from './endpoints/strategies';
 export { BookingsApi } from './endpoints/bookings';
 export { ChatApi } from './endpoints/chat';

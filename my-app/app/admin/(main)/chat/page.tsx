@@ -16,7 +16,7 @@ import {
   Loader2,
   UserCheck
 } from 'lucide-react';
-import { DetailedClient } from '@/lib/api/endpoints/admin-auth';
+import { DetailedLead } from '@/lib/api/endpoints/admin-auth';
 import logger from '@/lib/logger';
 
 interface ChatMessage {
@@ -25,7 +25,7 @@ interface ChatMessage {
   content: string;
   timestamp: Date;
   metadata?: {
-    clientId?: number;
+    leadId?: number;
     clientName?: string;
   };
 }
@@ -33,11 +33,11 @@ interface ChatMessage {
 export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
-  const [clientId, setClientId] = useState<string>('');
+  const [leadId, setleadId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [clientProfile, setClientProfile] = useState<DetailedClient | null>(null);
+  const [clientProfile, setClientProfile] = useState<DetailedLead | null>(null);
   const [isLoadingClient, setIsLoadingClient] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   
@@ -69,24 +69,24 @@ export default function ChatPage() {
     try {
       setIsLoadingClient(true);
       setError(null);
-      const clientIdNum = parseInt(id, 10);
+      const leadIdNum = parseInt(id, 10);
       
-      if (isNaN(clientIdNum)) {
+      if (isNaN(leadIdNum)) {
         setError('Please enter a valid client ID (number)');
         setClientProfile(null);
         setMessages([]);
         return;
       }
 
-      const client = await api.adminAuth.getDetailedClient(clientIdNum);
+      const client = await api.adminAuth.getDetailedLead(leadIdNum);
       setClientProfile(client);
       setError(null);
       
       // Load chat history for this client
-      await loadChatHistory(clientIdNum);
+      await loadChatHistory(leadIdNum);
     } catch (error) {
       logger.error('Failed to load client profile:', error);
-      setError('Client not found. Please check the client ID.');
+      setError('Lead not found. Please check the client ID.');
       setClientProfile(null);
       setMessages([]);
     } finally {
@@ -94,10 +94,10 @@ export default function ChatPage() {
     }
   };
 
-  const loadChatHistory = async (clientIdNum: number) => {
+  const loadChatHistory = async (leadIdNum: number) => {
     try {
       setIsLoadingHistory(true);
-      const history = await api.chat.getChatHistory(clientIdNum);
+      const history = await api.chat.getChatHistory(leadIdNum);
       
       // Convert backend message format to frontend format
       const convertedMessages: ChatMessage[] = history.map((msg: any, index: number) => {
@@ -120,12 +120,12 @@ export default function ChatPage() {
         }
         
         return {
-          id: `${clientIdNum}-${index}`,
+          id: `${leadIdNum}-${index}`,
           role,
           content,
           timestamp: new Date(msg.timestamp || Date.now()),
           metadata: {
-            clientId: clientIdNum,
+            leadId: leadIdNum,
             clientName: clientProfile?.name
           }
         };
@@ -140,8 +140,8 @@ export default function ChatPage() {
     }
   };
 
-  const handleClientIdChange = (value: string) => {
-    setClientId(value);
+  const handleleadIdChange = (value: string) => {
+    setleadId(value);
     if (value.trim()) {
       loadClientProfile(value);
     } else {
@@ -161,7 +161,7 @@ export default function ChatPage() {
   }, []);
 
   const sendMessage = async () => {
-    if (!inputMessage.trim() || isLoading || !clientId.trim()) return;
+    if (!inputMessage.trim() || isLoading || !leadId.trim()) return;
 
     const userMessage = inputMessage.trim();
     setInputMessage('');
@@ -180,7 +180,7 @@ export default function ChatPage() {
 
       // Send message to API with client ID
       const response = await api.chat.sendMessage({
-        clientId: parseInt(clientId, 10),
+        leadId: parseInt(leadId, 10),
         content: userMessage,
         role: 'user'
       });
@@ -193,7 +193,7 @@ export default function ChatPage() {
         role: 'assistant',
         content: (response.aiMessage as any).content || 'No response received',
         metadata: {
-          clientId: parseInt(clientId, 10),
+          leadId: parseInt(leadId, 10),
           clientName: clientProfile?.name
         }
       });
@@ -269,18 +269,18 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Client ID Input */}
+      {/* Lead ID Input */}
       <div className="border-b bg-gray-50 p-4">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <UserCheck className="h-5 w-5 text-gray-600" />
-            <label className="text-sm font-medium text-gray-700">Client ID:</label>
+            <label className="text-sm font-medium text-gray-700">Lead ID:</label>
           </div>
           <Input
             type="number"
             placeholder="Enter client ID to spoof..."
-            value={clientId}
-            onChange={(e) => handleClientIdChange(e.target.value)}
+            value={leadId}
+            onChange={(e) => handleleadIdChange(e.target.value)}
             className="w-48"
           />
           {isLoadingClient && (
@@ -288,7 +288,7 @@ export default function ChatPage() {
           )}
         </div>
         
-        {/* Client Profile Display */}
+        {/* Lead Profile Display */}
         {clientProfile && (
           <div className="mt-3 p-3 bg-white border rounded-lg">
             <div className="flex items-center justify-between">
@@ -374,9 +374,9 @@ export default function ChatPage() {
                         <span className="text-xs opacity-70">
                           {formatTimestamp(message.timestamp)}
                         </span>
-                        {message.metadata?.clientName && (
+                        {message.metadata?.leadName && (
                           <Badge variant="outline" className="text-xs">
-                            {message.metadata.clientName}
+                            {message.metadata.leadName}
                           </Badge>
                         )}
                       </div>

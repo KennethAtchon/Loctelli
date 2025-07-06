@@ -38,7 +38,7 @@ export class GeneralService {
         this.prisma.user.count({ where: { isActive: true } }),
         this.prisma.strategy.count(),
         this.prisma.booking.count(),
-        this.prisma.client.count(),
+        this.prisma.lead.count(),
         this.prisma.user.findMany({
           take: 5,
           orderBy: { createdAt: 'desc' },
@@ -160,7 +160,7 @@ export class GeneralService {
 
   async getRecentClients() {
     try {
-      return await this.prisma.client.findMany({
+      return await this.prisma.lead.findMany({
         take: 5,
         orderBy: {
           id: 'desc'
@@ -244,10 +244,10 @@ export class GeneralService {
     }
   }
 
-  async getDetailedClient(clientId: number) {
+  async getDetailedLead(leadId: number) {
     try {
-      const client = await this.prisma.client.findUnique({
-        where: { id: clientId },
+      const client = await this.prisma.lead.findUnique({
+        where: { id: leadId },
         include: {
           user: {
             select: {
@@ -275,7 +275,7 @@ export class GeneralService {
       });
 
       if (!client) {
-        throw new Error(`Client with ID ${clientId} not found`);
+        throw new Error(`Lead with ID ${leadId} not found`);
       }
 
       return client;

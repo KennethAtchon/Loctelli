@@ -89,7 +89,7 @@ src/
 │   └── middleware/         # Custom middleware
 ├── modules/                # Business logic modules
 │   ├── users/              # User management
-│   ├── clients/            # Client management
+│   ├── clients/            # Lead management
 │   ├── strategies/         # Strategy management
 │   ├── bookings/           # Booking management
 │   └── chat/               # Chat functionality

@@ -138,7 +138,7 @@ export default function DatabaseSchema({ className }: DatabaseSchemaProps) {
         datetime createdAt
         datetime updatedAt
     }
-    Client {
+    Lead {
         int id
         int userId "FK -> User"
         int strategyId "FK -> Strategy"
@@ -157,7 +157,7 @@ export default function DatabaseSchema({ className }: DatabaseSchemaProps) {
     Booking {
         int id
         int userId "FK -> User"
-        int clientId "FK -> Client"
+        int leadId "FK -> Lead"
         string bookingType
         json details
         string status

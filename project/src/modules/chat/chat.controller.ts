@@ -18,12 +18,12 @@ export class ChatController {
   @Post('send')
   async sendMessage(@Body() chatMessageDto: ChatMessageDto, @CurrentUser() user) {
     // Check if the client belongs to the current user
-    const client = await this.prisma.client.findUnique({
-      where: { id: chatMessageDto.clientId },
+    const client = await this.prisma.lead.findUnique({
+      where: { id: chatMessageDto.leadId },
     });
     
     if (!client) {
-      throw new HttpException('Client not found', HttpStatus.NOT_FOUND);
+      throw new HttpException('Lead not found', HttpStatus.NOT_FOUND);
     }
     
     if (user.role !== 'admin' && user.role !== 'super_admin' && client.userId !== user.userId) {
@@ -33,22 +33,22 @@ export class ChatController {
     return this.chatService.sendMessage(chatMessageDto);
   }
 
-  @Get('messages/:clientId')
-  async getMessages(@Param('clientId', ParseIntPipe) clientId: number, @CurrentUser() user) {
+  @Get('messages/:leadId')
+  async getMessages(@Param('leadId', ParseIntPipe) leadId: number, @CurrentUser() user) {
     // Check if the client belongs to the current user
-    const client = await this.prisma.client.findUnique({
-      where: { id: clientId },
+    const client = await this.prisma.lead.findUnique({
+      where: { id: leadId },
     });
     
     if (!client) {
-      throw new HttpException('Client not found', HttpStatus.NOT_FOUND);
+      throw new HttpException('Lead not found', HttpStatus.NOT_FOUND);
     }
     
     if (user.role !== 'admin' && user.role !== 'super_admin' && client.userId !== user.userId) {
       throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
     }
     
-    return this.chatService.getMessageHistory(clientId);
+    return this.chatService.getMessageHistory(leadId);
   }
 
   @Patch('messages/:messageId/read')
@@ -65,15 +65,15 @@ export class ChatController {
     return { message: 'Message deleted' };
   }
 
-  @Get('unread-count/:clientId')
-  async getUnreadMessagesCount(@Param('clientId', ParseIntPipe) clientId: number, @CurrentUser() user) {
+  @Get('unread-count/:leadId')
+  async getUnreadMessagesCount(@Param('leadId', ParseIntPipe) leadId: number, @CurrentUser() user) {
     // Check if the client belongs to the current user
-    const client = await this.prisma.client.findUnique({
-      where: { id: clientId },
+    const client = await this.prisma.lead.findUnique({
+      where: { id: leadId },
     });
     
     if (!client) {
-      throw new HttpException('Client not found', HttpStatus.NOT_FOUND);
+      throw new HttpException('Lead not found', HttpStatus.NOT_FOUND);
     }
     
     if (user.role !== 'admin' && user.role !== 'super_admin' && client.userId !== user.userId) {
@@ -85,15 +85,15 @@ export class ChatController {
     return 0;
   }
 
-  @Patch('mark-all-read/:clientId')
-  async markAllAsRead(@Param('clientId', ParseIntPipe) clientId: number, @CurrentUser() user) {
+  @Patch('mark-all-read/:leadId')
+  async markAllAsRead(@Param('leadId', ParseIntPipe) leadId: number, @CurrentUser() user) {
     // Check if the client belongs to the current user
-    const client = await this.prisma.client.findUnique({
-      where: { id: clientId },
+    const client = await this.prisma.lead.findUnique({
+      where: { id: leadId },
     });
     
     if (!client) {
-      throw new HttpException('Client not found', HttpStatus.NOT_FOUND);
+      throw new HttpException('Lead not found', HttpStatus.NOT_FOUND);
     }
     
     if (user.role !== 'admin' && user.role !== 'super_admin' && client.userId !== user.userId) {

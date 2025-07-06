@@ -94,13 +94,13 @@ export class WebhooksService {
       });
       const strategyId = strategy?.id || 1;
       
-      // Create a new Client with the found user_id and their first strategy
+      // Create a new Lead with the found user_id and their first strategy
       const name = contactData.name || 
         ((contactData.firstName && contactData.lastName) ? 
           `${contactData.firstName} ${contactData.lastName}` : 
           contactData.firstName || contactData.lastName || 'Unknown');
       
-      const client = await this.prisma.client.create({
+      const client = await this.prisma.lead.create({
         data: {
           userId,
           strategyId,
@@ -150,8 +150,8 @@ export class WebhooksService {
         };
       }
       
-      // Find client by contactId (maps to customId in Client model)
-      const client = await this.prisma.client.findFirst({
+      // Find client by contactId (maps to customId in Lead model)
+      const client = await this.prisma.lead.findFirst({
         where: { customId: messageData.contactId }
       });
       
@@ -187,10 +187,10 @@ export class WebhooksService {
    * Generate a response to a client message
    * This is a placeholder for the actual AI response generation
    */
-  private async generateResponse(message: string, clientId: number): Promise<string> {
+  private async generateResponse(message: string, leadId: number): Promise<string> {
     // In a real implementation, this would call your AI service
     // For now, we'll return a simple response
-    this.logger.log(`Generating response for client ${clientId} to message: ${message}`);
+    this.logger.log(`Generating response for client ${leadId} to message: ${message}`);
     return `Thank you for your message: "${message}". Our team will get back to you shortly.`;
   }
 }

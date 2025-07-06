@@ -6,7 +6,7 @@
 - **Framework**: Next.js 14 with App Router
 - **UI Library**: Shadcn/ui components with Tailwind CSS
 - **State Management**: React Context for auth state
-- **API Client**: Custom API client with automatic token refresh
+- **API Lead**: Custom API client with automatic token refresh
 - **Authentication**: JWT tokens stored in HTTP-only cookies
 
 ### **Backend (NestJS)**
@@ -78,7 +78,7 @@
 #### **2. Chat Endpoint Alignment**
 - **Fixed**: Frontend endpoints now match backend
 - **Send Message**: `POST /chat/send` ✅
-- **Get History**: `GET /chat/messages/{clientId}` ✅
+- **Get History**: `GET /chat/messages/{leadId}` ✅
 - **Added**: Placeholder implementations for read status endpoints
 
 #### **3. Strategy Duplication**
@@ -178,14 +178,14 @@
   5. Append both user message and bot response to database after API call
 - **Result**: AI now receives the complete conversation context including the latest user message ✅
 
-**ENHANCEMENT - Owner vs Client Context Clarity:**
+**ENHANCEMENT - Owner vs Lead Context Clarity:**
 - **Problem**: AI couldn't distinguish between company owner details and client details
 - **Solution**: Enhanced `PromptHelperService` with clear separation:
   1. **`buildOwnerPrompt()`**: Shows company owner details (who we work for)
   2. **`buildClientPrompt()`**: Shows client details (who we're talking to)
   3. **Updated system prompt**: Clearly distinguishes between owner and client roles
   4. **Enhanced default template**: Instructions now clarify "you work FOR the company owner and are talking TO the client"
-- **Client Information Now Included**: Name, email, phone, company, position, custom ID, status, notes
+- **Lead Information Now Included**: Name, email, phone, company, position, custom ID, status, notes
 - **Owner Information Enhanced**: Name, company, email, budget range, booking enabled status
 - **Result**: AI now has complete context about both the company it represents and the client it's talking to ✅
 
@@ -246,10 +246,10 @@ interface CreateStrategyDto {
 }
 ```
 
-#### **Client Creation**
+#### **Lead Creation**
 ```typescript
 // Frontend & Backend Match ✅
-interface CreateClientDto {
+interface CreateLeadDto {
   userId: number;
   strategyId: number;
   name: string;
@@ -271,7 +271,7 @@ interface CreateClientDto {
 // Frontend & Backend Match ✅
 interface CreateBookingDto {
   userId: number;
-  clientId?: number;
+  leadId?: number;
   bookingType: string;
   details: any;
   status?: string;
@@ -311,7 +311,7 @@ interface CreateBookingDto {
 - `DELETE /strategy/:id` - ✅ Matches
 - `POST /strategy/:id/duplicate` - ✅ Matches
 
-#### **Client Endpoints** ✅
+#### **Lead Endpoints** ✅
 - `GET /client` - ✅ Matches
 - `GET /client/:id` - ✅ Matches
 - `POST /client` - ✅ Matches
@@ -329,11 +329,11 @@ interface CreateBookingDto {
 
 #### **Chat Endpoints** ✅ (With Placeholder Implementations)
 - `POST /chat/send` - ✅ Matches
-- `GET /chat/messages/:clientId` - ✅ Matches
+- `GET /chat/messages/:leadId` - ✅ Matches
 - `PATCH /chat/messages/:messageId/read` - ✅ Matches (TODO: Implement)
 - `DELETE /chat/messages/:messageId` - ✅ Matches (TODO: Implement)
-- `GET /chat/unread-count/:clientId` - ✅ Matches (TODO: Implement)
-- `PATCH /chat/mark-all-read/:clientId` - ✅ Matches (TODO: Implement)
+- `GET /chat/unread-count/:leadId` - ✅ Matches (TODO: Implement)
+- `PATCH /chat/mark-all-read/:leadId` - ✅ Matches (TODO: Implement)
 
 #### **Status Endpoints** ✅
 - `GET /status` - ✅ Matches
@@ -345,7 +345,7 @@ interface CreateBookingDto {
 - `GET /general/system-status` - ✅ Matches
 - `GET /general/recent-clients` - ✅ Matches
 - `GET /general/users/:id/detailed` - ✅ Matches
-- `GET /general/clients/:id/detailed` - ✅ Matches
+- `GET /general/leads/:id/detailed` - ✅ Matches
 - `GET /general/schema` - ✅ Matches
 
 #### **User Endpoints** ✅

@@ -47,7 +47,7 @@ model User {
   createdByAdminId Int?       // ID of the admin who created this user
   createdByAdmin  AdminUser?  @relation(fields: [createdByAdminId], references: [id])
   strategies      Strategy[]
-  clients         Client[]
+  leads           Lead[]      // Leads created by this user
   bookings        Booking[]
 }
 
@@ -69,12 +69,12 @@ model Strategy {
   createdAt               DateTime   @default(now())
   updatedAt               DateTime   @default(now()) @updatedAt
   user                    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  clients                 Client[]
+  leads                   Lead[]
   promptTemplateId        Int
   promptTemplate          PromptTemplate @relation(fields: [promptTemplateId], references: [id])
 }
 
-model Client {
+model Lead {
   id             Int       @id @default(autoincrement())
   userId         Int
   strategyId     Int
@@ -97,14 +97,14 @@ model Client {
 model Booking {
   id           Int      @id @default(autoincrement())
   userId       Int
-  clientId     Int?
+  leadId       Int?
   bookingType  String
   details      Json
   status       String   @default("pending")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @default(now()) @updatedAt
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  client       Client?  @relation(fields: [clientId], references: [id])
+  lead         Lead?    @relation(fields: [leadId], references: [id])
 }
 
 model PromptTemplate {

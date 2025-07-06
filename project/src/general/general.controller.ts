@@ -54,8 +54,8 @@ export class GeneralController {
   @Get('clients/:id/detailed')
   @UseGuards(RolesGuard)
   @Roles('admin', 'super_admin')
-  async getDetailedClient(@Param('id', ParseIntPipe) id: number) {
-    return this.generalService.getDetailedClient(id);
+  async getDetailedLead(@Param('id', ParseIntPipe) id: number) {
+    return this.generalService.getDetailedLead(id);
   }
 
   @Get('schema')

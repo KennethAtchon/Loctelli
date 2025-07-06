@@ -39,8 +39,8 @@ describe('BookingsService', () => {
   describe('findAll', () => {
     it('should return an array of bookings', async () => {
       const expectedBookings = [
-        { id: 1, userId: 1, clientId: 1, bookingType: 'call', details: {}, status: 'pending' },
-        { id: 2, userId: 1, clientId: 2, bookingType: 'meeting', details: {}, status: 'confirmed' },
+        { id: 1, userId: 1, leadId: 1, bookingType: 'call', details: {}, status: 'pending' },
+        { id: 2, userId: 1, leadId: 2, bookingType: 'meeting', details: {}, status: 'confirmed' },
       ];
       mockPrismaService.booking.findMany.mockResolvedValue(expectedBookings);
 
@@ -57,7 +57,7 @@ describe('BookingsService', () => {
 
   describe('findOne', () => {
     it('should return a booking if it exists', async () => {
-      const expectedBooking = { id: 1, userId: 1, clientId: 1, bookingType: 'call', details: {}, status: 'pending' };
+      const expectedBooking = { id: 1, userId: 1, leadId: 1, bookingType: 'call', details: {}, status: 'pending' };
       mockPrismaService.booking.findUnique.mockResolvedValue(expectedBooking);
 
       const result = await service.findOne(1);
@@ -81,8 +81,8 @@ describe('BookingsService', () => {
   describe('findByUserId', () => {
     it('should return bookings for a specific user', async () => {
       const expectedBookings = [
-        { id: 1, userId: 1, clientId: 1, bookingType: 'call', details: {}, status: 'pending' },
-        { id: 2, userId: 1, clientId: 2, bookingType: 'meeting', details: {}, status: 'confirmed' },
+        { id: 1, userId: 1, leadId: 1, bookingType: 'call', details: {}, status: 'pending' },
+        { id: 2, userId: 1, leadId: 2, bookingType: 'meeting', details: {}, status: 'confirmed' },
       ];
       mockPrismaService.booking.findMany.mockResolvedValue(expectedBookings);
 
@@ -97,17 +97,17 @@ describe('BookingsService', () => {
     });
   });
 
-  describe('findByClientId', () => {
+  describe('findByleadId', () => {
     it('should return bookings for a specific client', async () => {
       const expectedBookings = [
-        { id: 1, userId: 1, clientId: 1, bookingType: 'call', details: {}, status: 'pending' },
+        { id: 1, userId: 1, leadId: 1, bookingType: 'call', details: {}, status: 'pending' },
       ];
       mockPrismaService.booking.findMany.mockResolvedValue(expectedBookings);
 
-      const result = await service.findByClientId(1);
+      const result = await service.findByleadId(1);
       expect(result).toEqual(expectedBookings);
       expect(mockPrismaService.booking.findMany).toHaveBeenCalledWith({
-        where: { clientId: 1 },
+        where: { leadId: 1 },
         include: {
           user: true,
         },
@@ -119,7 +119,7 @@ describe('BookingsService', () => {
     it('should create and return a booking', async () => {
       const createBookingDto = {
         userId: 1,
-        clientId: 1,
+        leadId: 1,
         bookingType: 'call',
         details: {},
         status: 'pending',
@@ -141,7 +141,7 @@ describe('BookingsService', () => {
       const updatedBooking = {
         id: 1,
         userId: 1,
-        clientId: 1,
+        leadId: 1,
         bookingType: 'call',
         details: {},
         status: 'confirmed',
@@ -169,7 +169,7 @@ describe('BookingsService', () => {
       const deletedBooking = {
         id: 1,
         userId: 1,
-        clientId: 1,
+        leadId: 1,
         bookingType: 'call',
         details: {},
         status: 'pending',

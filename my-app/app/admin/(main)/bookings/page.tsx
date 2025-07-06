@@ -77,9 +77,9 @@ export default function BookingsPage() {
     // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(booking =>
-        booking.client?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        booking.client?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        booking.client?.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking.lead?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking.lead?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking.lead?.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         booking.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         booking.bookingType.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -336,7 +336,7 @@ export default function BookingsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Client</TableHead>
+                  <TableHead>Lead</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>User</TableHead>
@@ -349,12 +349,12 @@ export default function BookingsPage() {
                   <TableRow key={booking.id}>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{booking.client?.name || 'Unknown Client'}</div>
-                        <div className="text-sm text-gray-500">{booking.client?.email}</div>
-                        {booking.client?.company && (
+                        <div className="font-medium">{booking.lead?.name || 'Unknown Lead'}</div>
+                        <div className="text-sm text-gray-500">{booking.lead?.email}</div>
+                        {booking.lead?.company && (
                           <div className="text-xs text-gray-400 flex items-center">
                             <Building className="h-3 w-3 mr-1" />
-                            {booking.client.company}
+                            {booking.lead.company}
                           </div>
                         )}
                       </div>
@@ -435,11 +435,11 @@ export default function BookingsPage() {
                                 </div>
                               </div>
                               <div>
-                                <h4 className="font-semibold">Client Information</h4>
+                                <h4 className="font-semibold">Lead Information</h4>
                                 <div className="bg-gray-50 p-3 rounded">
-                                  <p><strong>Name:</strong> {booking.client?.name || 'Unknown'}</p>
-                                  <p><strong>Email:</strong> {booking.client?.email || 'N/A'}</p>
-                                  <p><strong>Company:</strong> {booking.client?.company || 'N/A'}</p>
+                                  <p><strong>Name:</strong> {booking.lead?.name || 'Unknown'}</p>
+                                  <p><strong>Email:</strong> {booking.lead?.email || 'N/A'}</p>
+                                  <p><strong>Company:</strong> {booking.lead?.company || 'N/A'}</p>
                                 </div>
                               </div>
                               <div>

@@ -208,7 +208,7 @@ function generateFallbackERD(): string {
         datetime updatedAt
     }
     
-    Client {
+    Lead {
         int PK id
         int userId
         int strategyId
@@ -228,7 +228,7 @@ function generateFallbackERD(): string {
     Booking {
         int PK id
         int userId
-        int nullable clientId
+        int nullable leadId
         string bookingType
         json details
         string status
@@ -238,8 +238,8 @@ function generateFallbackERD(): string {
     
     AdminUser ||--o{ User : "createdUsers"
     User ||--o{ Strategy : "strategies"
-    User ||--o{ Client : "clients"
+    User ||--o{ Lead : "clients"
     User ||--o{ Booking : "bookings"
-    Strategy ||--o{ Client : "clients"
-    Client }o--o{ Booking : "bookings"`;
+    Strategy ||--o{ Lead : "clients"
+    Lead }o--o{ Booking : "bookings"`;
 } 

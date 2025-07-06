@@ -18,88 +18,88 @@ import {
 } from '@/components/ui/table';
 import { Plus, Search, Edit, Trash2, Eye, RefreshCw, Building } from 'lucide-react';
 import Link from 'next/link';
-import { Client } from '@/types';
-import { DetailedClient } from '@/lib/api/endpoints/admin-auth';
+import { Lead } from '@/types';
+import { DetailedLead } from '@/lib/api/endpoints/admin-auth';
 import logger from '@/lib/logger';
 
-interface ClientStats {
-  totalClients: number;
-  activeClients: number;
-  leadClients: number;
-  inactiveClients: number;
+interface LeadStats {
+  totalLeads: number;
+  activeLeads: number;
+  leadLeads: number;
+  inactiveLeads: number;
 }
 
-export default function ClientsPage() {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [filteredClients, setFilteredClients] = useState<Client[]>([]);
-  const [stats, setStats] = useState<ClientStats>({
-    totalClients: 0,
-    activeClients: 0,
-    leadClients: 0,
-    inactiveClients: 0,
+export default function LeadsPage() {
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
+  const [stats, setStats] = useState<LeadStats>({
+    totalLeads: 0,
+    activeLeads: 0,
+    leadLeads: 0,
+    inactiveLeads: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedClient, setSelectedClient] = useState<DetailedClient | null>(null);
+  const [selectedLead, setSelectedLead] = useState<DetailedLead | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  const calculateStats = (clientsData: Client[]) => {
+  const calculateStats = (leadsData: Lead[]) => {
     const stats = {
-      totalClients: clientsData.length,
-      activeClients: clientsData.filter(c => c.status === 'active').length,
-      leadClients: clientsData.filter(c => c.status === 'lead').length,
-      inactiveClients: clientsData.filter(c => c.status === 'inactive').length,
+      totalLeads: leadsData.length,
+      activeLeads: leadsData.filter(c => c.status === 'active').length,
+      leadLeads: leadsData.filter(c => c.status === 'lead').length,
+      inactiveLeads: leadsData.filter(c => c.status === 'inactive').length,
     };
     setStats(stats);
   };
 
-  const loadClients = useCallback(async () => {
+  const loadLeads = useCallback(async () => {
     try {
       setIsRefreshing(true);
       setError(null);
-      const clientsData = await api.clients.getClients();
-      setClients(clientsData);
-      calculateStats(clientsData);
+      const leadsData = await api.leads.getLeads();
+      setLeads(leadsData);
+      calculateStats(leadsData);
     } catch (error) {
-      logger.error('Failed to load clients:', error);
-      setError('Failed to load clients');
+      logger.error('Failed to load leads:', error);
+      setError('Failed to load leads');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
     }
   }, []);
 
-  const filterClients = useCallback(() => {
-    let filtered = clients;
+  const filterLeads = useCallback(() => {
+    let filtered = leads;
 
     // Apply search filter
     if (searchTerm) {
-      filtered = filtered.filter(client =>
-        client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.phone?.includes(searchTerm)
+      filtered = filtered.filter(lead =>
+        lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lead.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lead.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lead.phone?.includes(searchTerm)
       );
     }
 
     // Apply status filter
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(client => client.status === statusFilter);
+      filtered = filtered.filter(lead => lead.status === statusFilter);
     }
 
-    setFilteredClients(filtered);
-  }, [clients, searchTerm, statusFilter]);
+    setFilteredLeads(filtered);
+  }, [leads, searchTerm, statusFilter]);
 
   useEffect(() => {
-    loadClients();
-  }, [loadClients]);
+    loadLeads();
+  }, [loadLeads]);
 
   useEffect(() => {
-    filterClients();
-  }, [filterClients]);
+    filterLeads();
+  }, [filterLeads]);
 
   // Cleanup success/error messages on unmount
   useEffect(() => {
@@ -109,27 +109,27 @@ export default function ClientsPage() {
     };
   }, []);
 
-  const loadDetailedClient = async (clientId: number) => {
+  const loadDetailedLead = async (leadId: number) => {
     try {
-      const client = await api.adminAuth.getDetailedClient(clientId);
-      setSelectedClient(client);
+      const lead = await api.adminAuth.getDetailedLead(leadId);
+      setSelectedLead(lead);
     } catch (error) {
-      logger.error('Failed to load client details:', error);
+      logger.error('Failed to load lead details:', error);
     }
   };
 
-  const deleteClient = async (clientId: number) => {
-    if (confirm('Are you sure you want to delete this client?')) {
+  const deleteLead = async (leadId: number) => {
+    if (confirm('Are you sure you want to delete this lead?')) {
       try {
         setError(null);
-        await api.clients.deleteClient(clientId);
-        setSuccess('Client deleted successfully');
-        await loadClients(); // Reload the list
+        await api.leads.deleteLead(leadId);
+        setSuccess('Lead deleted successfully');
+        await loadLeads(); // Reload the list
         // Clear success message after 3 seconds
         setTimeout(() => setSuccess(null), 3000);
       } catch (error) {
-        logger.error('Failed to delete client:', error);
-        setError('Failed to delete client. Please try again.');
+        logger.error('Failed to delete lead:', error);
+        setError('Failed to delete lead. Please try again.');
       }
     }
   };
@@ -176,7 +176,7 @@ export default function ClientsPage() {
             <Button 
               variant="link" 
               className="p-0 h-auto text-destructive underline ml-2"
-              onClick={loadClients}
+              onClick={loadLeads}
             >
               Retry
             </Button>
@@ -193,22 +193,22 @@ export default function ClientsPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Clients</h1>
-          <p className="text-gray-600">Manage your client relationships and interactions.</p>
+          <h1 className="text-3xl font-bold text-gray-900">Leads</h1>
+          <p className="text-gray-600">Manage your lead relationships and interactions.</p>
         </div>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
-            onClick={loadClients}
+            onClick={loadLeads}
             disabled={isRefreshing}
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Link href="/admin/clients/new">
+          <Link href="/admin/leads/new">
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Add Client
+              Add Lead
             </Button>
           </Link>
         </div>
@@ -218,25 +218,25 @@ export default function ClientsPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold text-blue-600">{stats.totalClients}</div>
-            <div className="text-sm text-gray-600">Total Clients</div>
+            <div className="text-2xl font-bold text-blue-600">{stats.totalLeads}</div>
+            <div className="text-sm text-gray-600">Total Leads</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold text-green-600">{stats.activeClients}</div>
-            <div className="text-sm text-gray-600">Active Clients</div>
+            <div className="text-2xl font-bold text-green-600">{stats.activeLeads}</div>
+            <div className="text-sm text-gray-600">Active Leads</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold text-blue-600">{stats.leadClients}</div>
+            <div className="text-2xl font-bold text-blue-600">{stats.leadLeads}</div>
             <div className="text-sm text-gray-600">Leads</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold text-gray-600">{stats.inactiveClients}</div>
+            <div className="text-2xl font-bold text-gray-600">{stats.inactiveLeads}</div>
             <div className="text-sm text-gray-600">Inactive</div>
           </CardContent>
         </Card>
@@ -246,7 +246,7 @@ export default function ClientsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Search & Filters</CardTitle>
-          <CardDescription>Find specific clients or filter by criteria</CardDescription>
+          <CardDescription>Find specific leads or filter by criteria</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4">
@@ -255,7 +255,7 @@ export default function ClientsPage() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
                   type="text"
-                  placeholder="Search clients by name, email, or company..."
+                  placeholder="Search leads by name, email, or company..."
                   className="pl-10"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -276,14 +276,14 @@ export default function ClientsPage() {
         </CardContent>
       </Card>
 
-      {/* Clients Table */}
+      {/* Leads Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Clients ({filteredClients.length})</CardTitle>
-          <CardDescription>A list of all your clients and their current status.</CardDescription>
+          <CardTitle>All Leads ({filteredLeads.length})</CardTitle>
+          <CardDescription>A list of all your leads and their current status.</CardDescription>
         </CardHeader>
         <CardContent>
-          {filteredClients.length > 0 ? (
+          {filteredLeads.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -297,24 +297,24 @@ export default function ClientsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredClients.map((client) => (
-                  <TableRow key={client.id}>
-                    <TableCell className="font-medium">{client.name}</TableCell>
+                {filteredLeads.map((lead) => (
+                  <TableRow key={lead.id}>
+                    <TableCell className="font-medium">{lead.name}</TableCell>
                     <TableCell>
                       <div>
-                        <div className="text-sm">{client.email || 'No email'}</div>
-                        <div className="text-xs text-gray-500">{client.phone || 'No phone'}</div>
+                        <div className="text-sm">{lead.email || 'No email'}</div>
+                        <div className="text-xs text-gray-500">{lead.phone || 'No phone'}</div>
                       </div>
                     </TableCell>
-                    <TableCell>{client.company || 'N/A'}</TableCell>
+                    <TableCell>{lead.company || 'N/A'}</TableCell>
                     <TableCell>
-                      <Badge variant={getStatusBadgeVariant(client.status)}>
-                        {client.status}
+                      <Badge variant={getStatusBadgeVariant(lead.status)}>
+                        {lead.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{client.strategy?.name || 'N/A'}</TableCell>
+                    <TableCell>{lead.strategy?.name || 'N/A'}</TableCell>
                     <TableCell>
-                      {client.lastMessageDate ? formatDate(client.lastMessageDate) : 'No messages'}
+                      {lead.lastMessageDate ? formatDate(lead.lastMessageDate) : 'No messages'}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end space-x-2">
@@ -323,33 +323,33 @@ export default function ClientsPage() {
                             <Button 
                               variant="ghost" 
                               size="sm"
-                              onClick={() => loadDetailedClient(client.id)}
+                              onClick={() => loadDetailedLead(lead.id)}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
                           </DialogTrigger>
                           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                             <DialogHeader>
-                              <DialogTitle>Client Details - {client.name}</DialogTitle>
+                              <DialogTitle>Lead Details - {lead.name}</DialogTitle>
                               <DialogDescription>
-                                Complete client information and related data
+                                Complete lead information and related data
                               </DialogDescription>
                             </DialogHeader>
-                            {selectedClient && selectedClient.id === client.id && (
+                            {selectedLead && selectedLead.id === lead.id && (
                               <div className="space-y-6">
                                 {/* Basic Information */}
                                 <div>
                                   <h3 className="font-semibold mb-3">Basic Information</h3>
                                   <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div><strong>ID:</strong> {selectedClient.id}</div>
-                                    <div><strong>Name:</strong> {selectedClient.name}</div>
-                                    <div><strong>Email:</strong> {selectedClient.email || 'N/A'}</div>
-                                    <div><strong>Phone:</strong> {selectedClient.phone || 'N/A'}</div>
-                                    <div><strong>Company:</strong> {selectedClient.company || 'N/A'}</div>
-                                    <div><strong>Position:</strong> {selectedClient.position || 'N/A'}</div>
-                                    <div><strong>Custom ID:</strong> {selectedClient.customId || 'N/A'}</div>
+                                    <div><strong>ID:</strong> {selectedLead.id}</div>
+                                    <div><strong>Name:</strong> {selectedLead.name}</div>
+                                    <div><strong>Email:</strong> {selectedLead.email || 'N/A'}</div>
+                                    <div><strong>Phone:</strong> {selectedLead.phone || 'N/A'}</div>
+                                    <div><strong>Company:</strong> {selectedLead.company || 'N/A'}</div>
+                                    <div><strong>Position:</strong> {selectedLead.position || 'N/A'}</div>
+                                    <div><strong>Custom ID:</strong> {selectedLead.customId || 'N/A'}</div>
                                     <div><strong>Status:</strong> 
-                                      <Badge variant="outline" className="ml-2">{selectedClient.status}</Badge>
+                                      <Badge variant="outline" className="ml-2">{selectedLead.status}</Badge>
                                     </div>
                                   </div>
                                 </div>
@@ -358,58 +358,58 @@ export default function ClientsPage() {
                                 <div>
                                   <h3 className="font-semibold mb-3">Timestamps</h3>
                                   <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div><strong>Created:</strong> {formatDate(selectedClient.createdAt)}</div>
-                                    <div><strong>Updated:</strong> {formatDate(selectedClient.updatedAt)}</div>
-                                    <div><strong>Last Message:</strong> {selectedClient.lastMessageDate ? formatDate(selectedClient.lastMessageDate) : 'No messages'}</div>
+                                    <div><strong>Created:</strong> {formatDate(selectedLead.createdAt)}</div>
+                                    <div><strong>Updated:</strong> {formatDate(selectedLead.updatedAt)}</div>
+                                    <div><strong>Last Message:</strong> {selectedLead.lastMessageDate ? formatDate(selectedLead.lastMessageDate) : 'No messages'}</div>
                                   </div>
                                 </div>
 
                                 {/* Notes */}
-                                {selectedClient.notes && (
+                                {selectedLead.notes && (
                                   <div>
                                     <h3 className="font-semibold mb-3">Notes</h3>
-                                    <p className="text-sm bg-gray-50 p-3 rounded">{selectedClient.notes}</p>
+                                    <p className="text-sm bg-gray-50 p-3 rounded">{selectedLead.notes}</p>
                                   </div>
                                 )}
 
                                 {/* Last Message */}
-                                {selectedClient.lastMessage && (
+                                {selectedLead.lastMessage && (
                                   <div>
                                     <h3 className="font-semibold mb-3">Last Message</h3>
-                                    <p className="text-sm bg-gray-50 p-3 rounded">{selectedClient.lastMessage}</p>
+                                    <p className="text-sm bg-gray-50 p-3 rounded">{selectedLead.lastMessage}</p>
                                   </div>
                                 )}
 
                                 {/* Assigned User */}
-                                {selectedClient.user && (
+                                {selectedLead.user && (
                                   <div>
                                     <h3 className="font-semibold mb-3">Assigned User</h3>
                                     <div className="grid grid-cols-2 gap-4 text-sm">
-                                      <div><strong>User ID:</strong> {selectedClient.user.id}</div>
-                                      <div><strong>User Name:</strong> {selectedClient.user.name}</div>
-                                      <div><strong>User Email:</strong> {selectedClient.user.email}</div>
+                                      <div><strong>User ID:</strong> {selectedLead.user.id}</div>
+                                      <div><strong>User Name:</strong> {selectedLead.user.name}</div>
+                                      <div><strong>User Email:</strong> {selectedLead.user.email}</div>
                                     </div>
                                   </div>
                                 )}
 
                                 {/* Assigned Strategy */}
-                                {selectedClient.strategy && (
+                                {selectedLead.strategy && (
                                   <div>
                                     <h3 className="font-semibold mb-3">Assigned Strategy</h3>
                                     <div className="grid grid-cols-2 gap-4 text-sm">
-                                      <div><strong>Strategy ID:</strong> {selectedClient.strategy.id}</div>
-                                      <div><strong>Strategy Name:</strong> {selectedClient.strategy.name}</div>
-                                      <div><strong>Strategy Tag:</strong> {selectedClient.strategy.tag || 'N/A'}</div>
+                                      <div><strong>Strategy ID:</strong> {selectedLead.strategy.id}</div>
+                                      <div><strong>Strategy Name:</strong> {selectedLead.strategy.name}</div>
+                                      <div><strong>Strategy Tag:</strong> {selectedLead.strategy.tag || 'N/A'}</div>
                                     </div>
                                   </div>
                                 )}
 
                                 {/* Bookings */}
-                                {selectedClient.bookings && selectedClient.bookings.length > 0 && (
+                                {selectedLead.bookings && selectedLead.bookings.length > 0 && (
                                   <div>
-                                    <h3 className="font-semibold mb-3">Bookings ({selectedClient.bookings.length})</h3>
+                                    <h3 className="font-semibold mb-3">Bookings ({selectedLead.bookings.length})</h3>
                                     <div className="space-y-2">
-                                      {selectedClient.bookings.map((booking) => (
+                                      {selectedLead.bookings.map((booking) => (
                                         <div key={booking.id} className="p-2 border rounded">
                                           <div className="font-medium">{booking.bookingType}</div>
                                           <div className="text-sm text-gray-600">
@@ -424,7 +424,7 @@ export default function ClientsPage() {
                             )}
                           </DialogContent>
                         </Dialog>
-                        <Link href={`/admin/clients/${client.id}/edit`}>
+                        <Link href={`/admin/leads/${lead.id}/edit`}>
                           <Button variant="ghost" size="sm">
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -432,7 +432,7 @@ export default function ClientsPage() {
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          onClick={() => deleteClient(client.id)}
+                          onClick={() => deleteLead(lead.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -447,8 +447,8 @@ export default function ClientsPage() {
               <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">
                 {searchTerm || statusFilter !== 'all' 
-                  ? 'No clients match your search criteria' 
-                  : 'No clients found. Add your first client to get started.'
+                  ? 'No leads match your search criteria' 
+                  : 'No leads found. Add your first lead to get started.'
                 }
               </p>
             </div>

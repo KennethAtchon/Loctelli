@@ -62,6 +62,6 @@ export interface WebSocketMessage {
 
 export interface ChatWebSocketMessage extends WebSocketMessage {
   type: 'chat_message' | 'typing' | 'read_receipt';
-  clientId: number;
+  leadId: number;
   messageId?: string;
 } 

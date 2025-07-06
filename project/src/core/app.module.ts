@@ -10,7 +10,7 @@ import { AppService } from './app.service';
 import { PrismaModule } from '../infrastructure/prisma/prisma.module';
 import { UsersModule } from '../modules/users/users.module';
 import { StrategiesModule } from '../modules/strategies/strategies.module';
-import { ClientsModule } from '../modules/clients/clients.module';
+import { LeadsModule } from '../modules/leads/leads.module';
 import { BookingsModule } from '../modules/bookings/bookings.module';
 import { ChatModule } from '../modules/chat/chat.module';
 import { PromptTemplatesModule } from '../modules/prompt-templates/prompt-templates.module';
@@ -36,7 +36,7 @@ import { JwtAuthGuard } from '../auth/auth.guard';
     AuthModule,
     UsersModule,
     StrategiesModule,
-    ClientsModule,
+    LeadsModule,
     BookingsModule,
     ChatModule,
     PromptTemplatesModule,

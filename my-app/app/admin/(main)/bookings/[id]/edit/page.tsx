@@ -29,7 +29,7 @@ export default function EditBookingPage() {
 
   const [formData, setFormData] = useState<Partial<CreateBookingDto>>({
     userId: 0,
-    clientId: undefined,
+    leadId: undefined,
     bookingType: '',
     details: {},
     status: 'pending'
@@ -46,7 +46,7 @@ export default function EditBookingPage() {
         setBooking(bookingData);
         setFormData({
           userId: bookingData.userId,
-          clientId: bookingData.clientId || undefined,
+          leadId: bookingData.leadId || undefined,
           bookingType: bookingData.bookingType,
           details: bookingData.details || {},
           status: bookingData.status
@@ -57,7 +57,7 @@ export default function EditBookingPage() {
         setUsers(usersData);
 
         // Load clients for dropdown
-        const clientsData = await api.clients.getClients();
+        const clientsData = await api.leads.getClients();
         setClients(clientsData);
 
       } catch (error) {
@@ -199,10 +199,10 @@ export default function EditBookingPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="clientId">Client</Label>
+                <Label htmlFor="leadId">Lead</Label>
                 <Select
-                  value={formData.clientId?.toString() || ''}
-                  onValueChange={(value) => handleInputChange('clientId', value ? Number(value) : undefined)}
+                  value={formData.leadId?.toString() || ''}
+                  onValueChange={(value) => handleInputChange('leadId', value ? Number(value) : undefined)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a client (optional)" />

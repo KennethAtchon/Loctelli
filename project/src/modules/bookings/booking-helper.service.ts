@@ -152,17 +152,17 @@ export class BookingHelperService {
    * Creates a booking and then creates a block slot in GoHighLevel.
    * @param aiResponse AI response containing booking details
    * @param userId User ID
-   * @param clientId Client ID
+   * @param leadId Lead ID
    */
   async createBookingAndBlockSlotGhl(
     aiResponse: string,
     userId: number,
-    clientId: number,
+    leadId: number,
   ): Promise<any | null> {
     const booking = await this.parseAndCreateBooking(
       aiResponse,
       userId,
-      clientId,
+      leadId,
     );
     if (booking) {
       await this.createGohighlevelBlockSlot(booking);
@@ -175,12 +175,12 @@ export class BookingHelperService {
    * and creates a Booking record in the database. Returns the Booking or null if not triggered.
    * @param aiResponse AI response text
    * @param userId User ID
-   * @param clientId Client ID
+   * @param leadId Lead ID
    */
   async parseAndCreateBooking(
     aiResponse: string,
     userId: number,
-    clientId: number,
+    leadId: number,
   ): Promise<any | null> {
     // Check for the unique marker
     if (!aiResponse.includes('[BOOKING_CONFIRMATION]')) {
@@ -239,7 +239,7 @@ export class BookingHelperService {
     const booking = await this.prisma.booking.create({
       data: {
         userId,
-        clientId,
+        leadId,
         bookingType: 'meeting',
         details,
         status: 'pending',

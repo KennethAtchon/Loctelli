@@ -31,7 +31,7 @@ Loctelli/
 │   │   │   └── guards/   # Role-based guards
 │   │   ├── modules/      # Core business modules
 │   │   │   ├── users/    # User management
-│   │   │   ├── clients/  # Client management
+│   │   │   ├── clients/  # Lead management
 │   │   │   ├── strategies/ # Sales strategies
 │   │   │   ├── bookings/ # Booking management
 │   │   │   ├── chat/     # Chat functionality
@@ -91,7 +91,7 @@ Loctelli/
 - **User Authentication**: Secure login/register with JWT tokens and automatic login after registration
 - **Admin Panel**: Comprehensive admin interface for user management
 - **Strategy Management**: Create and manage sales strategies
-- **Client Management**: Track and manage client relationships
+- **Lead Management**: Track and manage client relationships
 - **Booking System**: Handle appointment scheduling
 - **Chat Integration**: AI-powered conversation management with full conversation history
 - **Prompt Template System**: Global AI prompt template management with activation controls and strategy integration
@@ -102,9 +102,9 @@ Loctelli/
 ### **AI-Powered Conversations**
 - **Context-Aware**: AI maintains conversation context across all messages
 - **Strategy-Based**: Responses tailored to specific sales strategies
-- **Client-Specific**: Personalized interactions based on client profiles
-- **Owner-Client Clarity**: AI clearly understands the difference between company owner (who it represents) and client (who it's talking to)
-- **Rich Client Context**: AI has access to client's name, email, phone, company, position, status, notes, and custom ID
+- **Lead-Specific**: Personalized interactions based on client profiles
+- **Owner-Lead Clarity**: AI clearly understands the difference between company owner (who it represents) and client (who it's talking to)
+- **Rich Lead Context**: AI has access to client's name, email, phone, company, position, status, notes, and custom ID
 - **Company Context**: AI knows company owner details, budget range, and booking capabilities
 - **Booking Integration**: Automatic booking creation from AI responses
 - **Responsive AI**: AI responds directly to user messages instead of generic sales pitches
@@ -117,7 +117,7 @@ Loctelli/
 - **Format Compatibility**: Supports both old and new message formats seamlessly
 
 ### **Admin Testing Interface**
-- **Client Spoofing**: Test AI responses by impersonating any client
+- **Lead Spoofing**: Test AI responses by impersonating any client
 - **Strategy Testing**: Verify different strategies with the same client
 - **Conversation Simulation**: Full conversation flow testing
 - **History Loading**: Automatic loading of existing conversations
@@ -290,7 +290,7 @@ The responsive design ensures optimal user experience across all device sizes wh
 - **Bulk operations**: Manage multiple users simultaneously
 - **Booking enabled by default**: New users have booking functionality enabled by default with toggle control
 
-### 🏢 Client Management
+### 🏢 Lead Management
 - **Full CRUD functionality**: Add, edit, delete, and view client information
 - **Comprehensive client profiles**: Name, email, phone, company, position, custom ID
 - **Status tracking**: Lead, active, inactive status management
@@ -339,7 +339,7 @@ The responsive design ensures optimal user experience across all device sizes wh
 - **Export functionality**: Download diagrams as SVG files
 - **Fallback schema**: Offline schema display when API is unavailable
 
-### 👤 Client Management
+### 👤 Lead Management
 - **Comprehensive client profiles**: Store all client information
 - **Status tracking**: Monitor client progression through sales funnel
 - **Message history**: Complete conversation history with timestamps
@@ -380,7 +380,7 @@ The responsive design ensures optimal user experience across all device sizes wh
 - **Quick status updates**: Inline status dropdown for rapid booking management
 - **Booking editing**: Full editing capabilities for booking details, dates, and information
 
-- **Client associations**: Link bookings to specific clients and users
+- **Lead associations**: Link bookings to specific clients and users
 - **Advanced filtering**: Filter by status, type, and date ranges
 - **Search functionality**: Search bookings by client, user, or booking type
 - **Detailed booking views**: Complete booking information with client and user details
@@ -389,8 +389,8 @@ The responsive design ensures optimal user experience across all device sizes wh
 - **Responsive design**: Mobile-friendly booking management interface
 
 ### 🤖 AI Chat Interface (Admin)
-- **Client ID spoofing**: Test AI responses by entering any client ID to simulate client interactions
-- **Client profile display**: Shows complete client information including name, email, company, status, and assigned strategy
+- **Lead ID spoofing**: Test AI responses by entering any client ID to simulate client interactions
+- **Lead profile display**: Shows complete client information including name, email, company, status, and assigned strategy
 - **Real-time messaging**: Instant message exchange with AI assistant using client context
 - **Conversation management**: Clear chat history and start new conversations
 - **Message history**: Track conversation flow with timestamps and client metadata
@@ -405,7 +405,7 @@ The responsive design ensures optimal user experience across all device sizes wh
 - **Development utilities**: Tools for database exploration and debugging
 - **Real-time schema updates**: View current database structure
 - **Export capabilities**: Download schema diagrams as SVG files
-- **Client statistics**: Real-time counts for different client statuses
+- **Lead statistics**: Real-time counts for different client statuses
 - **Delete functionality**: Confirmation-based client deletion
 - **Responsive table**: Mobile-friendly client data display
 
@@ -413,7 +413,7 @@ The responsive design ensures optimal user experience across all device sizes wh
 - **Appointment scheduling**: Create and manage meetings
 - **Calendar integration**: Sync with external calendar systems
 - **Status management**: Track booking status (pending, confirmed, cancelled, completed)
-- **Client association**: Link bookings to specific clients
+- **Lead association**: Link bookings to specific clients
 - **Flexible details**: JSON-based booking information storage
 - **Date range filtering**: Filter bookings by time periods
 
@@ -675,7 +675,7 @@ The backend provides a comprehensive REST API with the following main endpoints:
 
 ### Core Modules
 - **Users**: `/user/*` - User management with role-based access
-- **Clients**: `/client/*` - Client management with strategy assignment
+- **Clients**: `/client/*` - Lead management with strategy assignment
 - **Strategies**: `/strategy/*` - Sales strategy management
 - **Bookings**: `/booking/*` - Booking management with calendar integration
 - **Chat**: `/chat/*` - AI-powered messaging functionality

@@ -1,21 +1,21 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
-import { ClientsService } from './clients.service';
-import { CreateClientDto } from './dto/create-client.dto';
-import { UpdateClientDto } from './dto/update-client.dto';
+import { LeadsService } from './leads.service';
+import { CreateLeadDto } from './dto/create-lead.dto';
+import { UpdateLeadDto } from './dto/update-lead.dto';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { Admin } from '../../auth/decorators/admin.decorator';
 import { AdminGuard } from '../../auth/guards/admin.guard';
 
-@Controller('client')
+@Controller('lead')
 @UseGuards(AdminGuard)
-export class ClientsController {
-  constructor(private readonly clientsService: ClientsService) {}
+export class LeadsController {
+  constructor(private readonly leadsService: LeadsService) {}
 
   @Post()
   @Admin()
-  create(@Body() createClientDto: CreateClientDto, @CurrentUser() user) {
-    // Admin users can create clients for any regular user
-    return this.clientsService.create(createClientDto);
+  create(@Body() createLeadDto: CreateLeadDto, @CurrentUser() user) {
+    // Admin users can create leads for any regular user
+    return this.leadsService.create(createLeadDto);
   }
 
   @Get()
@@ -26,7 +26,7 @@ export class ClientsController {
       if (isNaN(parsedUserId)) {
         throw new HttpException('Invalid userId parameter', HttpStatus.BAD_REQUEST);
       }
-      return this.clientsService.findByUserId(parsedUserId);
+      return this.leadsService.findByUserId(parsedUserId);
     }
     
     if (strategyId) {
@@ -34,27 +34,27 @@ export class ClientsController {
       if (isNaN(parsedStrategyId)) {
         throw new HttpException('Invalid strategyId parameter', HttpStatus.BAD_REQUEST);
       }
-      return this.clientsService.findByStrategyId(parsedStrategyId, user.userId, user.role);
+      return this.leadsService.findByStrategyId(parsedStrategyId, user.userId, user.role);
     }
     
-    // Admin users can see all clients
-    return this.clientsService.findAll();
+    // Admin users can see all leads
+    return this.leadsService.findAll();
   }
 
   @Get(':id')
   @Admin()
   findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user) {
-    return this.clientsService.findOne(id, user.userId, user.role);
+    return this.leadsService.findOne(id, user.userId, user.role);
   }
 
   @Patch(':id')
   @Admin()
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateClientDto: UpdateClientDto,
+    @Body() updateLeadDto: UpdateLeadDto,
     @CurrentUser() user
   ) {
-    return this.clientsService.update(id, updateClientDto, user.userId, user.role);
+    return this.leadsService.update(id, updateLeadDto, user.userId, user.role);
   }
 
   @Post(':id/message')
@@ -62,12 +62,12 @@ export class ClientsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() message: any,
   ) {
-    return this.clientsService.appendMessage(id, message);
+    return this.leadsService.appendMessage(id, message);
   }
 
   @Delete(':id')
   @Admin()
   remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user) {
-    return this.clientsService.remove(id, user.userId, user.role);
+    return this.leadsService.remove(id, user.userId, user.role);
   }
 }

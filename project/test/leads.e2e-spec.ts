@@ -21,7 +21,7 @@ describe('ClientsController (e2e)', () => {
     prismaService = app.get<PrismaService>(PrismaService);
     
     // Clean up database before tests
-    await prismaService.client.deleteMany({});
+    await prismaService.lead.deleteMany({});
     
     // Create a test user and strategy for foreign key relationships
     const user = await prismaService.user.create({
@@ -46,14 +46,14 @@ describe('ClientsController (e2e)', () => {
 
   afterAll(async () => {
     // Clean up database after tests
-    await prismaService.client.deleteMany({});
+    await prismaService.lead.deleteMany({});
     await prismaService.strategy.deleteMany({});
     await prismaService.user.deleteMany({});
     await app.close();
   });
 
   const testClient = {
-    name: 'Test Client',
+    name: 'Test Lead',
     userId: null, // Will be set in beforeEach
     strategyId: null, // Will be set in beforeEach
     email: 'client@example.com',
@@ -63,17 +63,17 @@ describe('ClientsController (e2e)', () => {
     notes: 'Test notes'
   };
 
-  let clientId: number;
+  let leadId: number;
 
   beforeEach(() => {
     testClient.userId = userId;
     testClient.strategyId = strategyId;
   });
 
-  describe('/clients (POST)', () => {
+  describe('/leads (POST)', () => {
     it('should create a new client', () => {
       return request(app.getHttpServer())
-        .post('/clients')
+        .post('/leads')
         .set('x-api-key', process.env.API_KEY)
         .send(testClient)
         .expect(201)
@@ -84,13 +84,13 @@ describe('ClientsController (e2e)', () => {
           expect(response.body.userId).toBe(userId);
           expect(response.body.strategyId).toBe(strategyId);
           
-          clientId = response.body.id;
+          leadId = response.body.id;
         });
     });
 
     it('should not create a client with invalid data', () => {
       return request(app.getHttpServer())
-        .post('/clients')
+        .post('/leads')
         .set('x-api-key', process.env.API_KEY)
         .send({
           // Missing required fields
@@ -100,10 +100,10 @@ describe('ClientsController (e2e)', () => {
     });
   });
 
-  describe('/clients (GET)', () => {
+  describe('/leads (GET)', () => {
     it('should return all clients', () => {
       return request(app.getHttpServer())
-        .get('/clients')
+        .get('/leads')
         .set('x-api-key', process.env.API_KEY)
         .expect(200)
         .then(response => {
@@ -116,14 +116,14 @@ describe('ClientsController (e2e)', () => {
     });
   });
 
-  describe('/clients/:id (GET)', () => {
+  describe('/leads/:id (GET)', () => {
     it('should return a client by id', () => {
       return request(app.getHttpServer())
-        .get(`/clients/${clientId}`)
+        .get(`/leads/${leadId}`)
         .set('x-api-key', process.env.API_KEY)
         .expect(200)
         .then(response => {
-          expect(response.body).toHaveProperty('id', clientId);
+          expect(response.body).toHaveProperty('id', leadId);
           expect(response.body).toHaveProperty('name', testClient.name);
           expect(response.body).toHaveProperty('email', testClient.email);
           expect(response.body).toHaveProperty('user');
@@ -133,16 +133,16 @@ describe('ClientsController (e2e)', () => {
 
     it('should return 404 for non-existent client', () => {
       return request(app.getHttpServer())
-        .get('/clients/9999')
+        .get('/leads/9999')
         .set('x-api-key', process.env.API_KEY)
         .expect(404);
     });
   });
 
-  describe('/clients/user/:userId (GET)', () => {
+  describe('/leads/user/:userId (GET)', () => {
     it('should return clients for a specific user', () => {
       return request(app.getHttpServer())
-        .get(`/clients/user/${userId}`)
+        .get(`/leads/user/${userId}`)
         .set('x-api-key', process.env.API_KEY)
         .expect(200)
         .then(response => {
@@ -153,37 +153,37 @@ describe('ClientsController (e2e)', () => {
     });
   });
 
-  describe('/clients/:id (PATCH)', () => {
+  describe('/leads/:id (PATCH)', () => {
     it('should update a client', () => {
-      const updatedName = 'Updated Client';
+      const updatedName = 'Updated Lead';
       
       return request(app.getHttpServer())
-        .patch(`/clients/${clientId}`)
+        .patch(`/leads/${leadId}`)
         .set('x-api-key', process.env.API_KEY)
         .send({ name: updatedName })
         .expect(200)
         .then(response => {
-          expect(response.body).toHaveProperty('id', clientId);
+          expect(response.body).toHaveProperty('id', leadId);
           expect(response.body).toHaveProperty('name', updatedName);
           expect(response.body).toHaveProperty('email', testClient.email);
         });
     });
   });
 
-  describe('/clients/:id (DELETE)', () => {
+  describe('/leads/:id (DELETE)', () => {
     it('should delete a client', () => {
       return request(app.getHttpServer())
-        .delete(`/clients/${clientId}`)
+        .delete(`/leads/${leadId}`)
         .set('x-api-key', process.env.API_KEY)
         .expect(200)
         .then(response => {
-          expect(response.body).toHaveProperty('id', clientId);
+          expect(response.body).toHaveProperty('id', leadId);
         });
     });
 
     it('should return 404 after client is deleted', () => {
       return request(app.getHttpServer())
-        .get(`/clients/${clientId}`)
+        .get(`/leads/${leadId}`)
         .set('x-api-key', process.env.API_KEY)
         .expect(404);
     });

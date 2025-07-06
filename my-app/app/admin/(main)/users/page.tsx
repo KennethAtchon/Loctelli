@@ -575,11 +575,11 @@ export default function UsersPage() {
                                 )}
 
                                 {/* Clients */}
-                                {selectedUser.clients && selectedUser.clients.length > 0 && (
+                                {selectedUser.leads && selectedUser.leads.length > 0 && (
                                   <div>
-                                    <h3 className="font-semibold mb-3">Clients ({selectedUser.clients.length})</h3>
+                                    <h3 className="font-semibold mb-3">Clients ({selectedUser.leads.length})</h3>
                                     <div className="space-y-2">
-                                      {selectedUser.clients.map((client) => (
+                                      {selectedUser.leads.map((client) => (
                                         <div key={client.id} className="p-2 border rounded">
                                           <div className="font-medium">{client.name}</div>
                                           <div className="text-sm text-gray-600">

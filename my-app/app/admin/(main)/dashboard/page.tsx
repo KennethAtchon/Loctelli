@@ -54,7 +54,7 @@ interface DetailedUser {
   }>;
 }
 
-interface DetailedClient {
+interface DetailedLead {
   id: number;
   name: string;
   email?: string;
@@ -89,12 +89,12 @@ interface DetailedClient {
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
-  const [recentClients, setRecentClients] = useState<DetailedClient[]>([]);
+  const [recentClients, setRecentClients] = useState<DetailedLead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<DetailedUser | null>(null);
-  const [selectedClient, setSelectedClient] = useState<DetailedClient | null>(null);
+  const [selectedClient, setSelectedClient] = useState<DetailedLead | null>(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -137,9 +137,9 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const loadDetailedClient = async (clientId: number) => {
+  const loadDetailedLead = async (leadId: number) => {
     try {
-      const client = await api.adminAuth.getDetailedClient(clientId);
+      const client = await api.adminAuth.getDetailedLead(leadId);
       setSelectedClient(client);
     } catch (error) {
       logger.error('Failed to load client details:', error);
@@ -419,11 +419,11 @@ export default function AdminDashboardPage() {
                               )}
 
                               {/* Clients */}
-                              {selectedUser.clients && selectedUser.clients.length > 0 && (
+                              {selectedUser.leads && selectedUser.leads.length > 0 && (
                                 <div>
-                                  <h3 className="font-semibold mb-3">Clients ({selectedUser.clients.length})</h3>
+                                  <h3 className="font-semibold mb-3">Clients ({selectedUser.leads.length})</h3>
                                   <div className="space-y-2">
-                                    {selectedUser.clients.map((client) => (
+                                    {selectedUser.leads.map((client) => (
                                       <div key={client.id} className="p-2 border rounded">
                                         <div className="font-medium">{client.name}</div>
                                         <div className="text-sm text-gray-600">
@@ -473,10 +473,10 @@ export default function AdminDashboardPage() {
                 Latest clients added to the platform
               </CardDescription>
             </div>
-            <Link href="/admin/clients">
+            <Link href="/admin/leads">
               <Button variant="outline" size="sm">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Client
+                Add Lead
               </Button>
             </Link>
           </CardHeader>
@@ -502,14 +502,14 @@ export default function AdminDashboardPage() {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => loadDetailedClient(client.id)}
+                            onClick={() => loadDetailedLead(client.id)}
                           >
                             <Eye className="h-3 w-3" />
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                           <DialogHeader>
-                            <DialogTitle>Client Details - {client.name}</DialogTitle>
+                            <DialogTitle>Lead Details - {client.name}</DialogTitle>
                             <DialogDescription>
                               Complete client information and related data
                             </DialogDescription>
