@@ -141,6 +141,30 @@ export class AuthService {
     // Hash password with higher salt rounds for better security
     const hashedPassword = await bcrypt.hash(registerDto.password, 12);
 
+    // Get or create default SubAccount for new users
+    let defaultSubAccount = await this.prisma.subAccount.findFirst({
+      where: { name: 'Default SubAccount' },
+    });
+
+    if (!defaultSubAccount) {
+      // Create default SubAccount if it doesn't exist
+      const defaultAdmin = await this.prisma.adminUser.findFirst({
+        where: { role: 'super_admin' },
+      });
+
+      if (!defaultAdmin) {
+        throw new BadRequestException('No admin available to create SubAccount');
+      }
+
+      defaultSubAccount = await this.prisma.subAccount.create({
+        data: {
+          name: 'Default SubAccount',
+          description: 'Default SubAccount for new users',
+          createdByAdminId: defaultAdmin.id,
+        },
+      });
+    }
+
     const user = await this.prisma.user.create({
       data: {
         name: registerDto.name,
@@ -148,6 +172,7 @@ export class AuthService {
         password: hashedPassword,
         company: registerDto.company,
         budget: registerDto.budget,
+        subAccountId: defaultSubAccount.id,
       },
     });
 

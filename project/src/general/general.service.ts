@@ -23,8 +23,13 @@ export class GeneralService {
   // This service is intentionally empty as the controller methods
   // don't require any complex business logic
 
-  async getDashboardStats() {
+  async getDashboardStats(subaccountId?: string) {
     try {
+      // Build where clause for subaccount filtering
+      const whereClause: any = subaccountId && subaccountId !== 'GLOBAL' 
+        ? { subAccountId: parseInt(subaccountId) }
+        : {};
+
       // Get counts from database
       const [
         totalUsers,
@@ -34,12 +39,13 @@ export class GeneralService {
         totalLeads,
         recentUsers
       ] = await Promise.all([
-        this.prisma.user.count(),
-        this.prisma.user.count({ where: { isActive: true } }),
-        this.prisma.strategy.count(),
-        this.prisma.booking.count(),
-        this.prisma.lead.count(),
+        this.prisma.user.count({ where: whereClause }),
+        this.prisma.user.count({ where: { ...whereClause, isActive: true } }),
+        this.prisma.strategy.count({ where: whereClause }),
+        this.prisma.booking.count({ where: whereClause }),
+        this.prisma.lead.count({ where: whereClause }),
         this.prisma.user.findMany({
+          where: whereClause,
           take: 5,
           orderBy: { createdAt: 'desc' },
           select: {
@@ -61,10 +67,10 @@ export class GeneralService {
 
       // Users
       const usersThisMonth = await this.prisma.user.count({
-        where: { createdAt: { gte: startOfThisMonth } }
+        where: { ...whereClause, createdAt: { gte: startOfThisMonth } }
       });
       const usersLastMonth = await this.prisma.user.count({
-        where: { createdAt: { gte: startOfLastMonth, lt: startOfThisMonth } }
+        where: { ...whereClause, createdAt: { gte: startOfLastMonth, lt: startOfThisMonth } }
       });
       const usersGrowth = usersLastMonth === 0
         ? (usersThisMonth > 0 ? 100 : 0)
@@ -72,10 +78,10 @@ export class GeneralService {
 
       // Active Users
       const activeUsersThisMonth = await this.prisma.user.count({
-        where: { isActive: true, createdAt: { gte: startOfThisMonth } }
+        where: { ...whereClause, isActive: true, createdAt: { gte: startOfThisMonth } }
       });
       const activeUsersLastMonth = await this.prisma.user.count({
-        where: { isActive: true, createdAt: { gte: startOfLastMonth, lt: startOfThisMonth } }
+        where: { ...whereClause, isActive: true, createdAt: { gte: startOfLastMonth, lt: startOfThisMonth } }
       });
       const activeUsersGrowth = activeUsersLastMonth === 0
         ? (activeUsersThisMonth > 0 ? 100 : 0)
@@ -83,10 +89,10 @@ export class GeneralService {
 
       // Strategies
       const strategiesThisMonth = await this.prisma.strategy.count({
-        where: { createdAt: { gte: startOfThisMonth } }
+        where: { ...whereClause, createdAt: { gte: startOfThisMonth } }
       });
       const strategiesLastMonth = await this.prisma.strategy.count({
-        where: { createdAt: { gte: startOfLastMonth, lt: startOfThisMonth } }
+        where: { ...whereClause, createdAt: { gte: startOfLastMonth, lt: startOfThisMonth } }
       });
       const strategiesGrowth = strategiesLastMonth === 0
         ? (strategiesThisMonth > 0 ? 100 : 0)
@@ -94,10 +100,10 @@ export class GeneralService {
 
       // Bookings
       const bookingsThisMonth = await this.prisma.booking.count({
-        where: { createdAt: { gte: startOfThisMonth } }
+        where: { ...whereClause, createdAt: { gte: startOfThisMonth } }
       });
       const bookingsLastMonth = await this.prisma.booking.count({
-        where: { createdAt: { gte: startOfLastMonth, lt: startOfThisMonth } }
+        where: { ...whereClause, createdAt: { gte: startOfLastMonth, lt: startOfThisMonth } }
       });
       const bookingsGrowth = bookingsLastMonth === 0
         ? (bookingsThisMonth > 0 ? 100 : 0)
@@ -158,9 +164,14 @@ export class GeneralService {
     }
   }
 
-  async getRecentLeads() {
+  async getRecentLeads(subaccountId?: string) {
     try {
+      const whereClause: any = subaccountId && subaccountId !== 'GLOBAL' 
+        ? { subAccountId: parseInt(subaccountId) }
+        : {};
+
       return await this.prisma.lead.findMany({
+        where: whereClause,
         take: 5,
         orderBy: {
           id: 'desc'

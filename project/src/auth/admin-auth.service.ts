@@ -167,6 +167,7 @@ export class AdminAuthService {
     password: string;
     company?: string;
     role?: string;
+    subAccountId?: number;
   }) {
     // Check if user already exists
     const existingUser = await this.prisma.user.findUnique({
@@ -175,6 +176,18 @@ export class AdminAuthService {
 
     if (existingUser) {
       throw new ConflictException('User with this email already exists');
+    }
+
+    // Get default SubAccount for this admin if not provided
+    let subAccountId = userData.subAccountId;
+    if (!subAccountId) {
+      const defaultSubAccount = await this.prisma.subAccount.findFirst({
+        where: { createdByAdminId: adminId },
+      });
+      if (!defaultSubAccount) {
+        throw new BadRequestException('No SubAccount available for user creation');
+      }
+      subAccountId = defaultSubAccount.id;
     }
 
     // Hash password
@@ -189,6 +202,7 @@ export class AdminAuthService {
         company: userData.company,
         role: userData.role || 'user',
         createdByAdminId: adminId,
+        subAccountId: subAccountId,
       },
     });
 

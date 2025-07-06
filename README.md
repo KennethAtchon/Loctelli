@@ -89,16 +89,29 @@ Loctelli/
 ## 🎯 **Key Features**
 
 - **User Authentication**: Secure login/register with JWT tokens and automatic login after registration
-- **Admin Panel**: Comprehensive admin interface for user management
+- **Admin Panel**: Comprehensive admin interface for user management with global subaccount filtering
 - **Strategy Management**: Create and manage sales strategies
 - **Lead Management**: Track and manage lead relationships
 - **Booking System**: Handle appointment scheduling
 - **Chat Integration**: AI-powered conversation management with full conversation history
 - **Prompt Template System**: Global AI prompt template management with activation controls and strategy integration
+- **Multi-Tenant System**: SubAccounts for managing multiple client organizations with data isolation
 - **Real-time Updates**: Live data synchronization
 - **Comprehensive Testing**: Unit tests, integration tests, and E2E tests with 80%+ coverage goals
 
 ## 🚀 **Implemented Features**
+
+### **Admin Dashboard Global Subaccount Filtering System ✅**
+- **Global Filter Component**: Dropdown filter in admin header for switching between subaccount contexts
+- **Context Management**: React context for managing filter state across the admin dashboard
+- **Persistent Selection**: Filter choice saved in localStorage for session persistence
+- **Real-time Updates**: Dashboard data updates automatically when filter changes
+- **Visual Indicators**: Clear badges showing current filter context (Global vs Subaccount)
+- **Backend Integration**: API endpoints support subaccount filtering via query parameters
+- **User Experience**: Seamless switching between global view and subaccount-specific views
+- **Data Filtering**: All dashboard stats, recent users, and leads filtered by selected subaccount
+- **Loading States**: Proper loading indicators during filter changes
+- **Error Handling**: Graceful error handling for filter operations
 
 ### **SubAccounts Multi-Tenant System ✅**
 - **Multi-Client Support**: Manage multiple client organizations within a single system
@@ -112,6 +125,11 @@ Loctelli/
 - **Authorization**: SubAccount-level access control with admin-only management
 - **Data Migration**: SQL migration script for existing data
 - **Testing**: Unit tests for SubAccounts service with comprehensive coverage
+- **Service Integration**: All existing services (Users, Strategies, Leads, Bookings) updated with SubAccount context
+- **Frontend Integration**: All pages and forms updated with SubAccount filtering and selection
+- **API Updates**: All API clients updated to support SubAccount parameters
+- **Data Filtering**: Complete SubAccount-based data isolation across all features
+- **Global Dashboard Filtering**: Admin dashboard with subaccount filtering system for easy context switching
 
 ## 💬 **Chat System Features**
 

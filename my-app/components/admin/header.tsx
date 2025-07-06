@@ -4,6 +4,7 @@ import { User, LogOut, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useAdminAuth } from '@/contexts/admin-auth-context';
+import { SubaccountFilter } from './subaccount-filter';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,8 +33,9 @@ export function Header() {
         {/* Left side - empty for now, can be used for breadcrumbs or page title */}
         <div className="flex-1"></div>
         
-        {/* Right side - User menu */}
-        <div className="flex items-center justify-end">
+        {/* Right side - Subaccount filter and User menu */}
+        <div className="flex items-center justify-end gap-4">
+          <SubaccountFilter variant="compact" />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="flex items-center space-x-2">

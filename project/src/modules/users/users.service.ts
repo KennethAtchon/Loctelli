@@ -152,6 +152,18 @@ export class UsersService {
       
       // Process each location and create a user
       for (const loc of subaccountsData.locations) {
+        // Get default SubAccount for new users
+        const defaultSubAccount = await this.prisma.subAccount.findFirst({
+          where: { name: 'Default SubAccount' },
+        });
+
+        if (!defaultSubAccount) {
+          throw new HttpException(
+            'No default SubAccount available for user creation',
+            HttpStatus.BAD_REQUEST
+          );
+        }
+
         // Map subaccount/location fields to User fields
         const userData = {
           name: loc.name || 'Unknown User',
@@ -159,6 +171,7 @@ export class UsersService {
           email: loc.email || `user-${Date.now()}@example.com`,
           password: await bcrypt.hash('defaultPassword123', 12), // Default password
           role: 'user',
+          subAccountId: defaultSubAccount.id,
           // Add any other mappings as needed
         };
         

@@ -71,8 +71,7 @@ export class SubAccountsService {
             id: true,
             name: true,
             email: true,
-            status: true,
-            createdAt: true
+            status: true
           }
         },
         bookings: {

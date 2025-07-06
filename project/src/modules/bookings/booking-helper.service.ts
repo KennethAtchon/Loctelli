@@ -235,6 +235,16 @@ export class BookingHelperService {
       subject: bookingDetails.subject,
     };
 
+    // Get user's SubAccount
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { subAccountId: true },
+    });
+
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+
     // Create booking in database
     const booking = await this.prisma.booking.create({
       data: {
@@ -243,6 +253,7 @@ export class BookingHelperService {
         bookingType: 'meeting',
         details,
         status: 'pending',
+        subAccountId: user.subAccountId,
       },
     });
 

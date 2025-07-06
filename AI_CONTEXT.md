@@ -32,6 +32,7 @@
 - **Backend API**: Complete CRUD operations for SubAccounts ✅
 - **Frontend UI**: SubAccounts management interface ✅
 - **Authorization**: SubAccount-level access control ✅
+- **Global Filtering**: Admin dashboard with subaccount filtering system ✅
 
 ## 🔐 **Security Architecture**
 
@@ -109,7 +110,7 @@
 
 #### **System**
 - **Status**: `/status/*` - Health, version, system status
-- **General**: `/general/*` - Dashboard stats, schema, detailed views
+- **General**: `/general/*` - Dashboard stats, schema, detailed views (with subaccount filtering) ✅
 - **SubAccounts**: `/admin/subaccounts/*` - Multi-tenant SubAccount management ✅
 
 ### **🔧 Integration Fixes Applied**
@@ -174,7 +175,28 @@
 - **Configuration**: Added validation for `DEFAULT_ADMIN_PASSWORD` in security config
 - **Documentation**: Updated security check script to validate the new environment variable
 
-#### **11. Chat System Fixes - CRITICAL BUG RESOLUTION**
+#### **11. Admin Dashboard Global Subaccount Filtering System**
+- **Implemented**: Global subaccount filtering system for admin dashboard ✅
+- **Frontend Components**: 
+  - `SubaccountFilterProvider` context for state management
+  - `SubaccountFilter` component with dropdown interface
+  - Integration with admin header and dashboard
+- **Backend Support**: 
+  - Updated `/general/dashboard-stats` endpoint to accept `subaccountId` query parameter
+  - Updated `/general/recent-leads` endpoint to accept `subaccountId` query parameter
+  - All dashboard data now filtered by subaccount when specified
+- **Features**:
+  - Global view (all subaccounts) vs subaccount-specific view
+  - Persistent filter selection (localStorage)
+  - Real-time dashboard updates when filter changes
+  - Visual indicators showing current filter context
+  - Loading states and error handling
+- **User Experience**:
+  - Easy switching between subaccount contexts
+  - Clear visual indication of current filter
+  - Seamless integration with existing admin interface
+
+#### **12. Chat System Fixes - CRITICAL BUG RESOLUTION**
 - **Fixed**: Chat history not loading when lead is selected
 - **Fixed**: Message format mismatch between frontend and backend
 - **Fixed**: Bot not reading previous messages and repeating greetings

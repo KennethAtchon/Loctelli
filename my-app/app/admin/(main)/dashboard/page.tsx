@@ -7,10 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Users, Target, Calendar, RefreshCw, Plus, Eye, Building } from 'lucide-react';
+import { Users, Target, Calendar, RefreshCw, Plus, Eye, Building, Globe } from 'lucide-react';
 import { DashboardStats, SystemStatus } from '@/lib/api/endpoints/admin-auth';
 import Link from 'next/link';
 import logger from '@/lib/logger';
+import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
 
 interface DetailedUser {
   id: number;
@@ -87,6 +88,7 @@ interface DetailedLead {
 }
 
 export default function AdminDashboardPage() {
+  const { currentFilter, getCurrentSubaccount, isGlobalView } = useSubaccountFilter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
   const [recentLeads, setRecentLeads] = useState<DetailedLead[]>([]);
@@ -98,7 +100,7 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     loadDashboardData();
-  }, []);
+  }, [currentFilter]);
 
   // Cleanup error state on unmount
   useEffect(() => {
@@ -112,9 +114,9 @@ export default function AdminDashboardPage() {
       setIsRefreshing(true);
       setError(null);
       const [dashboardStats, status, leads] = await Promise.all([
-        api.adminAuth.getDashboardStats(),
+        api.adminAuth.getDashboardStats(currentFilter),
         api.adminAuth.getSystemStatus(),
-        api.adminAuth.getRecentLeads()
+        api.adminAuth.getRecentLeads(currentFilter)
       ]);
       setStats(dashboardStats);
       setSystemStatus(status);
@@ -208,8 +210,31 @@ export default function AdminDashboardPage() {
       
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="text-gray-600">Overview of your system</p>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+            {!isGlobalView() && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-200 rounded-full">
+                <Building className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium text-blue-700">
+                  {getCurrentSubaccount()?.name}
+                </span>
+              </div>
+            )}
+            {isGlobalView() && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-gray-50 border border-gray-200 rounded-full">
+                <Globe className="h-4 w-4 text-gray-600" />
+                <span className="text-sm font-medium text-gray-700">
+                  Global View
+                </span>
+              </div>
+            )}
+          </div>
+          <p className="text-gray-600">
+            {isGlobalView() 
+              ? 'Overview of all subaccounts' 
+              : `Overview of ${getCurrentSubaccount()?.name} subaccount`
+            }
+          </p>
         </div>
         <div className="flex gap-2">
           <Button 

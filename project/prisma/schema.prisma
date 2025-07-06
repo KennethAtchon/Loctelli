@@ -65,6 +65,8 @@ model User {
   updatedAt       DateTime    @updatedAt
   subAccountId    Int         // Required: User must belong to a SubAccount
   subAccount      SubAccount  @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
+  createdByAdminId Int?       // Admin who created this user
+  createdByAdmin  AdminUser?  @relation(fields: [createdByAdminId], references: [id])
   strategies      Strategy[]
   leads           Lead[]      // Leads created by this user
   bookings        Booking[]

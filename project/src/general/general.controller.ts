@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, ParseIntPipe, UseGuards, Query } from '@nestjs/common';
 import { GeneralService } from './general.service';
 import { JwtAuthGuard } from '../auth/auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -26,8 +26,8 @@ export class GeneralController {
   @Get('dashboard-stats')
   @UseGuards(RolesGuard)
   @Roles('admin', 'super_admin')
-  async getDashboardStats() {
-    return this.generalService.getDashboardStats();
+  async getDashboardStats(@Query('subaccountId') subaccountId?: string) {
+    return this.generalService.getDashboardStats(subaccountId);
   }
 
   @Get('system-status')
@@ -40,8 +40,8 @@ export class GeneralController {
   @Get('recent-leads')
   @UseGuards(RolesGuard)
   @Roles('admin', 'super_admin')
-  async getRecentLeads() {
-    return this.generalService.getRecentLeads();
+  async getRecentLeads(@Query('subaccountId') subaccountId?: string) {
+    return this.generalService.getRecentLeads(subaccountId);
   }
 
   @Get('users/:id/detailed')

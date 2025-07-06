@@ -245,16 +245,22 @@ export class AdminAuthApi extends ApiClient {
     return this.delete<{ message: string }>(`/admin/auth/accounts/${adminId}`);
   }
 
-  async getDashboardStats(): Promise<DashboardStats> {
-    return this.get<DashboardStats>('/general/dashboard-stats');
+  async getDashboardStats(subaccountId?: string): Promise<DashboardStats> {
+    const endpoint = subaccountId && subaccountId !== 'GLOBAL' 
+      ? `/general/dashboard-stats?subaccountId=${subaccountId}`
+      : '/general/dashboard-stats';
+    return this.get<DashboardStats>(endpoint);
   }
 
   async getSystemStatus(): Promise<SystemStatus> {
     return this.get<SystemStatus>('/general/system-status');
   }
 
-  async getRecentLeads(): Promise<DetailedLead[]> {
-    return this.get<DetailedLead[]>('/general/recent-leads');
+  async getRecentLeads(subaccountId?: string): Promise<DetailedLead[]> {
+    const endpoint = subaccountId && subaccountId !== 'GLOBAL' 
+      ? `/general/recent-leads?subaccountId=${subaccountId}`
+      : '/general/recent-leads';
+    return this.get<DetailedLead[]>(endpoint);
   }
 
   async getDetailedUser(userId: number): Promise<DetailedUser> {

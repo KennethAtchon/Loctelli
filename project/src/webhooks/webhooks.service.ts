@@ -88,6 +88,13 @@ export class WebhooksService {
       });
       const userId = user?.id || 1;
       
+      if (!user) {
+        throw new HttpException(
+          { status: 'error', message: `No user found with locationId ${contactData.locationId}` },
+          HttpStatus.NOT_FOUND
+        );
+      }
+      
       // Get the first strategy for this user
       const strategy = await this.prisma.strategy.findFirst({
         where: { userId }
@@ -107,7 +114,8 @@ export class WebhooksService {
           name,
           customId: contactData.id,
           messageHistory: [],
-          status: 'lead'
+          status: 'lead',
+          subAccountId: user.subAccountId
         }
       });
       
