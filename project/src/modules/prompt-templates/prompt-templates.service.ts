@@ -65,54 +65,70 @@ export class PromptTemplatesService {
   }
 
   async create(createDto: CreatePromptTemplateDto, adminId: number) {
-    this.logger.debug(`Creating prompt template: ${createDto.name}`);
+    this.logger.debug(`Creating prompt template: ${createDto.name} with adminId: ${adminId}`);
 
-    // If this template is being set as active, deactivate all others
-    if (createDto.isActive) {
-      await this.deactivateAllTemplates();
-    }
+    try {
+      // If this template is being set as active, deactivate all others
+      if (createDto.isActive) {
+        await this.deactivateAllTemplates();
+      }
 
-    return this.prisma.promptTemplate.create({
-      data: {
-        ...createDto,
-        createdByAdminId: adminId,
-      },
-      include: {
-        createdByAdmin: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
+      const result = await this.prisma.promptTemplate.create({
+        data: {
+          ...createDto,
+          createdByAdminId: adminId,
+        },
+        include: {
+          createdByAdmin: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
           },
         },
-      },
-    });
+      });
+
+      this.logger.debug(`Successfully created prompt template with ID: ${result.id}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Failed to create prompt template: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   async update(id: number, updateDto: UpdatePromptTemplateDto) {
     this.logger.debug(`Updating prompt template with id: ${id}`);
 
-    // Check if template exists
-    const existingTemplate = await this.findOne(id);
+    try {
+      // Check if template exists
+      const existingTemplate = await this.findOne(id);
 
-    // If this template is being set as active, deactivate all others
-    if (updateDto.isActive) {
-      await this.deactivateAllTemplates();
-    }
+      // If this template is being set as active, deactivate all others
+      if (updateDto.isActive) {
+        await this.deactivateAllTemplates();
+      }
 
-    return this.prisma.promptTemplate.update({
-      where: { id },
-      data: updateDto,
-      include: {
-        createdByAdmin: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
+      const result = await this.prisma.promptTemplate.update({
+        where: { id },
+        data: updateDto,
+        include: {
+          createdByAdmin: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
           },
         },
-      },
-    });
+      });
+
+      this.logger.debug(`Successfully updated prompt template with ID: ${result.id}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Failed to update prompt template: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   async delete(id: number) {

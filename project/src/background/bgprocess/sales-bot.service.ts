@@ -103,9 +103,11 @@ export class SalesBotService implements OnModuleInit {
       // Create bot response
       const botResponse = await this.createBotResponse(prompt);
       
-      // Append both user message and bot response to history
-      await this.appendMessageToHistory(lead, 'user', message);
-      await this.appendMessageToHistory(lead, 'bot', botResponse);
+      // Append both user message and bot response to history in a single operation
+      await this.appendMessagesToHistory(lead, [
+        { role: 'user', content: message },
+        { role: 'assistant', content: botResponse }
+      ]);
       
       // Check for booking confirmation
       if (user && user.bookingEnabled) {
@@ -186,6 +188,49 @@ export class SalesBotService implements OnModuleInit {
     }
   }
   
+  /**
+   * Append multiple messages to the lead's message history in a single operation
+   * @param lead The lead object
+   * @param messages Array of messages with role and content
+   */
+  private async appendMessagesToHistory(lead: any, messages: { role: string; content: string }[]): Promise<void> {
+    this.logger.debug(`[appendMessagesToHistory] leadId=${lead.id}, messages_count=${messages.length}`);
+    
+    // Validate messages
+    for (const msg of messages) {
+      if (!msg.content || typeof msg.content !== 'string') {
+        this.logger.error(`[appendMessagesToHistory] Invalid message:`, msg);
+        return;
+      }
+    }
+    
+    // Parse existing messages or initialize empty array
+    const existingMessages = lead.messageHistory ? 
+      JSON.parse(lead.messageHistory as string) : 
+      [];
+    
+    // Add new messages with timestamps
+    const newMessages = messages.map(msg => ({
+      role: msg.role,
+      content: msg.content,
+      timestamp: new Date().toISOString()
+    }));
+    
+    existingMessages.push(...newMessages);
+    
+    // Update lead with new message history
+    await this.prisma.lead.update({
+      where: { id: lead.id },
+      data: {
+        messageHistory: JSON.stringify(existingMessages),
+        lastMessage: messages[messages.length - 1].content, // Use the last message as the last message
+        lastMessageDate: new Date().toISOString(),
+      } as any,
+    });
+    
+    this.logger.log(`Messages appended to history for leadId=${lead.id}, history_length=${existingMessages.length}`);
+  }
+
   /**
    * Append a message to the lead's message history
    * @param lead The lead object

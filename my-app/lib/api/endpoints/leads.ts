@@ -1,7 +1,7 @@
-import { Apilead } from '../lead';
+import { ApiClient } from '../client';
 import { Lead, CreateLeadDto } from '@/types';
 
-export class LeadsApi extends Apilead {
+export class LeadsApi extends ApiClient {
   async getLeads(): Promise<Lead[]> {
     return this.get<Lead[]>('/lead');
   }

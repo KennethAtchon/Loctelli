@@ -3,7 +3,7 @@ import { GhlService } from '../../ghl/ghl.service';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from '@prisma/lead';
+import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()

@@ -53,11 +53,19 @@ export class ChatService {
       }
     });
 
-    return {
+    const response = {
       userMessage,
       aiMessage,
       lead: updatedLead
     };
+
+    console.log(`[ChatService] sendMessage response for leadId=${leadId}:`, {
+      userMessage: response.userMessage,
+      aiMessage: response.aiMessage,
+      leadId: response.lead?.id
+    });
+
+    return response;
   }
 
   async getMessageHistory(leadId: number) {
@@ -70,7 +78,14 @@ export class ChatService {
       throw new NotFoundException(`Lead with ID ${leadId} not found`);
     }
 
-    return lead.messageHistory ? JSON.parse(lead.messageHistory as string) : [];
+    const history = lead.messageHistory ? JSON.parse(lead.messageHistory as string) : [];
+    console.log(`[ChatService] getMessageHistory for leadId=${leadId}:`, {
+      rawMessageHistory: lead.messageHistory,
+      parsedHistory: history,
+      historyLength: history.length
+    });
+
+    return history;
   }
 
   /**

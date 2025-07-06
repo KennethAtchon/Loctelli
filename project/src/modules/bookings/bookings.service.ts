@@ -40,6 +40,8 @@ export class BookingsService {
       throw new ForbiddenException('Access denied');
     }
 
+    // If the booking references a user that doesn't exist, we still return the booking
+    // but the user field will be null, which the frontend can handle
     return booking;
   }
 
@@ -94,8 +96,20 @@ export class BookingsService {
       return await this.prisma.booking.update({
         where: { id },
         data: updateBookingDto,
+        include: {
+          user: true,
+          lead: true,
+        },
       });
     } catch (error) {
+      // Log the actual error for debugging
+      console.error('Booking update error:', error);
+      
+      // Check if it's a foreign key constraint error
+      if (error.code === 'P2003') {
+        throw new NotFoundException('Referenced user or lead not found');
+      }
+      
       throw new NotFoundException(`Booking with ID ${id} not found`);
     }
   }

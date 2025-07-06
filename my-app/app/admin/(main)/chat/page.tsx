@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Send, 
   Trash2, 
@@ -17,6 +18,7 @@ import {
   UserCheck
 } from 'lucide-react';
 import { DetailedLead } from '@/lib/api/endpoints/admin-auth';
+import { Lead } from '@/types';
 import logger from '@/lib/logger';
 
 interface ChatMessage {
@@ -33,13 +35,15 @@ interface ChatMessage {
 export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
-  const [leadId, setleadId] = useState<string>('');
+  const [selectedLeadId, setSelectedLeadId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [leadProfile, setleadProfile] = useState<DetailedLead | null>(null);
   const [isLoadinglead, setIsLoadinglead] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [isLoadingLeads, setIsLoadingLeads] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -51,6 +55,23 @@ export default function ChatPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Load leads for dropdown
+  useEffect(() => {
+    const loadLeads = async () => {
+      try {
+        setIsLoadingLeads(true);
+        const leadsData = await api.leads.getLeads();
+        setLeads(leadsData);
+      } catch (error) {
+        logger.error('Failed to load leads:', error);
+        setError('Failed to load leads list');
+      } finally {
+        setIsLoadingLeads(false);
+      }
+    };
+    loadLeads();
+  }, []);
 
   // Cleanup error state on unmount
   useEffect(() => {
@@ -72,7 +93,7 @@ export default function ChatPage() {
       const leadIdNum = parseInt(id, 10);
       
       if (isNaN(leadIdNum)) {
-        setError('Please enter a valid lead ID (number)');
+        setError('Please select a valid lead');
         setleadProfile(null);
         setMessages([]);
         return;
@@ -86,7 +107,7 @@ export default function ChatPage() {
       await loadChatHistory(leadIdNum);
     } catch (error) {
       logger.error('Failed to load lead profile:', error);
-      setError('Lead not found. Please check the lead ID.');
+      setError('Lead not found. Please select a different lead.');
       setleadProfile(null);
       setMessages([]);
     } finally {
@@ -98,6 +119,8 @@ export default function ChatPage() {
     try {
       setIsLoadingHistory(true);
       const history = await api.chat.getChatHistory(leadIdNum);
+      
+      logger.debug('Raw chat history from API:', history);
       
       // Convert backend message format to frontend format
       const convertedMessages: ChatMessage[] = history.map((msg: any, index: number) => {
@@ -119,6 +142,8 @@ export default function ChatPage() {
           content = msg.content || msg.message || '';
         }
         
+        logger.debug(`Converting message ${index}:`, { original: msg, converted: { role, content } });
+        
         return {
           id: `${leadIdNum}-${index}`,
           role,
@@ -131,6 +156,7 @@ export default function ChatPage() {
         };
       });
       
+      logger.debug('Converted messages:', convertedMessages);
       setMessages(convertedMessages);
     } catch (error) {
       logger.error('Failed to load chat history:', error);
@@ -140,8 +166,8 @@ export default function ChatPage() {
     }
   };
 
-  const handleleadIdChange = (value: string) => {
-    setleadId(value);
+  const handleLeadSelection = (value: string) => {
+    setSelectedLeadId(value);
     if (value.trim()) {
       loadleadProfile(value);
     } else {
@@ -161,18 +187,12 @@ export default function ChatPage() {
   }, []);
 
   const sendMessage = async () => {
-    if (!inputMessage.trim() || isLoading || !leadId.trim()) return;
+    if (!inputMessage.trim() || isLoading || !selectedLeadId.trim()) return;
 
     const userMessage = inputMessage.trim();
     setInputMessage('');
     setIsLoading(true);
     setError(null);
-
-    // Add user message to chat
-    addMessage({
-      role: 'user',
-      content: userMessage
-    });
 
     try {
       // Show typing indicator
@@ -180,20 +200,32 @@ export default function ChatPage() {
 
       // Send message to API with lead ID
       const response = await api.chat.sendMessage({
-        leadId: parseInt(leadId, 10),
+        leadId: parseInt(selectedLeadId, 10),
         content: userMessage,
         role: 'user'
       });
 
+      logger.debug('Chat API response:', response);
+
       // Remove typing indicator
       setIsTyping(false);
 
-      // Add assistant response to chat
+      // Add both user message and AI response to chat
+      // The backend saves both messages to the database, so we add them to local state
+      addMessage({
+        role: 'user',
+        content: userMessage,
+        metadata: {
+          leadId: parseInt(selectedLeadId, 10),
+          leadName: leadProfile?.name
+        }
+      });
+
       addMessage({
         role: 'assistant',
         content: (response.aiMessage as any).content || 'No response received',
         metadata: {
-          leadId: parseInt(leadId, 10),
+          leadId: parseInt(selectedLeadId, 10),
           leadName: leadProfile?.name
         }
       });
@@ -274,16 +306,25 @@ export default function ChatPage() {
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <UserCheck className="h-5 w-5 text-gray-600" />
-            <label className="text-sm font-medium text-gray-700">Lead ID:</label>
+            <label className="text-sm font-medium text-gray-700">Select Lead:</label>
           </div>
-          <Input
-            type="number"
-            placeholder="Enter lead ID to spoof..."
-            value={leadId}
-            onChange={(e) => handleleadIdChange(e.target.value)}
-            className="w-48"
-          />
-          {isLoadinglead && (
+          <Select
+            value={selectedLeadId}
+            onValueChange={handleLeadSelection}
+            disabled={isLoadingLeads}
+          >
+            <SelectTrigger className="w-64">
+              <SelectValue placeholder={isLoadingLeads ? "Loading leads..." : "Select a lead to spoof..."} />
+            </SelectTrigger>
+            <SelectContent>
+              {leads.map((lead) => (
+                <SelectItem key={lead.id} value={lead.id.toString()}>
+                  {lead.name} ({lead.email || 'No email'}) - {lead.company || 'No company'}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {(isLoadinglead || isLoadingLeads) && (
             <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
           )}
         </div>
@@ -339,7 +380,7 @@ export default function ChatPage() {
                 <p className="mt-1 text-sm text-gray-500">
                   {leadProfile 
                     ? `Chatting as: ${leadProfile.name}`
-                    : 'Enter a lead ID to start chatting'
+                    : 'Select a lead from the dropdown to start chatting'
                   }
                 </p>
               </div>
@@ -417,7 +458,7 @@ export default function ChatPage() {
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder={leadProfile ? "Type your message..." : "Enter a lead ID first..."}
+            placeholder={leadProfile ? "Type your message..." : "Select a lead first..."}
             disabled={!leadProfile || isLoading}
             className="flex-1"
           />
@@ -436,7 +477,7 @@ export default function ChatPage() {
         <div className="mt-2 text-xs text-gray-500">
           {leadProfile 
             ? "Press Enter to send, Shift+Enter for new line"
-            : "Please enter a valid lead ID to start chatting"
+            : "Please select a lead to start chatting"
           }
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { Apilead } from '../lead';
+import { ApiClient } from '../client';
 
 export interface PromptTemplate {
   id: number;
@@ -38,7 +38,7 @@ export interface CreatePromptTemplateDto {
 
 export interface UpdatePromptTemplateDto extends Partial<CreatePromptTemplateDto> {}
 
-export class PromptTemplatesApi extends Apilead {
+export class PromptTemplatesApi extends ApiClient {
   async getAll(): Promise<PromptTemplate[]> {
     return this.get<PromptTemplate[]>('/admin/prompt-templates');
   }
@@ -52,11 +52,17 @@ export class PromptTemplatesApi extends Apilead {
   }
 
   async create(data: CreatePromptTemplateDto): Promise<PromptTemplate> {
-    return this.post<PromptTemplate>('/admin/prompt-templates', data);
+    console.log('API: Creating prompt template with data:', data);
+    const result = await this.post<PromptTemplate>('/admin/prompt-templates', data);
+    console.log('API: Prompt template created successfully:', result);
+    return result;
   }
 
   async update(id: number, data: UpdatePromptTemplateDto): Promise<PromptTemplate> {
-    return this.patch<PromptTemplate>(`/admin/prompt-templates/${id}`, data);
+    console.log('API: Updating prompt template with data:', { id, data });
+    const result = await this.patch<PromptTemplate>(`/admin/prompt-templates/${id}`, data);
+    console.log('API: Prompt template updated successfully:', result);
+    return result;
   }
 
   async activate(id: number): Promise<PromptTemplate> {

@@ -47,7 +47,6 @@ export default function EditPromptTemplatePage() {
         temperature: data.temperature,
         maxTokens: data.maxTokens,
         isActive: data.isActive,
-        isDefault: data.isDefault,
       });
     } catch (error) {
       console.error('Failed to load template:', error);
@@ -83,7 +82,25 @@ export default function EditPromptTemplatePage() {
 
     try {
       setSaving(true);
-      await api.promptTemplates.update(templateId, formData);
+      
+      // Ensure all required fields are present and properly formatted
+      const submitData = {
+        name: formData.name?.trim(),
+        description: formData.description?.trim() || undefined,
+        systemPrompt: formData.systemPrompt?.trim(),
+        role: formData.role?.trim() || 'conversational AI and sales representative',
+        instructions: formData.instructions?.trim() || undefined,
+        context: formData.context?.trim() || undefined,
+        bookingInstruction: formData.bookingInstruction?.trim() || undefined,
+        creativity: formData.creativity || 7,
+        temperature: formData.temperature || 0.7,
+        maxTokens: formData.maxTokens || undefined,
+        isActive: formData.isActive || false,
+      };
+      
+      console.log('Updating prompt template with data:', submitData);
+      const result = await api.promptTemplates.update(templateId, submitData);
+      console.log('Template updated successfully:', result);
       toast({
         title: 'Success',
         description: 'Template updated successfully',
@@ -93,7 +110,7 @@ export default function EditPromptTemplatePage() {
       console.error('Failed to update template:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update template',
+        description: `Failed to update template: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: 'destructive',
       });
     } finally {

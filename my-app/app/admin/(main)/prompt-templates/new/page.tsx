@@ -53,7 +53,25 @@ export default function NewPromptTemplatePage() {
 
     try {
       setLoading(true);
-      await api.promptTemplates.create(formData);
+      
+      // Ensure all required fields are present and properly formatted
+      const submitData = {
+        name: formData.name.trim(),
+        description: formData.description?.trim() || undefined,
+        systemPrompt: formData.systemPrompt.trim(),
+        role: formData.role?.trim() || 'conversational AI and sales representative',
+        instructions: formData.instructions?.trim() || undefined,
+        context: formData.context?.trim() || undefined,
+        bookingInstruction: formData.bookingInstruction?.trim() || undefined,
+        creativity: formData.creativity || 7,
+        temperature: formData.temperature || 0.7,
+        maxTokens: formData.maxTokens || undefined,
+        isActive: formData.isActive || false,
+      };
+      
+      console.log('Creating prompt template with data:', submitData);
+      const result = await api.promptTemplates.create(submitData);
+      console.log('Template created successfully:', result);
       toast({
         title: 'Success',
         description: 'Template created successfully',
@@ -63,7 +81,7 @@ export default function NewPromptTemplatePage() {
       console.error('Failed to create template:', error);
       toast({
         title: 'Error',
-        description: 'Failed to create template',
+        description: `Failed to create template: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: 'destructive',
       });
     } finally {
@@ -91,7 +109,7 @@ export default function NewPromptTemplatePage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Form */}
           <div className="lg:col-span-2 space-y-6">

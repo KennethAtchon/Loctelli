@@ -1,4 +1,4 @@
-import { Apilead } from '../lead';
+import { ApiClient } from '../client';
 
 export interface SystemStatus {
   status: string;
@@ -12,7 +12,7 @@ export interface SystemStatus {
   };
 }
 
-export class StatusApi extends Apilead {
+export class StatusApi extends ApiClient {
   async getStatus(): Promise<SystemStatus> {
     return this.get<SystemStatus>('/status');
   }

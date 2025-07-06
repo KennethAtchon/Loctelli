@@ -44,8 +44,15 @@ export default function EditBookingPage() {
         // Load booking data
         const bookingData = await api.bookings.getBooking(bookingId);
         setBooking(bookingData);
+        
+        // Handle case where booking exists but user doesn't
+        const userId = bookingData.userId || 0;
+        if (userId === 0) {
+          logger.warn('Booking has no valid user ID:', bookingData);
+        }
+        
         setFormData({
-          userId: bookingData.userId,
+          userId: userId,
           leadId: bookingData.leadId || undefined,
           bookingType: bookingData.bookingType,
           details: bookingData.details || {},
@@ -53,7 +60,7 @@ export default function EditBookingPage() {
         });
 
         // Load users for dropdown
-        const usersData = await api.users.getUsers();
+        const usersData = await api.adminAuth.getAllUsers();
         setUsers(usersData);
 
         // Load leads for dropdown
@@ -98,7 +105,8 @@ export default function EditBookingPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.userId || !formData.bookingType) {
+    // Validate required fields
+    if (!formData.userId || formData.userId === 0 || !formData.bookingType) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -107,10 +115,30 @@ export default function EditBookingPage() {
       return;
     }
 
+    // Validate that the selected user exists
+    const selectedUser = users.find(user => user.id === formData.userId);
+    if (!selectedUser) {
+      toast({
+        title: "Validation Error",
+        description: "Selected user does not exist",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsSaving(true);
       
-      await api.bookings.updateBooking(bookingId, formData);
+      // Ensure we're sending valid data
+      const updateData = {
+        userId: formData.userId,
+        leadId: formData.leadId,
+        bookingType: formData.bookingType,
+        details: formData.details,
+        status: formData.status
+      };
+      
+      await api.bookings.updateBooking(bookingId, updateData);
       
       toast({
         title: "Success",
@@ -196,6 +224,11 @@ export default function EditBookingPage() {
                     ))}
                   </SelectContent>
                 </Select>
+                {booking?.user === null && (
+                  <p className="text-sm text-amber-600">
+                    ⚠️ The user associated with this booking no longer exists. Please select a new user.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -332,7 +365,11 @@ export default function EditBookingPage() {
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={isSaving}>
+          <Button 
+            type="button" 
+            disabled={isSaving}
+            onClick={handleSubmit}
+          >
             {isSaving ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

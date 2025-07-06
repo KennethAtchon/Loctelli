@@ -6,7 +6,7 @@
 - **Framework**: Next.js 14 with App Router
 - **UI Library**: Shadcn/ui components with Tailwind CSS
 - **State Management**: React Context for auth state
-- **API Lead**: Custom API lead with automatic token refresh
+- **API Client**: Custom API client with automatic token refresh
 - **Authentication**: JWT tokens stored in HTTP-only cookies
 
 ### **Backend (NestJS)**
@@ -198,6 +198,107 @@
   1. **Backend**: Updated `appendMessageToHistory()` to store messages in new format (`role`/`content`) consistently
   2. **Frontend**: Enhanced `loadChatHistory()` conversion logic to handle both old and new message formats
   3. **Backward Compatibility**: System now supports both message formats seamlessly
+
+**CRITICAL FIX - Message History Saving Issue:**
+- **Problem**: Chat history was only showing AI messages, not both user and AI messages
+- **Root Cause**: Race condition in `SalesBotService.generateResponse()` where both user and bot messages were being appended separately, causing the second append to overwrite the first
+- **Solution**:
+  1. **Created**: New `appendMessagesToHistory()` method that handles multiple messages in a single database operation
+  2. **Updated**: `generateResponse()` to use the new method for both user and bot messages
+  3. **Enhanced**: Added comprehensive debugging logs to track message flow
+  4. **Fixed**: Frontend now properly adds both user and AI messages to local state after API response
+  5. **Improved**: Better error handling and validation in message processing
+- **Result**: Both user and AI messages now appear in chat history correctly ✅
+
+#### **12. Booking Edit Page Fixes - CRITICAL BUG RESOLUTION**
+- **Fixed**: Booking edit page failing to load with "User with ID 2 not found" error
+- **Fixed**: Form submission opening new tab instead of handling via JavaScript
+- **Fixed**: Incorrect API endpoint usage for loading users in admin context
+
+**Root Causes:**
+1. **API Endpoint Mismatch**: Edit page was using `api.users.getUsers()` which is restricted and only returns current user data
+2. **Missing User Handling**: Booking service didn't handle cases where referenced user no longer exists
+3. **Form Submission Issue**: Form was being submitted as HTML form instead of JavaScript handler
+
+**Backend Changes:**
+- **Enhanced**: `BookingsService.findOne()` now handles missing users gracefully
+- **Added**: Better error handling for foreign key constraint violations
+- **Improved**: Booking update now includes user and lead data in response
+- **Added**: Detailed error logging for debugging booking update issues
+
+**Frontend Changes:**
+- **Fixed**: Changed from `api.users.getUsers()` to `api.adminAuth.getAllUsers()` for proper admin access
+- **Enhanced**: Added validation to ensure selected user exists before submission
+- **Improved**: Better error handling and user feedback for missing users
+- **Fixed**: Form submission now properly handled via JavaScript instead of HTML form submission
+- **Added**: Warning message when booking references a user that no longer exists
+- **Enhanced**: Form validation to prevent submission with invalid user IDs
+
+**Result**: Booking edit page now loads successfully, handles missing users gracefully, and form submission works correctly without opening new tabs ✅
+
+#### **13. Prompt Template Creation Fixes - CRITICAL BUG RESOLUTION**
+- **Fixed**: Prompt template creation and editing failing with various errors
+- **Fixed**: Backend controller using incorrect user field (`req.user.id` instead of `req.user.userId`)
+- **Fixed**: Missing error handling and debugging in prompt template operations
+- **Fixed**: Form validation and data formatting issues
+
+**Root Causes:**
+1. **Controller Field Mismatch**: Controller was using `req.user.id` but JWT strategy returns `userId`
+2. **Missing Error Handling**: Backend service lacked proper error handling and logging
+3. **Form Data Issues**: Frontend forms had validation and data formatting problems
+4. **Debugging Issues**: Lack of proper debugging made it difficult to identify problems
+
+**Backend Changes:**
+- **Fixed**: `PromptTemplatesController.create()` now uses `req.user.userId` instead of `req.user.id`
+- **Enhanced**: Added comprehensive error handling and logging to `PromptTemplatesService`
+- **Improved**: Better error messages and debugging information
+- **Added**: Console logging for debugging create and update operations
+
+**Frontend Changes:**
+- **Enhanced**: Added comprehensive form validation and data formatting
+- **Improved**: Better error handling with detailed error messages
+- **Added**: Console logging for debugging API calls and form submissions
+- **Fixed**: Form data structure validation before submission
+- **Enhanced**: Proper handling of optional fields and default values
+
+**API Client Changes:**
+- **Added**: Console logging for debugging API requests and responses
+- **Enhanced**: Better error tracking in prompt template operations
+
+**Result**: Prompt template creation and editing now work correctly with proper error handling, validation, and debugging capabilities ✅
+
+#### **12. Package Dependency and Naming Fixes - CRITICAL BUILD RESOLUTION**
+- **Fixed**: Corrupted package dependencies causing Docker build failures
+- **Fixed**: Incorrect class naming from migration (Apilead → ApiClient)
+- **Fixed**: Invalid Prisma package references (@prisma/lead → @prisma/client)
+- **Fixed**: Custom Prisma generator references (prisma-lead-js → prisma-client-js)
+
+**Package.json Fixes:**
+- **Removed**: Invalid `@redis/lead` dependency that was causing 404 errors
+- **Fixed**: `@prisma/lead` → `@prisma/client` (correct Prisma client package)
+- **Cleaned**: Removed corrupted package-lock.json and regenerated with correct dependencies
+
+**Prisma Schema Fixes:**
+- **Fixed**: Generator name from `prisma-lead-js` → `prisma-client-js` (standard Prisma generator)
+- **Updated**: All import statements to use correct Prisma client
+- **Fixed**: Seed.ts to use proper PrismaClient instead of Prismalead
+
+**Frontend API Client Fixes:**
+- **Fixed**: Class name from `Apilead` → `ApiClient` (correct naming convention)
+- **Updated**: All API endpoint files to extend `ApiClient` instead of `Apilead`
+- **Fixed**: Import statements from `../lead` → `../client` in all endpoint files
+- **Cleaned**: Removed duplicate interface definitions and function implementations
+
+**Files Updated:**
+- `project/package.json` - Fixed Prisma client dependency
+- `project/prisma/schema.prisma` - Fixed generator name
+- `project/src/infrastructure/prisma/prisma.service.ts` - Updated PrismaClient import
+- `project/prisma/seed.ts` - Fixed PrismaClient usage and removed invalid isDefault field
+- `my-app/lib/api/client.ts` - Renamed class to ApiClient
+- `my-app/lib/api/index.ts` - Updated import and class extension
+- All `my-app/lib/api/endpoints/*.ts` files - Updated imports and class extensions
+
+**Result**: Docker build now succeeds for both frontend and backend containers ✅
 - **Result**: Complete conversation history now loads correctly when revisiting chats, showing both user and AI messages ✅
 
 #### **12. Prompt Template Active/Default Logic Fix**

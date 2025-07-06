@@ -1,4 +1,4 @@
-import { Apilead } from '../lead';
+import { ApiClient } from '../client';
 
 export interface LoginDto {
   email: string;
@@ -37,7 +37,7 @@ export interface UserProfile {
   updatedAt: string;
 }
 
-export class AuthApi extends Apilead {
+export class AuthApi extends ApiClient {
   async login(data: LoginDto): Promise<AuthResponse> {
     return this.post<AuthResponse>('/auth/login', data);
   }

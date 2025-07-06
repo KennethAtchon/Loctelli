@@ -1,4 +1,4 @@
-import { Apilead } from './lead';
+import { ApiClient } from './client';
 import { UsersApi } from './endpoints/users';
 import { LeadsApi } from './endpoints/leads';
 import { StrategiesApi } from './endpoints/strategies';
@@ -10,7 +10,7 @@ import { AuthApi } from './endpoints/auth';
 import { AdminAuthApi } from './endpoints/admin-auth';
 import { GeneralApi } from './endpoints/general';
 
-export class Api extends Apilead {
+export class Api extends ApiClient {
   public auth: AuthApi;
   public adminAuth: AdminAuthApi;
   public users: UsersApi;

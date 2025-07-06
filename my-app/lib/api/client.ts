@@ -5,7 +5,7 @@ import logger from '@/lib/logger';
 
 const API_BASE_URL = API_CONFIG.BASE_URL;
 
-export class Apilead {
+export class ApiClient {
   private baseUrl: string;
   private defaultOptions: ApiRequestOptions = {
     timeout: 10000,

@@ -1,7 +1,7 @@
-import { Apilead } from '../lead';
+import { ApiClient } from '../client';
 import { Booking, CreateBookingDto } from '@/types';
 
-export class BookingsApi extends Apilead {
+export class BookingsApi extends ApiClient {
   async getBookings(): Promise<Booking[]> {
     return this.get<Booking[]>('/booking');
   }

@@ -1,9 +1,9 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
-import { Prismalead } from '@prisma/lead';
+import { PrismaClient } from '@prisma/client';
 import { execSync } from 'child_process';
 
 @Injectable()
-export class PrismaService extends Prismalead implements OnModuleInit, OnModuleDestroy {
+export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);
   private readonly maxRetries = 30; // 30 seconds max wait time
   private readonly retryDelay = 1000; // 1 second delay between retries

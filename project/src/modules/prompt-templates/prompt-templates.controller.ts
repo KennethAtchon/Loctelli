@@ -14,7 +14,8 @@ export class PromptTemplatesController {
 
   @Post()
   create(@Body() createDto: CreatePromptTemplateDto, @Request() req) {
-    return this.promptTemplatesService.create(createDto, req.user.id);
+    console.log('Creating prompt template:', { createDto, userId: req.user.userId });
+    return this.promptTemplatesService.create(createDto, req.user.userId);
   }
 
   @Get()
@@ -34,6 +35,7 @@ export class PromptTemplatesController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateDto: UpdatePromptTemplateDto) {
+    console.log('Updating prompt template:', { id, updateDto });
     return this.promptTemplatesService.update(+id, updateDto);
   }
 

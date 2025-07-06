@@ -1,4 +1,4 @@
-import { Apilead } from '../lead';
+import { ApiClient } from '../client';
 
 export interface AdminLoginDto {
   email: string;
@@ -213,7 +213,7 @@ export interface DetailedLead {
   }>;
 }
 
-export class AdminAuthApi extends Apilead {
+export class AdminAuthApi extends ApiClient {
   async adminLogin(data: AdminLoginDto): Promise<AdminAuthResponse> {
     return this.post<AdminAuthResponse>('/admin/auth/login', data);
   }

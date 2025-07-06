@@ -74,8 +74,8 @@ Loctelli/
 - `@/components/customUI/` - Custom UI components
 - `@/components/admin/` - Admin-specific components
 - `@/components/auth/` - Authentication components
-    ├── lib/             # Utilities and API leads
-    │   ├── api/         # API lead modules
+    ├── lib/             # Utilities and API client
+    │   ├── api/         # API client modules
     │   ├── cookies.ts   # Cookie management
     │   ├── envUtils.ts  # Environment utilities
     │   └── utils.ts     # Utility functions
@@ -123,10 +123,16 @@ Loctelli/
 - **History Loading**: Automatic loading of existing conversations
 
 ### **Recent Critical Fixes**
+- **Fixed Chat History Issue**: Resolved race condition where only AI messages were showing in chat history
+- **Fixed Prompt Template Creation**: Resolved backend controller field mismatch and form validation issues
+- **Fixed Booking Edit Page**: Resolved "User with ID 2 not found" error and form submission issues
 - **Fixed OpenAI API Integration**: Resolved issue where latest user messages weren't being included in AI responses
 - **Enhanced Message Processing**: Improved conversation context handling and message format compatibility
 - **Better AI Responsiveness**: AI now responds directly to user messages instead of repeating generic greetings
 - **Improved Context Clarity**: AI now clearly distinguishes between company owner details and lead details
+- **Fixed Docker Build Issues**: Resolved package dependency conflicts and naming inconsistencies
+- **Cleaned API Client Naming**: Fixed class naming from migration (Apilead → ApiClient)
+- **Updated Prisma Dependencies**: Fixed invalid package references and generator configuration
 
 ## **Prompt Template & Strategy Integration**
 

@@ -1,4 +1,4 @@
-import { Apilead } from '../lead';
+import { ApiClient } from '../client';
 import { ChatMessage } from '@/types';
 
 export interface ChatMessageDto {
@@ -8,7 +8,7 @@ export interface ChatMessageDto {
   metadata?: Record<string, unknown>;
 }
 
-export class ChatApi extends Apilead {
+export class ChatApi extends ApiClient {
   async sendMessage(data: ChatMessageDto): Promise<{ userMessage: unknown; aiMessage: unknown; lead: unknown }> {
     return this.post<{ userMessage: unknown; aiMessage: unknown; lead: unknown }>('/chat/send', data);
   }
