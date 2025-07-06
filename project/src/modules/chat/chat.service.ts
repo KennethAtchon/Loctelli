@@ -138,4 +138,15 @@ export class ChatService {
     // Simply echo back the received data like in the Python implementation
     return { received: data };
   }
+
+  async clearMessageHistory(leadId: number) {
+    await this.prisma.lead.update({
+      where: { id: leadId },
+      data: {
+        messageHistory: JSON.stringify([]),
+        lastMessage: null,
+        lastMessageDate: null,
+      },
+    });
+  }
 }

@@ -116,4 +116,20 @@ export class ChatController {
   generalChatEndpoint(@Body() data: any) {
     return this.chatService.handleGeneralChat(data);
   }
+
+  @Delete('messages/lead/:leadId')
+  async clearLeadMessages(@Param('leadId', ParseIntPipe) leadId: number, @CurrentUser() user) {
+    // Check if the lead belongs to the current user
+    const lead = await this.prisma.lead.findUnique({
+      where: { id: leadId },
+    });
+    if (!lead) {
+      throw new HttpException('Lead not found', HttpStatus.NOT_FOUND);
+    }
+    if (user.role !== 'admin' && user.role !== 'super_admin' && lead.userId !== user.userId) {
+      throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
+    }
+    await this.chatService.clearMessageHistory(leadId);
+    return { message: 'Chat history cleared' };
+  }
 }

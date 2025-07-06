@@ -40,4 +40,8 @@ export class ChatApi extends ApiClient {
   async markAllAsRead(leadId: number): Promise<void> {
     return this.patch<void>(`/chat/mark-all-read/${leadId}`);
   }
+
+  async clearChatHistory(leadId: number): Promise<void> {
+    return this.delete<void>(`/chat/messages/lead/${leadId}`);
+  }
 } 
