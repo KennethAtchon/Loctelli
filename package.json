@@ -1,0 +1,7 @@
+{
+  "name": "loctelli-root",
+  "private": true,
+  "scripts": {
+    "prepare": "husky"
+  }
+}
