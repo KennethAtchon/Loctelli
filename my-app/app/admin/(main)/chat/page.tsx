@@ -107,7 +107,7 @@ export default function ChatPage() {
       setError(null);
       
       // Load chat history for this lead
-      await loadChatHistory(leadIdNum);
+      await loadChatHistory(leadIdNum, lead.name);
     } catch (error) {
       logger.error('Failed to load lead profile:', error);
       setError('Lead not found. Please select a different lead.');
@@ -118,7 +118,7 @@ export default function ChatPage() {
     }
   };
 
-  const loadChatHistory = async (leadIdNum: number) => {
+  const loadChatHistory = async (leadIdNum: number, leadName?: string) => {
     try {
       setIsLoadingHistory(true);
       const history = await api.chat.getChatHistory(leadIdNum);
@@ -154,7 +154,7 @@ export default function ChatPage() {
           timestamp: new Date(msg.timestamp || Date.now()),
           metadata: {
             leadId: leadIdNum,
-            leadName: leadProfile?.name
+            leadName: leadName
           }
         };
       });
@@ -270,7 +270,7 @@ export default function ChatPage() {
           variant: 'default',
         });
         // Reload chat history to confirm
-        await loadChatHistory(Number(selectedLeadId));
+        await loadChatHistory(Number(selectedLeadId), leadProfile?.name);
       } catch (err) {
         logger.error('Failed to clear chat history:', err);
         toast({

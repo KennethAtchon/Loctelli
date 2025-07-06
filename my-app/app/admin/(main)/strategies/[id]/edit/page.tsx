@@ -15,6 +15,7 @@ import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Strategy, CreateStrategyDto } from '@/types';
 import type { UserProfile } from '@/lib/api/endpoints/admin-auth';
+import type { PromptTemplate } from '@/lib/api/endpoints/prompt-templates';
 import logger from '@/lib/logger';
 
 export default function EditStrategyPage() {
@@ -27,6 +28,7 @@ export default function EditStrategyPage() {
   const [error, setError] = useState('');
   const [strategy, setStrategy] = useState<Strategy | null>(null);
   const [users, setUsers] = useState<UserProfile[]>([]);
+  const [promptTemplates, setPromptTemplates] = useState<PromptTemplate[]>([]);
   const [formData, setFormData] = useState<CreateStrategyDto>({
     userId: 0,
     name: '',
@@ -41,6 +43,7 @@ export default function EditStrategyPage() {
     exampleConversation: '',
     delayMin: 30,
     delayMax: 120,
+    promptTemplateId: 0,
   });
 
   // Load strategy data and users
@@ -48,15 +51,17 @@ export default function EditStrategyPage() {
     const loadData = async () => {
       try {
         setIsLoadingStrategy(true);
-        const [strategyData, usersData] = await Promise.all([
+        const [strategyData, usersData, templatesData] = await Promise.all([
           api.strategies.getStrategy(strategyId),
-          api.adminAuth.getAllUsers()
+          api.adminAuth.getAllUsers(),
+          api.promptTemplates.getAll()
         ]);
         
         setStrategy(strategyData);
         // Filter out admin users, only show regular users
         const regularUsers = usersData.filter(user => user.role !== 'admin');
         setUsers(regularUsers);
+        setPromptTemplates(templatesData);
         
         // Populate form with existing data
         setFormData({
@@ -73,6 +78,7 @@ export default function EditStrategyPage() {
           exampleConversation: strategyData.exampleConversation || '',
           delayMin: strategyData.delayMin || 30,
           delayMax: strategyData.delayMax || 120,
+          promptTemplateId: strategyData.promptTemplateId || 0,
         });
       } catch (error) {
         logger.error('Failed to load strategy data:', error);
@@ -264,6 +270,35 @@ export default function EditStrategyPage() {
                       <SelectItem value="support">Support</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="promptTemplateId">Prompt Template *</Label>
+                  <Select
+                    value={formData.promptTemplateId?.toString() || ''}
+                    onValueChange={(value) => handleSelectChange('promptTemplateId', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a prompt template" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {promptTemplates.map((template) => (
+                        <SelectItem key={template.id} value={template.id.toString()}>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{template.name}</span>
+                            <span className="text-xs text-gray-500">
+                              {template.isActive ? 'Active' : 'Inactive'} • {template.role}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {promptTemplates.length === 0 && (
+                    <p className="text-sm text-gray-500">
+                      No prompt templates available. Please create one first.
+                    </p>
+                  )}
                 </div>
               </div>
 
