@@ -96,6 +96,7 @@ Loctelli/
 - **Chat Integration**: AI-powered conversation management with full conversation history
 - **Prompt Template System**: Global AI prompt template management with activation controls and strategy integration
 - **Real-time Updates**: Live data synchronization
+- **Comprehensive Testing**: Unit tests, integration tests, and E2E tests with 80%+ coverage goals
 
 ## 💬 **Chat System Features**
 
@@ -149,6 +150,36 @@ Loctelli/
 - **Standardized Format**: Uses a consistent format with `[BOOKING_CONFIRMATION]` marker for automated booking detection.
 - **Date/Time Format**: Enforces YYYY-MM-DD date format and 24-hour time format (e.g., 14:30).
 - **Automatic Integration**: The chat system automatically includes booking instructions when a user has booking enabled.
+
+## 🧪 **Testing**
+
+### **Test Coverage**
+- **Unit Tests**: 80%+ coverage target for service and controller methods
+- **Integration Tests**: 70%+ coverage for module interactions
+- **E2E Tests**: Complete user journey testing
+- **Test Utilities**: Comprehensive mock services and test helpers
+
+### **Running Tests**
+```bash
+# Backend tests
+cd project
+npm run test              # Unit tests
+npm run test:watch        # Watch mode
+npm run test:cov          # Coverage report
+npm run test:e2e          # E2E tests
+
+# Frontend tests
+cd my-app
+npm test                  # Unit tests
+npm run test:watch        # Watch mode
+npm run test:coverage     # Coverage report
+```
+
+### **Test Structure**
+- **Unit Tests**: `src/**/*.spec.ts` - Individual service/controller tests
+- **E2E Tests**: `test/*.e2e-spec.ts` - End-to-end API testing
+- **Test Utilities**: `test/test-utils.ts` - Common test helpers and mocks
+- **Test Checklist**: `TEST_CHECKLIST.md` - Comprehensive testing roadmap
 
 ## 🚀 Quick Start
 
