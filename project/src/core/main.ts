@@ -1,29 +1,55 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap');
   
-  // Enable CORS
-  app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'http://loctelli_frontend:3000',
-      'http://frontend:3000',
-      process.env.FRONTEND_URL,
-    ].filter(Boolean),
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: [
-      'Content-Type', 
-      'Authorization', 
-      'X-API-Key',
-      'x-api-key',
-      'X-User-Token',
-      'x-user-token'
-    ],
-  });
+  logger.log('🚀 Starting Loctelli Backend Application...');
+  logger.log(`📅 Startup time: ${new Date().toISOString()}`);
   
-  await app.listen(process.env.PORT ?? 3000);
+  try {
+    logger.log('🔧 Creating NestJS application...');
+    const app = await NestFactory.create(AppModule);
+    
+    logger.log('🌐 Configuring CORS...');
+    // Enable CORS
+    app.enableCors({
+      origin: [
+        'http://localhost:3000',
+        'http://loctelli_frontend:3000',
+        'http://frontend:3000',
+        process.env.FRONTEND_URL,
+      ].filter(Boolean),
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: [
+        'Content-Type', 
+        'Authorization', 
+        'X-API-Key',
+        'x-api-key',
+        'X-User-Token',
+        'x-user-token'
+      ],
+    });
+    
+    const port = process.env.PORT ?? 3000;
+    logger.log(`🔌 Starting server on port: ${port}`);
+    logger.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.log(`🔑 API Key configured: ${process.env.API_KEY ? 'Yes' : 'No'}`);
+    logger.log(`🗄️ Database URL configured: ${process.env.DATABASE_URL ? 'Yes' : 'No'}`);
+    logger.log(`🔴 Redis URL configured: ${process.env.REDIS_URL ? 'Yes' : 'No'}`);
+    
+    await app.listen(port);
+    
+    logger.log(`✅ Loctelli Backend Application started successfully on port ${port}`);
+    logger.log(`📊 Health check available at: http://localhost:${port}/status`);
+    logger.log(`🔗 API documentation available at: http://localhost:${port}/api`);
+    
+  } catch (error) {
+    logger.error('❌ Failed to start Loctelli Backend Application', error.stack);
+    process.exit(1);
+  }
 }
+
 bootstrap();

@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../infrastructure/prisma/prisma.service';
 import { RedisService } from '../infrastructure/redis/redis.service';
@@ -26,6 +26,8 @@ export interface AdminJwtPayload {
 
 @Injectable()
 export class AdminAuthService {
+  private readonly logger = new Logger(AdminAuthService.name);
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
@@ -34,6 +36,8 @@ export class AdminAuthService {
 
   // Password validation function
   private validatePassword(password: string): void {
+    this.logger.debug('Validating admin password complexity');
+    
     const minLength = 12; // Higher requirement for admin passwords
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
@@ -41,56 +45,91 @@ export class AdminAuthService {
     const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
     if (password.length < minLength) {
+      this.logger.warn('Admin password validation failed: too short');
       throw new BadRequestException('Admin password must be at least 12 characters long');
     }
     if (!hasUpperCase) {
+      this.logger.warn('Admin password validation failed: no uppercase letter');
       throw new BadRequestException('Admin password must contain at least one uppercase letter');
     }
     if (!hasLowerCase) {
+      this.logger.warn('Admin password validation failed: no lowercase letter');
       throw new BadRequestException('Admin password must contain at least one lowercase letter');
     }
     if (!hasNumbers) {
+      this.logger.warn('Admin password validation failed: no number');
       throw new BadRequestException('Admin password must contain at least one number');
     }
     if (!hasSpecialChar) {
+      this.logger.warn('Admin password validation failed: no special character');
       throw new BadRequestException('Admin password must contain at least one special character');
     }
+    
+    this.logger.debug('Admin password validation passed');
   }
 
   // Email validation function
   private validateEmail(email: string): void {
+    this.logger.debug(`Validating admin email format: ${email}`);
+    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
+      this.logger.warn(`Admin email validation failed: ${email}`);
       throw new BadRequestException('Invalid email format');
     }
+    
+    this.logger.debug(`Admin email validation passed: ${email}`);
   }
 
   async validateAdminUser(email: string, password: string): Promise<any> {
-    const adminUser = await this.prisma.adminUser.findUnique({
-      where: { email },
-    });
+    this.logger.debug(`Validating admin user credentials for email: ${email}`);
+    
+    try {
+      const adminUser = await this.prisma.adminUser.findUnique({
+        where: { email },
+      });
 
-    if (adminUser && await bcrypt.compare(password, adminUser.password)) {
-      const { password, ...result } = adminUser;
-      return result;
+      if (!adminUser) {
+        this.logger.warn(`Admin user not found for email: ${email}`);
+        return null;
+      }
+
+      this.logger.debug(`Admin user found for email: ${email}, comparing passwords`);
+      const isPasswordValid = await bcrypt.compare(password, adminUser.password);
+      
+      if (isPasswordValid) {
+        this.logger.debug(`Admin password validation successful for user: ${email}`);
+        const { password, ...result } = adminUser;
+        return result;
+      } else {
+        this.logger.warn(`Admin password validation failed for user: ${email}`);
+        return null;
+      }
+    } catch (error) {
+      this.logger.error(`Error validating admin user credentials for email: ${email}`, error.stack);
+      throw error;
     }
-    return null;
   }
 
   async adminLogin(loginDto: AdminLoginDto) {
+    this.logger.log(`🔐 Admin login attempt for email: ${loginDto.email}`);
+    
     // Validate email format
     this.validateEmail(loginDto.email);
 
     const adminUser = await this.validateAdminUser(loginDto.email, loginDto.password);
     
     if (!adminUser) {
+      this.logger.warn(`Admin login failed - invalid credentials for email: ${loginDto.email}`);
       throw new UnauthorizedException('Invalid credentials');
     }
 
     if (!adminUser.isActive) {
+      this.logger.warn(`Admin login failed - account deactivated for email: ${loginDto.email}`);
       throw new UnauthorizedException('Admin account is deactivated');
     }
 
+    this.logger.debug(`Updating last login for admin: ${loginDto.email}`);
     // Update last login
     await this.prisma.adminUser.update({
       where: { id: adminUser.id },
@@ -104,13 +143,16 @@ export class AdminAuthService {
       type: 'admin',
     };
 
+    this.logger.debug(`Generating admin JWT tokens for user: ${loginDto.email}`);
     // Reduced token expiration for better security
     const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
+    this.logger.debug(`Storing admin refresh token in Redis for user: ${loginDto.email}`);
     // Store refresh token in Redis with rotation
     await this.redisService.setCache(`admin_refresh:${adminUser.id}`, refreshToken, 7 * 24 * 60 * 60);
 
+    this.logger.log(`✅ Admin login successful for user: ${loginDto.email} (ID: ${adminUser.id})`);
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
@@ -125,29 +167,37 @@ export class AdminAuthService {
   }
 
   async adminRegister(registerDto: AdminRegisterDto) {
+    this.logger.log(`📝 Admin registration attempt for email: ${registerDto.email}`);
+    
     // Validate email format
     this.validateEmail(registerDto.email);
     
     // Validate password complexity
     this.validatePassword(registerDto.password);
 
+    this.logger.debug(`Validating admin role: ${registerDto.role}`);
     // Validate role
     if (!['admin', 'super_admin'].includes(registerDto.role)) {
+      this.logger.warn(`Admin registration failed - invalid role: ${registerDto.role}`);
       throw new BadRequestException('Invalid admin role');
     }
 
+    this.logger.debug(`Checking if admin already exists for email: ${registerDto.email}`);
     // Check if admin already exists
     const existingAdmin = await this.prisma.adminUser.findUnique({
       where: { email: registerDto.email },
     });
 
     if (existingAdmin) {
+      this.logger.warn(`Admin registration failed - admin already exists for email: ${registerDto.email}`);
       throw new ConflictException('Admin with this email already exists');
     }
 
+    this.logger.debug(`Hashing admin password for user: ${registerDto.email}`);
     // Hash password with higher salt rounds for better security
     const hashedPassword = await bcrypt.hash(registerDto.password, 12);
 
+    this.logger.debug(`Creating admin user in database: ${registerDto.email}`);
     const adminUser = await this.prisma.adminUser.create({
       data: {
         name: registerDto.name,
@@ -157,6 +207,7 @@ export class AdminAuthService {
       },
     });
 
+    this.logger.log(`✅ Admin registration successful for user: ${registerDto.email} (ID: ${adminUser.id})`);
     const { password, ...result } = adminUser;
     return result;
   }

@@ -56,7 +56,7 @@ services:
       REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-your-super-secret-refresh-key-change-in-production}
-      DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-AdminPassword123!}
+      DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-$2b$10$default.hash.for.admin}
     env_file:
       - ./project/.env
     depends_on:

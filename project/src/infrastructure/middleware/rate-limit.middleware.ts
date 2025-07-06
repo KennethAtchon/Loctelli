@@ -1,4 +1,4 @@
-import { Injectable, NestMiddleware, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, NestMiddleware, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { RedisService } from '../redis/redis.service';
 
@@ -12,6 +12,8 @@ interface RateLimitConfig {
 
 @Injectable()
 export class RateLimitMiddleware implements NestMiddleware {
+  private readonly logger = new Logger(RateLimitMiddleware.name);
+  
   private readonly defaultConfig: RateLimitConfig = {
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 100, // 100 requests per 15 minutes
@@ -31,12 +33,20 @@ export class RateLimitMiddleware implements NestMiddleware {
     next: NextFunction,
     config: RateLimitConfig
   ) {
+    const route = `${req.method} ${req.url}`;
+    const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
+    
     try {
       const key = this.generateKey(req, config);
+      this.logger.debug(`🔄 Rate limit check for key: ${key} (${route} from ${clientIP})`);
+      
       const current = await this.getCurrentRequests(key);
+      this.logger.debug(`📊 Current requests for ${key}: ${current}/${config.maxRequests}`);
       
       if (current >= config.maxRequests) {
         const retryAfter = await this.getRetryAfter(key, config.windowMs);
+        
+        this.logger.warn(`🚫 Rate limit exceeded for key: ${key} (${route} from ${clientIP}) - ${current}/${config.maxRequests}`);
         
         res.setHeader('X-RateLimit-Limit', config.maxRequests);
         res.setHeader('X-RateLimit-Remaining', 0);
@@ -60,12 +70,15 @@ export class RateLimitMiddleware implements NestMiddleware {
       res.setHeader('X-RateLimit-Remaining', Math.max(0, config.maxRequests - current - 1));
       res.setHeader('X-RateLimit-Reset', Date.now() + config.windowMs);
 
+      this.logger.debug(`✅ Rate limit check passed for key: ${key} (${route} from ${clientIP}) - ${current + 1}/${config.maxRequests}`);
       next();
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
+      this.logger.error(`❌ Rate limit error for key: ${this.generateKey(req, config)} (${route} from ${clientIP})`, error.stack);
       // If Redis is unavailable, allow the request to proceed
+      this.logger.warn(`⚠️ Redis unavailable, allowing request to proceed: ${route} from ${clientIP}`);
       next();
     }
   }
@@ -85,7 +98,8 @@ export class RateLimitMiddleware implements NestMiddleware {
     try {
       const count = await this.redisService.getCache(key);
       return count ? parseInt(count as string, 10) : 0;
-    } catch {
+    } catch (error) {
+      this.logger.error(`Error getting current requests for key: ${key}`, error.stack);
       return 0;
     }
   }
@@ -94,7 +108,9 @@ export class RateLimitMiddleware implements NestMiddleware {
     try {
       const current = await this.getCurrentRequests(key);
       await this.redisService.setCache(key, (current + 1).toString(), windowMs / 1000);
-    } catch {
+      this.logger.debug(`Incremented requests for key: ${key} to ${current + 1}`);
+    } catch (error) {
+      this.logger.error(`Error incrementing requests for key: ${key}`, error.stack);
       // If Redis fails, continue without rate limiting
     }
   }

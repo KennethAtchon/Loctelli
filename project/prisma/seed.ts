@@ -15,33 +15,53 @@ const getDefaultAdminPassword = (): string => {
 async function main() {
   console.log('Starting database seed...');
 
+  // Get the first admin user or create one if none exists
+  let adminUser = await prisma.adminUser.findFirst();
+  
+  if (!adminUser) {
+    console.log('No admin user found, creating default admin...');
+    const defaultPassword = getDefaultAdminPassword();
+    const hashedPassword = await bcrypt.hash(defaultPassword, 12);
+    
+    adminUser = await prisma.adminUser.create({
+      data: {
+        name: 'System Admin',
+        email: 'admin@loctelli.com',
+        password: hashedPassword,
+        role: 'super_admin',
+      },
+    });
+    
+    console.log('Default admin created with email: admin@loctelli.com');
+    console.log('Default password: ' + defaultPassword);
+  }
+
+  // Create default SubAccount if it doesn't exist
+  let defaultSubAccount = await prisma.subAccount.findFirst({
+    where: { name: 'Default SubAccount' }
+  });
+
+  if (!defaultSubAccount) {
+    console.log('Creating default SubAccount...');
+    defaultSubAccount = await prisma.subAccount.create({
+      data: {
+        name: 'Default SubAccount',
+        description: 'Default SubAccount for new users and existing data',
+        isActive: true,
+        createdByAdminId: adminUser.id,
+      },
+    });
+    console.log('Default SubAccount created successfully');
+  } else {
+    console.log('Default SubAccount already exists');
+  }
+
   // Check if any prompt template exists
   const existingTemplate = await prisma.promptTemplate.findFirst();
 
   if (!existingTemplate) {
     console.log('Creating default prompt template...');
     
-    // Get the first admin user or create one if none exists
-    let adminUser = await prisma.adminUser.findFirst();
-    
-    if (!adminUser) {
-      console.log('No admin user found, creating default admin...');
-      const defaultPassword = getDefaultAdminPassword();
-      const hashedPassword = await bcrypt.hash(defaultPassword, 12);
-      
-      adminUser = await prisma.adminUser.create({
-        data: {
-          name: 'System Admin',
-          email: 'admin@loctelli.com',
-          password: hashedPassword,
-          role: 'super_admin',
-        },
-      });
-      
-      console.log('Default admin created with email: admin@loctelli.com');
-      console.log('Default password: ' + defaultPassword);
-    }
-
     // Create default prompt template
     await prisma.promptTemplate.create({
       data: {
@@ -72,6 +92,31 @@ Do not use the [BOOKING_CONFIRMATION] marker unless a booking is truly confirmed
     console.log('Default prompt template created successfully');
   } else {
     console.log('Default prompt template already exists');
+  }
+
+  // Create a default user if none exists
+  const existingUser = await prisma.user.findFirst();
+  if (!existingUser) {
+    console.log('Creating default user...');
+    const defaultPassword = getDefaultAdminPassword();
+    const hashedPassword = await bcrypt.hash(defaultPassword, 12);
+    
+    await prisma.user.create({
+      data: {
+        name: 'Default User',
+        email: 'user@loctelli.com',
+        password: hashedPassword,
+        role: 'user',
+        company: 'Default Company',
+        subAccountId: defaultSubAccount.id,
+        createdByAdminId: adminUser.id,
+      },
+    });
+    
+    console.log('Default user created with email: user@loctelli.com');
+    console.log('Default password: ' + defaultPassword);
+  } else {
+    console.log('Default user already exists');
   }
 
   console.log('Database seed completed');

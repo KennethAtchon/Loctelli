@@ -78,7 +78,7 @@ async function handleRequest(
     // Forward user authentication headers if present
     const userToken = request.headers.get('x-user-token');
     if (userToken) {
-      headers['X-User-Token'] = userToken;
+      headers['x-user-token'] = userToken;
     }
 
     // Get request body if it exists
