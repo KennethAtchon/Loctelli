@@ -43,6 +43,7 @@ export interface UserProfile {
   lastLoginAt: string | null;
   createdAt: string;
   updatedAt: string;
+  subAccountId: number;
   createdByAdmin: {
     id: number;
     name: string;
@@ -213,8 +214,11 @@ export class AdminAuthApi extends ApiClient {
     return this.post<{ message: string }>('/admin/auth/change-password', data);
   }
 
-  async getAllUsers(): Promise<UserProfile[]> {
-    return this.get<UserProfile[]>('/admin/auth/users');
+  async getAllUsers(subaccountId?: string): Promise<UserProfile[]> {
+    const endpoint = subaccountId && subaccountId !== 'GLOBAL' 
+      ? `/admin/auth/users?subaccountId=${subaccountId}`
+      : '/admin/auth/users';
+    return this.get<UserProfile[]>(endpoint);
   }
 
   async createUser(data: CreateUserDto): Promise<Omit<UserProfile, 'lastLoginAt' | 'createdAt' | 'updatedAt' | 'createdByAdmin'>> {

@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
   Request,
   HttpCode,
@@ -167,11 +168,12 @@ export class AdminAuthController {
   @Get('users')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'super_admin')
-  async getAllUsers(@CurrentUser() user) {
-    this.logger.log(`👥 All users request by admin: ${user.email} (ID: ${user.userId})`);
+  async getAllUsers(@CurrentUser() user, @Query('subaccountId') subaccountId?: string) {
+    this.logger.log(`👥 All users request by admin: ${user.email} (ID: ${user.userId})${subaccountId ? ` for subaccount: ${subaccountId}` : ''}`);
     
     try {
-      const result = await this.adminAuthService.getAllUsers(user.userId);
+      const parsedSubaccountId = subaccountId ? parseInt(subaccountId, 10) : undefined;
+      const result = await this.adminAuthService.getAllUsers(user.userId, parsedSubaccountId);
       this.logger.log(`✅ All users retrieved successfully by admin: ${user.email} (ID: ${user.userId}) - ${result.length} users`);
       return result;
     } catch (error) {

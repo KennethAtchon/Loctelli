@@ -17,9 +17,11 @@ import { CreateStrategyDto } from '@/types';
 import type { UserProfile } from '@/lib/api/endpoints/admin-auth';
 import type { PromptTemplate } from '@/lib/api/endpoints/prompt-templates';
 import logger from '@/lib/logger';
+import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
 
 export default function NewStrategyPage() {
   const router = useRouter();
+  const { currentFilter, getCurrentSubaccount } = useSubaccountFilter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -39,6 +41,7 @@ export default function NewStrategyPage() {
     delayMin: 30,
     delayMax: 120,
     promptTemplateId: undefined, // Will be set when template is selected
+    subAccountId: 0, // Will be set from current filter
   });
 
   // Load users and prompt templates for the dropdowns
@@ -46,7 +49,7 @@ export default function NewStrategyPage() {
     const loadData = async () => {
       try {
         const [usersData, templatesData] = await Promise.all([
-          api.adminAuth.getAllUsers(),
+          api.adminAuth.getAllUsers(currentFilter),
           api.promptTemplates.getAll()
         ]);
         
@@ -54,6 +57,8 @@ export default function NewStrategyPage() {
         const regularUsers = usersData.filter(user => user.role !== 'admin');
         setUsers(regularUsers);
         setPromptTemplates(templatesData);
+        
+
         
         // Set active prompt template as default selection if available
         if (templatesData.length > 0) {
@@ -66,7 +71,7 @@ export default function NewStrategyPage() {
       }
     };
     loadData();
-  }, []);
+  }, [currentFilter, getCurrentSubaccount]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,8 +100,22 @@ export default function NewStrategyPage() {
     setError('');
 
     try {
-      console.log('Creating strategy with data:', formData);
-      await api.strategies.createStrategy(formData);
+      // Get the selected user to determine the subaccount
+      const selectedUser = users.find(user => user.id === formData.userId);
+      if (!selectedUser) {
+        setError('Selected user not found');
+        return;
+      }
+
+      // Create strategy with the user's subaccount
+      console.log('Creating strategy with data:', {
+        ...formData,
+        subAccountId: selectedUser.subAccountId,
+      });
+      await api.strategies.createStrategy({
+        ...formData,
+        subAccountId: selectedUser.subAccountId,
+      });
       router.push('/admin/strategies');
     } catch (error) {
       console.error('Strategy creation error:', error);
@@ -214,6 +233,7 @@ export default function NewStrategyPage() {
                     </SelectContent>
                   </Select>
                 </div>
+
 
                 <div className="space-y-2">
                   <Label htmlFor="name">Strategy Name *</Label>

@@ -15,10 +15,12 @@ import Link from 'next/link';
 import { Lead, CreateLeadDto, Strategy } from '@/types';
 import type { UserProfile } from '@/lib/api/endpoints/admin-auth';
 import logger from '@/lib/logger';
+import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
 
 export default function EditLeadPage() {
   const router = useRouter();
   const params = useParams();
+  const { currentFilter, getCurrentSubaccount } = useSubaccountFilter();
   const leadId = parseInt(params.id as string);
   
   const [isLoading, setIsLoading] = useState(false);
@@ -39,6 +41,7 @@ export default function EditLeadPage() {
     customId: '',
     status: 'lead',
     notes: '',
+    subAccountId: 0,
   });
 
   // Load lead data, users, and strategies
@@ -48,7 +51,7 @@ export default function EditLeadPage() {
         setIsLoadingLead(true);
         const [leadData, usersData] = await Promise.all([
           api.leads.getLead(leadId),
-          api.adminAuth.getAllUsers()
+          api.adminAuth.getAllUsers(currentFilter)
         ]);
         
         setLead(leadData);
@@ -63,6 +66,7 @@ export default function EditLeadPage() {
         setStrategies(strategiesData);
         
         // Populate form with existing data
+        const currentSubaccount = getCurrentSubaccount();
         setFormData({
           userId: leadData.userId,
           strategyId: leadData.strategyId,
@@ -74,6 +78,7 @@ export default function EditLeadPage() {
           customId: leadData.customId || '',
           status: leadData.status,
           notes: leadData.notes || '',
+          subAccountId: currentSubaccount?.id || leadData.subAccountId || 0,
         });
       } catch (error) {
         logger.error('Failed to load lead data:', error);
@@ -86,7 +91,7 @@ export default function EditLeadPage() {
     if (leadId) {
       loadData();
     }
-  }, [leadId]);
+  }, [leadId, currentFilter, getCurrentSubaccount]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

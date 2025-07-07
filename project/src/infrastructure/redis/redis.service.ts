@@ -49,15 +49,34 @@ export class RedisService implements OnModuleInit {
   }
 
   async getCache<T = any>(key: string): Promise<T | null> {
-    return (await this.cacheManager.get<T>(key)) ?? null;
+    try {
+      const result = await this.cacheManager.get<T>(key);
+      this.logger.debug(`🔍 Redis GET ${key}: ${result ? 'found' : 'not found'}`);
+      return result ?? null;
+    } catch (error) {
+      this.logger.error(`❌ Redis GET error for key ${key}:`, error);
+      throw error;
+    }
   }
 
   async setCache<T = any>(key: string, value: T, ttl?: number): Promise<void> {
-    await this.cacheManager.set(key, value, ttl);
+    try {
+      await this.cacheManager.set(key, value, ttl);
+      this.logger.debug(`💾 Redis SET ${key} with TTL ${ttl}s: success`);
+    } catch (error) {
+      this.logger.error(`❌ Redis SET error for key ${key}:`, error);
+      throw error;
+    }
   }
 
   async delCache(key: string): Promise<void> {
-    await this.cacheManager.del(key);
+    try {
+      await this.cacheManager.del(key);
+      this.logger.debug(`🗑️ Redis DEL ${key}: success`);
+    } catch (error) {
+      this.logger.error(`❌ Redis DEL error for key ${key}:`, error);
+      throw error;
+    }
   }
 
   // Add more helpers as needed, e.g. for session, rate limit, etc., using cacheManager

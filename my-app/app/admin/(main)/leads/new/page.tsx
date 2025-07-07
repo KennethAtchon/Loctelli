@@ -16,9 +16,11 @@ import { CreateLeadDto } from '@/types';
 import { Strategy } from '@/types';
 import type { UserProfile } from '@/lib/api/endpoints/admin-auth';
 import logger from '@/lib/logger';
+import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
 
 export default function NewLeadPage() {
   const router = useRouter();
+  const { currentFilter, getCurrentSubaccount } = useSubaccountFilter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -35,22 +37,25 @@ export default function NewLeadPage() {
     customId: '',
     status: 'lead',
     notes: '',
+    subAccountId: 0, // Will be set from current filter
   });
 
   // Load users for the dropdown
   useEffect(() => {
     const loadUsers = async () => {
       try {
-        const usersData = await api.adminAuth.getAllUsers();
+        const usersData = await api.adminAuth.getAllUsers(currentFilter);
         // Filter out admin users, only show regular users
         const regularUsers = usersData.filter(user => user.role !== 'admin');
         setUsers(regularUsers);
+        
+
       } catch (error) {
         logger.error('Failed to load users:', error);
       }
     };
     loadUsers();
-  }, []);
+  }, [currentFilter, getCurrentSubaccount]);
 
   // Load strategies for the selected user
   useEffect(() => {
@@ -86,7 +91,18 @@ export default function NewLeadPage() {
     setError('');
 
     try {
-      await api.leads.createLead(formData);
+      // Get the selected user to determine the subaccount
+      const selectedUser = users.find(user => user.id === formData.userId);
+      if (!selectedUser) {
+        setError('Selected user not found');
+        return;
+      }
+
+      // Create lead with the user's subaccount
+      await api.leads.createLead({
+        ...formData,
+        subAccountId: selectedUser.subAccountId || 0,
+      });
       router.push('/admin/leads');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to create lead');
@@ -186,6 +202,7 @@ export default function NewLeadPage() {
                     </SelectContent>
                   </Select>
                 </div>
+
 
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name *</Label>

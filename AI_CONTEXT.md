@@ -198,6 +198,44 @@
 
 #### **12. Chat System Fixes - CRITICAL BUG RESOLUTION**
 - **Fixed**: Chat history not loading when lead is selected
+
+#### **13. Subaccount Filter Context Updates - CRITICAL BUG RESOLUTION**
+- **Fixed**: Subaccount filter not refreshing when new subaccounts are created
+- **Fixed**: Users page showing users from wrong subaccount
+- **Fixed**: "View Details" button setting filter to "Unknown" for newly created subaccounts
+- **Fixed**: Backend API not properly filtering users by subaccount
+- **Fixed**: Creation forms not requiring subaccount selection
+- **Changes Made**:
+  - Updated `getAllUsers()` API method to accept optional `subaccountId` parameter
+  - Modified subaccount filter context to refresh when new subaccounts are created
+  - Updated all pages using `getAllUsers()` to pass current subaccount filter
+  - Added `refreshFilter()` method to force filter context updates
+  - Updated subaccounts page to refresh filter context after creating new subaccounts
+  - Fixed dependency arrays in useEffect hooks to include subaccount filter changes
+  - **Backend Updates**:
+    - Updated admin auth controller to accept `subaccountId` query parameter
+    - Updated admin auth service to filter users by subaccount or admin's subaccounts
+    - Added proper subaccount filtering logic in backend
+  - **Frontend Form Updates**:
+    - Added required subaccount selection field to user creation form
+    - **Removed subaccount selection from lead creation form** - subaccount is automatically set based on selected user
+    - **Removed subaccount selection from strategy creation form** - subaccount is automatically set based on selected user
+    - Added validation to ensure subaccount is selected before creation (for user creation only)
+    - **Automatic subaccount assignment**: Leads and strategies automatically inherit subaccount from selected user
+  - **Pages Updated**:
+    - Users page: Now filters users by current subaccount and requires subaccount selection
+    - Leads new/edit pages: Now show only users from current subaccount, subaccount automatically set from selected user
+    - Strategies new/edit pages: Now show only users from current subaccount, subaccount automatically set from selected user
+    - Bookings edit page: Now shows only users from current subaccount
+- **User Experience**:
+  - New subaccounts immediately appear in filter dropdown
+  - "View Details" button works correctly for newly created subaccounts
+  - Users are properly filtered by subaccount context
+  - No need to refresh page after creating new subaccounts
+  - **Required Subaccount Selection**: User creation form requires explicit subaccount selection
+  - **Automatic Subaccount Inheritance**: Leads and strategies automatically inherit subaccount from selected user
+  - **Proper Data Isolation**: Users can only see and create data within their selected subaccount context
+  - **Prevents Cross-Reference**: No possibility of creating leads/strategies in wrong subaccount
 - **Implemented**: Subaccount filtering for chat page ✅
   - Chat page now respects global subaccount filter from admin header
   - Leads dropdown filtered by current subaccount selection

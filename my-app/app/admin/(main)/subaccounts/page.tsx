@@ -18,7 +18,7 @@ export default function SubAccountsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingSubAccount, setEditingSubAccount] = useState<SubAccount | null>(null);
-  const { setFilter } = useSubaccountFilter();
+  const { setFilter, refreshSubaccounts, refreshFilter } = useSubaccountFilter();
 
   const loadSubAccounts = async () => {
     try {
@@ -40,7 +40,9 @@ export default function SubAccountsPage() {
       await api.adminSubAccounts.createSubAccount(formData);
       toast.success('SubAccount created successfully');
       setIsCreateDialogOpen(false);
-      loadSubAccounts();
+      await loadSubAccounts();
+      await refreshSubaccounts(); // Refresh the subaccount filter context
+      refreshFilter(); // Refresh the filter to ensure it's updated
     } catch (error) {
       toast.error('Failed to create SubAccount');
     }
@@ -77,7 +79,9 @@ export default function SubAccountsPage() {
     setIsEditDialogOpen(true);
   };
 
-  const handleViewDetails = (subAccount: SubAccount) => {
+  const handleViewDetails = async (subAccount: SubAccount) => {
+    // Ensure the subaccount list is up to date before setting the filter
+    await refreshSubaccounts();
     setFilter(subAccount.id.toString());
     toast.success(`Filtered to ${subAccount.name}`);
   };

@@ -168,6 +168,20 @@ Loctelli/
 - **Cleaned API Client Naming**: Fixed class naming from migration (Apilead → ApiClient)
 - **Updated Prisma Dependencies**: Fixed invalid package references and generator configuration
 - **Implemented Chat Subaccount Filtering**: Chat page now respects global subaccount filter from admin header, automatically filtering leads by selected subaccount and clearing selected lead when switching subaccounts
+- **Fixed Subaccount Filter Context Issues**: 
+  - Resolved subaccount filter not refreshing when new subaccounts are created
+  - Fixed users page showing users from wrong subaccount
+  - Fixed "View Details" button setting filter to "Unknown" for newly created subaccounts
+  - Fixed backend API not properly filtering users by subaccount
+  - Fixed creation forms not requiring subaccount selection
+  - Updated all pages using `getAllUsers()` to properly filter by current subaccount
+  - Added automatic filter refresh when new subaccounts are created
+  - Added required subaccount selection field to user creation form only
+  - **Removed subaccount selection from lead/strategy forms** - subaccount automatically set from selected user
+  - Added validation to ensure subaccount is selected before creating users
+  - Improved user experience with immediate filter updates and proper data isolation
+  - **Backend Updates**: Updated admin auth controller and service to properly filter users by subaccount
+  - **Frontend Updates**: User creation requires explicit subaccount selection, leads/strategies inherit from selected user
 
 ## **Prompt Template & Strategy Integration**
 

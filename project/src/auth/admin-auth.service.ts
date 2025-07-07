@@ -150,7 +150,21 @@ export class AdminAuthService {
 
     this.logger.debug(`Storing admin refresh token in Redis for user: ${loginDto.email}`);
     // Store refresh token in Redis with rotation
-    await this.redisService.setCache(`admin_refresh:${adminUser.id}`, refreshToken, 7 * 24 * 60 * 60);
+    try {
+      await this.redisService.setCache(`admin_refresh:${adminUser.id}`, refreshToken, 7 * 24 * 60 * 60);
+      this.logger.debug(`✅ Admin refresh token stored successfully in Redis for user: ${loginDto.email}`);
+      
+      // Verify the token was stored correctly
+      const storedToken = await this.redisService.getCache(`admin_refresh:${adminUser.id}`);
+      if (storedToken === refreshToken) {
+        this.logger.debug(`✅ Admin refresh token verification successful for user: ${loginDto.email}`);
+      } else {
+        this.logger.error(`❌ Admin refresh token verification failed for user: ${loginDto.email}`);
+      }
+    } catch (error) {
+      this.logger.error(`❌ Failed to store admin refresh token in Redis for user: ${loginDto.email}`, error);
+      throw new Error('Failed to store refresh token');
+    }
 
     this.logger.log(`✅ Admin login successful for user: ${loginDto.email} (ID: ${adminUser.id})`);
     return {
@@ -331,7 +345,7 @@ export class AdminAuthService {
     return updatedAdmin;
   }
 
-  async getAllUsers(adminId: number) {
+  async getAllUsers(adminId: number, subaccountId?: number) {
     // Verify admin permissions
     const adminUser = await this.prisma.adminUser.findUnique({
       where: { id: adminId },
@@ -341,7 +355,21 @@ export class AdminAuthService {
       throw new UnauthorizedException('Admin access required');
     }
 
+    // Build where clause
+    const whereClause: any = {};
+    
+    if (subaccountId) {
+      // Filter by specific subaccount
+      whereClause.subAccountId = subaccountId;
+    } else {
+      // Filter by all subaccounts owned by this admin
+      whereClause.subAccount = {
+        createdByAdminId: adminId
+      };
+    }
+
     return this.prisma.user.findMany({
+      where: whereClause,
       select: {
         id: true,
         name: true,
@@ -352,6 +380,7 @@ export class AdminAuthService {
         lastLoginAt: true,
         createdAt: true,
         updatedAt: true,
+        subAccountId: true,
         createdByAdmin: {
           select: {
             id: true,
@@ -478,25 +507,50 @@ export class AdminAuthService {
   }
 
   async adminRefreshToken(refreshToken: string) {
+    this.logger.log('🔄 Starting admin token refresh process');
+    this.logger.debug(`Refresh token received: ${refreshToken.substring(0, 20)}...`);
+    
     try {
       // Decode the refresh token to get admin ID
+      this.logger.debug('🔍 Decoding refresh token...');
       const decoded = this.jwtService.verify(refreshToken) as AdminJwtPayload;
       const adminId = decoded.sub;
+      this.logger.debug(`✅ Token decoded successfully for admin ID: ${adminId}`);
 
       // Verify refresh token from Redis
+      this.logger.debug(`🔍 Checking Redis for stored refresh token for admin ID: ${adminId}`);
       const storedToken = await this.redisService.getCache(`admin_refresh:${adminId}`);
       
-      if (!storedToken || storedToken !== refreshToken) {
-        throw new UnauthorizedException('Invalid refresh token');
+      if (!storedToken) {
+        this.logger.warn(`❌ No stored refresh token found in Redis for admin ID: ${adminId}`);
+        throw new UnauthorizedException('Invalid refresh token - not found in Redis');
       }
+      
+      if (storedToken !== refreshToken) {
+        this.logger.warn(`❌ Stored token mismatch for admin ID: ${adminId}`);
+        this.logger.debug(`Expected: ${storedToken.substring(0, 20)}...`);
+        this.logger.debug(`Received: ${refreshToken.substring(0, 20)}...`);
+        throw new UnauthorizedException('Invalid refresh token - token mismatch');
+      }
+      
+      this.logger.debug(`✅ Refresh token verified in Redis for admin ID: ${adminId}`);
 
+      this.logger.debug(`🔍 Fetching admin user from database for ID: ${adminId}`);
       const adminUser = await this.prisma.adminUser.findUnique({
         where: { id: adminId },
       });
 
-      if (!adminUser || !adminUser.isActive) {
+      if (!adminUser) {
+        this.logger.warn(`❌ Admin user not found in database for ID: ${adminId}`);
         throw new UnauthorizedException('Admin user not found or inactive');
       }
+      
+      if (!adminUser.isActive) {
+        this.logger.warn(`❌ Admin user is inactive for ID: ${adminId}`);
+        throw new UnauthorizedException('Admin user not found or inactive');
+      }
+      
+      this.logger.debug(`✅ Admin user verified as active: ${adminUser.email}`);
 
       const payload: AdminJwtPayload = {
         sub: adminUser.id,
@@ -506,17 +560,22 @@ export class AdminAuthService {
       };
 
       // Generate new tokens with rotation
+      this.logger.debug('🔑 Generating new access and refresh tokens...');
       const newAccessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
       const newRefreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
       // Update refresh token in Redis (rotation)
+      this.logger.debug(`💾 Storing new refresh token in Redis for admin ID: ${adminUser.id}`);
       await this.redisService.setCache(`admin_refresh:${adminUser.id}`, newRefreshToken, 7 * 24 * 60 * 60);
+      this.logger.debug(`✅ New refresh token stored successfully`);
 
+      this.logger.log(`✅ Admin token refresh successful for user: ${adminUser.email} (ID: ${adminUser.id})`);
       return {
         access_token: newAccessToken,
         refresh_token: newRefreshToken,
       };
     } catch (error) {
+      this.logger.error(`❌ Admin token refresh failed:`, error.stack);
       if (error instanceof UnauthorizedException) {
         throw error;
       }

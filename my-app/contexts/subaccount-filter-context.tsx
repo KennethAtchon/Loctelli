@@ -14,6 +14,7 @@ interface SubaccountFilterContextType {
   refreshSubaccounts: () => Promise<void>;
   getCurrentSubaccount: () => SubAccount | null;
   isGlobalView: () => boolean;
+  refreshFilter: () => void;
 }
 
 const SubaccountFilterContext = createContext<SubaccountFilterContextType | undefined>(undefined);
@@ -57,6 +58,18 @@ export function SubaccountFilterProvider({ children }: { children: React.ReactNo
     logger.debug('Subaccount filter changed to:', filter);
   };
 
+  // Listen for subaccount changes and refresh the list
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'admin-subaccount-filter' && e.newValue) {
+        setCurrentFilter(e.newValue);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const refreshSubaccounts = async () => {
     await loadSubaccounts();
   };
@@ -70,6 +83,13 @@ export function SubaccountFilterProvider({ children }: { children: React.ReactNo
     return currentFilter === 'GLOBAL';
   };
 
+  const refreshFilter = () => {
+    // Force a re-render by updating the filter
+    const current = currentFilter;
+    setCurrentFilter('');
+    setTimeout(() => setCurrentFilter(current), 0);
+  };
+
   const value: SubaccountFilterContextType = {
     currentFilter,
     availableSubaccounts,
@@ -79,6 +99,7 @@ export function SubaccountFilterProvider({ children }: { children: React.ReactNo
     refreshSubaccounts,
     getCurrentSubaccount,
     isGlobalView,
+    refreshFilter,
   };
 
   return (

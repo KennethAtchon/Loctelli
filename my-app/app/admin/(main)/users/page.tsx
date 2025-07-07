@@ -27,7 +27,7 @@ interface UserStats {
 }
 
 export default function UsersPage() {
-  const { currentFilter, getCurrentSubaccount } = useSubaccountFilter();
+  const { currentFilter, getCurrentSubaccount, availableSubaccounts } = useSubaccountFilter();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [stats, setStats] = useState<UserStats>({
@@ -54,6 +54,7 @@ export default function UsersPage() {
     company: '',
     role: 'user',
     bookingEnabled: 1,
+    subAccountId: 0,
   });
   const [editFormData, setEditFormData] = useState<UpdateUserDto>({
     name: '',
@@ -78,7 +79,7 @@ export default function UsersPage() {
     try {
       setIsRefreshing(true);
       setError('');
-      const usersData = await api.adminAuth.getAllUsers();
+      const usersData = await api.adminAuth.getAllUsers(currentFilter);
       setUsers(usersData);
       calculateStats(usersData);
     } catch (error) {
@@ -88,7 +89,7 @@ export default function UsersPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, []);
+  }, [currentFilter]);
 
   const filterUsers = useCallback(() => {
     let filtered = users;
@@ -143,20 +144,18 @@ export default function UsersPage() {
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    const currentSubaccount = getCurrentSubaccount();
-    if (!currentSubaccount) {
+    
+    if (!createFormData.subAccountId || createFormData.subAccountId === 0) {
       setError('Please select a SubAccount');
       return;
     }
+    
     try {
       setError('');
-      await api.adminAuth.createUser({
-        ...createFormData,
-        subAccountId: currentSubaccount.id,
-      });
+      await api.adminAuth.createUser(createFormData);
       setSuccess('User created successfully');
       setIsCreateDialogOpen(false);
-      setCreateFormData({ name: '', email: '', password: '', company: '', role: 'user', bookingEnabled: 1 });
+      setCreateFormData({ name: '', email: '', password: '', company: '', role: 'user', bookingEnabled: 1, subAccountId: 0 });
       loadUsers();
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(''), 3000);
@@ -322,6 +321,25 @@ export default function UsersPage() {
                       <SelectItem value="user">User</SelectItem>
                       <SelectItem value="manager">Manager</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="subaccount">SubAccount *</Label>
+                  <Select 
+                    value={createFormData.subAccountId?.toString() || ''} 
+                    onValueChange={(value) => setCreateFormData(prev => ({ ...prev, subAccountId: parseInt(value) || 0 }))}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a SubAccount" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableSubaccounts.map((subaccount) => (
+                        <SelectItem key={subaccount.id} value={subaccount.id.toString()}>
+                          {subaccount.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

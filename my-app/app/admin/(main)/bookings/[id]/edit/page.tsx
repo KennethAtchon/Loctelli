@@ -13,11 +13,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import logger from '@/lib/logger';
+import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
 
 export default function EditBookingPage() {
   const router = useRouter();
   const params = useParams();
   const { toast } = useToast();
+  const { currentFilter } = useSubaccountFilter();
   const bookingId = Number(params.id);
 
   const [booking, setBooking] = useState<Booking | null>(null);
@@ -60,7 +62,7 @@ export default function EditBookingPage() {
         });
 
         // Load users for dropdown
-        const usersData = await api.adminAuth.getAllUsers();
+        const usersData = await api.adminAuth.getAllUsers(currentFilter);
         setUsers(usersData);
 
         // Load leads for dropdown
@@ -83,7 +85,7 @@ export default function EditBookingPage() {
     if (bookingId) {
       loadData();
     }
-  }, [bookingId, toast]);
+  }, [bookingId, toast, currentFilter]);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({

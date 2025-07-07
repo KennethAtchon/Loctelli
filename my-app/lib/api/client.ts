@@ -84,6 +84,7 @@ export class ApiClient {
       const adminRefreshToken = AuthCookies.getAdminRefreshToken();
       if (adminRefreshToken) {
         try {
+          logger.debug('🔄 Attempting admin token refresh...');
           // Use direct fetch to avoid infinite loop
           this.isRefreshRequest = true;
           const response = await fetch(`${this.baseUrl}/admin/auth/refresh`, {
@@ -96,15 +97,19 @@ export class ApiClient {
           this.isRefreshRequest = false;
 
           if (!response.ok) {
-            throw new Error(`Refresh failed: ${response.status}`);
+            const errorText = await response.text();
+            logger.error(`❌ Admin refresh failed with status ${response.status}:`, errorText);
+            throw new Error(`Refresh failed: ${response.status} - ${errorText}`);
           }
 
           const data = await response.json();
+          logger.debug('✅ Admin token refresh successful, updating cookies...');
           AuthCookies.setAdminAccessToken(data.access_token);
           AuthCookies.setAdminRefreshToken(data.refresh_token);
+          logger.debug('✅ Admin tokens updated successfully');
           return;
         } catch (error) {
-          logger.error('Admin token refresh failed:', error);
+          logger.error('❌ Admin token refresh failed:', error);
           // Clear only admin tokens on failure
           AuthCookies.clearAdminTokens();
           throw error;
@@ -115,6 +120,7 @@ export class ApiClient {
       const refreshToken = AuthCookies.getRefreshToken();
       if (refreshToken) {
         try {
+          logger.debug('🔄 Attempting user token refresh...');
           // Use direct fetch to avoid infinite loop
           this.isRefreshRequest = true;
           const response = await fetch(`${this.baseUrl}/auth/refresh`, {
@@ -127,25 +133,29 @@ export class ApiClient {
           this.isRefreshRequest = false;
 
           if (!response.ok) {
-            throw new Error(`Refresh failed: ${response.status}`);
+            const errorText = await response.text();
+            logger.error(`❌ User refresh failed with status ${response.status}:`, errorText);
+            throw new Error(`Refresh failed: ${response.status} - ${errorText}`);
           }
 
           const data = await response.json();
+          logger.debug('✅ User token refresh successful, updating cookies...');
           AuthCookies.setAccessToken(data.access_token);
           AuthCookies.setRefreshToken(data.refresh_token);
+          logger.debug('✅ User tokens updated successfully');
           return;
         } catch (error) {
-          logger.error('User token refresh failed:', error);
+          logger.error('❌ User token refresh failed:', error);
           // Clear only user tokens on failure
           AuthCookies.clearUserTokens();
           throw error;
         }
       }
 
-      // No valid refresh tokens
-      throw new Error('No valid refresh token available');
+      logger.warn('⚠️ No refresh tokens available for refresh');
+      throw new Error('No refresh tokens available');
     } catch (error) {
-      // Don't clear all tokens here - let the specific refresh methods handle their own tokens
+      logger.error('❌ Token refresh failed completely:', error);
       throw error;
     }
   }
