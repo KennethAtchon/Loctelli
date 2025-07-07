@@ -26,6 +26,8 @@ model AdminUser {
   createdUsers    User[]      // Users created by this admin
   promptTemplates PromptTemplate[] // Prompt templates created by this admin
   subAccounts     SubAccount[] // SubAccounts created by this admin
+  integrationTemplates IntegrationTemplate[] // Integration templates created by this admin
+  integrations    Integration[] // Integrations created by this admin
 }
 
 model SubAccount {
@@ -44,6 +46,7 @@ model SubAccount {
   strategies      Strategy[]  // Strategies created within this SubAccount
   leads           Lead[]      // Leads created within this SubAccount
   bookings        Booking[]   // Bookings created within this SubAccount
+  integrations    Integration[] // Integrations configured for this SubAccount
 }
 
 model User {
@@ -152,4 +155,43 @@ model PromptTemplate {
   createdByAdminId    Int
   createdByAdmin      AdminUser @relation(fields: [createdByAdminId], references: [id])
   strategies          Strategy[]
+}
+
+model IntegrationTemplate {
+  id                  Int       @id @default(autoincrement())
+  name                String    // e.g., "GoHighLevel", "Facebook Ads", "Google Analytics"
+  displayName         String    // e.g., "GoHighLevel CRM", "Facebook Advertising"
+  description         String?   @db.Text
+  category            String    // e.g., "CRM", "Advertising", "Analytics", "Social Media"
+  icon                String?   // Icon identifier or URL
+  isActive            Boolean   @default(true)
+  configSchema        Json      // JSON schema defining required/optional fields
+  setupInstructions   String?   @db.Text // Markdown instructions for setup
+  webhookUrl          String?   // Default webhook URL if applicable
+  apiVersion          String?   // API version supported
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  createdByAdminId    Int
+  createdByAdmin      AdminUser @relation(fields: [createdByAdminId], references: [id])
+  integrations        Integration[] // Subaccount integrations using this template
+}
+
+model Integration {
+  id                    Int       @id @default(autoincrement())
+  subAccountId          Int       // Required: Integration belongs to a SubAccount
+  subAccount            SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
+  integrationTemplateId Int
+  integrationTemplate   IntegrationTemplate @relation(fields: [integrationTemplateId], references: [id])
+  name                  String    // Custom name for this integration instance
+  description           String?   @db.Text
+  isActive              Boolean   @default(false)
+  config                Json      // Integration-specific configuration
+  status                String    @default("pending") // pending, active, error, disconnected
+  lastSyncAt            DateTime?
+  errorMessage          String?   @db.Text
+  webhookSecret         String?   // For webhook verification
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  createdByAdminId      Int
+  createdByAdmin        AdminUser @relation(fields: [createdByAdminId], references: [id])
 }

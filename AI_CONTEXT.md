@@ -198,6 +198,36 @@
 
 #### **14. Admin Access Control Fix - CRITICAL BUG RESOLUTION**
 - **Fixed**: Non-first admin users unable to see default data (users, leads, strategies, bookings, subaccounts)
+
+## 🔗 **Integrations System - PLANNED**
+
+### **Overview**
+Comprehensive integrations system for connecting Loctelli CRM with external services like GoHighLevel, Facebook Ads, Google Analytics, and more. The system follows a two-table approach with integration templates and subaccount-specific configurations.
+
+### **Database Schema**
+- **IntegrationTemplate**: Stores available integration types with configuration schemas
+- **Integration**: Stores subaccount-specific integration instances with configurations
+- **JSON Config Field**: Flexible configuration storage for each integration type
+- **Subaccount Scoped**: All integrations are tied to specific subaccounts
+
+### **Integration Types**
+- **GoHighLevel CRM**: Contact sync, booking integration, webhook processing
+- **Facebook Ads**: Ad account management, lead generation, messaging
+- **Google Analytics**: Data analytics, conversion tracking, reporting
+
+### **Features**
+- **Dynamic Configuration Forms**: Generated from JSON schemas
+- **Connection Testing**: Validate integrations before activation
+- **Status Monitoring**: Track integration health and sync status
+- **Webhook Processing**: Real-time data synchronization
+- **Security**: Encrypted configuration storage and webhook verification
+
+### **Implementation Status**
+- **Planning Phase**: Complete plan documented in `INTEGRATIONS_PLAN.md`
+- **Database Schema**: Ready for implementation
+- **Frontend Structure**: Following prompt templates pattern
+- **Backend Architecture**: Modular design with integration handlers
+- **Security Framework**: Comprehensive security considerations planned
 - **Fixed**: Subaccount filtering only showing data created by the current admin
 - **Root Cause**: Backend services were filtering data by `createdByAdminId` instead of allowing all admins full access
 
@@ -814,4 +844,12 @@ All previous console statements in the frontend have been replaced with this log
 - All DTOs and API endpoints are updated to include `promptTemplateId` where relevant.
 - The system guarantees that every strategy is always tied to a prompt template, and the frontend and backend are fully aligned.
 
-This context should provide AI models with comprehensive understanding of the Loctelli CRM system architecture, data flow, and implementation details for effective code analysis and generation. 
+This context should provide AI models with comprehensive understanding of the Loctelli CRM system architecture, data flow, and implementation details for effective code analysis and generation.
+
+# Integrations System (2024-07)
+
+- IntegrationTemplate and Integration models added to Prisma schema.
+- IntegrationTemplate: defines available integration types and config schemas (admin-scoped).
+- Integration: subaccount-specific integration instances, referencing a template, with config, status, and sync info.
+- Relationships: AdminUser (creates templates/integrations), SubAccount (owns integrations).
+- Backend and frontend will follow prompt templates pattern for CRUD and UI, but for integrations. 

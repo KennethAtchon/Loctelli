@@ -167,3 +167,12 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+## Integrations System (2024-07)
+
+Two new tables were added:
+
+- **IntegrationTemplate**: Stores available integration types (e.g., GoHighLevel, Facebook Ads) and their configuration schemas. Used as blueprints for subaccount integrations.
+- **Integration**: Stores actual integration instances for each subaccount, referencing a template and containing configuration, status, and sync info.
+
+See `INTEGRATIONS_PLAN.md` for full details and schema.
