@@ -3,11 +3,12 @@ import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
-// Get default admin password from environment variable
+// Get default admin password from environment variable with fallback
 const getDefaultAdminPassword = (): string => {
   const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD;
   if (!defaultPassword) {
-    throw new Error('DEFAULT_ADMIN_PASSWORD environment variable is required for seeding');
+    console.warn('DEFAULT_ADMIN_PASSWORD environment variable not found, using fallback password');
+    return 'defaultAdmin123!CANTUNA';
   }
   return defaultPassword;
 };
@@ -95,13 +96,13 @@ Do not use the [BOOKING_CONFIRMATION] marker unless a booking is truly confirmed
   }
 
   // Create a default user if none exists
-  const existingUser = await prisma.user.findFirst();
-  if (!existingUser) {
+  let defaultUser = await prisma.user.findFirst();
+  if (!defaultUser) {
     console.log('Creating default user...');
     const defaultPassword = getDefaultAdminPassword();
     const hashedPassword = await bcrypt.hash(defaultPassword, 12);
     
-    await prisma.user.create({
+    defaultUser = await prisma.user.create({
       data: {
         name: 'Default User',
         email: 'user@loctelli.com',
@@ -117,6 +118,75 @@ Do not use the [BOOKING_CONFIRMATION] marker unless a booking is truly confirmed
     console.log('Default password: ' + defaultPassword);
   } else {
     console.log('Default user already exists');
+  }
+
+  // Create a default strategy if none exists
+  const existingStrategy = await prisma.strategy.findFirst();
+  if (!existingStrategy) {
+    console.log('Creating default strategy...');
+    
+    const defaultTemplate = await prisma.promptTemplate.findFirst({
+      where: { isActive: true }
+    });
+    
+    if (!defaultTemplate) {
+      console.log('No active prompt template found, skipping strategy creation');
+    } else {
+      await prisma.strategy.create({
+        data: {
+          name: 'Default Sales Strategy',
+          tag: 'general',
+          tone: 'professional',
+          aiInstructions: 'Engage leads professionally and helpfully. Ask qualifying questions to understand their needs.',
+          objectionHandling: 'Listen to concerns and address them directly. Offer solutions that match their needs.',
+          qualificationPriority: 'budget, timeline, decision_maker',
+          creativity: 7,
+          aiObjective: 'Qualify leads and guide them toward booking a consultation',
+          disqualificationCriteria: 'Not interested, wrong contact, no budget',
+          delayMin: 30,
+          delayMax: 120,
+          userId: defaultUser.id,
+          subAccountId: defaultSubAccount.id,
+          promptTemplateId: defaultTemplate.id,
+        },
+      });
+      
+      console.log('Default strategy created successfully');
+    }
+  } else {
+    console.log('Default strategy already exists');
+  }
+
+  // Create a default lead if none exists
+  const existingLead = await prisma.lead.findFirst();
+  if (!existingLead) {
+    console.log('Creating default lead...');
+    
+    const defaultStrategy = await prisma.strategy.findFirst();
+    
+    if (!defaultStrategy) {
+      console.log('No strategy found, skipping lead creation');
+    } else {
+      await prisma.lead.create({
+        data: {
+          name: 'John Doe',
+          email: 'john.doe@example.com',
+          phone: '+1234567890',
+          company: 'Example Corp',
+          position: 'Manager',
+          customId: 'LEAD001',
+          status: 'lead',
+          notes: 'Sample lead for testing purposes',
+          userId: defaultUser.id,
+          strategyId: defaultStrategy.id,
+          subAccountId: defaultSubAccount.id,
+        },
+      });
+      
+      console.log('Default lead created successfully');
+    }
+  } else {
+    console.log('Default lead already exists');
   }
 
   console.log('Database seed completed');

@@ -234,14 +234,14 @@ export default function EditBookingPage() {
               <div className="space-y-2">
                 <Label htmlFor="leadId">Lead</Label>
                 <Select
-                  value={formData.leadId?.toString() || ''}
-                  onValueChange={(value) => handleInputChange('leadId', value ? Number(value) : undefined)}
+                  value={formData.leadId?.toString() || 'no-lead'}
+                  onValueChange={(value) => handleInputChange('leadId', value === 'no-lead' ? undefined : Number(value))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a lead (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No lead</SelectItem>
+                    <SelectItem value="no-lead">No lead</SelectItem>
                     {leads.map((lead) => (
                       <SelectItem key={lead.id} value={lead.id.toString()}>
                         {lead.name} ({lead.company || 'No company'})

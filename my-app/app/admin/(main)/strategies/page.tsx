@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { Strategy } from '@/types';
 import logger from '@/lib/logger';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
 
 interface StrategyStats {
   totalStrategies: number;
@@ -31,6 +32,7 @@ interface StrategyStats {
 }
 
 export default function StrategiesPage() {
+  const { currentFilter, getCurrentSubaccount } = useSubaccountFilter();
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [filteredStrategies, setFilteredStrategies] = useState<Strategy[]>([]);
   const [stats, setStats] = useState<StrategyStats>({
@@ -45,8 +47,6 @@ export default function StrategiesPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [tagFilter, setTagFilter] = useState<string>('all');
-  const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
-  const [selectedSubAccountId, setSelectedSubAccountId] = useState<number>(0);
 
   const calculateStats = (strategiesData: Strategy[]) => {
     const stats = {
@@ -62,7 +62,10 @@ export default function StrategiesPage() {
     try {
       setIsRefreshing(true);
       setError(null);
-      const strategiesData = await api.strategies.getStrategies(selectedSubAccountId > 0 ? { subAccountId: selectedSubAccountId } : undefined);
+      const currentSubaccount = getCurrentSubaccount();
+      const strategiesData = await api.strategies.getStrategies(
+        currentSubaccount ? { subAccountId: currentSubaccount.id } : undefined
+      );
       setStrategies(strategiesData);
       calculateStats(strategiesData);
     } catch (error) {
@@ -72,19 +75,7 @@ export default function StrategiesPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [selectedSubAccountId]);
-
-  const loadSubAccounts = useCallback(async () => {
-    try {
-      const subAccountsData = await api.adminSubAccounts.getAllSubAccounts();
-      setSubAccounts(subAccountsData);
-      if (subAccountsData.length > 0 && selectedSubAccountId === 0) {
-        setSelectedSubAccountId(subAccountsData[0].id);
-      }
-    } catch (error) {
-      logger.error('Failed to load SubAccounts', error);
-    }
-  }, [selectedSubAccountId]);
+  }, [currentFilter, getCurrentSubaccount]);
 
   const filterStrategies = useCallback(() => {
     let filtered = strategies;
@@ -109,8 +100,7 @@ export default function StrategiesPage() {
 
   useEffect(() => {
     loadStrategies();
-    loadSubAccounts();
-  }, [loadStrategies, loadSubAccounts]);
+  }, [loadStrategies]);
 
   useEffect(() => {
     filterStrategies();
@@ -177,8 +167,6 @@ export default function StrategiesPage() {
       </div>
     );
   }
-
-
 
   return (
     <div className="space-y-6">
@@ -259,49 +247,35 @@ export default function StrategiesPage() {
       <Card>
         <CardHeader>
           <CardTitle>Search & Filters</CardTitle>
-          <CardDescription>Find specific strategies or filter by criteria</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  type="text"
-                  placeholder="Search strategies by name, tag, tone, or objective..."
-                  className="pl-10"
+                  placeholder="Search strategies..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
                 />
               </div>
             </div>
             <Select
-              value={selectedSubAccountId.toString()}
-              onValueChange={(value) => setSelectedSubAccountId(parseInt(value))}
+              value={tagFilter}
+              onValueChange={setTagFilter}
             >
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Select SubAccount" />
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Tag" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="0">All SubAccounts</SelectItem>
-                {subAccounts.map((subAccount) => (
-                  <SelectItem key={subAccount.id} value={subAccount.id.toString()}>
-                    {subAccount.name}
-                  </SelectItem>
-                ))}
+                <SelectItem value="all">All Tags</SelectItem>
+                <SelectItem value="sales">Sales</SelectItem>
+                <SelectItem value="support">Support</SelectItem>
+                <SelectItem value="onboarding">Onboarding</SelectItem>
+                <SelectItem value="follow-up">Follow-up</SelectItem>
               </SelectContent>
             </Select>
-            <select
-              value={tagFilter}
-              onChange={(e) => setTagFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Tags</option>
-              <option value="sales">Sales</option>
-              <option value="support">Support</option>
-              <option value="onboarding">Onboarding</option>
-              <option value="follow-up">Follow-up</option>
-            </select>
           </div>
         </CardContent>
       </Card>

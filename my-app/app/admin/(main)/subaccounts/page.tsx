@@ -7,10 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Eye, Edit, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
-import type { SubAccount, CreateSubAccountDto } from '@/lib/api';
+import type { SubAccount, CreateSubAccountDto, UpdateSubAccountDto } from '@/lib/api';
 import { CreateSubAccountDialog } from './create-subaccount-dialog';
 import { EditSubAccountDialog } from './edit-subaccount-dialog';
-import { useRouter } from 'next/navigation';
+import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
 
 export default function SubAccountsPage() {
   const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
@@ -18,7 +18,7 @@ export default function SubAccountsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingSubAccount, setEditingSubAccount] = useState<SubAccount | null>(null);
-  const router = useRouter();
+  const { setFilter } = useSubaccountFilter();
 
   const loadSubAccounts = async () => {
     try {
@@ -46,7 +46,7 @@ export default function SubAccountsPage() {
     }
   };
 
-  const handleUpdateSubAccount = async (id: number, formData: CreateSubAccountDto) => {
+  const handleUpdateSubAccount = async (id: number, formData: UpdateSubAccountDto) => {
     try {
       await api.adminSubAccounts.updateSubAccount(id, formData);
       toast.success('SubAccount updated successfully');
@@ -75,6 +75,11 @@ export default function SubAccountsPage() {
   const openEditDialog = (subAccount: SubAccount) => {
     setEditingSubAccount(subAccount);
     setIsEditDialogOpen(true);
+  };
+
+  const handleViewDetails = (subAccount: SubAccount) => {
+    setFilter(subAccount.id.toString());
+    toast.success(`Filtered to ${subAccount.name}`);
   };
 
   if (isLoading) {
@@ -130,7 +135,7 @@ export default function SubAccountsPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => router.push(`/admin/subaccounts/${subAccount.id}`)}
+                  onClick={() => handleViewDetails(subAccount)}
                 >
                   <Eye className="h-4 w-4 mr-1" />
                   View Details

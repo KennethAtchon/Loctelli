@@ -23,6 +23,7 @@ import { Lead } from '@/types';
 import { DetailedLead } from '@/lib/api/endpoints/admin-auth';
 import logger from '@/lib/logger';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
 
 interface LeadStats {
   totalLeads: number;
@@ -32,6 +33,7 @@ interface LeadStats {
 }
 
 export default function LeadsPage() {
+  const { currentFilter, getCurrentSubaccount } = useSubaccountFilter();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
   const [stats, setStats] = useState<LeadStats>({
@@ -47,15 +49,13 @@ export default function LeadsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLead, setSelectedLead] = useState<DetailedLead | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
-  const [selectedSubAccountId, setSelectedSubAccountId] = useState<number>(0);
 
   const calculateStats = (leadsData: Lead[]) => {
     const stats = {
       totalLeads: leadsData.length,
-      activeLeads: leadsData.filter(c => c.status === 'active').length,
-      leadLeads: leadsData.filter(c => c.status === 'lead').length,
-      inactiveLeads: leadsData.filter(c => c.status === 'inactive').length,
+      activeLeads: leadsData.filter(l => l.status === 'active').length,
+      leadLeads: leadsData.filter(l => l.status === 'lead').length,
+      inactiveLeads: leadsData.filter(l => l.status === 'inactive').length,
     };
     setStats(stats);
   };
@@ -64,7 +64,10 @@ export default function LeadsPage() {
     try {
       setIsRefreshing(true);
       setError(null);
-      const leadsData = await api.leads.getLeads(selectedSubAccountId > 0 ? { subAccountId: selectedSubAccountId } : undefined);
+      const currentSubaccount = getCurrentSubaccount();
+      const leadsData = await api.leads.getLeads(
+        currentSubaccount ? { subAccountId: currentSubaccount.id } : undefined
+      );
       setLeads(leadsData);
       calculateStats(leadsData);
     } catch (error) {
@@ -74,19 +77,7 @@ export default function LeadsPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [selectedSubAccountId]);
-
-  const loadSubAccounts = useCallback(async () => {
-    try {
-      const subAccountsData = await api.adminSubAccounts.getAllSubAccounts();
-      setSubAccounts(subAccountsData);
-      if (subAccountsData.length > 0 && selectedSubAccountId === 0) {
-        setSelectedSubAccountId(subAccountsData[0].id);
-      }
-    } catch (error) {
-      logger.error('Failed to load SubAccounts', error);
-    }
-  }, [selectedSubAccountId]);
+  }, [currentFilter, getCurrentSubaccount]);
 
   const filterLeads = useCallback(() => {
     let filtered = leads;
@@ -97,7 +88,7 @@ export default function LeadsPage() {
         lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         lead.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         lead.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lead.phone?.includes(searchTerm)
+        lead.phone?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -111,8 +102,7 @@ export default function LeadsPage() {
 
   useEffect(() => {
     loadLeads();
-    loadSubAccounts();
-  }, [loadLeads, loadSubAccounts]);
+  }, [loadLeads]);
 
   useEffect(() => {
     filterLeads();
@@ -164,8 +154,9 @@ export default function LeadsPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateInput: string | Date) => {
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -181,8 +172,6 @@ export default function LeadsPage() {
       </div>
     );
   }
-
-
 
   return (
     <div className="space-y-6">
@@ -263,48 +252,34 @@ export default function LeadsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Search & Filters</CardTitle>
-          <CardDescription>Find specific leads or filter by criteria</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  type="text"
-                  placeholder="Search leads by name, email, or company..."
-                  className="pl-10"
+                  placeholder="Search leads..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
                 />
               </div>
             </div>
             <Select
-              value={selectedSubAccountId.toString()}
-              onValueChange={(value) => setSelectedSubAccountId(parseInt(value))}
+              value={statusFilter}
+              onValueChange={setStatusFilter}
             >
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Select SubAccount" />
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="0">All SubAccounts</SelectItem>
-                {subAccounts.map((subAccount) => (
-                  <SelectItem key={subAccount.id} value={subAccount.id.toString()}>
-                    {subAccount.name}
-                  </SelectItem>
-                ))}
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="lead">Lead</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="lead">Lead</option>
-              <option value="inactive">Inactive</option>
-            </select>
           </div>
         </CardContent>
       </Card>

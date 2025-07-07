@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Plus, Search, Edit, Trash2, Eye, RefreshCw, Users, UserCheck, UserX, UserPlus } from 'lucide-react';
 import logger from '@/lib/logger';
+import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
 
 interface UserStats {
   totalUsers: number;
@@ -26,6 +27,7 @@ interface UserStats {
 }
 
 export default function UsersPage() {
+  const { currentFilter, getCurrentSubaccount } = useSubaccountFilter();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [stats, setStats] = useState<UserStats>({
@@ -36,8 +38,8 @@ export default function UsersPage() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
+  const [success, setSuccess] = useState<string>('');
+  const [error, setError] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -45,8 +47,6 @@ export default function UsersPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
   const [selectedUser, setSelectedUser] = useState<DetailedUser | null>(null);
-  const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
-  const [selectedSubAccountId, setSelectedSubAccountId] = useState<number>(0);
   const [createFormData, setCreateFormData] = useState<CreateUserDto>({
     name: '',
     email: '',
@@ -82,25 +82,13 @@ export default function UsersPage() {
       setUsers(usersData);
       calculateStats(usersData);
     } catch (error) {
-      logger.error('Failed to load users', error);
-      setError('Failed to load users. Please try again.');
+      logger.error('Failed to load users:', error);
+      setError('Failed to load users');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
     }
   }, []);
-
-  const loadSubAccounts = useCallback(async () => {
-    try {
-      const subAccountsData = await api.adminSubAccounts.getAllSubAccounts();
-      setSubAccounts(subAccountsData);
-      if (subAccountsData.length > 0 && selectedSubAccountId === 0) {
-        setSelectedSubAccountId(subAccountsData[0].id);
-      }
-    } catch (error) {
-      logger.error('Failed to load SubAccounts', error);
-    }
-  }, [selectedSubAccountId]);
 
   const filterUsers = useCallback(() => {
     let filtered = users;
@@ -121,9 +109,8 @@ export default function UsersPage() {
 
     // Apply status filter
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(user => 
-        statusFilter === 'active' ? user.isActive : !user.isActive
-      );
+      const isActive = statusFilter === 'active';
+      filtered = filtered.filter(user => user.isActive === isActive);
     }
 
     setFilteredUsers(filtered);
@@ -131,14 +118,13 @@ export default function UsersPage() {
 
   useEffect(() => {
     loadUsers();
-    loadSubAccounts();
-  }, [loadUsers, loadSubAccounts]);
+  }, [loadUsers]);
 
   useEffect(() => {
     filterUsers();
   }, [filterUsers]);
 
-  // Cleanup success message on unmount
+  // Cleanup success/error messages on unmount
   useEffect(() => {
     return () => {
       setSuccess('');
@@ -157,7 +143,8 @@ export default function UsersPage() {
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedSubAccountId === 0) {
+    const currentSubaccount = getCurrentSubaccount();
+    if (!currentSubaccount) {
       setError('Please select a SubAccount');
       return;
     }
@@ -165,7 +152,7 @@ export default function UsersPage() {
       setError('');
       await api.adminAuth.createUser({
         ...createFormData,
-        subAccountId: selectedSubAccountId,
+        subAccountId: currentSubaccount.id,
       });
       setSuccess('User created successfully');
       setIsCreateDialogOpen(false);
@@ -338,24 +325,6 @@ export default function UsersPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="subAccount">SubAccount *</Label>
-                  <Select
-                    value={selectedSubAccountId.toString()}
-                    onValueChange={(value) => setSelectedSubAccountId(parseInt(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a SubAccount" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {subAccounts.map((subAccount) => (
-                        <SelectItem key={subAccount.id} value={subAccount.id.toString()}>
-                          {subAccount.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="booking-enabled"
@@ -423,19 +392,17 @@ export default function UsersPage() {
       <Card>
         <CardHeader>
           <CardTitle>Search & Filters</CardTitle>
-          <CardDescription>Find specific users or filter by criteria</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  type="text"
-                  placeholder="Search users by name, email, or company..."
-                  className="pl-10"
+                  placeholder="Search users..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
                 />
               </div>
             </div>
@@ -474,6 +441,7 @@ export default function UsersPage() {
         </Alert>
       )}
 
+      {/* Users Table */}
       <Card>
         <CardHeader>
           <CardTitle>All Users ({filteredUsers.length})</CardTitle>

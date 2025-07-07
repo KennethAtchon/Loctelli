@@ -21,6 +21,7 @@ import { Search, Eye, RefreshCw, Calendar, Clock, User, Building, Edit } from 'l
 import { Booking } from '@/types';
 import logger from '@/lib/logger';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
 
 interface BookingStats {
   totalBookings: number;
@@ -30,6 +31,7 @@ interface BookingStats {
 }
 
 export default function BookingsPage() {
+  const { currentFilter, getCurrentSubaccount } = useSubaccountFilter();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [stats, setStats] = useState<BookingStats>({
@@ -46,8 +48,6 @@ export default function BookingsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [updatingStatus, setUpdatingStatus] = useState<number | null>(null);
-  const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
-  const [selectedSubAccountId, setSelectedSubAccountId] = useState<number>(0);
 
   const calculateStats = (bookingsData: Booking[]) => {
     const stats = {
@@ -63,7 +63,10 @@ export default function BookingsPage() {
     try {
       setIsRefreshing(true);
       setError(null);
-      const bookingsData = await api.bookings.getBookings(selectedSubAccountId > 0 ? { subAccountId: selectedSubAccountId } : undefined);
+      const currentSubaccount = getCurrentSubaccount();
+      const bookingsData = await api.bookings.getBookings(
+        currentSubaccount ? { subAccountId: currentSubaccount.id } : undefined
+      );
       setBookings(bookingsData);
       calculateStats(bookingsData);
     } catch (error) {
@@ -73,19 +76,7 @@ export default function BookingsPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [selectedSubAccountId]);
-
-  const loadSubAccounts = useCallback(async () => {
-    try {
-      const subAccountsData = await api.adminSubAccounts.getAllSubAccounts();
-      setSubAccounts(subAccountsData);
-      if (subAccountsData.length > 0 && selectedSubAccountId === 0) {
-        setSelectedSubAccountId(subAccountsData[0].id);
-      }
-    } catch (error) {
-      logger.error('Failed to load SubAccounts', error);
-    }
-  }, [selectedSubAccountId]);
+  }, [currentFilter, getCurrentSubaccount]);
 
   const filterBookings = useCallback(() => {
     let filtered = bookings;
@@ -116,8 +107,7 @@ export default function BookingsPage() {
 
   useEffect(() => {
     loadBookings();
-    loadSubAccounts();
-  }, [loadBookings, loadSubAccounts]);
+  }, [loadBookings]);
 
   useEffect(() => {
     filterBookings();
@@ -227,8 +217,6 @@ export default function BookingsPage() {
     );
   }
 
-
-
   return (
     <div className="space-y-6">
       {error && (
@@ -302,58 +290,48 @@ export default function BookingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Search & Filters</CardTitle>
-          <CardDescription>Find specific bookings or filter by criteria</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  type="text"
-                  placeholder="Search bookings by lead, user, or type..."
-                  className="pl-10"
+                  placeholder="Search bookings..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
                 />
               </div>
             </div>
             <Select
-              value={selectedSubAccountId.toString()}
-              onValueChange={(value) => setSelectedSubAccountId(parseInt(value))}
+              value={statusFilter}
+              onValueChange={setStatusFilter}
             >
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Select SubAccount" />
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="0">All SubAccounts</SelectItem>
-                {subAccounts.map((subAccount) => (
-                  <SelectItem key={subAccount.id} value={subAccount.id.toString()}>
-                    {subAccount.name}
-                  </SelectItem>
-                ))}
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="confirmed">Confirmed</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
               </SelectContent>
             </Select>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Status</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="pending">Pending</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-            <select
+            <Select
               value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onValueChange={setTypeFilter}
             >
-              <option value="all">All Types</option>
-              <option value="consultation">Consultation</option>
-              <option value="meeting">Meeting</option>
-              <option value="demo">Demo</option>
-            </select>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="consultation">Consultation</SelectItem>
+                <SelectItem value="meeting">Meeting</SelectItem>
+                <SelectItem value="demo">Demo</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
