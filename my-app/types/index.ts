@@ -15,6 +15,7 @@ export interface User {
   lastLoginAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+  subAccountId: number;
   strategies?: Strategy[];
   leads?: Lead[];
   bookings?: Booking[];
@@ -24,6 +25,7 @@ export interface User {
 export interface Strategy {
   id: number;
   userId: number;
+  subAccountId: number;
   name: string;
   tag?: string;
   tone?: string;
@@ -48,27 +50,7 @@ export interface Lead {
   id: number;
   userId: number;
   strategyId: number;
-  name: string;
-  email?: string;
-  phone?: string;
-  company?: string;
-  position?: string;
-  customId?: string;
-  messageHistory?: any;
-  status: string;
-  notes?: string;
-  lastMessage?: string;
-  lastMessageDate?: string;
-  user?: User;
-  strategy?: Strategy;
-  bookings?: Booking[];
-}
-
-// Lead types (belong to Users)
-export interface Lead {
-  id: number;
-  userId: number;
-  strategyId: number;
+  subAccountId: number;
   name: string;
   email?: string;
   phone?: string;
@@ -90,6 +72,7 @@ export interface Booking {
   id: number;
   userId: number;
   leadId?: number;
+  subAccountId: number;
   bookingType: string;
   details: any;
   status: string;
@@ -126,10 +109,12 @@ export interface CreateUserDto {
   calendarId?: string;
   locationId?: string;
   assignedUserId?: string;
+  subAccountId: number;
 }
 
 export interface CreateStrategyDto {
   userId: number;
+  subAccountId: number;
   name: string;
   tag?: string;
   tone?: string;
@@ -148,22 +133,7 @@ export interface CreateStrategyDto {
 export interface CreateLeadDto {
   userId: number;
   strategyId: number;
-  name: string;
-  email?: string;
-  phone?: string;
-  company?: string;
-  position?: string;
-  customId?: string;
-  status?: string;
-  notes?: string;
-  messages?: any;
-  lastMessage?: string;
-  lastMessageDate?: string;
-}
-
-export interface CreateLeadDto {
-  userId: number;
-  strategyId: number;
+  subAccountId: number;
   name: string;
   email?: string;
   phone?: string;
@@ -180,6 +150,7 @@ export interface CreateLeadDto {
 export interface CreateBookingDto {
   userId: number;
   leadId?: number;
+  subAccountId: number;
   bookingType: string;
   details: any;
   status?: string;

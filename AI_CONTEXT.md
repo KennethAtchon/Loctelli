@@ -198,6 +198,13 @@
 
 #### **12. Chat System Fixes - CRITICAL BUG RESOLUTION**
 - **Fixed**: Chat history not loading when lead is selected
+- **Implemented**: Subaccount filtering for chat page ✅
+  - Chat page now respects global subaccount filter from admin header
+  - Leads dropdown filtered by current subaccount selection
+  - Automatic lead deselection when switching subaccounts (if lead doesn't belong to new subaccount)
+  - Uses existing global subaccount filter instead of duplicate component
+  - Updated Lead, User, Strategy, and Booking interfaces to include subAccountId field
+  - Backend API already supports subaccount filtering via subAccountId parameter
 - **Fixed**: Message format mismatch between frontend and backend
 - **Fixed**: Bot not reading previous messages and repeating greetings
 - **Fixed**: Double message processing causing duplication

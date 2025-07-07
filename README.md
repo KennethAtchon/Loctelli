@@ -167,6 +167,7 @@ Loctelli/
 - **Fixed Docker Build Issues**: Resolved package dependency conflicts and naming inconsistencies
 - **Cleaned API Client Naming**: Fixed class naming from migration (Apilead → ApiClient)
 - **Updated Prisma Dependencies**: Fixed invalid package references and generator configuration
+- **Implemented Chat Subaccount Filtering**: Chat page now respects global subaccount filter from admin header, automatically filtering leads by selected subaccount and clearing selected lead when switching subaccounts
 
 ## **Prompt Template & Strategy Integration**
 
