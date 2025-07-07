@@ -70,12 +70,8 @@ export class UsersService {
   }
 
   async findAllByAdmin(adminId: number) {
+    // All admins can see all users
     return this.prisma.user.findMany({
-      where: {
-        subAccount: {
-          createdByAdminId: adminId
-        }
-      },
       select: {
         id: true,
         name: true,

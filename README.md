@@ -737,6 +737,7 @@ All frontend and backend endpoints have been verified and are fully aligned:
 - **Authorization Working**: 100% ✅
 
 **Recent Fixes Applied:**
+- **Fixed Admin Access Control**: Resolved issue where non-first admin users couldn't see default data (users, leads, strategies, bookings, subaccounts). All admins now have full access to all data with no isolation between admin users.
 - Fixed admin profile update HTTP method (PATCH → PUT)
 - Added missing budget field to user registration form
 - Verified all DTO structures match between frontend and backend

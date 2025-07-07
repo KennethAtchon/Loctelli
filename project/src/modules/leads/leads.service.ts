@@ -38,12 +38,8 @@ export class LeadsService {
   }
 
   async findAllByAdmin(adminId: number) {
+    // All admins can see all leads
     return this.prisma.lead.findMany({
-      where: {
-        subAccount: {
-          createdByAdminId: adminId
-        }
-      },
       include: {
         user: true,
         strategy: true,

@@ -196,7 +196,47 @@
   - Clear visual indication of current filter
   - Seamless integration with existing admin interface
 
-#### **12. Chat System Fixes - CRITICAL BUG RESOLUTION**
+#### **14. Admin Access Control Fix - CRITICAL BUG RESOLUTION**
+- **Fixed**: Non-first admin users unable to see default data (users, leads, strategies, bookings, subaccounts)
+- **Fixed**: Subaccount filtering only showing data created by the current admin
+- **Root Cause**: Backend services were filtering data by `createdByAdminId` instead of allowing all admins full access
+
+**Comprehensive Backend Changes:**
+- **Updated**: `SubAccountsService.findAll()` to allow all admins to see all subaccounts
+- **Updated**: `SubAccountsService.findOne()`, `update()`, `remove()`, `validateSubAccountAccess()` to remove `createdByAdminId` filtering
+- **Updated**: `StrategiesService.findAllByAdmin()` to allow all admins to see all strategies
+- **Updated**: `LeadsService.findAllByAdmin()` to allow all admins to see all leads
+- **Updated**: `BookingsService.findAllByAdmin()` to allow all admins to see all bookings
+- **Updated**: `UsersService.findAllByAdmin()` to allow all admins to see all users
+- **Updated**: `AdminAuthService.getAllUsers()` to allow all admins to see all users
+- **Updated**: `AdminAuthService.createUser()` to use default subaccount instead of admin-specific subaccount
+- **Updated**: All corresponding service methods to remove `createdByAdminId` filtering
+
+**Appropriate Usage of `createdByAdminId`:**
+- **Creation Tracking**: Still used to track which admin created subaccounts, users, and prompt templates
+- **Cleanup Operations**: Used in `deleteAdminAccount()` to clean up references when deleting admins
+- **Display Purposes**: Frontend uses it to show which admin created items (for informational purposes only)
+- **No Access Filtering**: Never used to restrict access or filter data visibility
+
+**Access Control:**
+- **All Admins**: Can see and manage all subaccounts and their data (users, leads, strategies, bookings)
+- **Full Access**: No data isolation between admins - all admins have complete access to everything
+- **Subaccount Management**: All admins can create, edit, delete, and view all subaccounts
+
+**Test Updates:**
+- **Updated**: SubAccounts service tests to reflect new non-filtering behavior
+- **Verified**: All remaining `createdByAdminId` usage is for appropriate purposes only
+
+**Frontend Integration:**
+- **Subaccount Filter**: Already properly implemented and working with backend filtering
+- **Dashboard**: Uses `currentFilter` from subaccount context to show appropriate data
+- **Users Page**: Uses `currentFilter` to load users for current subaccount or global view
+- **Leads Page**: Uses subaccount context to filter leads appropriately
+- **All Pages**: Properly respect subaccount filter and admin permissions
+
+**Result**: All admin users can now see all default data and subaccounts with full access to everything ✅
+
+#### **13. Chat System Fixes - CRITICAL BUG RESOLUTION**
 - **Fixed**: Chat history not loading when lead is selected
 
 #### **13. Subaccount Filter Context Updates - CRITICAL BUG RESOLUTION**

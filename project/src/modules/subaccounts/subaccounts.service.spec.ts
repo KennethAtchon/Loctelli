@@ -105,7 +105,6 @@ describe('SubAccountsService', () => {
       const result = await service.findAll(adminId);
 
       expect(mockPrismaService.subAccount.findMany).toHaveBeenCalledWith({
-        where: { createdByAdminId: adminId },
         include: {
           createdByAdmin: {
             select: { id: true, name: true, email: true }
@@ -140,7 +139,7 @@ describe('SubAccountsService', () => {
       const result = await service.findOne(subAccountId, adminId);
 
       expect(mockPrismaService.subAccount.findFirst).toHaveBeenCalledWith({
-        where: { id: subAccountId, createdByAdminId: adminId },
+        where: { id: subAccountId },
         include: {
           createdByAdmin: {
             select: { id: true, name: true, email: true }
@@ -292,7 +291,7 @@ describe('SubAccountsService', () => {
       const result = await service.validateSubAccountAccess(adminId, subAccountId, 'admin');
 
       expect(mockPrismaService.subAccount.findFirst).toHaveBeenCalledWith({
-        where: { id: subAccountId, createdByAdminId: adminId }
+        where: { id: subAccountId }
       });
       expect(result).toEqual(expectedSubAccount);
     });

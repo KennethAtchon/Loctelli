@@ -25,8 +25,8 @@ export class SubAccountsService {
   }
 
   async findAll(adminId: number) {
+    // All admins can see all subaccounts
     return this.prisma.subAccount.findMany({
-      where: { createdByAdminId: adminId },
       include: {
         createdByAdmin: {
           select: { id: true, name: true, email: true }
@@ -41,7 +41,7 @@ export class SubAccountsService {
 
   async findOne(id: number, adminId: number) {
     const subAccount = await this.prisma.subAccount.findFirst({
-      where: { id, createdByAdminId: adminId },
+      where: { id },
       include: {
         createdByAdmin: {
           select: { id: true, name: true, email: true }
@@ -94,7 +94,7 @@ export class SubAccountsService {
 
   async update(id: number, adminId: number, updateSubAccountDto: UpdateSubAccountDto) {
     const subAccount = await this.prisma.subAccount.findFirst({
-      where: { id, createdByAdminId: adminId }
+      where: { id }
     });
 
     if (!subAccount) {
@@ -114,7 +114,7 @@ export class SubAccountsService {
 
   async remove(id: number, adminId: number) {
     const subAccount = await this.prisma.subAccount.findFirst({
-      where: { id, createdByAdminId: adminId }
+      where: { id }
     });
 
     if (!subAccount) {
@@ -129,11 +129,12 @@ export class SubAccountsService {
   // Helper method to validate SubAccount access
   async validateSubAccountAccess(userId: number, subAccountId: number, userType: 'admin' | 'user') {
     if (userType === 'admin') {
+      // All admins can access any subaccount
       const subAccount = await this.prisma.subAccount.findFirst({
-        where: { id: subAccountId, createdByAdminId: userId }
+        where: { id: subAccountId }
       });
       if (!subAccount) {
-        throw new ForbiddenException('Access denied to SubAccount');
+        throw new ForbiddenException('SubAccount not found');
       }
       return subAccount;
     } else {

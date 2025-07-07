@@ -243,14 +243,14 @@ export class AdminAuthService {
       throw new ConflictException('User with this email already exists');
     }
 
-    // Get default SubAccount for this admin if not provided
+    // Get default SubAccount if not provided
     let subAccountId = userData.subAccountId;
     if (!subAccountId) {
       const defaultSubAccount = await this.prisma.subAccount.findFirst({
-        where: { createdByAdminId: adminId },
+        where: { name: 'Default SubAccount' },
       });
       if (!defaultSubAccount) {
-        throw new BadRequestException('No SubAccount available for user creation');
+        throw new BadRequestException('No default SubAccount available for user creation');
       }
       subAccountId = defaultSubAccount.id;
     }
@@ -362,10 +362,7 @@ export class AdminAuthService {
       // Filter by specific subaccount
       whereClause.subAccountId = subaccountId;
     } else {
-      // Filter by all subaccounts owned by this admin
-      whereClause.subAccount = {
-        createdByAdminId: adminId
-      };
+      // All admins can see all users (no additional filtering needed)
     }
 
     return this.prisma.user.findMany({

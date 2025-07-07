@@ -36,12 +36,8 @@ export class BookingsService {
   }
 
   async findAllByAdmin(adminId: number) {
+    // All admins can see all bookings
     return this.prisma.booking.findMany({
-      where: {
-        subAccount: {
-          createdByAdminId: adminId
-        }
-      },
       include: {
         user: true,
         lead: true,
