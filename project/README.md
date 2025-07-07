@@ -31,6 +31,21 @@
 $ npm install
 ```
 
+## Database
+
+The project uses PostgreSQL with Prisma as the ORM. The database schema is defined in `prisma/schema.prisma`.
+
+### Seed Data
+
+Default data for development and testing is stored in `prisma/seed-data/defaults.ts` and seeded via `prisma/seed.ts`. This includes:
+- Default admin and user accounts
+- Default SubAccount
+- Default prompt template
+- Default integration templates (GoHighLevel, Facebook Ads, Google Analytics)
+- Default strategy and lead
+
+Run `npm run db:seed` to populate the database with default data.
+
 ## Database Setup
 
 This project uses Prisma for database management with automatic migrations. The application will automatically run migrations on startup.

@@ -14,6 +14,8 @@ import { LeadsModule } from '../modules/leads/leads.module';
 import { BookingsModule } from '../modules/bookings/bookings.module';
 import { ChatModule } from '../modules/chat/chat.module';
 import { PromptTemplatesModule } from '../modules/prompt-templates/prompt-templates.module';
+import { IntegrationTemplatesModule } from '../modules/integration-templates/integration-templates.module';
+import { IntegrationsModule } from '../modules/integrations/integrations.module';
 import { SubAccountsModule } from '../modules/subaccounts/subaccounts.module';
 import { WebhooksModule } from '../webhooks/webhooks.module';
 import { StatusModule } from '../status/status.module';
@@ -41,6 +43,8 @@ import { JwtAuthGuard } from '../auth/auth.guard';
     BookingsModule,
     ChatModule,
     PromptTemplatesModule,
+    IntegrationTemplatesModule,
+    IntegrationsModule,
     SubAccountsModule,
     WebhooksModule,
     StatusModule,
