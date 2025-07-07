@@ -26,8 +26,9 @@ RUN npx prisma generate
 # Build the application
 RUN npm run build
 
-# Compile the seed script
+# Compile the seed script and seed data
 RUN npx tsc prisma/seed.ts --outDir dist/prisma --target es2020 --module commonjs --esModuleInterop --skipLibCheck
+RUN npx tsc prisma/seed-data/defaults.ts --outDir dist/prisma/seed-data --target es2020 --module commonjs --esModuleInterop --skipLibCheck
 
 # Production stage
 FROM node:20-slim AS production
@@ -53,8 +54,9 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 # Copy Prisma schema and migrations
 COPY --from=builder /app/prisma ./prisma
 
-# Copy compiled seed script
+# Copy compiled seed script and seed data
 COPY --from=builder /app/dist/prisma/seed.js ./prisma/seed.js
+COPY --from=builder /app/dist/prisma/seed-data ./prisma/seed-data
 
 # Copy startup script
 COPY start.sh ./

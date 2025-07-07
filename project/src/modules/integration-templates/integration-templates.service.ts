@@ -157,10 +157,10 @@ export class IntegrationTemplatesService {
     this.logger.debug('Finding all active integration templates');
     return this.prisma.integrationTemplate.findMany({
       where: { isActive: true },
-      orderBy: {
-        category: 'asc',
-        displayName: 'asc',
-      },
+      orderBy: [
+        { category: 'asc' },
+        { displayName: 'asc' },
+      ],
     });
   }
 } 
