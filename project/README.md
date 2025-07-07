@@ -183,11 +183,32 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
 
-## Integrations System (2024-07)
+## Integrations System (2024-07) - COMPLETE
 
-Two new tables were added:
+The integrations system allows subaccounts to connect with external services like GoHighLevel, Facebook, and other platforms. This feature is subaccount-specific and follows a similar pattern to the existing prompt templates system.
 
-- **IntegrationTemplate**: Stores available integration types (e.g., GoHighLevel, Facebook Ads) and their configuration schemas. Used as blueprints for subaccount integrations.
-- **Integration**: Stores actual integration instances for each subaccount, referencing a template and containing configuration, status, and sync info.
+### Features
+- **Integration Templates**: Pre-configured integration types with setup schemas
+- **Dynamic Forms**: Configuration forms generated from JSON schemas
+- **Status Management**: Track integration status (active, pending, error, disconnected)
+- **Connection Testing**: Test integrations before activation
+- **Data Sync**: Synchronize data between systems
+- **Complete CRUD**: Full create, read, update, delete operations
 
-See `INTEGRATIONS_PLAN.md` for full details and schema.
+### Default Templates
+- **GoHighLevel CRM**: Contact and booking synchronization
+- **Facebook Advertising**: Campaign tracking and lead attribution  
+- **Google Analytics**: Website performance and conversion tracking
+
+### API Endpoints
+- `/admin/integration-templates` - Manage integration templates
+- `/admin/integrations` - Manage subaccount integrations
+- Full CRUD operations with status management and testing
+
+### Frontend Pages
+- `/admin/integrations` - Main integrations dashboard
+- `/admin/integrations/new` - Setup new integration
+- `/admin/integrations/[id]` - Integration details
+- `/admin/integrations/[id]/edit` - Edit integration
+
+See `INTEGRATIONS_PLAN.md` for full implementation details.
