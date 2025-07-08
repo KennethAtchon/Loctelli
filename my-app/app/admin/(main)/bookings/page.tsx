@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
-import type { SubAccount } from '@/lib/api/endpoints/admin-subaccounts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -76,7 +75,7 @@ export default function BookingsPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [currentFilter, getCurrentSubaccount]);
+  }, [getCurrentSubaccount]);
 
   const filterBookings = useCallback(() => {
     let filtered = bookings;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -98,18 +98,7 @@ export default function AdminDashboardPage() {
   const [selectedUser, setSelectedUser] = useState<DetailedUser | null>(null);
   const [selectedlead, setSelectedlead] = useState<DetailedLead | null>(null);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, [currentFilter]);
-
-  // Cleanup error state on unmount
-  useEffect(() => {
-    return () => {
-      setError(null);
-    };
-  }, []);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       setIsRefreshing(true);
       setError(null);
@@ -128,7 +117,18 @@ export default function AdminDashboardPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  };
+  }, [currentFilter]);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
+
+  // Cleanup error state on unmount
+  useEffect(() => {
+    return () => {
+      setError(null);
+    };
+  }, []);
 
   const loadDetailedUser = async (userId: number) => {
     try {

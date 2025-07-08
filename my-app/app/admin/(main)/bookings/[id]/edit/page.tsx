@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { api } from '@/lib/api';
-import { Booking, CreateBookingDto } from '@/types';
+import { Booking, CreateBookingDto, Lead } from '@/types';
+import { UserProfile } from '@/lib/api/endpoints/admin-auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,8 +24,8 @@ export default function EditBookingPage() {
   const bookingId = Number(params.id);
 
   const [booking, setBooking] = useState<Booking | null>(null);
-  const [users, setUsers] = useState<any[]>([]);
-  const [leads, setLeads] = useState<any[]>([]);
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,7 +88,7 @@ export default function EditBookingPage() {
     }
   }, [bookingId, toast, currentFilter]);
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number | undefined) => {
     setFormData(prev => ({
       ...prev,
       [field]: value

@@ -47,7 +47,7 @@ export default function DevPage() {
       let headers: Record<string, string> = {};
       try {
         headers = JSON.parse(debugHeaders);
-      } catch (e) {
+      } catch {
         toast({
           title: 'Error',
           description: 'Invalid JSON in headers',
@@ -64,7 +64,7 @@ export default function DevPage() {
       if (['POST', 'PUT', 'PATCH'].includes(debugMethod) && debugBody.trim()) {
         try {
           options.body = debugBody;
-        } catch (e) {
+        } catch {
           toast({
             title: 'Error',
             description: 'Invalid request body',

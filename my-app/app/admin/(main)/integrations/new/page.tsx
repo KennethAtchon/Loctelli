@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Save, TestTube, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -35,9 +35,26 @@ export default function NewIntegrationPage() {
     config: {},
   });
 
+  const loadTemplates = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await api.integrationTemplates.getActive();
+      setTemplates(data);
+    } catch (error) {
+      console.error('Failed to load templates:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load integration templates',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
   useEffect(() => {
     loadTemplates();
-  }, []);
+  }, [loadTemplates]);
 
   useEffect(() => {
     // If template is pre-selected via URL param
@@ -55,23 +72,6 @@ export default function NewIntegrationPage() {
     }
   }, [searchParams, templates]);
 
-  const loadTemplates = async () => {
-    try {
-      setLoading(true);
-      const data = await api.integrationTemplates.getActive();
-      setTemplates(data);
-    } catch (error) {
-      console.error('Failed to load templates:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load integration templates',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleTemplateSelect = (template: IntegrationTemplate) => {
     setSelectedTemplate(template);
     setFormData(prev => ({
@@ -82,7 +82,7 @@ export default function NewIntegrationPage() {
     }));
   };
 
-  const handleConfigChange = (key: string, value: any) => {
+  const handleConfigChange = (key: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       config: {
@@ -172,7 +172,7 @@ export default function NewIntegrationPage() {
     }
   };
 
-  const renderConfigField = (key: string, schema: any) => {
+  const renderConfigField = (key: string, schema: { type: string; title?: string; description?: string }) => {
     const value = formData.config[key] || '';
     const isRequired = selectedTemplate?.configSchema.required?.includes(key);
 

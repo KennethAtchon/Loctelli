@@ -64,7 +64,7 @@ export default function EditIntegrationPage() {
     }
   };
 
-  const handleConfigChange = (key: string, value: any) => {
+  const handleConfigChange = (key: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       config: {
@@ -85,8 +85,8 @@ export default function EditIntegrationPage() {
     }
 
     // Validate required config fields
-    if (integration?.integrationTemplate?.configSchema?.required) {
-      const requiredFields = integration.integrationTemplate.configSchema.required;
+    if ((integration?.integrationTemplate as any)?.configSchema?.required) {
+      const requiredFields = (integration.integrationTemplate as any).configSchema.required;
       for (const field of requiredFields) {
         if (!formData.config?.[field] || formData.config[field].toString().trim() === '') {
           toast({
@@ -209,7 +209,7 @@ export default function EditIntegrationPage() {
     }
   };
 
-  const renderConfigField = (key: string, schema: any) => {
+  const renderConfigField = (key: string, schema: { type: string; title?: string; description?: string }) => {
     const value = formData.config?.[key] || '';
     const isRequired = integration?.integrationTemplate?.configSchema?.required?.includes(key);
 

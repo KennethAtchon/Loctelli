@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -32,6 +31,21 @@ interface ChatMessage {
   metadata?: {
     leadId?: number;
     leadName?: string;
+  };
+}
+
+interface ApiChatMessage {
+  role?: 'user' | 'assistant';
+  content?: string;
+  from?: 'bot' | 'user';
+  message?: string;
+  timestamp?: string;
+}
+
+interface ChatApiResponse {
+  aiMessage: {
+    content: string;
+    role: 'assistant';
   };
 }
 
@@ -157,37 +171,38 @@ export default function ChatPage() {
   const loadChatHistory = async (leadIdNum: number, leadName?: string) => {
     try {
       setIsLoadingHistory(true);
-      const history = await api.chat.getChatHistory(leadIdNum);
+      const history: unknown[] = await api.chat.getChatHistory(leadIdNum);
       
       logger.debug('Raw chat history from API:', history);
       
       // Convert backend message format to frontend format
-      const convertedMessages: ChatMessage[] = history.map((msg: any, index: number) => {
+      const convertedMessages: ChatMessage[] = history.map((msg: unknown, index: number) => {
+        const message = msg as ApiChatMessage;
         // Handle both old format (from/message) and new format (role/content)
         let role: 'user' | 'assistant';
         let content: string;
         
-        if (msg.role && msg.content) {
+        if (message.role && message.content) {
           // New format
-          role = msg.role === 'assistant' ? 'assistant' : 'user';
-          content = msg.content;
-        } else if (msg.from && msg.message) {
+          role = message.role === 'assistant' ? 'assistant' : 'user';
+          content = message.content;
+        } else if (message.from && message.message) {
           // Old format
-          role = msg.from === 'bot' ? 'assistant' : 'user';
-          content = msg.message;
+          role = message.from === 'bot' ? 'assistant' : 'user';
+          content = message.message;
         } else {
           // Fallback
           role = 'user';
-          content = msg.content || msg.message || '';
+          content = message.content || message.message || '';
         }
         
-        logger.debug(`Converting message ${index}:`, { original: msg, converted: { role, content } });
+        logger.debug(`Converting message ${index}:`, { original: message, converted: { role, content } });
         
         return {
           id: `${leadIdNum}-${index}`,
           role,
           content,
-          timestamp: new Date(msg.timestamp || Date.now()),
+          timestamp: new Date(message.timestamp || Date.now()),
           metadata: {
             leadId: leadIdNum,
             leadName: leadName
@@ -246,7 +261,7 @@ export default function ChatPage() {
         leadId: parseInt(selectedLeadId, 10),
         content: userMessage,
         role: 'user'
-      });
+      }) as ChatApiResponse;
 
       logger.debug('Chat API response:', response);
 
@@ -266,7 +281,7 @@ export default function ChatPage() {
 
       addMessage({
         role: 'assistant',
-        content: (response.aiMessage as any).content || 'No response received',
+        content: response.aiMessage?.content || 'No response received',
         metadata: {
           leadId: parseInt(selectedLeadId, 10),
           leadName: leadProfile?.name

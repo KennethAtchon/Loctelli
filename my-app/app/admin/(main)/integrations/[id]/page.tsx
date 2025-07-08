@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Edit, Trash2, TestTube, CheckCircle, AlertCircle, Settings, Calendar, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -387,13 +388,13 @@ export default function IntegrationDetailsPage() {
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">API Version</Label>
-                <p className="text-sm text-gray-900">{integration.integrationTemplate.apiVersion || 'N/A'}</p>
+                <p className="text-sm text-gray-900">{(integration.integrationTemplate as any).apiVersion || 'N/A'}</p>
               </div>
               
-              {integration.integrationTemplate.description && (
+              {(integration.integrationTemplate as any).description && (
                 <div>
                   <Label className="text-sm font-medium text-gray-700">Description</Label>
-                  <p className="text-sm text-gray-900">{integration.integrationTemplate.description}</p>
+                  <p className="text-sm text-gray-900">{(integration.integrationTemplate as any).description}</p>
                 </div>
               )}
             </CardContent>

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
 import type { CreateUserDto, UpdateUserDto } from '@/lib/api';
 import type { UserProfile, DetailedUser } from '@/lib/api/endpoints/admin-auth';
-import type { SubAccount } from '@/lib/api/endpoints/admin-subaccounts';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,7 +26,7 @@ interface UserStats {
 }
 
 export default function UsersPage() {
-  const { currentFilter, getCurrentSubaccount, availableSubaccounts } = useSubaccountFilter();
+  const { currentFilter, availableSubaccounts } = useSubaccountFilter();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [stats, setStats] = useState<UserStats>({
