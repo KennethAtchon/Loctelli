@@ -131,6 +131,7 @@ Loctelli/
 - **API Updates**: All API clients updated to support SubAccount parameters
 - **Data Filtering**: Complete SubAccount-based data isolation across all features
 - **Global Dashboard Filtering**: Admin dashboard with subaccount filtering system for easy context switching
+- **Modular Components**: Users page modularized with separate dialog components for better code organization
 
 ### **Integrations System - PLANNED 🔗**
 - **Multi-Service Integration**: Support for GoHighLevel CRM, Facebook Ads, Google Analytics, and more
