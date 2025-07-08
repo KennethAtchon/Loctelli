@@ -199,6 +199,22 @@
 #### **14. Admin Access Control Fix - CRITICAL BUG RESOLUTION**
 - **Fixed**: Non-first admin users unable to see default data (users, leads, strategies, bookings, subaccounts)
 
+#### **15. Admin UI Button Styling Consistency**
+- **Standardized**: All admin action buttons now follow consistent styling pattern
+- **View Buttons**: `variant="ghost"` for all view/show buttons across all admin pages
+- **Edit Buttons**: `variant="outline"` for all edit buttons across all admin pages  
+- **Delete Buttons**: `variant="destructive"` for all delete buttons across all admin pages
+- **Updated Pages**: 
+  - Users page (reference style) ✅
+  - Leads page ✅
+  - Strategies page ✅
+  - Bookings page ✅
+  - Prompt templates page ✅
+  - Subaccounts page ✅
+  - Dashboard page ✅
+  - Settings page (already consistent) ✅
+- **User Experience**: Consistent visual hierarchy and interaction patterns across all admin interfaces
+
 #### **15. Users Page Modularization - COMPLETED ✅**
 - **Implemented**: Modularized users page with separate dialog components
 - **Components Created**:

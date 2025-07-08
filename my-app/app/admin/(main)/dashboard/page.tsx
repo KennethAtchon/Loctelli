@@ -353,7 +353,7 @@ export default function AdminDashboardPage() {
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button 
-                            variant="outline" 
+                            variant="ghost" 
                             size="sm"
                             onClick={() => loadDetailedUser(user.id)}
                           >
@@ -525,7 +525,7 @@ export default function AdminDashboardPage() {
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button 
-                            variant="outline" 
+                            variant="ghost" 
                             size="sm"
                             onClick={() => loadDetailedLead(lead.id)}
                           >

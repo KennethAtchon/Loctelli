@@ -132,6 +132,7 @@ Loctelli/
 - **Data Filtering**: Complete SubAccount-based data isolation across all features
 - **Global Dashboard Filtering**: Admin dashboard with subaccount filtering system for easy context switching
 - **Modular Components**: Users page modularized with separate dialog components for better code organization
+- **UI Consistency**: Standardized action button styling across all admin pages (view: ghost, edit: outline, delete: destructive)
 
 ### **Integrations System - PLANNED 🔗**
 - **Multi-Service Integration**: Support for GoHighLevel CRM, Facebook Ads, Google Analytics, and more

@@ -419,7 +419,7 @@ export default function BookingsPage() {
                         <Dialog>
                           <DialogTrigger asChild>
                             <Button
-                              variant="outline"
+                              variant="ghost"
                               size="sm"
                             >
                               <Eye className="h-4 w-4" />

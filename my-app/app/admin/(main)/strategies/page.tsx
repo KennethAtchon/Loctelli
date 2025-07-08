@@ -297,7 +297,7 @@ export default function StrategiesPage() {
                   <TableHead>Creativity</TableHead>
                   <TableHead>Objective</TableHead>
                   <TableHead>Created</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -321,12 +321,12 @@ export default function StrategiesPage() {
                       {strategy.aiObjective}
                     </TableCell>
                     <TableCell>{formatDate(strategy.createdAt)}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end space-x-2">
                         <Dialog>
                           <DialogTrigger asChild>
                             <Button
-                              variant="outline"
+                              variant="ghost"
                               size="sm"
                             >
                               <Eye className="h-4 w-4" />
@@ -387,7 +387,7 @@ export default function StrategiesPage() {
                           </Button>
                         </Link>
                         <Button
-                          variant="outline"
+                          variant="destructive"
                           size="sm"
                           onClick={() => deleteStrategy(strategy.id)}
                         >

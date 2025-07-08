@@ -433,12 +433,12 @@ export default function LeadsPage() {
                           </DialogContent>
                         </Dialog>
                         <Link href={`/admin/leads/${lead.id}/edit`}>
-                          <Button variant="ghost" size="sm">
+                          <Button variant="outline" size="sm">
                             <Edit className="h-4 w-4" />
                           </Button>
                         </Link>
                         <Button 
-                          variant="ghost" 
+                          variant="destructive" 
                           size="sm"
                           onClick={() => deleteLead(lead.id)}
                         >

@@ -137,7 +137,7 @@ export default function SubAccountsPage() {
               </div>
               <div className="flex gap-2">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => handleViewDetails(subAccount)}
                 >
@@ -153,10 +153,9 @@ export default function SubAccountsPage() {
                   Edit
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="destructive"
                   size="sm"
                   onClick={() => handleDeleteSubAccount(subAccount.id)}
-                  className="text-red-600 hover:text-red-700"
                 >
                   <Trash2 className="h-4 w-4 mr-1" />
                   Delete
