@@ -2,7 +2,7 @@ import { Controller, Post, Body, Logger, HttpCode, HttpStatus } from '@nestjs/co
 import { WebhooksService } from './webhooks.service';
 import { ContactCreatedDto } from './dto/contact-created.dto';
 import { OutboundMessageDto } from './dto/outbound-message.dto';
-import { Public } from '../auth/decorators/public.decorator';
+import { Public } from '../../../auth/decorators/public.decorator';
 
 @Controller('highlevel/webhook')
 @Public()
