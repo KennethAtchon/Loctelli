@@ -19,6 +19,7 @@ async function bootstrap() {
         'http://localhost:3000',
         'http://loctelli_frontend:3000',
         'http://frontend:3000',
+        'http://loctelli.com',
         process.env.FRONTEND_URL,
       ].filter(Boolean),
       credentials: true,
