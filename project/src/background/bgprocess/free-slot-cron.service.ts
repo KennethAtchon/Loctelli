@@ -56,6 +56,7 @@ export class FreeSlotCronService {
   /**
    * Import users from GoHighLevel subaccounts (locations) and create a user for each subaccount.
    * This is the background-process version of the /import-ghl-users endpoint.
+   * DEPRECATED: This is not needed anymore, this won't provide us the API key which is needed for automations
    */
   async importGhlUsersBg(): Promise<User[]> {
     try {
@@ -123,6 +124,7 @@ export class FreeSlotCronService {
 
   /**
    * Search for GoHighLevel subaccounts (locations)
+   * DEPRECATED: This is not needed anymore, this won't provide us the API key which is needed for automations
    */
   private async searchGohighlevelSubaccounts(): Promise<GhlSubaccountsResponse> {
     try {
