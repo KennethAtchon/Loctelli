@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
-import { GhlService } from '../../ghl/ghl.service';
+import { GhlService } from '../../integrations/ghl-integrations/ghl/ghl.service';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';

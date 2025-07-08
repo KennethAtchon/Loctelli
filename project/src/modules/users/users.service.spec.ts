@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
-import { GhlService } from '../../ghl/ghl.service';
+import { GhlService } from '../../integrations/ghl-integrations/ghl/ghl.service';
 import { NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
