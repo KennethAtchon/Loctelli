@@ -150,8 +150,14 @@ export class AdminAuthService {
 
     this.logger.debug(`Storing admin refresh token in Redis for user: ${loginDto.email}`);
     // Store refresh token in Redis with rotation
+    const cacheDurationSeconds = 7 * 24 * 60 * 60; // 7 days in seconds
+    const cacheDurationHours = cacheDurationSeconds / 3600;
+    const cacheDurationDays = cacheDurationHours / 24;
+    
+    this.logger.log(`⏰ ADMIN REFRESH TOKEN CACHE DURATION: ${cacheDurationDays} days (${cacheDurationHours} hours, ${cacheDurationSeconds} seconds) for user: ${loginDto.email}`);
+    
     try {
-      await this.redisService.setCache(`admin_refresh:${adminUser.id}`, refreshToken, 7 * 24 * 60 * 60);
+      await this.redisService.setCache(`admin_refresh:${adminUser.id}`, refreshToken, cacheDurationSeconds);
       this.logger.debug(`✅ Admin refresh token stored successfully in Redis for user: ${loginDto.email}`);
       
       // Verify the token was stored correctly
