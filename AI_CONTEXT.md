@@ -229,6 +229,33 @@
 - **Code Organization**: Reduced main page.tsx from 746 lines to more manageable size
 - **Pattern Consistency**: Follows same modular pattern as subaccounts page
 
+#### **16. Authentication Retry Prevention Fix - CRITICAL UX IMPROVEMENT ✅**
+- **Problem**: Authentication requests were retrying multiple times, causing 5 error messages for single failed login attempts
+- **Root Cause**: API client was treating auth endpoints the same as regular endpoints, attempting token refresh and retries
+- **Solution**: Modified `ApiClient` to identify authentication endpoints and make them non-retryable
+- **Changes Made**:
+  - **Added**: `isAuthEndpoint()` method to identify auth endpoints (`/auth/login`, `/auth/register`, `/admin/auth/login`, etc.)
+  - **Modified**: 401 error handling to skip retry logic for authentication endpoints
+  - **Enhanced**: Error logging to use debug-level logging for auth endpoints to reduce noise
+  - **Updated**: Token refresh error logging to be less verbose for expected failures
+  - **Improved**: "No refresh tokens available" errors now logged as debug instead of errors (expected for login attempts)
+- **Authentication Endpoints** (Non-retryable):
+  - `/auth/login` - User login
+  - `/auth/register` - User registration
+  - `/auth/refresh` - Token refresh
+  - `/auth/logout` - User logout
+  - `/admin/auth/login` - Admin login
+  - `/admin/auth/register` - Admin registration
+  - `/admin/auth/refresh` - Admin token refresh
+  - `/admin/auth/logout` - Admin logout
+- **User Experience**: 
+  - Authentication failures now show single, clear error message
+  - No more multiple retry attempts for auth endpoints
+  - Reduced console noise from expected authentication failures
+  - Auth failures are truly "final" as intended
+- **Testing**: Added comprehensive tests to verify auth endpoints don't retry on 401 errors
+- **Backward Compatibility**: Regular API endpoints still retry on 401 with token refresh as before
+
 ## 🔗 **Integrations System - COMPLETE**
 
 ### **Overview**

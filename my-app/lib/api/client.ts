@@ -19,6 +19,21 @@ export class ApiClient {
     this.baseUrl = baseUrl;
   }
 
+  // Check if an endpoint is an authentication endpoint that should not be retried
+  private isAuthEndpoint(endpoint: string): boolean {
+    const authEndpoints = [
+      '/auth/login',
+      '/auth/register',
+      '/auth/refresh',
+      '/auth/logout',
+      '/admin/auth/login',
+      '/admin/auth/register',
+      '/admin/auth/refresh',
+      '/admin/auth/logout'
+    ];
+    return authEndpoints.includes(endpoint);
+  }
+
   // Get authentication headers based on available tokens
   private getAuthHeaders(): Record<string, string> {
     const headers: Record<string, string> = {};
@@ -98,7 +113,7 @@ export class ApiClient {
 
           if (!response.ok) {
             const errorText = await response.text();
-            logger.error(`❌ Admin refresh failed with status ${response.status}:`, errorText);
+            logger.debug(`❌ Admin refresh failed with status ${response.status}:`, errorText);
             throw new Error(`Refresh failed: ${response.status} - ${errorText}`);
           }
 
@@ -109,7 +124,7 @@ export class ApiClient {
           logger.debug('✅ Admin tokens updated successfully');
           return;
         } catch (error) {
-          logger.error('❌ Admin token refresh failed:', error);
+          logger.debug('❌ Admin token refresh failed:', error);
           // Clear only admin tokens on failure
           AuthCookies.clearAdminTokens();
           throw error;
@@ -134,7 +149,7 @@ export class ApiClient {
 
           if (!response.ok) {
             const errorText = await response.text();
-            logger.error(`❌ User refresh failed with status ${response.status}:`, errorText);
+            logger.debug(`❌ User refresh failed with status ${response.status}:`, errorText);
             throw new Error(`Refresh failed: ${response.status} - ${errorText}`);
           }
 
@@ -145,17 +160,23 @@ export class ApiClient {
           logger.debug('✅ User tokens updated successfully');
           return;
         } catch (error) {
-          logger.error('❌ User token refresh failed:', error);
+          logger.debug('❌ User token refresh failed:', error);
           // Clear only user tokens on failure
           AuthCookies.clearUserTokens();
           throw error;
         }
       }
 
-      logger.warn('⚠️ No refresh tokens available for refresh');
+      // This is expected for initial login attempts - don't treat as error
+      logger.debug('⚠️ No refresh tokens available for refresh');
       throw new Error('No refresh tokens available');
     } catch (error) {
-      logger.error('❌ Token refresh failed completely:', error);
+      // Only log as error if it's not the expected "no refresh tokens" case
+      if (error instanceof Error && error.message === 'No refresh tokens available') {
+        logger.debug('❌ Token refresh failed completely:', error.message);
+      } else {
+        logger.error('❌ Token refresh failed completely:', error);
+      }
       throw error;
     }
   }
@@ -165,10 +186,13 @@ export class ApiClient {
     options: RequestInit & ApiRequestOptions = {}
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
+    const isAuthEndpoint = this.isAuthEndpoint(endpoint);
+    
     logger.debug('🌐 API Request:', {
       url,
       method: options.method || 'GET',
-      endpoint
+      endpoint,
+      isAuthEndpoint
     });
     
     // Add auth headers
@@ -197,8 +221,8 @@ export class ApiClient {
       
       logger.debug('📡 Response status:', response.status, response.statusText);
       
-      // Handle 401 Unauthorized - try to refresh tokens (but not for refresh requests themselves)
-      if (response.status === 401 && !this.isRefreshRequest) {
+      // Handle 401 Unauthorized - but NOT for auth endpoints or refresh requests
+      if (response.status === 401 && !this.isRefreshRequest && !isAuthEndpoint) {
         logger.debug('🔒 401 Unauthorized, attempting token refresh...');
         try {
           await this.refreshTokens();
@@ -239,7 +263,7 @@ export class ApiClient {
           
           return await retryResponse.json();
         } catch (refreshError) {
-          logger.error('❌ Token refresh failed:', refreshError);
+          logger.debug('❌ Token refresh failed:', refreshError);
           // Don't automatically redirect - let the components handle this
           // This prevents page refreshes that lose error state
           throw new Error('Authentication failed. Please log in again.');
@@ -248,11 +272,20 @@ export class ApiClient {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        logger.error('❌ API request failed:', {
-          status: response.status,
-          statusText: response.statusText,
-          errorData
-        });
+        
+        // For auth endpoints, use simpler error logging to avoid noise
+        if (isAuthEndpoint) {
+          logger.debug('❌ Auth endpoint failed:', {
+            status: response.status,
+            endpoint
+          });
+        } else {
+          logger.error('❌ API request failed:', {
+            status: response.status,
+            statusText: response.statusText,
+            errorData
+          });
+        }
         
         // Extract error message from different possible formats
         let errorMessage = response.statusText;
@@ -269,7 +302,12 @@ export class ApiClient {
       
       return await response.json();
     } catch (error) {
-      logger.error('❌ API request failed:', error);
+      // For auth endpoints, use simpler error logging to avoid noise
+      if (isAuthEndpoint) {
+        logger.debug('❌ Auth request failed:', error);
+      } else {
+        logger.error('❌ API request failed:', error);
+      }
       
       // Handle specific error types
       if (error instanceof Error) {

@@ -258,6 +258,65 @@ describe('ApiClient', () => {
 
       await expect(apiClient.get('/test')).rejects.toThrow('Authentication failed. Please log in again.')
     })
+
+    it('should NOT retry authentication endpoints on 401 errors', async () => {
+      // Mock 401 response for auth endpoint
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        json: jest.fn().mockResolvedValue({ message: 'Invalid credentials' }),
+      } as any)
+
+      // Mock refresh tokens to ensure they're not used
+      mockAuthCookies.getRefreshToken.mockReturnValue('refresh-token')
+      mockAuthCookies.getAdminRefreshToken.mockReturnValue('admin-refresh-token')
+
+      // Test admin login endpoint
+      await expect(apiClient.post('/admin/auth/login', { email: 'test@example.com', password: 'password' }))
+        .rejects.toThrow('Invalid credentials')
+
+      // Should only call fetch once (no retry)
+      expect(mockFetch).toHaveBeenCalledTimes(1)
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://localhost:3001/admin/auth/login',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ email: 'test@example.com', password: 'password' }),
+        })
+      )
+    })
+
+    it('should NOT retry user auth endpoints on 401 errors', async () => {
+      // Reset mock
+      mockFetch.mockReset()
+      
+      // Mock 401 response for user auth endpoint
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        json: jest.fn().mockResolvedValue({ message: 'Invalid credentials' }),
+      } as any)
+
+      // Mock refresh tokens to ensure they're not used
+      mockAuthCookies.getRefreshToken.mockReturnValue('refresh-token')
+      mockAuthCookies.getAdminRefreshToken.mockReturnValue('admin-refresh-token')
+
+      // Test user login endpoint
+      await expect(apiClient.post('/auth/login', { email: 'test@example.com', password: 'password' }))
+        .rejects.toThrow('Invalid credentials')
+
+      // Should only call fetch once (no retry)
+      expect(mockFetch).toHaveBeenCalledTimes(1)
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://localhost:3001/auth/login',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ email: 'test@example.com', password: 'password' }),
+        })
+      )
+    })
   })
 
   describe('Query String Building', () => {
