@@ -31,7 +31,7 @@ interface StrategyStats {
 }
 
 export default function StrategiesPage() {
-  const { currentFilter, getCurrentSubaccount } = useSubaccountFilter();
+  const { getCurrentSubaccount } = useSubaccountFilter();
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [filteredStrategies, setFilteredStrategies] = useState<Strategy[]>([]);
   const [stats, setStats] = useState<StrategyStats>({

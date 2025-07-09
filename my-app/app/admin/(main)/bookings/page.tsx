@@ -30,7 +30,7 @@ interface BookingStats {
 }
 
 export default function BookingsPage() {
-  const { currentFilter, getCurrentSubaccount } = useSubaccountFilter();
+  const { getCurrentSubaccount } = useSubaccountFilter();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [stats, setStats] = useState<BookingStats>({

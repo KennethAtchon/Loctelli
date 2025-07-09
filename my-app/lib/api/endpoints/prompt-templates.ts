@@ -36,7 +36,7 @@ export interface CreatePromptTemplateDto {
   maxTokens?: number;
 }
 
-export interface UpdatePromptTemplateDto extends Partial<CreatePromptTemplateDto> {}
+export type UpdatePromptTemplateDto = Partial<CreatePromptTemplateDto>;
 
 export class PromptTemplatesApi extends ApiClient {
   async getAll(): Promise<PromptTemplate[]> {

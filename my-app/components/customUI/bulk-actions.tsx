@@ -12,7 +12,7 @@ interface BulkActionsProps<T> {
   selectedItems: T[];
   onSelectionChange: (items: T[]) => void;
   onBulkDelete?: (items: T[]) => Promise<void>;
-  onBulkUpdate?: (items: T[], field: string, value: any) => Promise<void>;
+  onBulkUpdate?: (items: T[], field: string, value: string | number | boolean) => Promise<void>;
   onBulkArchive?: (items: T[]) => Promise<void>;
   updateFields?: Array<{ value: string; label: string; type: 'text' | 'select' }>;
   selectOptions?: Array<{ value: string; label: string }>;
@@ -28,7 +28,7 @@ export function BulkActions<T extends { id: number | string }>({
   onBulkArchive,
   updateFields = [],
   selectOptions = [],
-  isLoading = false,
+
 }: BulkActionsProps<T>) {
   const [isBulkActionLoading, setIsBulkActionLoading] = useState(false);
   const [selectedField, setSelectedField] = useState('');
@@ -55,7 +55,7 @@ export function BulkActions<T extends { id: number | string }>({
       setError('');
       await onBulkDelete(selectedItems);
       onSelectionChange([]);
-    } catch (error) {
+    } catch {
       setError('Failed to delete items');
     } finally {
       setIsBulkActionLoading(false);
@@ -72,7 +72,7 @@ export function BulkActions<T extends { id: number | string }>({
       onSelectionChange([]);
       setSelectedField('');
       setSelectedValue('');
-    } catch (error) {
+    } catch {
       setError('Failed to update items');
     } finally {
       setIsBulkActionLoading(false);
@@ -87,7 +87,7 @@ export function BulkActions<T extends { id: number | string }>({
       setError('');
       await onBulkArchive(selectedItems);
       onSelectionChange([]);
-    } catch (error) {
+    } catch {
       setError('Failed to archive items');
     } finally {
       setIsBulkActionLoading(false);
@@ -97,7 +97,7 @@ export function BulkActions<T extends { id: number | string }>({
   if (items.length === 0) return null;
 
   const isAllSelected = items.length > 0 && selectedItems.length === items.length;
-  const isIndeterminate = selectedItems.length > 0 && selectedItems.length < items.length;
+
 
   return (
     <div className="space-y-4">

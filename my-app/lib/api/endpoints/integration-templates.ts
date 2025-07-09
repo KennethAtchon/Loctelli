@@ -8,7 +8,7 @@ export interface IntegrationTemplate {
   category: string;
   icon?: string;
   isActive: boolean;
-  configSchema: Record<string, any>;
+  configSchema: Record<string, unknown>;
   setupInstructions?: string;
   webhookUrl?: string;
   apiVersion?: string;
@@ -29,13 +29,13 @@ export interface CreateIntegrationTemplateDto {
   category: string;
   icon?: string;
   isActive?: boolean;
-  configSchema: Record<string, any>;
+  configSchema: Record<string, unknown>;
   setupInstructions?: string;
   webhookUrl?: string;
   apiVersion?: string;
 }
 
-export interface UpdateIntegrationTemplateDto extends Partial<CreateIntegrationTemplateDto> {}
+export type UpdateIntegrationTemplateDto = Partial<CreateIntegrationTemplateDto>;
 
 export class IntegrationTemplatesApi extends ApiClient {
   async getAll(): Promise<IntegrationTemplate[]> {

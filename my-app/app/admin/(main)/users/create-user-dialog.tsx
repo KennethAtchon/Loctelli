@@ -57,7 +57,7 @@ export function CreateUserDialog({ open, onOpenChange, onSubmit, availableSubacc
     try {
       await onSubmit(formData);
       setFormData({ name: '', email: '', password: '', company: '', role: 'user', bookingEnabled: 1, subAccountId: 0 });
-    } catch (error) {
+    } catch {
       // Error is handled by the parent component
     } finally {
       setIsSubmitting(false);

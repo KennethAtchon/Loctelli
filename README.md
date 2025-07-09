@@ -198,6 +198,12 @@ Loctelli/
   - Added required subaccount selection field to user creation form only
   - **Removed subaccount selection from lead/strategy forms** - subaccount automatically set from selected user
   - Added validation to ensure subaccount is selected before creating users
+- **Fixed Test Suite Issues**: 
+  - Resolved controller test failures due to async/sync method mismatches
+  - Updated leads controller tests to use `rejects.toThrow` for async methods
+  - Kept bookings controller tests using synchronous `toThrow` for non-async methods
+  - All 278 tests now passing with comprehensive error handling validation
+  - Properly distinguish between async and sync controller methods in tests
   - Improved user experience with immediate filter updates and proper data isolation
   - **Backend Updates**: Updated admin auth controller and service to properly filter users by subaccount
   - **Frontend Updates**: User creation requires explicit subaccount selection, leads/strategies inherit from selected user

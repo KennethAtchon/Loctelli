@@ -32,7 +32,7 @@ export default function NewPromptTemplatePage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleInputChange = (field: keyof CreatePromptTemplateDto, value: any) => {
+  const handleInputChange = (field: keyof CreatePromptTemplateDto, value: string | number | boolean | undefined) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,

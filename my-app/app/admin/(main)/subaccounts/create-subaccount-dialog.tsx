@@ -35,7 +35,7 @@ export function CreateSubAccountDialog({ open, onOpenChange, onSubmit }: CreateS
     try {
       await onSubmit(formData);
       setFormData({ name: '', description: '', settings: {} });
-    } catch (error) {
+    } catch {
       // Error is handled by the parent component
     } finally {
       setIsSubmitting(false);

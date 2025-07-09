@@ -87,7 +87,7 @@ export default function AdminSettingsPage() {
       setIsLoadingAdmins(true);
       const accounts = await api.adminAuth.getAllAdminAccounts();
       setAdminAccounts(accounts);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load admin accounts');
     } finally {
       setIsLoadingAdmins(false);
@@ -99,7 +99,7 @@ export default function AdminSettingsPage() {
     setIsProfileLoading(true);
 
     try {
-      const updatedProfile = await api.adminAuth.updateAdminProfile(profileData);
+      await api.adminAuth.updateAdminProfile(profileData);
       await refreshAdmin(); // Refresh the admin context
       toast.success('Profile updated successfully');
     } catch (error) {

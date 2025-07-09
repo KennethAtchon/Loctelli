@@ -24,7 +24,7 @@ export default function SubAccountsPage() {
     try {
       const data = await api.adminSubAccounts.getAllSubAccounts();
       setSubAccounts(data);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load SubAccounts');
     } finally {
       setIsLoading(false);
@@ -43,7 +43,7 @@ export default function SubAccountsPage() {
       await loadSubAccounts();
       await refreshSubaccounts(); // Refresh the subaccount filter context
       refreshFilter(); // Refresh the filter to ensure it's updated
-    } catch (error) {
+    } catch {
       toast.error('Failed to create SubAccount');
     }
   };
@@ -55,7 +55,7 @@ export default function SubAccountsPage() {
       setIsEditDialogOpen(false);
       setEditingSubAccount(null);
       loadSubAccounts();
-    } catch (error) {
+    } catch {
       toast.error('Failed to update SubAccount');
     }
   };
@@ -69,7 +69,7 @@ export default function SubAccountsPage() {
       await api.adminSubAccounts.deleteSubAccount(id);
       toast.success('SubAccount deleted successfully');
       loadSubAccounts();
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete SubAccount');
     }
   };

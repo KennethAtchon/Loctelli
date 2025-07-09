@@ -85,8 +85,8 @@ export default function EditIntegrationPage() {
     }
 
     // Validate required config fields
-    if ((integration?.integrationTemplate as any)?.configSchema?.required) {
-      const requiredFields = (integration.integrationTemplate as any).configSchema.required;
+    if (integration?.integrationTemplate?.configSchema?.required) {
+      const requiredFields = integration.integrationTemplate.configSchema.required;
       for (const field of requiredFields) {
         if (!formData.config?.[field] || formData.config[field].toString().trim() === '') {
           toast({
@@ -225,7 +225,7 @@ export default function EditIntegrationPage() {
               <Input
                 id={key}
                 type="password"
-                value={value}
+                value={String(value)}
                 onChange={(e) => handleConfigChange(key, e.target.value)}
                 placeholder={schema.description}
                 required={isRequired}
@@ -245,7 +245,7 @@ export default function EditIntegrationPage() {
             <Input
               id={key}
               type="text"
-              value={value}
+              value={String(value)}
               onChange={(e) => handleConfigChange(key, e.target.value)}
               placeholder={schema.description}
               required={isRequired}
@@ -265,7 +265,7 @@ export default function EditIntegrationPage() {
             <Input
               id={key}
               type="text"
-              value={value}
+              value={String(value)}
               onChange={(e) => handleConfigChange(key, e.target.value)}
               placeholder={schema.description}
               required={isRequired}
@@ -469,8 +469,8 @@ export default function EditIntegrationPage() {
                 <h3 className="text-lg font-medium">Configuration</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {integration.integrationTemplate.configSchema.properties && 
-                    Object.entries(integration.integrationTemplate.configSchema.properties).map(([key, schema]: [string, any]) => 
+                  {integration.integrationTemplate.configSchema?.properties && 
+                    Object.entries(integration.integrationTemplate.configSchema.properties as Record<string, { type: string; title?: string; description?: string }>).map(([key, schema]) => 
                       renderConfigField(key, schema)
                     )
                   }

@@ -5,7 +5,7 @@ export interface SubAccount {
   name: string;
   description?: string;
   isActive: boolean;
-  settings?: Record<string, any>;
+  settings?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
   createdByAdmin: {
@@ -56,14 +56,14 @@ export interface DetailedSubAccount extends SubAccount {
 export interface CreateSubAccountDto {
   name: string;
   description?: string;
-  settings?: Record<string, any>;
+  settings?: Record<string, unknown>;
 }
 
 export interface UpdateSubAccountDto {
   name?: string;
   description?: string;
   isActive?: boolean;
-  settings?: Record<string, any>;
+  settings?: Record<string, unknown>;
 }
 
 export class AdminSubAccountsApi extends ApiClient {

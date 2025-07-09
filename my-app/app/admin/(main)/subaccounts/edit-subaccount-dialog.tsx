@@ -50,7 +50,7 @@ export function EditSubAccountDialog({ open, onOpenChange, subAccount, onSubmit 
     setIsSubmitting(true);
     try {
       await onSubmit(subAccount.id, formData);
-    } catch (error) {
+    } catch {
       // Error is handled by the parent component
     } finally {
       setIsSubmitting(false);

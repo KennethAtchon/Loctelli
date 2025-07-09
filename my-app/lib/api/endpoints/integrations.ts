@@ -7,7 +7,7 @@ export interface Integration {
   name: string;
   description?: string;
   isActive: boolean;
-  config: Record<string, any>;
+  config: Record<string, unknown>;
   status: 'pending' | 'active' | 'error' | 'disconnected';
   lastSyncAt?: string;
   errorMessage?: string;
@@ -29,6 +29,10 @@ export interface Integration {
     displayName: string;
     category: string;
     icon?: string;
+    configSchema?: {
+      required?: string[];
+      properties?: Record<string, { type: string; title?: string; description?: string }>;
+    };
   };
 }
 
@@ -38,13 +42,13 @@ export interface CreateIntegrationDto {
   name: string;
   description?: string;
   isActive?: boolean;
-  config: Record<string, any>;
+  config: Record<string, unknown>;
   status?: string;
   errorMessage?: string;
   webhookSecret?: string;
 }
 
-export interface UpdateIntegrationDto extends Partial<CreateIntegrationDto> {}
+export type UpdateIntegrationDto = Partial<CreateIntegrationDto>;
 
 export interface TestConnectionResponse {
   success: boolean;

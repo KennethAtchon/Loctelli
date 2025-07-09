@@ -388,13 +388,13 @@ export default function IntegrationDetailsPage() {
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">API Version</Label>
-                <p className="text-sm text-gray-900">{(integration.integrationTemplate as any).apiVersion || 'N/A'}</p>
+                <p className="text-sm text-gray-900">{(integration.integrationTemplate as { apiVersion?: string }).apiVersion || 'N/A'}</p>
               </div>
               
-              {(integration.integrationTemplate as any).description && (
+              {(integration.integrationTemplate as { description?: string }).description && (
                 <div>
                   <Label className="text-sm font-medium text-gray-700">Description</Label>
-                  <p className="text-sm text-gray-900">{(integration.integrationTemplate as any).description}</p>
+                  <p className="text-sm text-gray-900">{(integration.integrationTemplate as { description?: string }).description}</p>
                 </div>
               )}
             </CardContent>

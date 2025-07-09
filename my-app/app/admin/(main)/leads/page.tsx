@@ -32,7 +32,7 @@ interface LeadStats {
 }
 
 export default function LeadsPage() {
-  const { currentFilter, getCurrentSubaccount } = useSubaccountFilter();
+  const { getCurrentSubaccount } = useSubaccountFilter();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
   const [stats, setStats] = useState<LeadStats>({

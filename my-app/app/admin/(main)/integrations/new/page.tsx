@@ -361,8 +361,8 @@ export default function NewIntegrationPage() {
                   <h3 className="text-lg font-medium">Configuration</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Object.entries(selectedTemplate.configSchema.properties || {}).map(([key, schema]: [string, any]) => 
-                      renderConfigField(key, schema)
+                    {Object.entries(selectedTemplate.configSchema.properties || {}).map(([key, schema]: [string, unknown]) => 
+                      renderConfigField(key, schema as { type: string; title?: string; description?: string })
                     )}
                   </div>
                 </div>

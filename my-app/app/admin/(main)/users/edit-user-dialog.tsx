@@ -60,7 +60,7 @@ export function EditUserDialog({ open, onOpenChange, user, onSubmit }: EditUserD
     setIsSubmitting(true);
     try {
       await onSubmit(user.id, formData);
-    } catch (error) {
+    } catch {
       // Error is handled by the parent component
     } finally {
       setIsSubmitting(false);

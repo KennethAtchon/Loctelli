@@ -61,7 +61,7 @@ export default function EditPromptTemplatePage() {
     }
   };
 
-  const handleInputChange = (field: keyof UpdatePromptTemplateDto, value: any) => {
+  const handleInputChange = (field: keyof UpdatePromptTemplateDto, value: string | number | boolean | undefined) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
