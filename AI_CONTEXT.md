@@ -21,7 +21,17 @@
 - **SalesBotService**: Core AI response generation service (moved from background to chat module)
 - **PromptHelperService**: Prompt composition and management
 - **ChatService**: Message handling and conversation management
+- **ConversationSummarizerService**: AI-powered conversation summarization for long conversations
 - **Background Processes**: Separate module for scheduled tasks (FreeSlotCronService)
+
+#### **Conversation Summarization Feature ✅**
+- **Trigger**: Automatically summarizes conversations when they reach 50 messages
+- **Summarization**: Uses OpenAI to create concise summaries of the first 30 messages
+- **Storage**: Replaces first 30 messages with a single summary message
+- **Context Preservation**: Summary includes key topics, decisions, and unresolved issues
+- **AI Integration**: Summarized conversations maintain context for future AI interactions
+- **Performance**: Reduces token usage for long conversations while preserving essential context
+- **Fallback**: If summarization fails, conversation continues with original history
 
 ### **Multi-Tenant Architecture (IMPLEMENTED ✅)**
 - **SubAccounts**: Multi-tenant support for client organizations ✅

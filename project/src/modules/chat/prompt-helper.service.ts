@@ -227,6 +227,20 @@ export class PromptHelperService {
   }
 
   /**
+   * Check if a message is a summarized conversation message
+   * @param msg Message history item
+   * @returns True if the message is a summarized conversation
+   */
+  private isSummarizedMessage(msg: MessageHistoryItem): boolean {
+    return msg.role === 'system' && 
+           msg.content && 
+           msg.content.startsWith('[CONVERSATION SUMMARY]') &&
+           msg.metadata && 
+           typeof msg.metadata === 'object' &&
+           msg.metadata.summarized === true;
+  }
+
+  /**
    * Compose the full prompt with system message and conversation history
    * @param lead Lead entity from database
    * @param user User entity from database
@@ -245,6 +259,18 @@ export class PromptHelperService {
     
     for (const msg of history) {
       this.logger.debug(`[composePrompt] Processing message:`, msg);
+      
+      // Handle summarized messages specially
+      if (this.isSummarizedMessage(msg)) {
+        this.logger.debug(`[composePrompt] Processing summarized message: ${msg.content?.substring(0, 100)}...`);
+        if (msg.content) {
+          messages.push({
+            role: 'system',
+            content: msg.content
+          });
+        }
+        continue;
+      }
       
       const convertedMsg = this.convertMessageFormat(msg);
       if (convertedMsg && convertedMsg.content && typeof convertedMsg.content === 'string') {

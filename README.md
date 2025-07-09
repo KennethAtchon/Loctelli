@@ -163,6 +163,11 @@ Loctelli/
 - **Real-time Chat**: Live message sending and receiving
 - **Message Persistence**: All conversations stored in database
 - **Format Compatibility**: Supports both old and new message formats seamlessly
+- **AI Summarization**: Automatic conversation summarization when conversations reach 50 messages
+  - Summarizes first 30 messages using OpenAI
+  - Preserves essential context for future interactions
+  - Reduces token usage for long conversations
+  - Maintains conversation continuity and context
 
 ### **Admin Testing Interface**
 - **Lead Spoofing**: Test AI responses by impersonating any lead

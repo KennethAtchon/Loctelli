@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { PromptHelperService } from './prompt-helper.service';
 import { PromptTemplatesService } from '../prompt-templates/prompt-templates.service';
 import { BookingHelperService } from '../bookings/booking-helper.service';
+import { ConversationSummarizerService } from './conversation-summarizer.service';
 import axios from 'axios';
 
 interface ChatMessage {
@@ -35,7 +36,8 @@ export class SalesBotService implements OnModuleInit {
     private configService: ConfigService,
     private promptHelper: PromptHelperService,
     private promptTemplatesService: PromptTemplatesService,
-    private bookingHelper: BookingHelperService
+    private bookingHelper: BookingHelperService,
+    private conversationSummarizer: ConversationSummarizerService
   ) {
     this.openaiApiKey = this.configService.get<string>('OPENAI_API_KEY') || '';
   }
@@ -218,15 +220,49 @@ export class SalesBotService implements OnModuleInit {
     
     existingMessages.push(...newMessages);
     
-    // Update lead with new message history
-    await this.prisma.lead.update({
-      where: { id: lead.id },
-      data: {
-        messageHistory: JSON.stringify(existingMessages),
-        lastMessage: messages[messages.length - 1].content, // Use the last message as the last message
-        lastMessageDate: new Date().toISOString(),
-      } as any,
-    });
+    // Check if conversation needs summarization
+    if (this.conversationSummarizer.shouldSummarize(existingMessages)) {
+      this.logger.log(`[appendMessagesToHistory] Conversation reached ${existingMessages.length} messages, processing summarization for leadId=${lead.id}`);
+      
+      try {
+        // Process summarization
+        const summarizedHistory = await this.conversationSummarizer.processConversationSummarization(existingMessages);
+        
+        // Update lead with summarized history
+        await this.prisma.lead.update({
+          where: { id: lead.id },
+          data: {
+            messageHistory: JSON.stringify(summarizedHistory),
+            lastMessage: messages[messages.length - 1].content,
+            lastMessageDate: new Date().toISOString(),
+          } as any,
+        });
+        
+        this.logger.log(`Summarization completed for leadId=${lead.id}. History reduced from ${existingMessages.length} to ${summarizedHistory.length} messages`);
+      } catch (error) {
+        this.logger.error(`Error during summarization for leadId=${lead.id}:`, error);
+        
+        // Fallback to updating without summarization
+        await this.prisma.lead.update({
+          where: { id: lead.id },
+          data: {
+            messageHistory: JSON.stringify(existingMessages),
+            lastMessage: messages[messages.length - 1].content,
+            lastMessageDate: new Date().toISOString(),
+          } as any,
+        });
+      }
+    } else {
+      // Update lead with new message history (no summarization needed)
+      await this.prisma.lead.update({
+        where: { id: lead.id },
+        data: {
+          messageHistory: JSON.stringify(existingMessages),
+          lastMessage: messages[messages.length - 1].content,
+          lastMessageDate: new Date().toISOString(),
+        } as any,
+      });
+    }
     
     this.logger.log(`Messages appended to history for leadId=${lead.id}, history_length=${existingMessages.length}`);
   }
