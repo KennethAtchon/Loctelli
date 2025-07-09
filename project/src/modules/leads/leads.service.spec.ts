@@ -63,10 +63,13 @@ describe('LeadsService', () => {
     it('should create and return a lead', async () => {
       mockPrismaService.lead.create.mockResolvedValue(mockCreatedLead);
 
-      const result = await service.create(createLeadDto);
+      const result = await service.create(createLeadDto, 1);
       expect(result).toEqual(mockCreatedLead);
       expect(prismaService.lead.create).toHaveBeenCalledWith({
-        data: createLeadDto,
+        data: {
+          ...createLeadDto,
+          subAccountId: 1,
+        },
       });
     });
   });

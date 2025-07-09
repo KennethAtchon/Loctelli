@@ -21,6 +21,13 @@ describe('AuthService', () => {
       create: jest.fn(),
       update: jest.fn(),
     },
+    subAccount: {
+      findFirst: jest.fn(),
+      create: jest.fn(),
+    },
+    adminUser: {
+      findFirst: jest.fn(),
+    },
   };
 
   const mockJwtService = {
@@ -247,6 +254,7 @@ describe('AuthService', () => {
 
     it('should successfully register new user', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
+      mockPrismaService.subAccount.findFirst.mockResolvedValue({ id: 1, name: 'Default SubAccount' });
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
       mockPrismaService.user.create.mockResolvedValue(mockCreatedUser);
 
@@ -263,6 +271,7 @@ describe('AuthService', () => {
           password: 'hashedPassword',
           company: 'Test Company',
           budget: '1000-5000',
+          subAccountId: 1,
         },
       });
       expect(result).toEqual({

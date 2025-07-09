@@ -62,10 +62,13 @@ describe('BookingsService', () => {
     it('should create and return a booking', async () => {
       mockPrismaService.booking.create.mockResolvedValue(mockCreatedBooking);
 
-      const result = await service.create(createBookingDto);
+      const result = await service.create(createBookingDto, 1);
       expect(result).toEqual(mockCreatedBooking);
       expect(prismaService.booking.create).toHaveBeenCalledWith({
-        data: createBookingDto,
+        data: {
+          ...createBookingDto,
+          subAccountId: 1,
+        },
       });
     });
   });

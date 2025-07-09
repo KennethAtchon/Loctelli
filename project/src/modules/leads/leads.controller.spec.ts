@@ -12,6 +12,8 @@ describe('LeadsController', () => {
   const mockLeadsService = {
     create: jest.fn(),
     findAll: jest.fn(),
+    findAllBySubAccount: jest.fn(),
+    findAllByAdmin: jest.fn(),
     findOne: jest.fn(),
     findByUserId: jest.fn(),
     findByStrategyId: jest.fn(),
@@ -22,12 +24,18 @@ describe('LeadsController', () => {
 
   const mockAdminUser = {
     userId: 999,
+    email: 'admin@example.com',
     role: 'admin',
+    type: 'admin',
+    subAccountId: 1,
   };
 
   const mockUser = {
     userId: 1,
+    email: 'user@example.com',
     role: 'user',
+    type: 'user',
+    subAccountId: 1,
   };
 
   beforeEach(async () => {
@@ -60,6 +68,7 @@ describe('LeadsController', () => {
       strategyId: 1,
       email: 'lead@example.com',
       phone: '123-456-7890',
+      subAccountId: 1,
     };
 
     const mockCreatedLead = {
@@ -67,13 +76,22 @@ describe('LeadsController', () => {
       ...createLeadDto,
     };
 
-    it('should create a lead', async () => {
+    it('should create a lead for admin user', async () => {
       mockLeadsService.create.mockResolvedValue(mockCreatedLead);
 
       const result = await controller.create(createLeadDto, mockAdminUser);
 
       expect(result).toEqual(mockCreatedLead);
-      expect(leadsService.create).toHaveBeenCalledWith(createLeadDto);
+      expect(leadsService.create).toHaveBeenCalledWith(createLeadDto, createLeadDto.subAccountId);
+    });
+
+    it('should create a lead for regular user', async () => {
+      mockLeadsService.create.mockResolvedValue(mockCreatedLead);
+
+      const result = await controller.create(createLeadDto, mockUser);
+
+      expect(result).toEqual(mockCreatedLead);
+      expect(leadsService.create).toHaveBeenCalledWith(createLeadDto, mockUser.subAccountId);
     });
   });
 
@@ -83,13 +101,22 @@ describe('LeadsController', () => {
       { id: 2, name: 'Lead 2', userId: 2 },
     ];
 
-    it('should return all leads when no query parameters', async () => {
-      mockLeadsService.findAll.mockResolvedValue(mockLeads);
+    it('should return all leads for admin when no query parameters', async () => {
+      mockLeadsService.findAllByAdmin.mockResolvedValue(mockLeads);
 
       const result = await controller.findAll(mockAdminUser);
 
       expect(result).toEqual(mockLeads);
-      expect(leadsService.findAll).toHaveBeenCalled();
+      expect(leadsService.findAllByAdmin).toHaveBeenCalledWith(mockAdminUser.userId);
+    });
+
+    it('should return leads by subAccount for regular user when no query parameters', async () => {
+      mockLeadsService.findAllBySubAccount.mockResolvedValue(mockLeads);
+
+      const result = await controller.findAll(mockUser);
+
+      expect(result).toEqual(mockLeads);
+      expect(leadsService.findAllBySubAccount).toHaveBeenCalledWith(mockUser.subAccountId);
     });
 
     it('should return leads by userId when userId query parameter is provided', async () => {
@@ -112,14 +139,23 @@ describe('LeadsController', () => {
       expect(leadsService.findByStrategyId).toHaveBeenCalledWith(1, mockAdminUser.userId, mockAdminUser.role);
     });
 
+    it('should return leads by subAccountId for admin when subAccountId query parameter is provided', async () => {
+      mockLeadsService.findAllBySubAccount.mockResolvedValue(mockLeads);
+
+      const result = await controller.findAll(mockAdminUser, undefined, undefined, '1');
+
+      expect(result).toEqual(mockLeads);
+      expect(leadsService.findAllBySubAccount).toHaveBeenCalledWith(1);
+    });
+
     it('should throw HttpException for invalid userId parameter', async () => {
-      expect(() => controller.findAll(mockAdminUser, 'invalid')).toThrow(
+      await expect(controller.findAll(mockAdminUser, 'invalid')).rejects.toThrow(
         new HttpException('Invalid userId parameter', HttpStatus.BAD_REQUEST)
       );
     });
 
     it('should throw HttpException for invalid strategyId parameter', async () => {
-      expect(() => controller.findAll(mockAdminUser, undefined, 'invalid')).toThrow(
+      await expect(controller.findAll(mockAdminUser, undefined, 'invalid')).rejects.toThrow(
         new HttpException('Invalid strategyId parameter', HttpStatus.BAD_REQUEST)
       );
     });

@@ -69,12 +69,13 @@ describe('StrategiesService', () => {
     it('should create and return a strategy with provided promptTemplateId', async () => {
       mockPrismaService.strategy.create.mockResolvedValue(mockCreatedStrategy);
 
-      const result = await service.create(createStrategyDto);
+      const result = await service.create(createStrategyDto, 1);
       expect(result).toEqual(mockCreatedStrategy);
       expect(prismaService.strategy.create).toHaveBeenCalledWith({
         data: {
           ...createStrategyDto,
           promptTemplateId: 1,
+          subAccountId: 1,
         },
       });
     });
@@ -90,7 +91,7 @@ describe('StrategiesService', () => {
         promptTemplateId: 2,
       });
 
-      const result = await service.create(createStrategyDtoWithoutTemplate);
+      const result = await service.create(createStrategyDtoWithoutTemplate, 1);
       expect(result).toEqual({
         ...mockCreatedStrategy,
         promptTemplateId: 2,
@@ -100,6 +101,7 @@ describe('StrategiesService', () => {
         data: {
           ...createStrategyDtoWithoutTemplate,
           promptTemplateId: 2,
+          subAccountId: 1,
         },
       });
     });
@@ -119,7 +121,7 @@ describe('StrategiesService', () => {
         promptTemplateId: 3,
       });
 
-      const result = await service.create(createStrategyDtoWithoutTemplate);
+      const result = await service.create(createStrategyDtoWithoutTemplate, 1);
       expect(result).toEqual({
         ...mockCreatedStrategy,
         promptTemplateId: 3,
@@ -130,6 +132,7 @@ describe('StrategiesService', () => {
         data: {
           ...createStrategyDtoWithoutTemplate,
           promptTemplateId: 3,
+          subAccountId: 1,
         },
       });
     });
@@ -141,7 +144,7 @@ describe('StrategiesService', () => {
       mockPromptTemplatesService.getActive.mockRejectedValue(new Error('No active template'));
       mockPromptTemplatesService.findAll.mockResolvedValue([]);
 
-      await expect(service.create(createStrategyDtoWithoutTemplate)).rejects.toThrow(
+      await expect(service.create(createStrategyDtoWithoutTemplate, 1)).rejects.toThrow(
         'No prompt templates available. Please create a prompt template first.'
       );
     });

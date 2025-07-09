@@ -12,6 +12,8 @@ describe('StrategiesController', () => {
   const mockStrategiesService = {
     create: jest.fn(),
     findAll: jest.fn(),
+    findAllBySubAccount: jest.fn(),
+    findAllByAdmin: jest.fn(),
     findOne: jest.fn(),
     findByUserId: jest.fn(),
     update: jest.fn(),
@@ -22,11 +24,15 @@ describe('StrategiesController', () => {
   const mockAdminUser = {
     userId: 999,
     role: 'admin',
+    type: 'admin',
+    subAccountId: 1,
   };
 
   const mockUser = {
     userId: 1,
     role: 'user',
+    type: 'user',
+    subAccountId: 1,
   };
 
   beforeEach(async () => {
@@ -57,6 +63,7 @@ describe('StrategiesController', () => {
       userId: 1,
       name: 'New Strategy',
       promptTemplateId: 1,
+      subAccountId: 1,
     };
 
     const mockCreatedStrategy = {
@@ -64,13 +71,22 @@ describe('StrategiesController', () => {
       ...createStrategyDto,
     };
 
-    it('should create a strategy', async () => {
+    it('should create a strategy for admin user', async () => {
       mockStrategiesService.create.mockResolvedValue(mockCreatedStrategy);
 
       const result = await controller.create(createStrategyDto, mockAdminUser);
 
       expect(result).toEqual(mockCreatedStrategy);
-      expect(strategiesService.create).toHaveBeenCalledWith(createStrategyDto);
+      expect(strategiesService.create).toHaveBeenCalledWith(createStrategyDto, createStrategyDto.subAccountId);
+    });
+
+    it('should create a strategy for regular user', async () => {
+      mockStrategiesService.create.mockResolvedValue(mockCreatedStrategy);
+
+      const result = await controller.create(createStrategyDto, mockUser);
+
+      expect(result).toEqual(mockCreatedStrategy);
+      expect(strategiesService.create).toHaveBeenCalledWith(createStrategyDto, mockUser.subAccountId);
     });
   });
 
@@ -80,13 +96,22 @@ describe('StrategiesController', () => {
       { id: 2, name: 'Strategy 2', userId: 2 },
     ];
 
-    it('should return all strategies when no query parameters', async () => {
-      mockStrategiesService.findAll.mockResolvedValue(mockStrategies);
+    it('should return all strategies for admin when no query parameters', async () => {
+      mockStrategiesService.findAllByAdmin.mockResolvedValue(mockStrategies);
 
       const result = await controller.findAll(mockAdminUser);
 
       expect(result).toEqual(mockStrategies);
-      expect(strategiesService.findAll).toHaveBeenCalled();
+      expect(strategiesService.findAllByAdmin).toHaveBeenCalledWith(mockAdminUser.userId);
+    });
+
+    it('should return strategies by subAccount for regular user when no query parameters', async () => {
+      mockStrategiesService.findAllBySubAccount.mockResolvedValue(mockStrategies);
+
+      const result = await controller.findAll(mockUser);
+
+      expect(result).toEqual(mockStrategies);
+      expect(strategiesService.findAllBySubAccount).toHaveBeenCalledWith(mockUser.subAccountId);
     });
 
     it('should return strategies by userId when userId query parameter is provided', async () => {
@@ -99,7 +124,7 @@ describe('StrategiesController', () => {
       expect(strategiesService.findByUserId).toHaveBeenCalledWith(1);
     });
 
-    it('should throw HttpException for invalid userId parameter', async () => {
+    it('should throw HttpException for invalid userId parameter', () => {
       expect(() => controller.findAll(mockAdminUser, 'invalid')).toThrow(
         new HttpException('Invalid userId parameter', HttpStatus.BAD_REQUEST)
       );

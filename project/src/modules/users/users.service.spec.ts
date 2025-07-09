@@ -24,6 +24,9 @@ describe('UsersService', () => {
       update: jest.fn(),
       delete: jest.fn(),
     },
+    subAccount: {
+      findFirst: jest.fn(),
+    },
   };
 
   const mockGhlService = {
@@ -80,13 +83,27 @@ describe('UsersService', () => {
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
       mockPrismaService.user.create.mockResolvedValue(mockCreatedUser);
 
-      const result = await service.create(createUserDto);
+      const result = await service.create(createUserDto, 1);
 
       expect(bcrypt.hash).toHaveBeenCalledWith('Password123!', 12);
       expect(prismaService.user.create).toHaveBeenCalledWith({
         data: {
           ...createUserDto,
           password: 'hashedPassword',
+          subAccountId: 1,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          company: true,
+          isActive: true,
+          subAccount: {
+            select: { id: true, name: true }
+          },
+          createdAt: true,
+          updatedAt: true,
         },
       });
       expect(result).toEqual(mockCreatedUser);
@@ -103,11 +120,27 @@ describe('UsersService', () => {
       
       mockPrismaService.user.create.mockResolvedValue(mockCreatedUser);
 
-      const result = await service.create(createUserDtoWithoutPassword);
+      const result = await service.create(createUserDtoWithoutPassword, 1);
 
       expect(bcrypt.hash).not.toHaveBeenCalled();
       expect(prismaService.user.create).toHaveBeenCalledWith({
-        data: createUserDtoWithoutPassword,
+        data: {
+          ...createUserDtoWithoutPassword,
+          subAccountId: 1,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          company: true,
+          isActive: true,
+          subAccount: {
+            select: { id: true, name: true }
+          },
+          createdAt: true,
+          updatedAt: true,
+        },
       });
       expect(result).toEqual(mockCreatedUser);
     });
@@ -289,6 +322,7 @@ describe('UsersService', () => {
 
     it('should successfully import GHL users', async () => {
       mockGhlService.searchSubaccounts.mockResolvedValue(mockSubaccountsData);
+      mockPrismaService.subAccount.findFirst.mockResolvedValue({ id: 1, name: 'Default SubAccount' });
       mockPrismaService.user.findFirst.mockResolvedValue(null); // No existing users
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
       mockPrismaService.user.create
@@ -305,6 +339,7 @@ describe('UsersService', () => {
 
     it('should skip existing users during import', async () => {
       mockGhlService.searchSubaccounts.mockResolvedValue(mockSubaccountsData);
+      mockPrismaService.subAccount.findFirst.mockResolvedValue({ id: 1, name: 'Default SubAccount' });
       mockPrismaService.user.findFirst
         .mockResolvedValueOnce(null) // First user doesn't exist
         .mockResolvedValueOnce({ id: 1, email: 'location2@example.com' }); // Second user exists
@@ -329,6 +364,7 @@ describe('UsersService', () => {
       };
 
       mockGhlService.searchSubaccounts.mockResolvedValue(subaccountsDataWithoutEmail);
+      mockPrismaService.subAccount.findFirst.mockResolvedValue({ id: 1, name: 'Default SubAccount' });
       mockPrismaService.user.findFirst.mockResolvedValue(null);
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
       mockPrismaService.user.create.mockResolvedValue({

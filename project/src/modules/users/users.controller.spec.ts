@@ -12,6 +12,8 @@ describe('UsersController', () => {
   const mockUsersService = {
     create: jest.fn(),
     findAll: jest.fn(),
+    findAllBySubAccount: jest.fn(),
+    findAllByAdmin: jest.fn(),
     findOne: jest.fn(),
     update: jest.fn(),
     remove: jest.fn(),
@@ -48,6 +50,7 @@ describe('UsersController', () => {
       password: 'Password123!',
       company: 'Test Company',
       role: 'user',
+      subAccountId: 1,
     };
 
     const mockCreatedUser = {
@@ -58,20 +61,38 @@ describe('UsersController', () => {
       role: 'user',
     };
 
-    it('should successfully create a user', () => {
+    it('should successfully create a user for admin', async () => {
       mockUsersService.create.mockResolvedValue(mockCreatedUser);
 
-      const result = controller.create(createUserDto, { role: 'admin' });
+      const result = await controller.create(createUserDto, { role: 'admin', type: 'admin', subAccountId: 1 });
 
-      expect(usersService.create).toHaveBeenCalledWith(createUserDto);
-      expect(result).resolves.toEqual(mockCreatedUser);
+      expect(usersService.create).toHaveBeenCalledWith(createUserDto, createUserDto.subAccountId);
+      expect(result).toEqual(mockCreatedUser);
+    });
+
+    it('should successfully create a user for regular user', async () => {
+      mockUsersService.create.mockResolvedValue(mockCreatedUser);
+
+      const result = await controller.create(createUserDto, { role: 'user', type: 'user', subAccountId: 1 });
+
+      expect(usersService.create).toHaveBeenCalledWith(createUserDto, 1);
+      expect(result).toEqual(mockCreatedUser);
     });
   });
 
   describe('findAll', () => {
-    const mockUser = {
+    const mockAdminUser = {
+      userId: 1,
+      role: 'admin',
+      type: 'admin',
+      subAccountId: 1,
+    };
+
+    const mockRegularUser = {
       userId: 1,
       role: 'user',
+      type: 'user',
+      subAccountId: 1,
     };
 
     const mockUserData = {
@@ -83,39 +104,48 @@ describe('UsersController', () => {
       bookings: [],
     };
 
-    it('should return current user data when no userId provided', () => {
-      mockUsersService.findOne.mockResolvedValue(mockUserData);
+    it('should return all users for admin when no userId provided', async () => {
+      mockUsersService.findAllByAdmin.mockResolvedValue([mockUserData]);
 
-      const result = controller.findAll(mockUser);
+      const result = await controller.findAll(mockAdminUser);
 
-      expect(usersService.findOne).toHaveBeenCalledWith(1);
-      expect(result).resolves.toEqual(mockUserData);
+      expect(usersService.findAllByAdmin).toHaveBeenCalledWith(mockAdminUser.userId);
+      expect(result).toEqual([mockUserData]);
     });
 
-    it('should return specific user data when userId provided and user is admin', () => {
+    it('should return users by subAccount for regular user when no userId provided', async () => {
+      mockUsersService.findAllBySubAccount.mockResolvedValue([mockUserData]);
+
+      const result = await controller.findAll(mockRegularUser);
+
+      expect(usersService.findAllBySubAccount).toHaveBeenCalledWith(mockRegularUser.subAccountId);
+      expect(result).toEqual([mockUserData]);
+    });
+
+    it('should return specific user data when userId provided and user is admin', async () => {
       mockUsersService.findOne.mockResolvedValue(mockUserData);
 
-      const result = controller.findAll({ ...mockUser, role: 'admin' }, '2');
+      const result = await controller.findAll(mockAdminUser, '2');
 
       expect(usersService.findOne).toHaveBeenCalledWith(2);
-      expect(result).resolves.toEqual(mockUserData);
+      expect(result).toEqual(mockUserData);
     });
 
-    it('should return specific user data when userId matches current user', () => {
+    it('should return specific user data when userId matches current user', async () => {
       mockUsersService.findOne.mockResolvedValue(mockUserData);
 
-      const result = controller.findAll(mockUser, '1');
+      const result = await controller.findAll(mockRegularUser, '1');
 
       expect(usersService.findOne).toHaveBeenCalledWith(1);
-      expect(result).resolves.toEqual(mockUserData);
+      expect(result).toEqual(mockUserData);
     });
 
     it('should throw HttpException for invalid userId parameter', () => {
-      expect(() => controller.findAll(mockUser, 'invalid')).toThrow(HttpException);
+      expect(() => controller.findAll(mockRegularUser, 'invalid')).toThrow(HttpException);
     });
 
     it('should throw HttpException when user tries to access other user data without admin role', () => {
-      expect(() => controller.findAll(mockUser, '2')).toThrow(HttpException);
+      expect(() => controller.findAll(mockRegularUser, '2')).toThrow(HttpException);
     });
   });
 
