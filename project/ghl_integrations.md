@@ -36,3 +36,7 @@ and we will be able to book through them.
 
 
 USER MAPPING MOST IMPORTANT PART!
+
+contact created
+outbound (continuous messaging until done)
+booking
