@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../infrastructure/prisma/prisma.service';
-import { RedisService } from '../infrastructure/redis/redis.service';
+import { CacheService } from '../infrastructure/cache/cache.service';
 import { UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
@@ -13,7 +13,7 @@ describe('AuthService', () => {
   let service: AuthService;
   let prismaService: PrismaService;
   let jwtService: JwtService;
-  let redisService: RedisService;
+  let cacheService: CacheService;
 
   const mockPrismaService = {
     user: {
@@ -35,7 +35,7 @@ describe('AuthService', () => {
     verify: jest.fn(),
   };
 
-  const mockRedisService = {
+      const mockCacheService = {
     setCache: jest.fn(),
     getCache: jest.fn(),
     delCache: jest.fn(),
@@ -54,8 +54,8 @@ describe('AuthService', () => {
           useValue: mockJwtService,
         },
         {
-          provide: RedisService,
-          useValue: mockRedisService,
+                  provide: CacheService,
+        useValue: mockCacheService,
         },
       ],
     }).compile();
@@ -63,7 +63,7 @@ describe('AuthService', () => {
     service = module.get<AuthService>(AuthService);
     prismaService = module.get<PrismaService>(PrismaService);
     jwtService = module.get<JwtService>(JwtService);
-    redisService = module.get<RedisService>(RedisService);
+    cacheService = module.get<CacheService>(CacheService);
   });
 
   afterEach(() => {
@@ -187,7 +187,7 @@ describe('AuthService', () => {
       mockJwtService.sign
         .mockReturnValueOnce(mockTokens.access_token)
         .mockReturnValueOnce(mockTokens.refresh_token);
-      mockRedisService.setCache.mockResolvedValue(undefined);
+      mockCacheService.setCache.mockResolvedValue(undefined);
 
       const result = await service.login(loginDto);
 
@@ -196,7 +196,7 @@ describe('AuthService', () => {
         data: { lastLoginAt: expect.any(Date) },
       });
       expect(jwtService.sign).toHaveBeenCalledTimes(2);
-      expect(redisService.setCache).toHaveBeenCalledWith(
+      expect(cacheService.setCache).toHaveBeenCalledWith(
         'refresh:1',
         mockTokens.refresh_token,
         7 * 24 * 60 * 60
@@ -300,11 +300,11 @@ describe('AuthService', () => {
 
   describe('logout', () => {
     it('should successfully logout user', async () => {
-      mockRedisService.delCache.mockResolvedValue(undefined);
+      mockCacheService.delCache.mockResolvedValue(undefined);
 
       const result = await service.logout(1);
 
-      expect(redisService.delCache).toHaveBeenCalledWith('refresh:1');
+      expect(cacheService.delCache).toHaveBeenCalledWith('refresh:1');
       expect(result).toEqual({ message: 'Logged out successfully' });
     });
   });
@@ -369,7 +369,7 @@ describe('AuthService', () => {
         .mockResolvedValueOnce(false); // new password different check
       (bcrypt.hash as jest.Mock).mockResolvedValue('newHashedPassword');
       mockPrismaService.user.update.mockResolvedValue(mockUser);
-      mockRedisService.delCache.mockResolvedValue(undefined);
+      mockCacheService.delCache.mockResolvedValue(undefined);
 
       const result = await service.changePassword(1, 'OldPassword123!', 'NewPassword123!');
 
@@ -380,7 +380,7 @@ describe('AuthService', () => {
         where: { id: 1 },
         data: { password: 'newHashedPassword' },
       });
-      expect(redisService.delCache).toHaveBeenCalledWith('refresh:1');
+      expect(cacheService.delCache).toHaveBeenCalledWith('refresh:1');
       expect(result).toEqual({ message: 'Password changed successfully' });
     });
 
@@ -432,22 +432,22 @@ describe('AuthService', () => {
 
     it('should successfully refresh tokens', async () => {
       mockJwtService.verify.mockReturnValue(mockDecodedToken);
-      mockRedisService.getCache.mockResolvedValue('old-refresh-token');
+      mockCacheService.getCache.mockResolvedValue('old-refresh-token');
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
       mockJwtService.sign
         .mockReturnValueOnce(mockTokens.access_token)
         .mockReturnValueOnce(mockTokens.refresh_token);
-      mockRedisService.setCache.mockResolvedValue(undefined);
+      mockCacheService.setCache.mockResolvedValue(undefined);
 
       const result = await service.refreshToken('old-refresh-token');
 
       expect(jwtService.verify).toHaveBeenCalledWith('old-refresh-token');
-      expect(redisService.getCache).toHaveBeenCalledWith('refresh:1');
+      expect(cacheService.getCache).toHaveBeenCalledWith('refresh:1');
       expect(prismaService.user.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
       });
       expect(jwtService.sign).toHaveBeenCalledTimes(2);
-      expect(redisService.setCache).toHaveBeenCalledWith(
+      expect(cacheService.setCache).toHaveBeenCalledWith(
         'refresh:1',
         mockTokens.refresh_token,
         7 * 24 * 60 * 60
@@ -465,21 +465,21 @@ describe('AuthService', () => {
 
     it('should throw UnauthorizedException for non-existent stored token', async () => {
       mockJwtService.verify.mockReturnValue(mockDecodedToken);
-      mockRedisService.getCache.mockResolvedValue(null);
+      mockCacheService.getCache.mockResolvedValue(null);
 
       await expect(service.refreshToken('old-refresh-token')).rejects.toThrow(UnauthorizedException);
     });
 
     it('should throw UnauthorizedException for mismatched stored token', async () => {
       mockJwtService.verify.mockReturnValue(mockDecodedToken);
-      mockRedisService.getCache.mockResolvedValue('different-token');
+      mockCacheService.getCache.mockResolvedValue('different-token');
 
       await expect(service.refreshToken('old-refresh-token')).rejects.toThrow(UnauthorizedException);
     });
 
     it('should throw UnauthorizedException for non-existent user', async () => {
       mockJwtService.verify.mockReturnValue(mockDecodedToken);
-      mockRedisService.getCache.mockResolvedValue('old-refresh-token');
+      mockCacheService.getCache.mockResolvedValue('old-refresh-token');
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
       await expect(service.refreshToken('old-refresh-token')).rejects.toThrow(UnauthorizedException);
@@ -487,7 +487,7 @@ describe('AuthService', () => {
 
     it('should throw UnauthorizedException for inactive user', async () => {
       mockJwtService.verify.mockReturnValue(mockDecodedToken);
-      mockRedisService.getCache.mockResolvedValue('old-refresh-token');
+      mockCacheService.getCache.mockResolvedValue('old-refresh-token');
       mockPrismaService.user.findUnique.mockResolvedValue({ ...mockUser, isActive: false });
 
       await expect(service.refreshToken('old-refresh-token')).rejects.toThrow(UnauthorizedException);

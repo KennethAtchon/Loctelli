@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import { RedisService } from '../redis/redis.service';
+import { CacheService } from '../cache/cache.service';
 
 interface RateLimitConfig {
   windowMs: number; // Time window in milliseconds
@@ -21,7 +21,7 @@ export class RateLimitMiddleware implements NestMiddleware {
     skipFailedRequests: false,
   };
 
-  constructor(private readonly redisService: RedisService) {}
+  constructor(private readonly cacheService: CacheService) {}
 
   use(req: Request, res: Response, next: NextFunction) {
     this.handleRateLimit(req, res, next, this.defaultConfig);
@@ -96,7 +96,7 @@ export class RateLimitMiddleware implements NestMiddleware {
 
   private async getCurrentRequests(key: string): Promise<number> {
     try {
-      const count = await this.redisService.getCache(key);
+      const count = await this.cacheService.getCache(key);
       return count ? parseInt(count as string, 10) : 0;
     } catch (error) {
       this.logger.error(`Error getting current requests for key: ${key}`, error.stack);
@@ -107,7 +107,7 @@ export class RateLimitMiddleware implements NestMiddleware {
   private async incrementRequests(key: string, windowMs: number): Promise<void> {
     try {
       const current = await this.getCurrentRequests(key);
-      await this.redisService.setCache(key, (current + 1).toString(), windowMs / 1000);
+      await this.cacheService.setCache(key, (current + 1).toString(), windowMs / 1000);
       this.logger.debug(`Incremented requests for key: ${key} to ${current + 1}`);
     } catch (error) {
       this.logger.error(`Error incrementing requests for key: ${key}`, error.stack);

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../infrastructure/prisma/prisma.service';
-import { RedisService } from '../infrastructure/redis/redis.service';
+import { CacheService } from '../infrastructure/cache/cache.service';
 
 type Field = {
   name: string;
@@ -17,7 +17,7 @@ type Field = {
 export class GeneralService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly redisService: RedisService
+    private readonly cacheService: CacheService
   ) {}
 
   // This service is intentionally empty as the controller methods
@@ -149,8 +149,8 @@ export class GeneralService {
       // Check Redis connection
       try {
         const testKey = 'system-status-test';
-        await this.redisService.setCache(testKey, 'test', 1);
-        const result = await this.redisService.getCache(testKey);
+              await this.cacheService.setCache(testKey, 'test', 1);
+      const result = await this.cacheService.getCache(testKey);
         if (result !== 'test') {
           status.redisCache = 'Error';
         }

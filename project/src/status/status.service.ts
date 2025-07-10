@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../infrastructure/prisma/prisma.service';
-import { RedisService } from '../infrastructure/redis/redis.service';
+import { CacheService } from '../infrastructure/cache/cache.service';
 
 @Injectable()
 export class StatusService {
@@ -8,7 +8,7 @@ export class StatusService {
   
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly redisService: RedisService,
+    private readonly cacheService: CacheService,
   ) {}
 
   async getHealthStatus() {
@@ -36,8 +36,8 @@ export class StatusService {
     try {
       const testKey = 'health-check';
       const testValue = 'test';
-      await this.redisService.setCache(testKey, testValue, 1);
-      const result = await this.redisService.getCache(testKey);
+      await this.cacheService.setCache(testKey, testValue, 1);
+      const result = await this.cacheService.getCache(testKey);
       
       if (result === testValue) {
         health.services.redis = 'ok';

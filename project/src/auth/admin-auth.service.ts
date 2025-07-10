@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../infrastructure/prisma/prisma.service';
-import { RedisService } from '../infrastructure/redis/redis.service';
+import { CacheService } from '../infrastructure/cache/cache.service';
 import * as bcrypt from 'bcrypt';
 
 export interface AdminLoginDto {
@@ -31,7 +31,7 @@ export class AdminAuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-    private redisService: RedisService,
+    private cacheService: CacheService,
   ) {}
 
   // Password validation function
@@ -157,11 +157,11 @@ export class AdminAuthService {
     this.logger.log(`⏰ ADMIN REFRESH TOKEN CACHE DURATION: ${cacheDurationDays} days (${cacheDurationHours} hours, ${cacheDurationSeconds} seconds) for user: ${loginDto.email}`);
     
     try {
-      await this.redisService.setCache(`admin_refresh:${adminUser.id}`, refreshToken, cacheDurationSeconds);
+      await this.cacheService.setCache(`admin_refresh:${adminUser.id}`, refreshToken, cacheDurationSeconds);
       this.logger.debug(`✅ Admin refresh token stored successfully in Redis for user: ${loginDto.email}`);
       
       // Verify the token was stored correctly
-      const storedToken = await this.redisService.getCache(`admin_refresh:${adminUser.id}`);
+              const storedToken = await this.cacheService.getCache(`admin_refresh:${adminUser.id}`);
       if (storedToken === refreshToken) {
         this.logger.debug(`✅ Admin refresh token verification successful for user: ${loginDto.email}`);
       } else {
@@ -283,7 +283,7 @@ export class AdminAuthService {
 
   async adminLogout(adminId: number) {
     // Remove refresh token from Redis
-    await this.redisService.delCache(`admin_refresh:${adminId}`);
+    await this.cacheService.delCache(`admin_refresh:${adminId}`);
     return { message: 'Admin logged out successfully' };
   }
 
@@ -504,7 +504,7 @@ export class AdminAuthService {
     });
 
     // Invalidate all existing refresh tokens for this admin
-    await this.redisService.delCache(`admin_refresh:${adminId}`);
+    await this.cacheService.delCache(`admin_refresh:${adminId}`);
 
     return { message: 'Admin password changed successfully' };
   }
@@ -522,7 +522,7 @@ export class AdminAuthService {
 
       // Verify refresh token from Redis
       this.logger.debug(`🔍 Checking Redis for stored refresh token for admin ID: ${adminId}`);
-      const storedToken = await this.redisService.getCache(`admin_refresh:${adminId}`);
+      const storedToken = await this.cacheService.getCache(`admin_refresh:${adminId}`);
       
       if (!storedToken) {
         this.logger.warn(`❌ No stored refresh token found in Redis for admin ID: ${adminId}`);
@@ -569,7 +569,7 @@ export class AdminAuthService {
 
       // Update refresh token in Redis (rotation)
       this.logger.debug(`💾 Storing new refresh token in Redis for admin ID: ${adminUser.id}`);
-      await this.redisService.setCache(`admin_refresh:${adminUser.id}`, newRefreshToken, 7 * 24 * 60 * 60);
+      await this.cacheService.setCache(`admin_refresh:${adminUser.id}`, newRefreshToken, 7 * 24 * 60 * 60);
       this.logger.debug(`✅ New refresh token stored successfully`);
 
       this.logger.log(`✅ Admin token refresh successful for user: ${adminUser.email} (ID: ${adminUser.id})`);
@@ -648,7 +648,7 @@ export class AdminAuthService {
     });
 
     // Invalidate any existing refresh tokens for the deleted admin
-    await this.redisService.delCache(`admin_refresh:${targetAdminId}`);
+    await this.cacheService.delCache(`admin_refresh:${targetAdminId}`);
 
     return { 
       message: `Admin account deleted successfully. ${usersCreatedByAdmin} user(s) created by this admin have been updated to remove the admin reference.` 

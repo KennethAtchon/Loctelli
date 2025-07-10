@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../infrastructure/prisma/prisma.service';
-import { RedisService } from '../infrastructure/redis/redis.service';
+import { CacheService } from '../infrastructure/cache/cache.service';
 import * as bcrypt from 'bcrypt';
 
 export interface LoginDto {
@@ -30,7 +30,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-    private redisService: RedisService,
+    private cacheService: CacheService,
   ) {}
 
   // Password validation function
@@ -148,7 +148,7 @@ export class AuthService {
 
     this.logger.debug(`Storing refresh token in Redis for user: ${loginDto.email}`);
     // Store refresh token in Redis with rotation
-    await this.redisService.setCache(`refresh:${user.id}`, refreshToken, 7 * 24 * 60 * 60);
+    await this.cacheService.setCache(`refresh:${user.id}`, refreshToken, 7 * 24 * 60 * 60);
 
     this.logger.log(`Login successful for user: ${loginDto.email} (ID: ${user.id})`);
     return {
@@ -238,7 +238,7 @@ export class AuthService {
     
     try {
       // Remove refresh token from Redis
-      await this.redisService.delCache(`refresh:${userId}`);
+      await this.cacheService.delCache(`refresh:${userId}`);
       this.logger.log(`Logout successful for user ID: ${userId}`);
       return { message: 'Logged out successfully' };
     } catch (error) {
@@ -326,7 +326,7 @@ export class AuthService {
 
       this.logger.debug(`Invalidating refresh tokens for user ID: ${userId}`);
       // Invalidate all existing refresh tokens for this user
-      await this.redisService.delCache(`refresh:${userId}`);
+      await this.cacheService.delCache(`refresh:${userId}`);
 
       this.logger.log(`Password change successful for user ID: ${userId}`);
       return { message: 'Password changed successfully' };
@@ -347,7 +347,7 @@ export class AuthService {
 
       this.logger.debug(`Verifying refresh token from Redis for user ID: ${userId}`);
       // Verify refresh token from Redis
-      const storedToken = await this.redisService.getCache(`refresh:${userId}`);
+      const storedToken = await this.cacheService.getCache(`refresh:${userId}`);
       
       if (!storedToken || storedToken !== refreshToken) {
         this.logger.warn(`Invalid refresh token for user ID: ${userId}`);
@@ -377,7 +377,7 @@ export class AuthService {
 
       this.logger.debug(`Updating refresh token in Redis for user ID: ${userId}`);
       // Update refresh token in Redis (rotation)
-      await this.redisService.setCache(`refresh:${user.id}`, newRefreshToken, 7 * 24 * 60 * 60);
+      await this.cacheService.setCache(`refresh:${user.id}`, newRefreshToken, 7 * 24 * 60 * 60);
 
       this.logger.log(`Token refresh successful for user ID: ${userId}`);
       return {

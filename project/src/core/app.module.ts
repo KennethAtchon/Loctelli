@@ -24,7 +24,7 @@ import { ApiKeyMiddleware } from '../infrastructure/middleware/api-key.middlewar
 import { ConfigModule } from '../infrastructure/config/config.module';
 import { GhlModule } from '../integrations/ghl-integrations/ghl/ghl.module';
 import { GeneralModule } from '../general/general.module';
-import { RedisModule } from '../infrastructure/redis/redis.module';
+import { AppCacheModule } from '../infrastructure/cache/cache.module';
 import { AuthModule } from '../auth/auth.module';
 import { SecurityHeadersMiddleware } from '../infrastructure/middleware/security-headers.middleware';
 import { RateLimitMiddleware } from '../infrastructure/middleware/rate-limit.middleware';
@@ -35,7 +35,7 @@ import { JwtAuthGuard } from '../auth/auth.guard';
   imports: [
     ConfigModule,
     PrismaModule,
-    RedisModule,
+    AppCacheModule,
     AuthModule,
     UsersModule,
     StrategiesModule,

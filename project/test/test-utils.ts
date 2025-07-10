@@ -143,7 +143,7 @@ export const mockJwtService = {
   verify: jest.fn(),
 };
 
-export const mockRedisService = {
+export const mockCacheService = {
   setCache: jest.fn(),
   getCache: jest.fn(),
   delCache: jest.fn(),
@@ -168,7 +168,7 @@ export const clearAllMocks = () => {
   Object.values(mockJwtService).forEach(method => {
     (method as jest.Mock).mockClear();
   });
-  Object.values(mockRedisService).forEach(method => {
+  Object.values(mockCacheService).forEach(method => {
     (method as jest.Mock).mockClear();
   });
   Object.values(mockGhlService).forEach(method => {
@@ -189,8 +189,8 @@ export const createTestingModule = async (providers: any[] = []) => {
         useValue: mockJwtService,
       },
       {
-        provide: 'RedisService',
-        useValue: mockRedisService,
+              provide: 'CacheService',
+      useValue: mockCacheService,
       },
       {
         provide: 'GhlService',
