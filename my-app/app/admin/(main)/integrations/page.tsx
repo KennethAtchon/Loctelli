@@ -168,7 +168,10 @@ export default function IntegrationsPage() {
                         <div className="font-medium">Configured as: {integration.name}</div>
                         {integration.lastSyncAt && (
                           <div className="text-xs text-gray-500">
-                            Last sync: {new Date(integration.lastSyncAt).toLocaleDateString()}
+                            Last sync: {(() => {
+                              const date = new Date(integration.lastSyncAt);
+                              return isNaN(date.getTime()) ? 'Invalid Date' : date.toLocaleDateString();
+                            })()}
                           </div>
                         )}
                         {integration.errorMessage && (

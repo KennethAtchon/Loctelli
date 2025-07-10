@@ -199,6 +199,14 @@
   - Global view (all subaccounts) vs subaccount-specific view
   - Persistent filter selection (localStorage)
 
+#### **12. Date Formatting Error Fixes**
+- **Fixed**: `toLocaleDateString()` errors when handling invalid or null dates ✅
+- **Affected Pages**: Leads, Users, Settings, Integrations, Strategies, Prompt Templates, Bookings, Dashboard
+- **Root Cause**: `formatDate` functions were calling `toLocaleDateString()` on invalid Date objects
+- **Solution**: Added proper null checking and `isNaN(date.getTime())` validation
+- **Error Prevention**: All date formatting now safely handles null, undefined, and invalid date strings
+- **User Experience**: No more crashes when editing leads or viewing pages with invalid dates
+
 #### **12. GoHighLevel Integration Type Safety**
 - **Implemented**: Proper typing for GHL integration with locationId as subaccount identifier ✅
 - **Backend Types**: 

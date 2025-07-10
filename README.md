@@ -198,6 +198,12 @@ Loctelli/
   - Fixed backend API not properly filtering users by subaccount
   - Fixed creation forms not requiring subaccount selection
   - Updated all pages using `getAllUsers()` to properly filter by current subaccount
+- **Fixed Date Formatting Errors**: 
+  - Resolved `toLocaleDateString()` errors when handling invalid or null dates
+  - Fixed crashes when editing leads or viewing pages with invalid dates
+  - Updated all `formatDate` functions across admin pages with proper null checking
+  - Added `isNaN(date.getTime())` validation to prevent invalid date errors
+  - Affected pages: Leads, Users, Settings, Integrations, Strategies, Prompt Templates, Bookings, Dashboard
   - Added automatic filter refresh when new subaccounts are created
   - Added required subaccount selection field to user creation form only
   - **Removed subaccount selection from lead/strategy forms** - subaccount automatically set from selected user

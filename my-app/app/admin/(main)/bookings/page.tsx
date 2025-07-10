@@ -147,7 +147,15 @@ export default function BookingsPage() {
   };
 
   const formatDate = (dateInput: string | Date) => {
+    if (!dateInput) return 'N/A';
+    
     const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      return 'Invalid Date';
+    }
+    
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
