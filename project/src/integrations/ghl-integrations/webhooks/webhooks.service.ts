@@ -3,33 +3,27 @@ import { WebhookEventDto } from './dto/webhook-event.dto';
 import { ContactCreatedDto } from './dto/contact-created.dto';
 import { OutboundMessageDto } from './dto/outbound-message.dto';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { SalesBotService } from '../../../modules/chat/sales-bot.service';
 
 @Injectable()
 export class WebhooksService {
   private readonly logger = new Logger(WebhooksService.name);
+  private readonly useDummyResponses: boolean = true; // Hardcoded to use dummy responses
   
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private salesBotService: SalesBotService
+  ) {
+    this.logger.log(`WebhooksService initialized with useDummyResponses=${this.useDummyResponses}`);
+  }
 
   async handleWebhook(webhookEventDto: WebhookEventDto) {
-    const { type, source, payload, signature } = webhookEventDto;
+    const { type, source, payload } = webhookEventDto;
     
     this.logger.log(`Received webhook: ${type} from ${source}`);
     
-    // Verify webhook signature if provided
-    if (signature) {
-      this.verifySignature(payload, signature);
-    }
-    
     // Process webhook based on type and source
     switch (type) {
-      case 'booking.created':
-        return this.handleBookingCreated(payload);
-      case 'booking.updated':
-        return this.handleBookingUpdated(payload);
-      case 'lead.created':
-        return this.handleLeadCreated(payload);
-      case 'lead.updated':
-        return this.handleLeadUpdated(payload);
       case 'contact.created':
         return this.handleContactCreated(payload);
       case 'outbound.message':
@@ -38,38 +32,6 @@ export class WebhooksService {
         this.logger.warn(`Unhandled webhook type: ${type}`);
         return { status: 'unhandled', message: `Webhook type ${type} not implemented` };
     }
-  }
-
-  private verifySignature(payload: any, signature: string): boolean {
-    // In a real implementation, this would verify the signature using a shared secret
-    // For now, we'll just log and return true
-    this.logger.log('Verifying webhook signature');
-    return true;
-  }
-
-  private async handleBookingCreated(payload: any) {
-    this.logger.log('Processing booking.created webhook');
-    // Implementation would depend on the specific payload structure
-    // For example, creating a booking record in the database
-    return { status: 'processed', type: 'booking.created' };
-  }
-
-  private async handleBookingUpdated(payload: any) {
-    this.logger.log('Processing booking.updated webhook');
-    // Implementation would depend on the specific payload structure
-    return { status: 'processed', type: 'booking.updated' };
-  }
-
-  private async handleLeadCreated(payload: any) {
-    this.logger.log('Processing lead.created webhook');
-    // Implementation would depend on the specific payload structure
-    return { status: 'processed', type: 'lead.created' };
-  }
-
-  private async handleLeadUpdated(payload: any) {
-    this.logger.log('Processing lead.updated webhook');
-    // Implementation would depend on the specific payload structure
-    return { status: 'processed', type: 'lead.updated' };
   }
 
   /**
@@ -193,12 +155,59 @@ export class WebhooksService {
   
   /**
    * Generate a response to a lead message
-   * This is a placeholder for the actual AI response generation
+   * This method can use either dummy data or the real AI service based on configuration
+   * @param message The message to respond to
+   * @param leadId The lead ID
+   * @returns The generated response
    */
   private async generateResponse(message: string, leadId: number): Promise<string> {
-    // In a real implementation, this would call your AI service
-    // For now, we'll return a simple response
-    this.logger.log(`Generating response for lead ${leadId} to message: ${message}`);
-    return `Thank you for your message: "${message}". Our team will get back to you shortly.`;
+    this.logger.log(`Generating response for lead ${leadId} to message: "${message}"`);
+    
+    if (this.useDummyResponses) {
+      this.logger.log('Using dummy response mode');
+      return this.generateDummyResponse(message, leadId);
+    } else {
+      this.logger.log('Using real AI response mode');
+      return this.generateRealResponse(message, leadId);
+    }
+  }
+
+  /**
+   * Generate a dummy response for testing purposes
+   * @param message The message to respond to
+   * @param leadId The lead ID
+   * @returns A dummy response
+   */
+  private async generateDummyResponse(message: string, leadId: number): Promise<string> {
+    const dummyResponses = [
+      `Thank you for your message: "${message}". Our team will get back to you shortly.`,
+      `Hi there! Thanks for reaching out. We've received your message and will respond soon.`,
+      `Hello! We appreciate your message. Someone from our team will contact you shortly.`,
+      `Thanks for contacting us! We're reviewing your message and will get back to you soon.`,
+      `Hi! We've got your message and are working on a response. Please stay tuned!`
+    ];
+    
+    // Use leadId to consistently return the same response for the same lead
+    const responseIndex = leadId % dummyResponses.length;
+    return dummyResponses[responseIndex];
+  }
+
+  /**
+   * Generate a real AI response using the SalesBotService
+   * @param message The message to respond to
+   * @param leadId The lead ID
+   * @returns The AI-generated response
+   */
+  private async generateRealResponse(message: string, leadId: number): Promise<string> {
+    try {
+      this.logger.log(`Calling SalesBotService.generateResponse for leadId=${leadId}`);
+      const response = await this.salesBotService.generateResponse(message, leadId);
+      this.logger.log(`SalesBotService response generated successfully for leadId=${leadId}`);
+      return response;
+    } catch (error) {
+      this.logger.error(`Error generating real response for leadId=${leadId}: ${error.message}`);
+      // Fallback to dummy response if real AI fails
+      return this.generateDummyResponse(message, leadId);
+    }
   }
 }

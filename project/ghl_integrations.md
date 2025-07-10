@@ -1,15 +1,9 @@
 
 Background steps
 
-1. Create subaccounts in our database based on gohighlevel's subaccounts found (maybe add a GHLSubAccount id to track)
 2. Get Freeslot of a particular user (these are kind of like owners) and screach for free slots so we can book the lead, we need their calendar to do this
 
 Webhook
-
-1. Interface of webhook is wrong for now, will fix later
-2. Webhooks should work like routes, we will be plugging them into GHL and they will call our webhook
-3. Webhooks actively receive data at random, so needs to be always up
-
 Contact:
 1. When a contact is created, we need to look at the params given by GHL, with the params we can get their userId (GHL edition), with this we will use
 this id instead of the database one whenever we need to talk to a user
@@ -34,8 +28,6 @@ So we can get the bot to successfully book meeting into our database.
 We can have an action running off that, this action will simply call GHL API
 and we will be able to book through them.
 
-
-USER MAPPING MOST IMPORTANT PART!
 
 contact created
 outbound (continuous messaging until done)
