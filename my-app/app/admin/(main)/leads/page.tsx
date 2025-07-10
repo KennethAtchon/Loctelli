@@ -350,7 +350,7 @@ export default function LeadsPage() {
                                 Complete lead information and related data
                               </DialogDescription>
                             </DialogHeader>
-                            {selectedLead && selectedLead.id === lead.id && (
+                            {selectedLead && selectedLead.id === lead.id ? (
                               <div className="space-y-6">
                                 {/* Basic Information */}
                                 <div>
@@ -435,6 +435,13 @@ export default function LeadsPage() {
                                     </div>
                                   </div>
                                 )}
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-center py-8">
+                                <div className="text-center">
+                                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                                  <p className="text-gray-600">Loading lead details...</p>
+                                </div>
                               </div>
                             )}
                           </DialogContent>
