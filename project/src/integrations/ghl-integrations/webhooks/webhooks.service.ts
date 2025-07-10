@@ -38,30 +38,66 @@ export class WebhooksService {
    * Handle HighLevel Contact Created Webhook
    * Docs: https://highlevel.stoplight.io/docs/integrations/4974a1cf9b56d-contact
    */
-  private async handleContactCreated(payload: any) {
+    private async handleContactCreated(payload: any) {
     this.logger.log('Processing contact.created webhook');
     
     try {
       const contactData = payload as ContactCreatedDto;
+      this.logger.log(`Processing contact.created webhook for locationId: ${contactData.locationId}`);
       
-      // Find user by locationId (GHL Subaccount ID) or default to user_id=1 if not found
-      const user = await this.prisma.user.findFirst({
-        where: { locationId: contactData.locationId }
+      // First, find the integration by locationId (GHL Subaccount ID)
+      const integration = await this.prisma.integration.findFirst({
+        where: {
+          config: {
+            path: ['locationId'],
+            equals: contactData.locationId
+          }
+        },
+        include: {
+          subAccount: true
+        }
       });
-      const userId = user?.id || 1;
       
-      if (!user) {
+      if (!integration) {
         throw new HttpException(
-          { status: 'error', message: `No user found with GHL locationId (subaccount) ${contactData.locationId}` },
+          { status: 'error', message: `No integration found with GHL locationId (subaccount) ${contactData.locationId}` },
           HttpStatus.NOT_FOUND
         );
       }
+      
+      this.logger.log(`Found integration: ${integration.name} for subaccount: ${integration.subAccount.name}`);
+      
+      // Get the first user from the integration's subaccount
+      const user = await this.prisma.user.findFirst({
+        where: { 
+          subAccountId: integration.subAccountId,
+          role: { not: 'admin' } // Exclude admin users
+        },
+        orderBy: { id: 'asc' } // Get the first user by ID
+      });
+      
+      if (!user) {
+        throw new HttpException(
+          { status: 'error', message: `No user found in subaccount ${integration.subAccount.name} for GHL locationId ${contactData.locationId}` },
+          HttpStatus.NOT_FOUND
+        );
+      }
+      
+      this.logger.log(`Found user: ${user.name} (ID: ${user.id}) in subaccount: ${integration.subAccount.name}`);
+      
+      const userId = user.id;
       
       // Get the first strategy for this user
       const strategy = await this.prisma.strategy.findFirst({
         where: { userId }
       });
       const strategyId = strategy?.id || 1;
+      
+      if (strategy) {
+        this.logger.log(`Found strategy: ${strategy.name} (ID: ${strategy.id}) for user: ${user.name}`);
+      } else {
+        this.logger.warn(`No strategy found for user: ${user.name}, using default strategy ID: 1`);
+      }
       
       // Create a new Lead with the found user_id and their first strategy
       const name = contactData.name || 
@@ -77,9 +113,11 @@ export class WebhooksService {
           customId: contactData.id,
           messageHistory: [],
           status: 'lead',
-          subAccountId: user.subAccountId
+          subAccountId: integration.subAccountId
         }
       });
+      
+      this.logger.log(`Created lead: ${lead.name} (ID: ${lead.id}) for GHL contact: ${contactData.id}`);
       
       return {
         status: 'lead_created',
