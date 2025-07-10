@@ -246,19 +246,22 @@ export class ApiClient {
           logger.debug('🔄 Retry response status:', retryResponse.status, retryResponse.statusText);
           
           if (!retryResponse.ok) {
-            const errorData = await retryResponse.json().catch(() => ({}));
+            // If retry fails after refresh, redirect to login page
+            logger.debug('❌ Retry failed after token refresh, redirecting to login...');
             
-            // Extract error message from different possible formats
-            let errorMessage = retryResponse.statusText;
-            if (errorData.message) {
-              errorMessage = errorData.message;
-            } else if (errorData.error) {
-              errorMessage = errorData.error;
-            } else if (typeof errorData === 'string') {
-              errorMessage = errorData;
+            // Clear all tokens since refresh failed
+            AuthCookies.clearAll();
+            
+            // Redirect to appropriate login page based on current path
+            const currentPath = window.location.pathname;
+            if (currentPath.startsWith('/admin')) {
+              window.location.href = '/admin/login';
+            } else {
+              window.location.href = '/auth/login';
             }
             
-            throw new Error(errorMessage);
+            // Throw error to stop execution
+            throw new Error('Authentication failed. Redirecting to login page.');
           }
           
           return await retryResponse.json();
@@ -272,6 +275,13 @@ export class ApiClient {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        
+        // Handle rate limiting specifically
+        if (response.status === 429) {
+          const retryAfter = errorData.retryAfter || 60;
+          logger.warn(`🚫 Rate limit exceeded. Retry after ${retryAfter} seconds`);
+          throw new Error(`Rate limit exceeded. Please wait ${retryAfter} seconds before trying again.`);
+        }
         
         // For auth endpoints, use simpler error logging to avoid noise
         if (isAuthEndpoint) {

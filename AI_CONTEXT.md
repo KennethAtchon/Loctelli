@@ -68,7 +68,14 @@
 2. Access token sent in `x-user-token` header for all requests
 3. On 401 response → automatic token refresh
 4. Refresh tokens stored in Redis with rotation
-5. Failed refresh → user logged out
+5. Failed refresh → automatic redirect to login page (admin or user based on current path)
+
+### **Rate Limiting**
+- **Auth Endpoints**: 5 requests per 15 minutes (login/register)
+- **API Endpoints**: 1000 requests per 15 minutes (general API calls)
+- **Default**: 100 requests per 15 minutes (fallback)
+- **Graceful Handling**: Returns HTTP 429 without crashing the application
+- **Frontend**: Shows user-friendly rate limit messages with retry timing
 
 ## 🧪 **Testing Infrastructure - COMPREHENSIVE ✅**
 
