@@ -44,7 +44,7 @@ export class WebhooksService {
     try {
       const contactData = payload as ContactCreatedDto;
       
-      // Find user by locationId or default to user_id=1 if not found
+      // Find user by locationId (GHL Subaccount ID) or default to user_id=1 if not found
       const user = await this.prisma.user.findFirst({
         where: { locationId: contactData.locationId }
       });
@@ -52,7 +52,7 @@ export class WebhooksService {
       
       if (!user) {
         throw new HttpException(
-          { status: 'error', message: `No user found with locationId ${contactData.locationId}` },
+          { status: 'error', message: `No user found with GHL locationId (subaccount) ${contactData.locationId}` },
           HttpStatus.NOT_FOUND
         );
       }
@@ -127,7 +127,7 @@ export class WebhooksService {
       
       if (!lead) {
         throw new HttpException(
-          { status: 'error', message: `No lead found with customId/contactId ${messageData.contactId}` },
+          { status: 'error', message: `No lead found with GHL contactId ${messageData.contactId}` },
           HttpStatus.NOT_FOUND
         );
       }

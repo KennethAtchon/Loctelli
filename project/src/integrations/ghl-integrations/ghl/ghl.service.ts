@@ -1,5 +1,6 @@
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import axios from 'axios';
+import { GhlSubaccountsResponse } from '../dto/ghl-integration-config.dto';
 
 @Injectable()
 export class GhlService {
@@ -13,7 +14,7 @@ export class GhlService {
    * Search for GoHighLevel subaccounts (locations)
    * @returns List of subaccounts/locations from GoHighLevel API
    */
-  async searchSubaccounts() {
+  async searchSubaccounts(): Promise<GhlSubaccountsResponse> {
     try {
       this.logger.log('Fetching subaccounts from GoHighLevel API');
       
@@ -24,7 +25,7 @@ export class GhlService {
         }
       });
       
-      return response.data;
+      return response.data as GhlSubaccountsResponse;
     } catch (error) {
       this.logger.error(`Error fetching subaccounts: ${error.message}`);
       throw new HttpException(

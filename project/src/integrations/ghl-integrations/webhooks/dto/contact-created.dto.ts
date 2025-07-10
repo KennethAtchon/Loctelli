@@ -5,7 +5,7 @@ export class ContactCreatedDto {
   id: string;
 
   @IsString()
-  locationId: string;
+  locationId: string; // GHL Subaccount/Location ID
 
   @IsString()
   @IsOptional()

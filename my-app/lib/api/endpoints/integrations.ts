@@ -7,7 +7,7 @@ export interface Integration {
   name: string;
   description?: string;
   isActive: boolean;
-  config: Record<string, unknown>;
+  config: Record<string, unknown>; // Can be typed based on integration template
   status: 'pending' | 'active' | 'error' | 'disconnected';
   lastSyncAt?: string;
   errorMessage?: string;

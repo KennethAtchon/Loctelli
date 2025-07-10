@@ -83,8 +83,8 @@ export const DEFAULT_INTEGRATION_TEMPLATES = [
         },
         locationId: {
           type: 'string',
-          title: 'Location ID',
-          description: 'Your GoHighLevel location ID'
+          title: 'Location ID (Subaccount)',
+          description: 'Your GoHighLevel location/subaccount ID. This is used to identify which GHL subaccount this integration belongs to.'
         },
         calendarId: {
           type: 'string',
@@ -107,9 +107,10 @@ export const DEFAULT_INTEGRATION_TEMPLATES = [
    - Generate a new API key
    - Copy the API key
 
-2. **Find Your Location ID**
+2. **Find Your Location ID (Subaccount)**
    - Go to Settings > Locations
-   - Copy the Location ID for your primary location
+   - Copy the Location ID for your primary location/subaccount
+   - This ID is used to match webhook events to the correct user in Loctelli
 
 3. **Optional: Calendar ID**
    - Go to Calendar settings

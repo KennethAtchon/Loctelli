@@ -194,4 +194,63 @@ export interface DashboardStats {
   totalBookings: number;
   recentBookings: Booking[];
   topStrategies: Strategy[];
+}
+
+// GoHighLevel Integration types
+export interface GhlIntegrationConfig {
+  apiKey: string;
+  locationId: string; // GHL Subaccount/Location ID
+  calendarId?: string;
+  webhookUrl?: string;
+}
+
+export interface GhlSubaccount {
+  id: string; // This is the locationId used in webhooks
+  name: string;
+  email?: string;
+  companyId?: string;
+  address?: string;
+  phone?: string;
+  website?: string;
+  timezone?: string;
+  currency?: string;
+  isActive?: boolean;
+}
+
+export interface GhlContact {
+  id: string;
+  locationId: string; // GHL Subaccount ID
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  country?: string;
+  source?: string;
+  tags?: string[];
+  customFields?: Record<string, any>;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface GhlMessage {
+  contactId: string; // GHL Contact ID (maps to customId in Lead model)
+  messageType?: 'SMS' | 'Email' | 'Live Chat' | 'GMB' | 'Call' | 'Voicemail';
+  body?: string;
+  subject?: string;
+  from?: string;
+  to?: string;
+  direction?: 'inbound' | 'outbound';
+  status?: string;
+  timestamp?: string;
+  attachments?: Array<{
+    name: string;
+    url: string;
+    type: string;
+  }>;
 } 
