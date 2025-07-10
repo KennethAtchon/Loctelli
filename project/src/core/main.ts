@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
+import { CacheService } from '../infrastructure/cache/cache.service';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -11,6 +12,20 @@ async function bootstrap() {
   try {
     logger.log('🔧 Creating NestJS application...');
     const app = await NestFactory.create(AppModule);
+    
+    // Test Redis connection
+    try {
+      const cacheService = app.get(CacheService);
+      logger.log('🔍 Testing Redis connection...');
+      const redisConnected = await cacheService.testConnection();
+      if (redisConnected) {
+        logger.log('✅ Redis connection test successful');
+      } else {
+        logger.error('❌ Redis connection test failed');
+      }
+    } catch (error) {
+      logger.error('❌ Failed to test Redis connection:', error);
+    }
     
     logger.log('🌐 Configuring CORS...');
     // Enable CORS

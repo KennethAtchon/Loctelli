@@ -6,7 +6,11 @@ import { Cache } from 'cache-manager';
 export class CacheService {
   private readonly logger = new Logger(CacheService.name);
 
-  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
+  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
+    this.logger.log('🔧 CacheService initialized');
+    this.logger.log(`🔧 Cache manager type: ${typeof this.cacheManager}`);
+    this.logger.log(`🔧 Cache manager methods: ${Object.getOwnPropertyNames(Object.getPrototypeOf(this.cacheManager))}`);
+  }
 
   async getCache<T = any>(key: string): Promise<T | null> {
     try {
@@ -76,6 +80,34 @@ export class CacheService {
       return false;
     } catch (error) {
       this.logger.error(`❌ Cache EXPIRE error for key ${key}:`, error);
+      return false;
+    }
+  }
+
+  // Test Redis connection
+  async testConnection(): Promise<boolean> {
+    try {
+      const testKey = 'redis_connection_test';
+      const testValue = 'test_value_' + Date.now();
+      
+      this.logger.log('🔍 Testing Redis connection...');
+      
+      // Try to set a test value
+      await this.cacheManager.set(testKey, testValue, 10);
+      this.logger.log('✅ Redis SET test passed');
+      
+      // Try to get the test value
+      const retrieved = await this.cacheManager.get(testKey);
+      this.logger.log(`✅ Redis GET test passed: ${retrieved}`);
+      
+      // Try to delete the test value
+      await this.cacheManager.del(testKey);
+      this.logger.log('✅ Redis DEL test passed');
+      
+      this.logger.log('✅ Redis connection test successful');
+      return true;
+    } catch (error) {
+      this.logger.error('❌ Redis connection test failed:', error);
       return false;
     }
   }

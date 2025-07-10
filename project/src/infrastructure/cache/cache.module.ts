@@ -8,21 +8,46 @@ import { CacheService } from './cache.service';
   imports: [
     CacheModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        store: redisStore,
-        host: configService.get('REDIS_HOST', 'localhost'),
-        port: configService.get('REDIS_PORT', 6379),
-        password: configService.get('REDIS_PASSWORD'),
-        db: configService.get('REDIS_DB', 0),
-        ttl: configService.get('CACHE_TTL', 300), // 5 minutes default
-        max: configService.get('CACHE_MAX_ITEMS', 100),
-        retryStrategy: (times: number) => {
-          const delay = Math.min(times * 50, 2000);
-          return delay;
-        },
-        connectTimeout: 15000,
-        family: 4,
-      }),
+      useFactory: async (configService: ConfigService) => {
+        const redisUrl = configService.get('REDIS_URL');
+        
+        if (redisUrl) {
+          // Parse REDIS_URL to extract connection details
+          const url = new URL(redisUrl);
+          return {
+            store: redisStore,
+            host: url.hostname,
+            port: parseInt(url.port) || 6379,
+            password: url.password || undefined,
+            db: parseInt(url.searchParams.get('db') || '0'),
+            ttl: configService.get('CACHE_TTL', 300), // 5 minutes default
+            max: configService.get('CACHE_MAX_ITEMS', 100),
+            retryStrategy: (times: number) => {
+              const delay = Math.min(times * 50, 2000);
+              return delay;
+            },
+            connectTimeout: 15000,
+            family: 4,
+          };
+        } else {
+          // Fallback to individual environment variables
+          return {
+            store: redisStore,
+            host: configService.get('REDIS_HOST', 'localhost'),
+            port: configService.get('REDIS_PORT', 6379),
+            password: configService.get('REDIS_PASSWORD'),
+            db: configService.get('REDIS_DB', 0),
+            ttl: configService.get('CACHE_TTL', 300), // 5 minutes default
+            max: configService.get('CACHE_MAX_ITEMS', 100),
+            retryStrategy: (times: number) => {
+              const delay = Math.min(times * 50, 2000);
+              return delay;
+            },
+            connectTimeout: 15000,
+            family: 4,
+          };
+        }
+      },
       inject: [ConfigService],
     }),
   ],

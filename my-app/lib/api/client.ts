@@ -1,7 +1,9 @@
 import { ApiRequestOptions } from './types';
-import { API_CONFIG } from '../envUtils';
+import { API_CONFIG } from '../utils/envUtils';
 import { AuthCookies } from '../cookies';
 import logger from '@/lib/logger';
+import { toast } from 'sonner';
+import { RateLimitBlocker } from '../utils/rate-limit-blocker';
 
 const API_BASE_URL = API_CONFIG.BASE_URL;
 
@@ -14,9 +16,15 @@ export class ApiClient {
   private isRefreshing = false;
   private refreshPromise: Promise<void> | null = null;
   private isRefreshRequest = false; // Flag to prevent recursive refresh attempts
+  private rateLimitBlocker = new RateLimitBlocker();
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
+    
+    // Clean up expired blocks every minute
+    setInterval(() => {
+      this.rateLimitBlocker.cleanup();
+    }, 60000);
   }
 
   // Check if an endpoint is an authentication endpoint that should not be retried
@@ -194,6 +202,25 @@ export class ApiClient {
       endpoint,
       isAuthEndpoint
     });
+
+    // Check if endpoint is currently rate limited
+    if (this.rateLimitBlocker.isBlocked(endpoint)) {
+      const retryAfter = this.rateLimitBlocker.getRetryTime(endpoint);
+      if (retryAfter) {
+        const formatTime = (seconds: number) => {
+          if (seconds < 60) return `${seconds} seconds`;
+          const minutes = Math.floor(seconds / 60);
+          const remainingSeconds = seconds % 60;
+          if (remainingSeconds === 0) return `${minutes} minutes`;
+          return `${minutes} minutes and ${remainingSeconds} seconds`;
+        };
+        
+        const waitTime = formatTime(retryAfter);
+        logger.warn(`🚫 Blocked request to ${endpoint} - rate limited. Wait ${waitTime}`);
+        this.showRateLimitToast(waitTime);
+        throw new Error(`Rate limit exceeded. Please wait ${waitTime} before trying again.`);
+      }
+    }
     
     // Add auth headers
     const authHeaders = this.getAuthHeaders();
@@ -279,8 +306,23 @@ export class ApiClient {
         // Handle rate limiting specifically
         if (response.status === 429) {
           const retryAfter = errorData.retryAfter || 60;
+          const formatTime = (seconds: number) => {
+            if (seconds < 60) return `${seconds} seconds`;
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            if (remainingSeconds === 0) return `${minutes} minutes`;
+            return `${minutes} minutes and ${remainingSeconds} seconds`;
+          };
+          
+          // Block this endpoint for the retry duration
+          this.rateLimitBlocker.blockEndpoint(endpoint, retryAfter);
+          
           logger.warn(`🚫 Rate limit exceeded. Retry after ${retryAfter} seconds`);
-          throw new Error(`Rate limit exceeded. Please wait ${retryAfter} seconds before trying again.`);
+          
+          // Show toast notification
+          this.showRateLimitToast(formatTime(retryAfter));
+          
+          throw new Error(`Rate limit exceeded. Please wait ${formatTime(retryAfter)} before trying again.`);
         }
         
         // For auth endpoints, use simpler error logging to avoid noise
@@ -330,6 +372,14 @@ export class ApiClient {
       }
       
       throw error;
+    }
+  }
+
+  // Simple toast notification for rate limiting
+  private showRateLimitToast(waitTime: string) {
+    // Check if we're in a browser environment
+    if (typeof window !== 'undefined') {
+      toast.error(`Rate limited! Please wait ${waitTime} before trying again.`);
     }
   }
 

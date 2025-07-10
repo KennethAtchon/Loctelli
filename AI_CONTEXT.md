@@ -70,12 +70,30 @@
 4. Refresh tokens stored in Redis with rotation
 5. Failed refresh → automatic redirect to login page (admin or user based on current path)
 
-### **Rate Limiting**
+### **Rate Limiting - COMPREHENSIVE FRONTEND INTEGRATION ✅**
+
+#### **Backend Rate Limiting**
 - **Auth Endpoints**: 5 requests per 15 minutes (login/register)
 - **API Endpoints**: 1000 requests per 15 minutes (general API calls)
 - **Default**: 100 requests per 15 minutes (fallback)
 - **Graceful Handling**: Returns HTTP 429 without crashing the application
-- **Frontend**: Shows user-friendly rate limit messages with retry timing
+- **Smart Retry Timing**: Uses Redis TTL for accurate retry timing, falls back to window time
+- **Headers**: Proper X-RateLimit-* headers and Retry-After header
+- **Redis Integration**: Fixed Redis connection issues with proper URL parsing and connection testing
+
+#### **Frontend Rate Limiting - SIMPLIFIED ✅**
+- **Simple Toast Notifications**: Shows user-friendly alert when rate limited
+- **Human-Readable Timing**: Displays wait time in minutes and seconds format
+- **Automatic Detection**: Handles 429 responses from backend automatically
+- **Clean Implementation**: No complex UI components or hooks needed
+- **User Experience**: Clear, simple message telling users to wait
+
+### **Redis Configuration**
+- **Connection**: Uses REDIS_URL from docker-compose with proper parsing
+- **Fallback**: Individual environment variables (REDIS_HOST, REDIS_PORT, etc.)
+- **Testing**: Built-in Redis connection test on application startup
+- **Debugging**: Enhanced logging for Redis operations and connection issues
+- **Packages**: Uses cache-manager-redis-store with proper configuration
 
 ## 🧪 **Testing Infrastructure - COMPREHENSIVE ✅**
 

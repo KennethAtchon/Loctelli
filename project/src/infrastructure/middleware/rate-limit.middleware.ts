@@ -93,24 +93,24 @@ export class RateLimitMiddleware implements NestMiddleware {
         this.logger.warn(`🚫 RATE LIMIT EXCEEDED! Key: ${key}`);
         this.logger.warn(`🚫 Route: ${route} from ${clientIP}`);
         this.logger.warn(`🚫 Current: ${current}/${config.maxRequests} (100% used)`);
-        this.logger.warn(`🚫 Retry after: ${new Date(retryAfter).toISOString()}`);
+        this.logger.warn(`🚫 Retry after: ${retryAfter} seconds (${new Date(Date.now() + retryAfter * 1000).toISOString()})`);
         
         res.setHeader('X-RateLimit-Limit', config.maxRequests);
         res.setHeader('X-RateLimit-Remaining', 0);
-        res.setHeader('X-RateLimit-Reset', retryAfter);
-        res.setHeader('Retry-After', Math.ceil(config.windowMs / 1000));
+        res.setHeader('X-RateLimit-Reset', Date.now() + (retryAfter * 1000));
+        res.setHeader('Retry-After', retryAfter);
         
         // Return 429 response without throwing exception to prevent crashes
         res.status(HttpStatus.TOO_MANY_REQUESTS).json({
           message: 'Too many requests',
-          retryAfter: Math.ceil(config.windowMs / 1000),
+          retryAfter: retryAfter,
         });
         return; // Stop processing, don't call next()
       }
 
       // Increment request count
       this.logger.log(`📈 Incrementing request count for key: ${key}`);
-      await this.incrementRequests(key, config.windowMs);
+      await this.incrementRequests(key, current, config.windowMs);
       
       // Set rate limit headers
       const remaining = Math.max(0, config.maxRequests - current - 1);
@@ -166,11 +166,10 @@ export class RateLimitMiddleware implements NestMiddleware {
     }
   }
 
-  private async incrementRequests(key: string, windowMs: number): Promise<void> {
+  private async incrementRequests(key: string, currentCount: number, windowMs: number): Promise<void> {
     try {
       this.logger.log(`📈 Starting increment for key: ${key}`);
-      const current = await this.getCurrentRequests(key);
-      const newCount = current + 1;
+      const newCount = currentCount + 1;
       const ttlSeconds = windowMs / 1000;
       
       this.logger.log(`📈 Setting Redis cache: key=${key}, value=${newCount}, ttl=${ttlSeconds}s`);
@@ -184,10 +183,24 @@ export class RateLimitMiddleware implements NestMiddleware {
   }
 
   private async getRetryAfter(key: string, windowMs: number): Promise<number> {
-    // Since we don't have getTTL method, we'll use the windowMs
-    const retryTime = Date.now() + windowMs;
-    this.logger.log(`⏰ Calculated retry after time: ${new Date(retryTime).toISOString()} (${windowMs / 1000 / 60} minutes from now)`);
-    return retryTime;
+    try {
+      // Try to get the actual TTL from Redis for this key
+      const ttl = await this.cacheService.ttl(key);
+      
+      if (ttl > 0) {
+        this.logger.log(`⏰ Redis TTL for ${key}: ${ttl} seconds remaining`);
+        return ttl;
+      }
+      
+      // Fallback: use the window time if we can't get TTL
+      const fallbackSeconds = Math.ceil(windowMs / 1000);
+      this.logger.log(`⏰ Using fallback retry time: ${fallbackSeconds} seconds`);
+      return fallbackSeconds;
+    } catch (error) {
+      this.logger.error(`❌ Error getting TTL for key: ${key}`, error.stack);
+      // Fallback: use the window time
+      return Math.ceil(windowMs / 1000);
+    }
   }
 
   // Static method for creating rate limit middleware with custom config
