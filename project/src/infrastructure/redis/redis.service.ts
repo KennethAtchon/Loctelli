@@ -5,7 +5,7 @@ import Redis from 'ioredis';
 @Injectable()
 export class RedisService implements OnModuleInit {
   private readonly logger = new Logger(RedisService.name);
-  private readonly maxRetries = 30; // 30 seconds max wait time
+  private readonly maxRetries = 3; // 30 seconds max wait time
   private readonly retryDelay = 1000; // 1 second delay between retries
   private redis: Redis;
 
@@ -29,7 +29,8 @@ export class RedisService implements OnModuleInit {
         const delay = Math.min(times * 50, 2000);
         return delay;
       },
-      connectTimeout: 10000,
+      connectTimeout: 15000,
+      family: 4,
     });
 
     // Handle Redis events
