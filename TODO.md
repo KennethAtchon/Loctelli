@@ -6,4 +6,4 @@ add pageination
 
 in ghl integrations in frontend, need a way for it to download snapshot/ fix it
 
-
+redis bug

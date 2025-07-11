@@ -155,10 +155,17 @@ export class RateLimitMiddleware implements NestMiddleware {
   private async getCurrentRequests(key: string): Promise<number> {
     try {
       this.logger.log(`🔍 Fetching current request count from Redis for key: ${key}`);
-      const count = await this.cacheService.getCache(key);
-      const parsedCount = count ? parseInt(count as string, 10) : 0;
-      this.logger.log(`📊 Redis returned count for ${key}: ${parsedCount}`);
-      return parsedCount;
+      const data = await this.cacheService.getCache(key);
+      
+      if (!data) {
+        this.logger.log(`📊 No data found for ${key}, returning 0`);
+        return 0;
+      }
+      
+      const parsed = JSON.parse(data as string);
+      const count = parsed.count || 0;
+      this.logger.log(`📊 Redis returned count for ${key}: ${count}`);
+      return count;
     } catch (error) {
       this.logger.error(`❌ Error getting current requests for key: ${key}`);
       this.logger.error(`❌ Redis error details:`, error.stack);
@@ -172,8 +179,15 @@ export class RateLimitMiddleware implements NestMiddleware {
       const newCount = currentCount + 1;
       const ttlSeconds = windowMs / 1000;
       
-      this.logger.log(`📈 Setting Redis cache: key=${key}, value=${newCount}, ttl=${ttlSeconds}s`);
-      await this.cacheService.setCache(key, newCount.toString(), ttlSeconds);
+      // Store both count and window start time
+      const windowStart = Date.now();
+      const data = JSON.stringify({
+        count: newCount,
+        windowStart: windowStart
+      });
+      
+      this.logger.log(`📈 Setting Redis cache: key=${key}, value=${data}, ttl=${ttlSeconds}s`);
+      await this.cacheService.setCache(key, data, ttlSeconds);
       this.logger.log(`✅ Successfully incremented requests for key: ${key} to ${newCount} (TTL: ${ttlSeconds}s)`);
     } catch (error) {
       this.logger.error(`❌ Error incrementing requests for key: ${key}`);
@@ -184,20 +198,39 @@ export class RateLimitMiddleware implements NestMiddleware {
 
   private async getRetryAfter(key: string, windowMs: number): Promise<number> {
     try {
-      // Try to get the actual TTL from Redis for this key
-      const ttl = await this.cacheService.ttl(key);
+      // Get the stored data to find window start time
+      const data = await this.cacheService.getCache(key);
       
-      if (ttl > 0) {
-        this.logger.log(`⏰ Redis TTL for ${key}: ${ttl} seconds remaining`);
-        return ttl;
+      if (!data) {
+        // No data found, use window time as fallback
+        const fallbackSeconds = Math.ceil(windowMs / 1000);
+        this.logger.log(`⏰ No data found for ${key}, using fallback: ${fallbackSeconds} seconds`);
+        return fallbackSeconds;
       }
       
-      // Fallback: use the window time if we can't get TTL
-      const fallbackSeconds = Math.ceil(windowMs / 1000);
-      this.logger.log(`⏰ Using fallback retry time: ${fallbackSeconds} seconds`);
-      return fallbackSeconds;
+      const parsed = JSON.parse(data as string);
+      const windowStart = parsed.windowStart;
+      
+      if (!windowStart) {
+        // No window start time, use fallback
+        const fallbackSeconds = Math.ceil(windowMs / 1000);
+        this.logger.log(`⏰ No window start time for ${key}, using fallback: ${fallbackSeconds} seconds`);
+        return fallbackSeconds;
+      }
+      
+      // Calculate time remaining in the window
+      const now = Date.now();
+      const windowEnd = windowStart + windowMs;
+      const timeRemaining = Math.max(0, windowEnd - now);
+      const secondsRemaining = Math.ceil(timeRemaining / 1000);
+      
+      this.logger.log(`⏰ Window start: ${new Date(windowStart).toISOString()}`);
+      this.logger.log(`⏰ Window end: ${new Date(windowEnd).toISOString()}`);
+      this.logger.log(`⏰ Time remaining: ${secondsRemaining} seconds`);
+      
+      return secondsRemaining;
     } catch (error) {
-      this.logger.error(`❌ Error getting TTL for key: ${key}`, error.stack);
+      this.logger.error(`❌ Error getting retry time for key: ${key}`, error.stack);
       // Fallback: use the window time
       return Math.ceil(windowMs / 1000);
     }
