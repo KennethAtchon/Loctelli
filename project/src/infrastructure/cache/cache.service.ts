@@ -26,8 +26,10 @@ export class CacheService {
   async setCache<T = any>(key: string, value: T, ttl?: number): Promise<void> {
     try {
       if (ttl) {
-        await this.cacheManager.set(key, value, ttl);
-        this.logger.debug(`💾 Cache SET ${key} with TTL ${ttl}s: success`);
+        // Convert seconds to milliseconds for cache-manager-redis-yet
+        const ttlMs = ttl * 1000;
+        await this.cacheManager.set(key, value, ttlMs);
+        this.logger.debug(`💾 Cache SET ${key} with TTL ${ttl}s (${ttlMs}ms): success`);
       } else {
         await this.cacheManager.set(key, value);
         this.logger.debug(`💾 Cache SET ${key} (no TTL): success`);
@@ -51,7 +53,9 @@ export class CacheService {
   async exists(key: string): Promise<boolean> {
     try {
       const result = await this.cacheManager.get(key);
-      return result !== null && result !== undefined;
+      const exists = result !== null && result !== undefined;
+      this.logger.debug(`🔍 Cache EXISTS ${key}: ${exists ? 'true' : 'false'}`);
+      return exists;
     } catch (error) {
       this.logger.error(`❌ Cache EXISTS error for key ${key}:`, error);
       return false;
@@ -74,7 +78,9 @@ export class CacheService {
     try {
       const value = await this.cacheManager.get(key);
       if (value !== null && value !== undefined) {
-        await this.cacheManager.set(key, value, ttl);
+        // Convert seconds to milliseconds for cache-manager-redis-yet
+        const ttlMs = ttl * 1000;
+        await this.cacheManager.set(key, value, ttlMs);
         return true;
       }
       return false;
@@ -93,7 +99,7 @@ export class CacheService {
       this.logger.log('🔍 Testing Redis connection...');
       
       // Try to set a test value
-      await this.cacheManager.set(testKey, testValue, 10);
+      await this.cacheManager.set(testKey, testValue, 10000); // 10 seconds in ms
       this.logger.log('✅ Redis SET test passed');
       
       // Try to get the test value

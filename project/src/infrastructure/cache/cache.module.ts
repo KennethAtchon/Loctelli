@@ -1,54 +1,31 @@
-import { Module } from '@nestjs/common';
-import { CacheModule } from '@nestjs/cache-manager';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import * as redisStore from 'cache-manager-redis-store';
+import { Global, Module } from '@nestjs/common';
 import { CacheService } from './cache.service';
+import { CacheModule } from '@nestjs/cache-manager';
+import { ConfigService } from '@nestjs/config';
+import { redisStore } from 'cache-manager-redis-yet';
 
+@Global()
 @Module({
   imports: [
     CacheModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => {
-        const redisUrl = configService.get('REDIS_URL');
-        
-        if (redisUrl) {
-          // Parse REDIS_URL to extract connection details
-          const url = new URL(redisUrl);
-          return {
-            store: redisStore,
-            host: url.hostname,
-            port: parseInt(url.port) || 6379,
-            password: url.password || undefined,
-            db: parseInt(url.searchParams.get('db') || '0'),
-            ttl: configService.get('CACHE_TTL', 300), // 5 minutes default
-            max: configService.get('CACHE_MAX_ITEMS', 100),
-            retryStrategy: (times: number) => {
-              const delay = Math.min(times * 50, 2000);
-              return delay;
-            },
-            connectTimeout: 15000,
-            family: 4,
-          };
-        } else {
-          // Fallback to individual environment variables
-          return {
-            store: redisStore,
-            host: configService.get('REDIS_HOST', 'localhost'),
-            port: configService.get('REDIS_PORT', 6379),
-            password: configService.get('REDIS_PASSWORD'),
-            db: configService.get('REDIS_DB', 0),
-            ttl: configService.get('CACHE_TTL', 300), // 5 minutes default
-            max: configService.get('CACHE_MAX_ITEMS', 100),
-            retryStrategy: (times: number) => {
-              const delay = Math.min(times * 50, 2000);
-              return delay;
-            },
-            connectTimeout: 15000,
-            family: 4,
-          };
-        }
-      },
       inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => {
+        const host = configService.get<string>('REDIS_HOST', 'localhost');
+        const port = configService.get<number>('REDIS_PORT', 6379);
+        const ttl = configService.get<number>('CACHE_TTL', 3 * 60000);
+
+        const store = await redisStore({
+          socket: {
+            host,
+            port,
+          },
+          ttl, // use ttl here to solve no limit issue
+        });
+
+        return {
+          store,
+        };
+      },
     }),
   ],
   providers: [CacheService],

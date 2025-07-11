@@ -103,6 +103,20 @@ Loctelli/
 
 ## 🚀 **Implemented Features**
 
+### **Redis Debug Endpoints - NEW ✅**
+- **Comprehensive TTL Testing**: Full Redis TTL (Time To Live) testing capabilities
+- **Debug Module**: Located at `/debug/redis/*` with 10+ endpoints for Redis testing
+- **Real-time Monitoring**: Monitor TTL behavior in real-time with configurable duration
+- **Test Scenarios**: Automated TTL test scenarios with different expiration times
+- **Public Access**: Marked as `@Public()` for easy development testing
+- **Documentation**: Complete documentation with cURL examples and Node.js test script
+- **Security**: Excluded from API key middleware for development use only
+- **Endpoints Include**:
+  - Connection testing, TTL setting/getting, key monitoring
+  - Comprehensive test scenarios, real-time TTL monitoring
+  - Key existence checking, expiration management
+- **Testing Tools**: `redis-debug-test.js` script and `REDIS_DEBUG_README.md` documentation
+
 ### **Admin Dashboard Global Subaccount Filtering System ✅**
 - **Global Filter Component**: Dropdown filter in admin header for switching between subaccount contexts
 - **Context Management**: React context for managing filter state across the admin dashboard

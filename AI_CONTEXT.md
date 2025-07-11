@@ -95,6 +95,26 @@
 - **Debugging**: Enhanced logging for Redis operations and connection issues
 - **Packages**: Uses cache-manager-redis-store with proper configuration
 
+### **Redis Debug Endpoints - NEW ✅**
+- **Debug Module**: Comprehensive Redis TTL testing endpoints at `/debug/redis/*`
+- **TTL Testing**: Set, get, monitor, and test TTL behavior in real-time
+- **Public Access**: Marked as `@Public()` for easy testing (development only)
+- **Endpoints**:
+  - `GET /debug/redis/test-connection` - Test Redis connectivity
+  - `POST /debug/redis/set-with-ttl` - Set key with TTL
+  - `POST /debug/redis/set-without-ttl` - Set key without TTL
+  - `GET /debug/redis/get/{key}` - Get key with TTL status
+  - `POST /debug/redis/expire/{key}/{ttl}` - Set TTL for existing key
+  - `DELETE /debug/redis/delete/{key}` - Delete key
+  - `GET /debug/redis/exists/{key}` - Check key existence
+  - `GET /debug/redis/ttl/{key}` - Get current TTL
+  - `POST /debug/redis/test-ttl-scenarios` - Run comprehensive TTL tests
+  - `GET /debug/redis/monitor-ttl/{key}?duration={seconds}` - Real-time TTL monitoring
+- **Testing Tools**: 
+  - `redis-debug-test.js` - Node.js test script demonstrating all endpoints
+  - `REDIS_DEBUG_README.md` - Comprehensive documentation with cURL examples
+- **Security**: Excluded from API key middleware for development testing
+
 ## 🧪 **Testing Infrastructure - COMPREHENSIVE ✅**
 
 ### **✅ Test Coverage Implemented**

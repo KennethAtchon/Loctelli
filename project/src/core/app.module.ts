@@ -21,21 +21,27 @@ import { WebhooksModule } from '../integrations/ghl-integrations/webhooks/webhoo
 import { StatusModule } from '../status/status.module';
 import { BgProcessModule } from '../background/bgprocess/bgprocess.module';
 import { ApiKeyMiddleware } from '../infrastructure/middleware/api-key.middleware';
-import { ConfigModule } from '../infrastructure/config/config.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GhlModule } from '../integrations/ghl-integrations/ghl/ghl.module';
 import { GeneralModule } from '../general/general.module';
-import { AppCacheModule } from '../infrastructure/cache/cache.module';
+import { CommonModule } from '../infrastructure/cache/common.module';
 import { AuthModule } from '../auth/auth.module';
 import { SecurityHeadersMiddleware } from '../infrastructure/middleware/security-headers.middleware';
 import { RateLimitMiddleware } from '../infrastructure/middleware/rate-limit.middleware';
 import { InputValidationMiddleware } from '../infrastructure/middleware/input-validation.middleware';
 import { JwtAuthGuard } from '../auth/auth.guard';
+import { DebugModule } from '../debug/debug.module';
+import configuration from '../infrastructure/config/configuration';
 
 @Module({
   imports: [
-    ConfigModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      cache: true,
+      load: [configuration],
+    }),
+    CommonModule,
     PrismaModule,
-    AppCacheModule,
     AuthModule,
     UsersModule,
     StrategiesModule,
@@ -51,15 +57,18 @@ import { JwtAuthGuard } from '../auth/auth.guard';
     BgProcessModule,
     GhlModule,
     GeneralModule,
+    DebugModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
+    ConfigService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
   ],
+  exports: [ConfigService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
@@ -83,17 +92,14 @@ export class AppModule implements NestModule {
         { path: 'admin/auth/register', method: RequestMethod.POST },
       );
 
-    // Apply API key middleware to all routes except status/health and auth
+    // Apply API key middleware to all routes except status/health, auth, and debug
     consumer
       .apply(ApiKeyMiddleware)
       .exclude(
         { path: 'status/health', method: RequestMethod.GET },
-        { path: 'auth/login', method: RequestMethod.POST },
-        { path: 'auth/register', method: RequestMethod.POST },
-        { path: 'auth/refresh', method: RequestMethod.POST },
-        { path: 'admin/auth/login', method: RequestMethod.POST },
-        { path: 'admin/auth/register', method: RequestMethod.POST },
-        { path: 'admin/auth/refresh', method: RequestMethod.POST },
+        { path: 'debug/redis/*', method: RequestMethod.GET },
+        { path: 'debug/redis/*', method: RequestMethod.POST },
+        { path: 'debug/redis/*', method: RequestMethod.DELETE },
       )
       .forRoutes('*');
   }
