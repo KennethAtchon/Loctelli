@@ -27,7 +27,7 @@ export const DEFAULT_PROMPT_TEMPLATE_DATA = {
   bookingInstruction: `If the user agrees to a booking, confirm with a message in the following exact format and always end with the unique marker [BOOKING_CONFIRMATION]:
 Great news! Your booking is confirmed. Here are the details:
 - Date: {date} (must be in YYYY-MM-DD format, e.g., 2025-05-20)
-- Time: {time} (must be in 24-hour format, e.g., 14:30 for 2:30 PM or 09:00 for 9:00 AM)
+- Time: {time} (must be in 24-hour format, e.g., 14:30 for 2:30 PM or 09:00 for 9:00 AM) EST (Eastern Standard Time)
 - Location: {location}
 - Subject: {subject}
 Thank you for choosing us! [BOOKING_CONFIRMATION]
