@@ -182,8 +182,14 @@ Loctelli/
   - **Type Safety**: Full TypeScript support with generic types
 - **Components**:
   - `DataTable`: Main reusable table component
-  - `usePagination`: Custom hook for pagination logic
+  - `usePagination`: Custom hook for pagination logic with proper state management
   - `BulkActions`: Integrated bulk operations
+- **Pagination Fixes Applied ✅**:
+  - **Default Page Size**: Changed from 1 to 10 for better UX
+  - **State Management**: Fixed totalItems initialization and updates
+  - **Edge Cases**: Proper handling of empty data and single-page scenarios
+  - **Display Logic**: Improved pagination info display for edge cases
+  - **Infinite Recursion**: Fixed dependency array issues in admin pages
 - **Usage**: Simple column definitions with custom renderers for any data type
 - **Migration**: All existing admin pages can be gradually migrated to use this component
 

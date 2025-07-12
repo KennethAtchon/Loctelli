@@ -2,61 +2,138 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { DataTable, Column, Filter, StatCard } from '@/components/customUI';
+import { usePagination } from '@/components/customUI';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Search, Eye, RefreshCw, Calendar, Clock, User, Building, Edit } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Calendar, Clock, User, Building, Eye, Edit } from 'lucide-react';
 import { Booking } from '@/types';
 import logger from '@/lib/logger';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
-
-interface BookingStats {
-  totalBookings: number;
-  confirmedBookings: number;
-  pendingBookings: number;
-  cancelledBookings: number;
-}
 
 export default function BookingsPage() {
   const { getCurrentSubaccount } = useSubaccountFilter();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
-  const [stats, setStats] = useState<BookingStats>({
-    totalBookings: 0,
-    confirmedBookings: 0,
-    pendingBookings: 0,
-    cancelledBookings: 0,
-  });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
   const [updatingStatus, setUpdatingStatus] = useState<number | null>(null);
 
-  const calculateStats = (bookingsData: Booking[]) => {
-    const stats = {
-      totalBookings: bookingsData.length,
-      confirmedBookings: bookingsData.filter(b => b.status === 'confirmed').length,
-      pendingBookings: bookingsData.filter(b => b.status === 'pending').length,
-      cancelledBookings: bookingsData.filter(b => b.status === 'cancelled').length,
-    };
-    setStats(stats);
-  };
+  // Use the pagination hook
+  const {
+    pagination,
+    paginatedData,
+    setCurrentPage,
+    setTotalItems,
+  } = usePagination(filteredBookings, { pageSize: 10 });
+
+  // Calculate stats
+  const stats: StatCard[] = [
+    {
+      title: 'Total Bookings',
+      value: bookings.length,
+      icon: <Calendar className="h-8 w-8" />,
+      color: 'text-blue-600',
+    },
+    {
+      title: 'Confirmed',
+      value: bookings.filter(b => b.status === 'confirmed').length,
+      icon: <Calendar className="h-8 w-8" />,
+      color: 'text-green-600',
+    },
+    {
+      title: 'Pending',
+      value: bookings.filter(b => b.status === 'pending').length,
+      icon: <Clock className="h-8 w-8" />,
+      color: 'text-yellow-600',
+    },
+    {
+      title: 'Cancelled',
+      value: bookings.filter(b => b.status === 'cancelled').length,
+      icon: <Calendar className="h-8 w-8" />,
+      color: 'text-red-600',
+    },
+  ];
+
+  // Define columns
+  const columns: Column<Booking>[] = [
+    {
+      key: 'lead',
+      header: 'Lead',
+      render: (booking) => (
+        <div>
+          <div className="font-medium">{booking.lead?.name || 'Unknown Lead'}</div>
+          <div className="text-sm text-gray-500">{booking.lead?.email}</div>
+          {booking.lead?.company && (
+            <div className="text-xs text-gray-400 flex items-center">
+              <Building className="h-3 w-3 mr-1" />
+              {booking.lead.company}
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'bookingType',
+      header: 'Type',
+      render: (booking) => (
+        <Badge variant={getTypeBadgeVariant(booking.bookingType)}>
+          {booking.bookingType}
+        </Badge>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (booking) => (
+        <Badge variant={getStatusBadgeVariant(booking.status)}>
+          {booking.status}
+        </Badge>
+      ),
+    },
+    {
+      key: 'user',
+      header: 'User',
+      render: (booking) => (
+        <div className="flex items-center">
+          <User className="h-4 w-4 mr-2 text-gray-400" />
+          <span>{booking.user?.name || 'Unassigned'}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'createdAt',
+      header: 'Created',
+      render: (booking) => formatDate(booking.createdAt),
+    },
+  ];
+
+  // Define filters
+  const filters: Filter[] = [
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: [
+        { value: 'confirmed', label: 'Confirmed' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'cancelled', label: 'Cancelled' },
+      ],
+    },
+    {
+      key: 'type',
+      label: 'Type',
+      type: 'select',
+      options: [
+        { value: 'consultation', label: 'Consultation' },
+        { value: 'meeting', label: 'Meeting' },
+        { value: 'demo', label: 'Demo' },
+      ],
+    },
+  ];
 
   const loadBookings = useCallback(async () => {
     try {
@@ -67,7 +144,8 @@ export default function BookingsPage() {
         currentSubaccount ? { subAccountId: currentSubaccount.id } : undefined
       );
       setBookings(bookingsData);
-      calculateStats(bookingsData);
+      setFilteredBookings(bookingsData);
+      setTotalItems(bookingsData.length);
     } catch (error) {
       logger.error('Failed to load bookings:', error);
       setError('Failed to load bookings');
@@ -77,48 +155,74 @@ export default function BookingsPage() {
     }
   }, [getCurrentSubaccount]);
 
-  const filterBookings = useCallback(() => {
+  // Handle search
+  const handleSearch = (term: string) => {
+    const filtered = bookings.filter(booking =>
+      booking.lead?.name.toLowerCase().includes(term.toLowerCase()) ||
+      booking.lead?.email?.toLowerCase().includes(term.toLowerCase()) ||
+      booking.lead?.company?.toLowerCase().includes(term.toLowerCase()) ||
+      booking.user?.name.toLowerCase().includes(term.toLowerCase()) ||
+      booking.bookingType.toLowerCase().includes(term.toLowerCase())
+    );
+    setFilteredBookings(filtered);
+    setTotalItems(filtered.length);
+    setCurrentPage(1); // Reset to first page
+  };
+
+  // Handle filters
+  const handleFilter = (key: string, value: string) => {
     let filtered = bookings;
 
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(booking =>
-        booking.lead?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        booking.lead?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        booking.lead?.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        booking.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        booking.bookingType.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    if (key === 'status' && value !== 'all') {
+      filtered = filtered.filter(booking => booking.status === value);
     }
 
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(booking => booking.status === statusFilter);
-    }
-
-    // Apply type filter
-    if (typeFilter !== 'all') {
-      filtered = filtered.filter(booking => booking.bookingType === typeFilter);
+    if (key === 'type' && value !== 'all') {
+      filtered = filtered.filter(booking => booking.bookingType === value);
     }
 
     setFilteredBookings(filtered);
-  }, [bookings, searchTerm, statusFilter, typeFilter]);
+    setTotalItems(filtered.length);
+    setCurrentPage(1); // Reset to first page
+  };
+
+  // Handle actions
+  const handleView = (booking: Booking) => {
+    // Booking details are shown in a dialog
+    console.log('View booking:', booking);
+  };
+
+  const handleEdit = (booking: Booking) => {
+    // Navigate to edit page
+    window.location.href = `/admin/bookings/${booking.id}/edit`;
+  };
+
+  const handleStatusUpdate = async (bookingId: number, newStatus: string) => {
+    try {
+      setUpdatingStatus(bookingId);
+      setError(null);
+      await api.bookings.updateBookingStatus(bookingId, newStatus);
+      
+      // Update local state
+      setBookings(prev => prev.map(booking => 
+        booking.id === bookingId 
+          ? { ...booking, status: newStatus }
+          : booking
+      ));
+      
+      setSuccess('Booking status updated successfully');
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (error) {
+      logger.error('Failed to update booking status:', error);
+      setError('Failed to update booking status');
+    } finally {
+      setUpdatingStatus(null);
+    }
+  };
 
   useEffect(() => {
     loadBookings();
   }, [loadBookings]);
-
-  useEffect(() => {
-    filterBookings();
-  }, [filterBookings]);
-
-  // Cleanup success/error messages on unmount
-  useEffect(() => {
-    return () => {
-      setSuccess(null);
-      setError(null);
-    };
-  }, []);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
@@ -151,7 +255,6 @@ export default function BookingsPage() {
     
     const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
     
-    // Check if the date is valid
     if (isNaN(date.getTime())) {
       return 'Invalid Date';
     }
@@ -183,341 +286,31 @@ export default function BookingsPage() {
     }
   };
 
-  const handleStatusUpdate = async (bookingId: number, newStatus: string) => {
-    try {
-      setUpdatingStatus(bookingId);
-      setError(null);
-      await api.bookings.updateBookingStatus(bookingId, newStatus);
-      
-      // Update local state
-      setBookings(prev => prev.map(booking => 
-        booking.id === bookingId 
-          ? { ...booking, status: newStatus }
-          : booking
-      ));
-      
-      // Recalculate stats
-      const updatedBookings = bookings.map(booking => 
-        booking.id === bookingId 
-          ? { ...booking, status: newStatus }
-          : booking
-      );
-      calculateStats(updatedBookings);
-      
-      setSuccess('Booking status updated successfully');
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccess(null), 3000);
-      
-    } catch (error) {
-      logger.error('Failed to update booking status:', error);
-      setError('Failed to update booking status. Please try again.');
-    } finally {
-      setUpdatingStatus(null);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>
-            {error}
-            <Button 
-              variant="link" 
-              className="p-0 h-auto text-destructive underline ml-2"
-              onClick={loadBookings}
-            >
-              Retry
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {success && (
-        <Alert>
-          <AlertDescription>{success}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Bookings</h1>
-          <p className="text-gray-600">Manage lead appointments and meeting schedules.</p>
-        </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={loadBookings}
-            disabled={isRefreshing}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-2xl font-bold text-blue-600">{stats.totalBookings}</div>
-            <div className="text-sm text-gray-600">Total Bookings</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-2xl font-bold text-green-600">{stats.confirmedBookings}</div>
-            <div className="text-sm text-gray-600">Confirmed</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-2xl font-bold text-yellow-600">{stats.pendingBookings}</div>
-            <div className="text-sm text-gray-600">Pending</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-2xl font-bold text-red-600">{stats.cancelledBookings}</div>
-            <div className="text-sm text-gray-600">Cancelled</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search and Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Search & Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search bookings..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <Select
-              value={statusFilter}
-              onValueChange={setStatusFilter}
-            >
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="confirmed">Confirmed</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              value={typeFilter}
-              onValueChange={setTypeFilter}
-            >
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="consultation">Consultation</SelectItem>
-                <SelectItem value="meeting">Meeting</SelectItem>
-                <SelectItem value="demo">Demo</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Bookings Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>All Bookings ({filteredBookings.length})</CardTitle>
-          <CardDescription>A list of all lead bookings and appointments.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {filteredBookings.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Lead</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>User</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredBookings.map((booking) => (
-                  <TableRow key={booking.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{booking.lead?.name || 'Unknown Lead'}</div>
-                        <div className="text-sm text-gray-500">{booking.lead?.email}</div>
-                        {booking.lead?.company && (
-                          <div className="text-xs text-gray-400 flex items-center">
-                            <Building className="h-3 w-3 mr-1" />
-                            {booking.lead.company}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={getTypeBadgeVariant(booking.bookingType)}>
-                        {booking.bookingType}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={getStatusBadgeVariant(booking.status)}>
-                          {booking.status}
-                        </Badge>
-                        <select
-                          value={booking.status}
-                          onChange={(e) => handleStatusUpdate(booking.id, e.target.value)}
-                          disabled={updatingStatus === booking.id}
-                          className="text-xs border border-gray-300 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="confirmed">Confirmed</option>
-                          <option value="cancelled">Cancelled</option>
-                        </select>
-                        {updatingStatus === booking.id && (
-                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <User className="h-4 w-4 mr-2 text-gray-400" />
-                        <span>{booking.user?.name || 'Unknown User'}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                        <span>{formatDate(booking.createdAt)}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => window.open(`/admin/bookings/${booking.id}/edit`, '_blank')}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-2xl">
-                            <DialogHeader>
-                              <DialogTitle>Booking Details</DialogTitle>
-                              <DialogDescription>
-                                Detailed view of the booking information
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <h4 className="font-semibold">Booking ID</h4>
-                                  <p>{booking.id}</p>
-                                </div>
-                                <div>
-                                  <h4 className="font-semibold">Status</h4>
-                                  <Badge variant={getStatusBadgeVariant(booking.status)}>
-                                    {booking.status}
-                                  </Badge>
-                                </div>
-                              </div>
-                              <div>
-                                <h4 className="font-semibold">Lead Information</h4>
-                                <div className="bg-gray-50 p-3 rounded">
-                                  <p><strong>Name:</strong> {booking.lead?.name || 'Unknown'}</p>
-                                  <p><strong>Email:</strong> {booking.lead?.email || 'N/A'}</p>
-                                  <p><strong>Company:</strong> {booking.lead?.company || 'N/A'}</p>
-                                </div>
-                              </div>
-                              <div>
-                                <h4 className="font-semibold">User Information</h4>
-                                <div className="bg-gray-50 p-3 rounded">
-                                  <p><strong>Name:</strong> {booking.user?.name || 'Unknown'}</p>
-                                  <p><strong>Email:</strong> {booking.user?.email || 'N/A'}</p>
-                                </div>
-                              </div>
-                              <div>
-                                <h4 className="font-semibold">Booking Type</h4>
-                                <Badge variant={getTypeBadgeVariant(booking.bookingType)}>
-                                  {booking.bookingType}
-                                </Badge>
-                              </div>
-                              <div>
-                                <h4 className="font-semibold">Details</h4>
-                                <div className="bg-gray-50 p-3 rounded text-sm">
-                                  {formatBookingDetails(booking.details)}
-                                </div>
-                              </div>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <h4 className="font-semibold">Created</h4>
-                                  <div className="flex items-center">
-                                    <Clock className="h-4 w-4 mr-2 text-gray-400" />
-                                    <span>{formatDate(booking.createdAt)}</span>
-                                  </div>
-                                </div>
-                                <div>
-                                  <h4 className="font-semibold">Updated</h4>
-                                  <div className="flex items-center">
-                                    <Clock className="h-4 w-4 mr-2 text-gray-400" />
-                                    <span>{formatDate(booking.updatedAt)}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <div className="text-center py-8">
-              <Calendar className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No bookings found</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                {searchTerm || statusFilter !== 'all' || typeFilter !== 'all'
-                  ? 'Try adjusting your search or filter criteria.'
-                  : 'No bookings have been created yet.'
-                }
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+    <DataTable
+      data={paginatedData}
+      isLoading={isLoading}
+      isRefreshing={isRefreshing}
+      columns={columns}
+      title="Booking Management"
+      description="A list of all lead bookings and appointments"
+      searchPlaceholder="Search bookings..."
+      filters={filters}
+      onSearchChange={handleSearch}
+      onFilterChange={handleFilter}
+      pagination={{
+        currentPage: pagination.currentPage,
+        totalPages: pagination.totalPages,
+        pageSize: pagination.pageSize,
+        totalItems: pagination.totalItems,
+        onPageChange: setCurrentPage,
+      }}
+      onRefresh={loadBookings}
+      onView={handleView}
+      onEdit={handleEdit}
+      stats={stats}
+      error={error}
+      success={success}
+    />
   );
 } 

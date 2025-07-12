@@ -2,62 +2,120 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { DataTable, Column, Filter, StatCard } from '@/components/customUI';
+import { usePagination } from '@/components/customUI';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Plus, Search, Edit, Trash2, Eye, RefreshCw, Building } from 'lucide-react';
-import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Building, Eye, Edit, Trash2 } from 'lucide-react';
 import { Lead } from '@/types';
 import { DetailedLead } from '@/lib/api/endpoints/admin-auth';
 import logger from '@/lib/logger';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
-
-interface LeadStats {
-  totalLeads: number;
-  activeLeads: number;
-  leadLeads: number;
-  inactiveLeads: number;
-}
+import Link from 'next/link';
 
 export default function LeadsPage() {
   const { getCurrentSubaccount } = useSubaccountFilter();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
-  const [stats, setStats] = useState<LeadStats>({
-    totalLeads: 0,
-    activeLeads: 0,
-    leadLeads: 0,
-    inactiveLeads: 0,
-  });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedLead, setSelectedLead] = useState<DetailedLead | null>(null);
-  const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  const calculateStats = (leadsData: Lead[]) => {
-    const stats = {
-      totalLeads: leadsData.length,
-      activeLeads: leadsData.filter(l => l.status === 'active').length,
-      leadLeads: leadsData.filter(l => l.status === 'lead').length,
-      inactiveLeads: leadsData.filter(l => l.status === 'inactive').length,
-    };
-    setStats(stats);
-  };
+  // Use the pagination hook
+  const {
+    pagination,
+    paginatedData,
+    setCurrentPage,
+    setTotalItems,
+  } = usePagination(filteredLeads, { pageSize: 10 });
+
+  // Calculate stats
+  const stats: StatCard[] = [
+    {
+      title: 'Total Leads',
+      value: leads.length,
+      icon: <Building className="h-8 w-8" />,
+      color: 'text-blue-600',
+    },
+    {
+      title: 'Active Leads',
+      value: leads.filter(l => l.status === 'active').length,
+      icon: <Building className="h-8 w-8" />,
+      color: 'text-green-600',
+    },
+    {
+      title: 'Lead Status',
+      value: leads.filter(l => l.status === 'lead').length,
+      icon: <Building className="h-8 w-8" />,
+      color: 'text-yellow-600',
+    },
+    {
+      title: 'Inactive Leads',
+      value: leads.filter(l => l.status === 'inactive').length,
+      icon: <Building className="h-8 w-8" />,
+      color: 'text-red-600',
+    },
+  ];
+
+  // Define columns
+  const columns: Column<Lead>[] = [
+    {
+      key: 'name',
+      header: 'Name',
+      render: (lead) => <span className="font-medium">{lead.name}</span>,
+    },
+    {
+      key: 'contact',
+      header: 'Contact',
+      render: (lead) => (
+        <div>
+          <div className="text-sm">{lead.email || 'No email'}</div>
+          <div className="text-xs text-gray-500">{lead.phone || 'No phone'}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'company',
+      header: 'Company',
+      render: (lead) => lead.company || 'N/A',
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (lead) => (
+        <Badge variant={getStatusBadgeVariant(lead.status)}>
+          {lead.status}
+        </Badge>
+      ),
+    },
+    {
+      key: 'strategy',
+      header: 'Strategy',
+      render: (lead) => lead.strategy?.name || 'N/A',
+    },
+    {
+      key: 'lastMessageDate',
+      header: 'Last Message',
+      render: (lead) => lead.lastMessageDate ? formatDate(lead.lastMessageDate) : 'No messages',
+    },
+  ];
+
+  // Define filters
+  const filters: Filter[] = [
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: [
+        { value: 'active', label: 'Active' },
+        { value: 'lead', label: 'Lead' },
+        { value: 'inactive', label: 'Inactive' },
+      ],
+    },
+  ];
 
   const loadLeads = useCallback(async () => {
     try {
@@ -68,7 +126,8 @@ export default function LeadsPage() {
         currentSubaccount ? { subAccountId: currentSubaccount.id } : undefined
       );
       setLeads(leadsData);
-      calculateStats(leadsData);
+      setFilteredLeads(leadsData);
+      setTotalItems(leadsData.length);
     } catch (error) {
       logger.error('Failed to load leads:', error);
       setError('Failed to load leads');
@@ -78,60 +137,54 @@ export default function LeadsPage() {
     }
   }, [getCurrentSubaccount]);
 
-  const filterLeads = useCallback(() => {
+  // Handle search
+  const handleSearch = (term: string) => {
+    const filtered = leads.filter(lead =>
+      lead.name.toLowerCase().includes(term.toLowerCase()) ||
+      lead.email?.toLowerCase().includes(term.toLowerCase()) ||
+      lead.company?.toLowerCase().includes(term.toLowerCase()) ||
+      lead.phone?.toLowerCase().includes(term.toLowerCase())
+    );
+    setFilteredLeads(filtered);
+    setTotalItems(filtered.length);
+    setCurrentPage(1); // Reset to first page
+  };
+
+  // Handle filters
+  const handleFilter = (key: string, value: string) => {
     let filtered = leads;
 
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(lead =>
-        lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lead.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lead.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lead.phone?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(lead => lead.status === statusFilter);
+    if (key === 'status' && value !== 'all') {
+      filtered = filtered.filter(lead => lead.status === value);
     }
 
     setFilteredLeads(filtered);
-  }, [leads, searchTerm, statusFilter]);
+    setTotalItems(filtered.length);
+    setCurrentPage(1); // Reset to first page
+  };
 
-  useEffect(() => {
-    loadLeads();
-  }, [loadLeads]);
-
-  useEffect(() => {
-    filterLeads();
-  }, [filterLeads]);
-
-  // Cleanup success/error messages on unmount
-  useEffect(() => {
-    return () => {
-      setSuccess(null);
-      setError(null);
-    };
-  }, []);
-
-  const loadDetailedLead = async (leadId: number) => {
+  // Handle actions
+  const handleView = async (lead: Lead) => {
     try {
-      const lead = await api.adminAuth.getDetailedLead(leadId);
-      setSelectedLead(lead);
+      const detailedLead = await api.adminAuth.getDetailedLead(lead.id);
+      setSelectedLead(detailedLead);
     } catch (error) {
       logger.error('Failed to load lead details:', error);
     }
   };
 
-  const deleteLead = async (leadId: number) => {
+  const handleEdit = (lead: Lead) => {
+    // Navigate to edit page
+    window.location.href = `/admin/leads/${lead.id}/edit`;
+  };
+
+  const handleDelete = async (lead: Lead) => {
     if (confirm('Are you sure you want to delete this lead?')) {
       try {
         setError(null);
-        await api.leads.deleteLead(leadId);
+        await api.leads.deleteLead(lead.id);
         setSuccess('Lead deleted successfully');
-        await loadLeads(); // Reload the list
-        // Clear success message after 3 seconds
+        loadLeads();
         setTimeout(() => setSuccess(null), 3000);
       } catch (error) {
         logger.error('Failed to delete lead:', error);
@@ -139,6 +192,14 @@ export default function LeadsPage() {
       }
     }
   };
+
+  const handleCreate = () => {
+    window.location.href = '/admin/leads/new';
+  };
+
+  useEffect(() => {
+    loadLeads();
+  }, [loadLeads]);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
@@ -158,7 +219,6 @@ export default function LeadsPage() {
     
     const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
     
-    // Check if the date is valid
     if (isNaN(date.getTime())) {
       return 'Invalid Date';
     }
@@ -172,311 +232,130 @@ export default function LeadsPage() {
     });
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>
-            {error}
-            <Button 
-              variant="link" 
-              className="p-0 h-auto text-destructive underline ml-2"
-              onClick={loadLeads}
-            >
-              Retry
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
+    <>
+      <DataTable
+        data={paginatedData}
+        isLoading={isLoading}
+        isRefreshing={isRefreshing}
+        columns={columns}
+        title="Lead Management"
+        description="A list of all your leads and their current status"
+        searchPlaceholder="Search leads..."
+        filters={filters}
+        onSearchChange={handleSearch}
+        onFilterChange={handleFilter}
+        pagination={{
+          currentPage: pagination.currentPage,
+          totalPages: pagination.totalPages,
+          pageSize: pagination.pageSize,
+          totalItems: pagination.totalItems,
+          onPageChange: setCurrentPage,
+        }}
+        onCreateClick={handleCreate}
+        onRefresh={loadLeads}
+        onView={handleView}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        stats={stats}
+        error={error}
+        success={success}
+      />
 
-      {success && (
-        <Alert>
-          <AlertDescription>{success}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Leads</h1>
-          <p className="text-gray-600">Manage your lead relationships and interactions.</p>
-        </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={loadLeads}
-            disabled={isRefreshing}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-          <Link href="/admin/leads/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Lead
-            </Button>
-          </Link>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-2xl font-bold text-blue-600">{stats.totalLeads}</div>
-            <div className="text-sm text-gray-600">Total Leads</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-2xl font-bold text-green-600">{stats.activeLeads}</div>
-            <div className="text-sm text-gray-600">Active Leads</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-2xl font-bold text-blue-600">{stats.leadLeads}</div>
-            <div className="text-sm text-gray-600">Leads</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-2xl font-bold text-gray-600">{stats.inactiveLeads}</div>
-            <div className="text-sm text-gray-600">Inactive</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search and Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Search & Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search leads..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+      {/* Lead Details Dialog */}
+      {selectedLead && (
+        <Dialog open={!!selectedLead} onOpenChange={() => setSelectedLead(null)}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Lead Details - {selectedLead.name}</DialogTitle>
+              <DialogDescription>
+                Complete lead information and related data
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div>
+                <h3 className="font-semibold mb-3">Basic Information</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div><strong>ID:</strong> {selectedLead.id}</div>
+                  <div><strong>Name:</strong> {selectedLead.name}</div>
+                  <div><strong>Email:</strong> {selectedLead.email || 'N/A'}</div>
+                  <div><strong>Phone:</strong> {selectedLead.phone || 'N/A'}</div>
+                  <div><strong>Company:</strong> {selectedLead.company || 'N/A'}</div>
+                  <div><strong>Position:</strong> {selectedLead.position || 'N/A'}</div>
+                  <div><strong>Status:</strong> 
+                    <Badge variant={getStatusBadgeVariant(selectedLead.status)} className="ml-2">
+                      {selectedLead.status}
+                    </Badge>
+                  </div>
+                  <div><strong>Custom ID:</strong> {selectedLead.customId || 'N/A'}</div>
+                </div>
               </div>
-            </div>
-            <Select
-              value={statusFilter}
-              onValueChange={setStatusFilter}
-            >
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="lead">Lead</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Leads Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>All Leads ({filteredLeads.length})</CardTitle>
-          <CardDescription>A list of all your leads and their current status.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {filteredLeads.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Strategy</TableHead>
-                  <TableHead>Last Message</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLeads.map((lead) => (
-                  <TableRow key={lead.id}>
-                    <TableCell className="font-medium">{lead.name}</TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="text-sm">{lead.email || 'No email'}</div>
-                        <div className="text-xs text-gray-500">{lead.phone || 'No phone'}</div>
+              {/* Notes */}
+              {selectedLead.notes && (
+                <div>
+                  <h3 className="font-semibold mb-3">Notes</h3>
+                  <div className="p-3 bg-gray-50 rounded text-sm">
+                    {selectedLead.notes}
+                  </div>
+                </div>
+              )}
+
+              {/* Timestamps */}
+              <div>
+                <h3 className="font-semibold mb-3">Timestamps</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div><strong>Created:</strong> {formatDate(selectedLead.createdAt)}</div>
+                  <div><strong>Updated:</strong> {formatDate(selectedLead.updatedAt)}</div>
+                  <div><strong>Last Message:</strong> {selectedLead.lastMessageDate ? formatDate(selectedLead.lastMessageDate) : 'No messages'}</div>
+                </div>
+              </div>
+
+              {/* User Information */}
+              {selectedLead.user && (
+                <div>
+                  <h3 className="font-semibold mb-3">Assigned User</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div><strong>User ID:</strong> {selectedLead.user.id}</div>
+                                         <div><strong>Name:</strong> {selectedLead.user.name}</div>
+                     <div><strong>Email:</strong> {selectedLead.user.email}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Strategy Information */}
+              {selectedLead.strategy && (
+                <div>
+                  <h3 className="font-semibold mb-3">Strategy</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div><strong>Strategy ID:</strong> {selectedLead.strategy.id}</div>
+                                         <div><strong>Name:</strong> {selectedLead.strategy.name}</div>
+                     <div><strong>Tag:</strong> {selectedLead.strategy.tag || 'N/A'}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Bookings */}
+              {selectedLead.bookings && selectedLead.bookings.length > 0 && (
+                <div>
+                  <h3 className="font-semibold mb-3">Bookings ({selectedLead.bookings.length})</h3>
+                  <div className="space-y-2">
+                    {selectedLead.bookings.map((booking) => (
+                      <div key={booking.id} className="p-2 border rounded">
+                        <div className="font-medium">{booking.bookingType}</div>
+                        <div className="text-sm text-gray-600">
+                          Status: {booking.status} | Created: {formatDate(booking.createdAt)}
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell>{lead.company || 'N/A'}</TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusBadgeVariant(lead.status)}>
-                        {lead.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{lead.strategy?.name || 'N/A'}</TableCell>
-                    <TableCell>
-                      {lead.lastMessageDate ? formatDate(lead.lastMessageDate) : 'No messages'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => loadDetailedLead(lead.id)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                            <DialogHeader>
-                              <DialogTitle>Lead Details - {lead.name}</DialogTitle>
-                              <DialogDescription>
-                                Complete lead information and related data
-                              </DialogDescription>
-                            </DialogHeader>
-                            {selectedLead && selectedLead.id === lead.id ? (
-                              <div className="space-y-6">
-                                {/* Basic Information */}
-                                <div>
-                                  <h3 className="font-semibold mb-3">Basic Information</h3>
-                                  <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div><strong>ID:</strong> {selectedLead.id}</div>
-                                    <div><strong>Name:</strong> {selectedLead.name}</div>
-                                    <div><strong>Email:</strong> {selectedLead.email || 'N/A'}</div>
-                                    <div><strong>Phone:</strong> {selectedLead.phone || 'N/A'}</div>
-                                    <div><strong>Company:</strong> {selectedLead.company || 'N/A'}</div>
-                                    <div><strong>Position:</strong> {selectedLead.position || 'N/A'}</div>
-                                    <div><strong>Custom ID:</strong> {selectedLead.customId || 'N/A'}</div>
-                                    <div><strong>Status:</strong> 
-                                      <Badge variant="outline" className="ml-2">{selectedLead.status}</Badge>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Timestamps */}
-                                <div>
-                                  <h3 className="font-semibold mb-3">Timestamps</h3>
-                                  <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div><strong>Created:</strong> {formatDate(selectedLead.createdAt)}</div>
-                                    <div><strong>Updated:</strong> {formatDate(selectedLead.updatedAt)}</div>
-                                    <div><strong>Last Message:</strong> {selectedLead.lastMessageDate ? formatDate(selectedLead.lastMessageDate) : 'No messages'}</div>
-                                  </div>
-                                </div>
-
-                                {/* Notes */}
-                                {selectedLead.notes && (
-                                  <div>
-                                    <h3 className="font-semibold mb-3">Notes</h3>
-                                    <p className="text-sm bg-gray-50 p-3 rounded">{selectedLead.notes}</p>
-                                  </div>
-                                )}
-
-                                {/* Last Message */}
-                                {selectedLead.lastMessage && (
-                                  <div>
-                                    <h3 className="font-semibold mb-3">Last Message</h3>
-                                    <p className="text-sm bg-gray-50 p-3 rounded">{selectedLead.lastMessage}</p>
-                                  </div>
-                                )}
-
-                                {/* Assigned User */}
-                                {selectedLead.user && (
-                                  <div>
-                                    <h3 className="font-semibold mb-3">Assigned User</h3>
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
-                                      <div><strong>User ID:</strong> {selectedLead.user.id}</div>
-                                      <div><strong>User Name:</strong> {selectedLead.user.name}</div>
-                                      <div><strong>User Email:</strong> {selectedLead.user.email}</div>
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Assigned Strategy */}
-                                {selectedLead.strategy && (
-                                  <div>
-                                    <h3 className="font-semibold mb-3">Assigned Strategy</h3>
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
-                                      <div><strong>Strategy ID:</strong> {selectedLead.strategy.id}</div>
-                                      <div><strong>Strategy Name:</strong> {selectedLead.strategy.name}</div>
-                                      <div><strong>Strategy Tag:</strong> {selectedLead.strategy.tag || 'N/A'}</div>
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Bookings */}
-                                {selectedLead.bookings && selectedLead.bookings.length > 0 && (
-                                  <div>
-                                    <h3 className="font-semibold mb-3">Bookings ({selectedLead.bookings.length})</h3>
-                                    <div className="space-y-2">
-                                      {selectedLead.bookings.map((booking) => (
-                                        <div key={booking.id} className="p-2 border rounded">
-                                          <div className="font-medium">{booking.bookingType}</div>
-                                          <div className="text-sm text-gray-600">
-                                            Status: {booking.status} | Created: {formatDate(booking.createdAt)}
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-center py-8">
-                                <div className="text-center">
-                                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-                                  <p className="text-gray-600">Loading lead details...</p>
-                                </div>
-                              </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
-                        <Link href={`/admin/leads/${lead.id}/edit`}>
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
-                          onClick={() => deleteLead(lead.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <div className="text-center py-8">
-              <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">
-                {searchTerm || statusFilter !== 'all' 
-                  ? 'No leads match your search criteria' 
-                  : 'No leads found. Add your first lead to get started.'
-                }
-              </p>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
   );
 } 

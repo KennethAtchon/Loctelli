@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 export interface UsePaginationOptions {
   pageSize?: number;
@@ -37,9 +37,14 @@ export function usePagination<T>(
   const [currentPageSize, setCurrentPageSize] = useState(pageSize);
   const [totalItems, setTotalItems] = useState(data.length);
 
+  // Update totalItems when data changes
+  useEffect(() => {
+    setTotalItems(data.length);
+  }, [data.length]);
+
   // Calculate pagination state
   const pagination = useMemo((): PaginationState => {
-    const totalPages = Math.ceil(totalItems / currentPageSize);
+    const totalPages = Math.max(1, Math.ceil(totalItems / currentPageSize));
     const startIndex = (currentPage - 1) * currentPageSize;
     const endIndex = Math.min(startIndex + currentPageSize, totalItems);
 
@@ -85,7 +90,7 @@ export function usePagination<T>(
   const updateTotalItems = (total: number) => {
     setTotalItems(total);
     // Reset to first page if current page is beyond new total
-    const newTotalPages = Math.ceil(total / currentPageSize);
+    const newTotalPages = Math.max(1, Math.ceil(total / currentPageSize));
     if (currentPage > newTotalPages) {
       setCurrentPage(1);
     }

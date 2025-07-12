@@ -15,7 +15,7 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from '@/components/ui/pagination';
-import { Search, RefreshCw, Plus } from 'lucide-react';
+import { Search, RefreshCw, Plus, Eye, Edit, Trash2 } from 'lucide-react';
 import { BulkActions } from './bulk-actions';
 
 // Column definition interface
@@ -380,7 +380,7 @@ export function DataTable<T extends { id: number | string }>({
                                 size="sm"
                                 onClick={() => onView(item)}
                               >
-                                View
+                                <Eye className="h-4 w-4" />
                               </Button>
                             )}
                             {onEdit && (
@@ -389,7 +389,7 @@ export function DataTable<T extends { id: number | string }>({
                                 size="sm"
                                 onClick={() => onEdit(item)}
                               >
-                                Edit
+                                <Edit className="h-4 w-4" />
                               </Button>
                             )}
                             {onDelete && (
@@ -398,7 +398,7 @@ export function DataTable<T extends { id: number | string }>({
                                 size="sm"
                                 onClick={() => onDelete(item)}
                               >
-                                Delete
+                                <Trash2 className="h-4 w-4" />
                               </Button>
                             )}
                           </div>
@@ -410,7 +410,7 @@ export function DataTable<T extends { id: number | string }>({
               </Table>
 
               {/* Pagination */}
-              {pagination && pagination.totalPages > 1 && (
+              {pagination && pagination.totalItems > 0 && (
                 <div className="mt-6">
                   <Pagination>
                     <PaginationContent>
@@ -445,9 +445,15 @@ export function DataTable<T extends { id: number | string }>({
                   
                   {/* Pagination info */}
                   <div className="text-center text-sm text-gray-600 mt-2">
-                    Showing {((pagination.currentPage - 1) * pagination.pageSize) + 1} to{' '}
-                    {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)} of{' '}
-                    {pagination.totalItems} items
+                    {pagination.totalItems > 0 ? (
+                      <>
+                        Showing {((pagination.currentPage - 1) * pagination.pageSize) + 1} to{' '}
+                        {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)} of{' '}
+                        {pagination.totalItems} items
+                      </>
+                    ) : (
+                      'No items to display'
+                    )}
                   </div>
                 </div>
               )}
