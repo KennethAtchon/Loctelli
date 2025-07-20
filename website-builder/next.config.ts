@@ -12,7 +12,7 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
-  trailingSlash: true,
+  trailingSlash: false,
   generateBuildId: async () => {
     return 'build-' + Date.now();
   },

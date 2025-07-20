@@ -14,7 +14,8 @@ interface CookieOptions {
 const DEFAULT_COOKIE_OPTIONS: CookieOptions = {
   path: '/',
   secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict',
+  sameSite: 'lax', // Changed from 'strict' to 'lax' to allow cross-port sharing
+  domain: typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'localhost' : undefined,
   maxAge: 7 * 24 * 60 * 60, // 7 days
 };
 

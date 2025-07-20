@@ -193,6 +193,18 @@ Loctelli/
 - **Usage**: Simple column definitions with custom renderers for any data type
 - **Migration**: All existing admin pages can be gradually migrated to use this component
 
+### **Website Builder Authentication Integration ✅**
+- **Cross-Port Authentication**: Website builder (port 3001) now recognizes admin authentication from main CRM (port 3000)
+- **Cookie Sharing**: Fixed cookie sharing issues between localhost:3000 and localhost:3001
+- **Enhanced Security**: Updated cookie configuration with proper domain and sameSite settings
+- **Debug Features**: Added comprehensive debugging panels showing authentication state and token status
+- **CORS Fix**: Added proper CORS headers to website builder proxy route to handle cross-origin requests
+- **Port Configuration**: Fixed API base URL to use correct port (3001) for website builder
+- **Trailing Slash**: Disabled trailing slash in Next.js config to prevent 308 redirects
+- **Retry Mechanism**: Implemented 3-retry mechanism for profile fetching with automatic delays
+- **Manual Auth Check**: Added manual authentication verification for troubleshooting
+- **Improved UX**: Better loading states and error handling with retry options
+
 ### **Integrations System - PARTIALLY IMPLEMENTED 🔗**
 - **GoHighLevel CRM Integration**: ✅ Fully implemented with type-safe configuration
   - **Type Safety**: Proper TypeScript interfaces for GHL integration config and webhook data

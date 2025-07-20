@@ -249,6 +249,26 @@
 - **Affected Pages**: Leads, Users, Settings, Integrations, Strategies, Prompt Templates, Bookings, Dashboard
 - **Root Cause**: `formatDate` functions were calling `toLocaleDateString()` on invalid Date objects
 
+#### **13. Website Builder Authentication Integration**
+- **Issue**: Website builder (port 3001) not recognizing admin authentication from main CRM (port 3000) ✅
+- **Root Cause**: Cookie sharing issues between localhost:3000 and localhost:3001
+- **Fixes Applied**:
+  - Updated cookie configuration to use `sameSite: 'lax'` for cross-port sharing
+  - Added explicit domain setting for localhost cookies
+  - Enhanced admin auth context with retry mechanism and better error handling
+  - Added manual auth check functionality for debugging
+  - Improved redirect logic to properly detect localhost vs production
+  - Added comprehensive debugging panels to show authentication state
+  - **CORS Fix**: Added proper CORS headers to website builder proxy route to handle cross-origin requests
+  - **Port Configuration**: Fixed API base URL to use correct port (3001) for website builder
+  - **Trailing Slash**: Disabled trailing slash in Next.js config to prevent 308 redirects
+- **Cookie Configuration**: Both main CRM and website builder now use identical cookie settings
+- **Debug Features**: Added debug panels showing token status, current URL, and API configuration
+- **Retry Mechanism**: Added 3-retry mechanism for profile fetching with 1-second delays
+- **Manual Auth Check**: Added `checkAuth()` function for manual authentication verification
+- **CORS Headers**: Added Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Headers to all proxy responses
+- **OPTIONS Handler**: Added OPTIONS method handler for CORS preflight requests
+
 #### **13. Reusable DataTable Component System - NEW ✅**
 - **Created**: Comprehensive reusable DataTable component in `@/components/customUI` ✅
 - **Components**:
