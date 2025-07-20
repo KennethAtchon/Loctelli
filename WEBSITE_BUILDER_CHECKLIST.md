@@ -107,6 +107,8 @@
 - [x] Implement dynamic routing
 - [x] Add editor interface integration
 - [x] Add error handling
+- [x] Update to use real API endpoints
+- [x] Implement proper save and export functionality
 
 #### **3.4 Create API Client**
 - [x] Create `lib/api/website-builder.ts`
@@ -115,11 +117,14 @@
 - [x] Implement export API calls
 - [x] Add error handling and loading states
 - [x] Add website builder API to main API index
+- [x] Update API client to match new backend endpoints
+- [x] Add ZIP download functionality with JSZip
 
 #### **3.5 Create Types**
 - [x] Create `types/website.ts`
 - [x] Create `types/editor.ts`
 - [x] Define all necessary interfaces
+- [x] Add proper TypeScript types for API responses
 
 ---
 
@@ -205,11 +210,13 @@
 - [x] Update AdminUser model to include websites relationship
 - [ ] Run migration: `npx prisma migrate dev --name add-website-builder`
 - [ ] Generate Prisma client: `npx prisma generate`
+- [ ] Add JSZip dependency to website-builder package.json
 
 #### **5.6 Create Website Builder DTOs**
 - [x] Create `src/website-builder/modules/website-builder/dto/create-website.dto.ts`
 - [x] Create `src/website-builder/modules/website-builder/dto/update-website.dto.ts`
 - [x] Create `src/website-builder/modules/website-builder/dto/ai-edit.dto.ts`
+- [x] Add proper validation decorators
 
 #### **5.7 Create Website Builder Services**
 - [x] Create `src/website-builder/modules/website-builder/website-builder.service.ts`
@@ -217,6 +224,7 @@
 - [x] Implement AI editing functionality with OpenAI integration
 - [x] Implement change history tracking
 - [x] Implement revert functionality
+- [x] Add file type detection and validation
 
 #### **5.8 Create Website Builder Controller**
 - [x] Create `src/website-builder/modules/website-builder/website-builder.controller.ts`
@@ -229,16 +237,19 @@
   - [x] `POST /api/website-builder/:id/ai-edit` (AI edit)
   - [x] `GET /api/website-builder/:id/changes` (change history)
   - [x] `POST /api/website-builder/:id/changes/:changeId/revert` (revert change)
+- [x] Add admin authentication guards
 
 #### **5.9 Create Website Builder Module**
 - [x] Create `src/website-builder/modules/website-builder/website-builder.module.ts`
 - [x] Create `src/website-builder/website-builder.module.ts`
 - [x] Update `src/core/app.module.ts` to import both main-app and website-builder modules
+- [x] Resolve module naming conflicts
 
 #### **5.10 Environment Setup**
 - [ ] Add `OPENAI_API_KEY` to `project/.env`
 - [ ] Add any other required environment variables
 - [ ] Update environment validation if needed
+- [x] Add JSZip dependency to website-builder package.json
 
 ---
 
@@ -254,6 +265,7 @@
 - [ ] Test button appears for authenticated users
 - [ ] Test redirect works correctly
 - [ ] Test JWT token sharing between subdomains
+- [x] Update website builder button to use API URL for environment detection
 
 ---
 
@@ -270,12 +282,14 @@
 - [x] Implement undo/redo functionality
 - [x] Add change descriptions
 - [x] Add timestamps
+- [x] Enhanced UI with diff view and confidence indicators
 
 #### **7.3 Create Export Functionality**
 - [x] Implement file compilation
-- [x] Add download functionality
+- [x] Add download functionality with JSZip
 - [x] Add export options
 - [x] Add progress indicators
+- [x] Client-side ZIP generation and download
 
 #### **7.4 Testing**
 - [ ] Test with static HTML websites

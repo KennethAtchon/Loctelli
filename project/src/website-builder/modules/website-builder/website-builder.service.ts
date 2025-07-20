@@ -86,10 +86,18 @@ export class WebsiteBuilderService {
     const website = await this.findWebsiteById(id, adminId);
 
     try {
+      // Parse files from JSON and ensure proper typing
+      const files = Array.isArray(website.files) ? website.files as Array<{
+        name: string;
+        content: string;
+        type: string;
+        size: number;
+      }> : [];
+      
       // Prepare context for AI
       const context = {
         websiteType: website.type,
-        currentFiles: website.files,
+        currentFiles: files,
         currentStructure: website.structure,
         targetFile: aiEditDto.targetFile,
         ...aiEditDto.context,
@@ -104,7 +112,7 @@ export class WebsiteBuilderService {
             content: `You are an expert web developer. You will receive a website structure and files, and a natural language instruction to modify them. 
             
             Current website type: ${website.type}
-            Available files: ${JSON.stringify(website.files.map(f => f.name))}
+            Available files: ${JSON.stringify(files.map(f => f.name))}
             
             Respond with a JSON object containing:
             {
@@ -142,8 +150,8 @@ export class WebsiteBuilderService {
       const aiResponse = JSON.parse(response);
       
       // Apply changes to website
-      const updatedFiles = [...website.files];
-      const changes = [];
+      const updatedFiles = [...files];
+      const changes: any[] = [];
 
       for (const change of aiResponse.changes) {
         const fileIndex = updatedFiles.findIndex(f => f.name === change.file);
