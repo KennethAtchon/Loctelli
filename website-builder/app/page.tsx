@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Upload, Code, Eye, Download, Sparkles } from "lucide-react";
 import { UploadZone } from "@/components/upload-zone";
 import { api } from "@/lib/api";
+import logger from "@/lib/logger";
 
 export default function Home() {
   const [isUploading, setIsUploading] = useState(false);
@@ -16,36 +17,49 @@ export default function Home() {
   };
 
   const handleUpload = async () => {
+    logger.log("🚀 Starting upload process...");
     setIsUploading(true);
+    
     try {
       if (uploadedFiles.length === 0) {
+        logger.error("❌ No files selected for upload");
         alert("Please select files to upload");
         return;
       }
 
-      console.log("Starting upload process...");
-      console.log("Files to upload:", uploadedFiles.map(f => f.name));
+      logger.log(`📁 Files to upload: ${uploadedFiles.length} files`);
+      uploadedFiles.forEach((file, index) => {
+        logger.log(`📄 File ${index + 1}: ${file.name} (${file.size} bytes, ${file.type})`);
+      });
 
       // Create a unique website name
       const websiteName = `website-${Date.now()}`;
-      console.log("Website name:", websiteName);
+      logger.log(`📝 Generated website name: ${websiteName}`);
       
       // Upload files to backend
-      console.log("Calling API...");
+      logger.log("🌐 Calling website builder API...");
       const response = await api.websiteBuilder.uploadWebsite(uploadedFiles, websiteName, "Uploaded website");
-      console.log("API response:", response);
+      logger.log("📡 API response received:", response);
       
       if (response.success) {
-        console.log("Upload successful, redirecting to:", `/editor/${response.website.id}`);
+        logger.log(`✅ Upload successful! Website ID: ${response.website.id}`);
+        logger.log(`🔄 Redirecting to editor: /editor/${response.website.id}`);
+        
         // Navigate to editor with the created website
         window.location.href = `/editor/${response.website.id}`;
       } else {
+        logger.error("❌ Upload failed - API returned error:", response.error);
         throw new Error(response.error || 'Upload failed');
       }
     } catch (error) {
-      console.error("Upload failed:", error);
+      logger.error("❌ Upload process failed:", error);
+      logger.error("❌ Error details:", {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
       alert("Upload failed. Please try again.");
     } finally {
+      logger.log("🏁 Upload process completed");
       setIsUploading(false);
     }
   };

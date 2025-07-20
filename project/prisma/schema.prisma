@@ -210,6 +210,16 @@ model Website {
   structure   Json     // Parsed HTML/CSS/JS structure
   files       Json     // File metadata and content
   status      String   @default("active") // 'active', 'archived', 'draft'
+  
+  // Build-related fields for React/Vite projects
+  buildStatus String?  @default("pending") // 'pending', 'building', 'running', 'failed', 'stopped'
+  previewUrl  String?  // URL where the built application is hosted
+  processId   String?  // Docker container ID or process ID
+  buildOutput Json?    // Build logs and output
+  portNumber  Int?     // Port number allocated for the preview server
+  lastBuildAt DateTime?
+  buildDuration Int?   // Build duration in seconds
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   

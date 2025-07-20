@@ -59,9 +59,13 @@ async function handleRequest(
     const fullUrl = searchParams ? `${url}?${searchParams}` : url;
 
     // Prepare headers
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
+    const headers: Record<string, string> = {};
+    
+    // Don't set Content-Type for FormData - let the browser set it
+    const contentType = request.headers.get('content-type');
+    if (contentType && !contentType.includes('multipart/form-data')) {
+      headers['Content-Type'] = contentType;
+    }
 
 
     // Add API key to backend request
@@ -82,10 +86,17 @@ async function handleRequest(
     }
 
     // Get request body if it exists
-    let body: string | undefined;
+    let body: string | FormData | undefined;
     if (method !== 'GET' && method !== 'DELETE') {
       try {
-        body = await request.text();
+        const contentType = request.headers.get('content-type');
+        if (contentType && contentType.includes('multipart/form-data')) {
+          // For FormData, pass it directly
+          body = await request.formData();
+        } else {
+          // For other content types, get as text
+          body = await request.text();
+        }
       } catch {
         // No body to forward
       }

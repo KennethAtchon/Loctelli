@@ -206,6 +206,7 @@ Loctelli/
 - **Improved UX**: Better loading states and error handling with retry options
 - **Fixed Redirect Logic**: Updated redirect logic to use `window.location.hostname` and `window.location.port` for reliable localhost vs production detection
 - **FormData Upload Fix**: Fixed website builder file upload authentication by properly handling FormData requests without JSON stringification
+- **File Upload Size Limit Fix**: Increased body parser limits to 50MB to handle large file uploads in website builder
 
 ### **Integrations System - PARTIALLY IMPLEMENTED 🔗**
 - **GoHighLevel CRM Integration**: ✅ Fully implemented with type-safe configuration

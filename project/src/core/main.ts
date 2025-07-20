@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 import { CacheService } from '../main-app/infrastructure/cache/cache.service';
+import { json, urlencoded } from 'express';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -12,6 +13,12 @@ async function bootstrap() {
   try {
     logger.log('🔧 Creating NestJS application...');
     const app = await NestFactory.create(AppModule);
+    
+    // Configure body parser limits for file uploads
+    app.use(json({ limit: '50mb' }));
+    app.use(urlencoded({ extended: true, limit: '50mb' }));
+    
+    logger.log('📦 Body parser configured with 50MB limit for file uploads');
     
     // Test Redis connection
     try {

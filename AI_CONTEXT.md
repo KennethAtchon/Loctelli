@@ -17,6 +17,13 @@
 - **Security**: Multi-layer protection (API key + JWT + Role-based access)
 - **Module Organization**: Well-structured modules with clear separation of concerns
 
+### **Website Builder System - REDESIGN IN PROGRESS 🔄**
+- **Current Status**: Static file upload system with basic ZIP extraction
+- **Redesign Goal**: Full React/Vite build and hosting capabilities
+- **New Components**: Build Engine, Process Manager, Security Sandbox, Resource Cleanup
+- **Technology**: Docker containers for isolation, dynamic port allocation, automated npm commands
+- **Timeline**: 8-week implementation plan (see WEBSITE_BUILDER_REDESIGN_PLAN.md)
+
 ### **Chat System Architecture**
 - **SalesBotService**: Core AI response generation service (moved from background to chat module)
 - **PromptHelperService**: Prompt composition and management
@@ -270,6 +277,7 @@
 - **OPTIONS Handler**: Added OPTIONS method handler for CORS preflight requests
 - **Redirect Fix**: Fixed redirect logic in both website builder and main CRM dashboard to properly detect localhost vs production environments
 - **FormData Upload Fix**: Fixed website builder file upload authentication by properly handling FormData requests without JSON stringification
+- **File Upload Size Limit Fix**: Increased body parser limits to 50MB to handle large file uploads in website builder
 
 #### **13. Reusable DataTable Component System - NEW ✅**
 - **Created**: Comprehensive reusable DataTable component in `@/components/customUI` ✅

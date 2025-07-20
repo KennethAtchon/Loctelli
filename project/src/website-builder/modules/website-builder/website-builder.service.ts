@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../shared/prisma/prisma.service';
 import { CreateWebsiteDto } from './dto/create-website.dto';
 import { UpdateWebsiteDto } from './dto/update-website.dto';
@@ -6,6 +6,8 @@ import { AiEditDto } from './dto/ai-edit.dto';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import * as JSZip from 'jszip';
+import { BuildService } from './build.service';
+import { SecurityService } from './security.service';
 
 interface UploadedFile {
   originalname: string;
@@ -16,11 +18,14 @@ interface UploadedFile {
 
 @Injectable()
 export class WebsiteBuilderService {
+  private readonly logger = new Logger(WebsiteBuilderService.name);
   private openai: OpenAI;
 
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
+    private buildService: BuildService,
+    private securityService: SecurityService,
   ) {
     this.openai = new OpenAI({
       apiKey: this.configService.get<string>('OPENAI_API_KEY'),
@@ -28,14 +33,22 @@ export class WebsiteBuilderService {
   }
 
   async uploadWebsite(files: UploadedFile[], name: string, adminId: number, description?: string) {
+    this.logger.log(`🔧 Starting website upload process for admin ID: ${adminId}`);
+    this.logger.log(`📝 Website name: ${name}`);
+    this.logger.log(`📄 Description: ${description || 'No description'}`);
+    this.logger.log(`📁 Total files to process: ${files.length}`);
+
     // Check if website name already exists
+    this.logger.log(`🔍 Checking if website name '${name}' already exists...`);
     const existingWebsite = await this.prisma.website.findUnique({
       where: { name },
     });
 
     if (existingWebsite) {
+      this.logger.error(`❌ Website name '${name}' already exists`);
       throw new BadRequestException('Website name already exists');
     }
+    this.logger.log(`✅ Website name '${name}' is available`);
 
     let processedFiles: Array<{
       name: string;
@@ -45,45 +58,162 @@ export class WebsiteBuilderService {
     }> = [];
 
     // Process uploaded files
-    for (const file of files) {
+    this.logger.log(`🔄 Processing ${files.length} uploaded files...`);
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      this.logger.log(`📄 Processing file ${i + 1}/${files.length}: ${file.originalname} (${file.size} bytes, ${file.mimetype})`);
+      
       if (file.mimetype === 'application/zip' || file.mimetype === 'application/x-zip-compressed' || file.originalname.endsWith('.zip')) {
         // Handle zip file
+        this.logger.log(`📦 Detected ZIP file: ${file.originalname}`);
         const zipFiles = await this.extractZipFile(file.buffer);
+        this.logger.log(`📦 Extracted ${zipFiles.length} files from ZIP`);
         processedFiles = processedFiles.concat(zipFiles);
       } else {
         // Handle individual file
-        processedFiles.push({
-          name: file.originalname,
-          content: file.buffer.toString('utf8'),
-          type: this.getFileType(file.originalname),
-          size: file.size,
-        });
+        this.logger.log(`📄 Processing individual file: ${file.originalname}`);
+        const fileType = this.getFileType(file.originalname);
+        this.logger.log(`📄 File type detected: ${fileType}`);
+        
+        try {
+          const content = file.buffer.toString('utf8');
+          this.logger.log(`📄 File content length: ${content.length} characters`);
+          
+          processedFiles.push({
+            name: file.originalname,
+            content,
+            type: fileType,
+            size: file.size,
+          });
+          this.logger.log(`✅ Successfully processed file: ${file.originalname}`);
+        } catch (error) {
+          this.logger.error(`❌ Failed to process file ${file.originalname}:`, error);
+          throw new BadRequestException(`Failed to process file ${file.originalname}: ${error.message}`);
+        }
       }
     }
 
+    this.logger.log(`📊 Total processed files: ${processedFiles.length}`);
     if (processedFiles.length === 0) {
+      this.logger.error('❌ No valid files found in upload');
       throw new BadRequestException('No valid files found in upload');
     }
 
-    // Detect website type and structure
-    const websiteType = this.detectWebsiteType(processedFiles);
-    const structure = this.analyzeStructure(processedFiles);
+    // Sanitize and validate files
+    this.logger.log(`🔒 Sanitizing and validating files...`);
+    const sanitizedFiles = this.securityService.sanitizeProjectFiles(processedFiles);
+    this.logger.log(`✅ Sanitization complete. Kept ${sanitizedFiles.length} files`);
 
-    // Create website
+    // Validate project structure
+    this.logger.log(`🔍 Validating project structure...`);
+    const structureValidation = this.securityService.validateProjectStructure(sanitizedFiles);
+    this.logger.log(`🏷️ Project type: ${structureValidation.type}, Valid: ${structureValidation.isValid}`);
+
+    if (!structureValidation.isValid) {
+      this.logger.warn(`⚠️ Project structure issues: ${structureValidation.issues.join(', ')}`);
+    }
+
+    // Detect website type and structure
+    this.logger.log(`🔍 Detecting website type...`);
+    const websiteType = this.detectWebsiteType(sanitizedFiles);
+    this.logger.log(`🏷️ Website type detected: ${websiteType}`);
+    
+    this.logger.log(`🔍 Analyzing website structure...`);
+    const structure = this.analyzeStructure(sanitizedFiles);
+    this.logger.log(`📊 Structure analysis complete:`, structure);
+
+    // Create website in database with initial build status
+    this.logger.log(`💾 Creating website record in database...`);
     const website = await this.prisma.website.create({
       data: {
         name,
         description,
         type: websiteType,
         structure,
-        files: processedFiles,
+        files: sanitizedFiles,
+        buildStatus: 'pending',
         createdByAdminId: adminId,
       },
     });
 
+    this.logger.log(`✅ Website created successfully with ID: ${website.id}`);
+
+    // Handle React/Vite projects with build process
+    let previewUrl = null;
+    let buildOutput = null;
+    let buildDuration = null;
+    const buildStartTime = new Date();
+
+    if (websiteType === 'react-vite' || websiteType === 'react' || websiteType === 'vite') {
+      this.logger.log(`🔨 Starting build process for React/Vite project: ${website.id}`);
+      
+      try {
+        // Update status to building
+        await this.prisma.website.update({
+          where: { id: website.id },
+          data: { buildStatus: 'building' },
+        });
+
+        // Start build process
+        previewUrl = await this.buildService.buildReactProject(website.id, sanitizedFiles);
+        
+        // Get build process details
+        const buildProcess = this.buildService.getBuildStatus(website.id);
+        buildOutput = buildProcess?.buildOutput || [];
+        buildDuration = buildProcess?.endTime && buildProcess?.startTime 
+          ? Math.floor((buildProcess.endTime.getTime() - buildProcess.startTime.getTime()) / 1000)
+          : null;
+
+        this.logger.log(`✅ Build completed successfully for website ${website.id}`);
+        this.logger.log(`🌐 Preview URL: ${previewUrl}`);
+
+      } catch (error) {
+        this.logger.error(`❌ Build failed for website ${website.id}:`, error);
+        
+        // Update status to failed
+        await this.prisma.website.update({
+          where: { id: website.id },
+          data: { 
+            buildStatus: 'failed',
+            buildOutput: [`Build failed: ${error.message}`],
+          },
+        });
+
+        // Return website with failed status
+        return {
+          success: true,
+          website: await this.prisma.website.findUnique({ where: { id: website.id } }),
+          buildError: error.message,
+        };
+      }
+    }
+
+    // Update website with build results
+    const updatedWebsite = await this.prisma.website.update({
+      where: { id: website.id },
+      data: {
+        buildStatus: previewUrl ? 'running' : 'pending',
+        previewUrl,
+        buildOutput,
+        lastBuildAt: new Date(),
+        buildDuration,
+      },
+    });
+
+    this.logger.log(`📊 Website details:`, {
+      id: updatedWebsite.id,
+      name: updatedWebsite.name,
+      type: updatedWebsite.type,
+      fileCount: sanitizedFiles.length,
+      buildStatus: updatedWebsite.buildStatus,
+      previewUrl: updatedWebsite.previewUrl,
+      createdByAdminId: adminId
+    });
+
     return {
       success: true,
-      website,
+      website: updatedWebsite,
+      previewUrl,
     };
   }
 
@@ -93,8 +223,13 @@ export class WebsiteBuilderService {
     type: string;
     size: number;
   }>> {
+    this.logger.log(`📦 Starting ZIP file extraction...`);
+    this.logger.log(`📦 ZIP buffer size: ${buffer.length} bytes`);
+    
     const zip = new JSZip();
     const zipContent = await zip.loadAsync(buffer);
+    
+    this.logger.log(`📦 ZIP loaded successfully. Total files in ZIP: ${Object.keys(zipContent.files).length}`);
     
     const files: Array<{
       name: string;
@@ -103,23 +238,38 @@ export class WebsiteBuilderService {
       size: number;
     }> = [];
 
+    let processedCount = 0;
+    let skippedCount = 0;
+
     for (const [filename, file] of Object.entries(zipContent.files)) {
+      this.logger.log(`📦 Processing ZIP entry: ${filename} (directory: ${file.dir})`);
+      
       if (!file.dir) {
         try {
+          this.logger.log(`📄 Extracting file content: ${filename}`);
           const content = await file.async('string');
+          const fileType = this.getFileType(filename);
+          
+          this.logger.log(`📄 File extracted: ${filename} (${content.length} chars, type: ${fileType})`);
+          
           files.push({
             name: filename,
             content,
-            type: this.getFileType(filename),
+            type: fileType,
             size: content.length,
           });
+          processedCount++;
         } catch (error) {
           // Skip binary files or files that can't be read as text
-          console.warn(`Skipping file ${filename}: ${error.message}`);
+          this.logger.warn(`⚠️ Skipping binary file ${filename}: ${error.message}`);
+          skippedCount++;
         }
+      } else {
+        this.logger.log(`📁 Skipping directory: ${filename}`);
       }
     }
 
+    this.logger.log(`📦 ZIP extraction complete. Processed: ${processedCount}, Skipped: ${skippedCount}`);
     return files;
   }
 
@@ -458,5 +608,114 @@ export class WebsiteBuilderService {
       default:
         return 'text';
     }
+  }
+
+  async getBuildStatus(id: string, adminId: number) {
+    const website = await this.findWebsiteById(id, adminId);
+    
+    const buildProcess = this.buildService.getBuildStatus(id);
+    
+    return {
+      websiteId: id,
+      buildStatus: website.buildStatus,
+      previewUrl: website.previewUrl,
+      portNumber: website.portNumber,
+      lastBuildAt: website.lastBuildAt,
+      buildDuration: website.buildDuration,
+      buildOutput: website.buildOutput,
+      processInfo: buildProcess ? {
+        status: buildProcess.status,
+        startTime: buildProcess.startTime,
+        endTime: buildProcess.endTime,
+        buildOutput: buildProcess.buildOutput,
+      } : null,
+    };
+  }
+
+  async stopWebsite(id: string, adminId: number) {
+    const website = await this.findWebsiteById(id, adminId);
+    
+    if (website.buildStatus === 'running' || website.buildStatus === 'building') {
+      await this.buildService.stopWebsite(id);
+      
+      // Update database status
+      await this.prisma.website.update({
+        where: { id },
+        data: {
+          buildStatus: 'stopped',
+          previewUrl: null,
+          portNumber: null,
+          updatedAt: new Date(),
+        },
+      });
+    }
+    
+    return { success: true, message: 'Website stopped successfully' };
+  }
+
+  async restartWebsite(id: string, adminId: number) {
+    const website = await this.findWebsiteById(id, adminId);
+    
+    if (website.buildStatus === 'failed' || website.buildStatus === 'stopped') {
+      // Stop any existing process
+      try {
+        await this.buildService.stopWebsite(id);
+      } catch (error) {
+        this.logger.warn(`Could not stop existing process for website ${id}:`, error);
+      }
+      
+      // Update status to building
+      await this.prisma.website.update({
+        where: { id },
+        data: { buildStatus: 'building' },
+      });
+      
+      try {
+        // Parse files from JSON
+        const files = Array.isArray(website.files) ? website.files as Array<{
+          name: string;
+          content: string;
+          type: string;
+          size: number;
+        }> : [];
+        
+        // Restart build process
+        const previewUrl = await this.buildService.buildReactProject(id, files);
+        
+        // Get build process details
+        const buildProcess = this.buildService.getBuildStatus(id);
+        const buildOutput = buildProcess?.buildOutput || [];
+        const buildDuration = buildProcess?.endTime && buildProcess?.startTime 
+          ? Math.floor((buildProcess.endTime.getTime() - buildProcess.startTime.getTime()) / 1000)
+          : null;
+        
+        // Update website with new build results
+        await this.prisma.website.update({
+          where: { id },
+          data: {
+            buildStatus: 'running',
+            previewUrl,
+            buildOutput,
+            lastBuildAt: new Date(),
+            buildDuration,
+          },
+        });
+        
+        return { success: true, previewUrl };
+      } catch (error) {
+        // Update status to failed
+        await this.prisma.website.update({
+          where: { id },
+          data: { 
+            buildStatus: 'failed',
+            buildOutput: [`Restart failed: ${error.message}`],
+          },
+        });
+        
+        throw new BadRequestException(`Restart failed: ${error.message}`);
+      }
+    }
+    
+    throw new BadRequestException('Website is not in a restartable state');
   }
 } 
