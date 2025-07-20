@@ -32,13 +32,15 @@ interface EditorInterfaceProps {
   }>;
   onSave: (changes: any) => void;
   onExport: () => void;
+  previewUrl?: string;
 }
 
 export function EditorInterface({ 
   websiteName, 
   files, 
   onSave, 
-  onExport 
+  onExport,
+  previewUrl 
 }: EditorInterfaceProps) {
   const [selectedFile, setSelectedFile] = useState(files[0] || null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -51,15 +53,12 @@ export function EditorInterface({
     
     setIsProcessing(true);
     try {
-      const request: AiEditRequest = {
-        websiteName,
+      const response = await api.websiteBuilder.aiEdit(websiteName, {
         fileName: selectedFile.name,
         prompt,
         currentContent: selectedFile.content,
         fileType: selectedFile.type
-      };
-
-      const response = await api.websiteBuilder.aiEdit(request);
+      });
       
       if (response.success) {
         setPreviewContent(response.modifiedContent);
@@ -74,7 +73,7 @@ export function EditorInterface({
           modifications: response.changes.modifications,
           status: 'applied',
           createdAt: new Date().toISOString(),
-          confidence: response.changes.confidence,
+          confidence: response.changes.confidence || 0,
           processingTime: response.processingTime
         };
         
@@ -120,6 +119,14 @@ export function EditorInterface({
             </div>
           </div>
           <div className="flex items-center space-x-2">
+            {previewUrl && (
+              <Button variant="outline" asChild>
+                <a href={previewUrl} target="_blank" rel="noopener noreferrer">
+                  <Eye className="mr-2 h-4 w-4" />
+                  Preview
+                </a>
+              </Button>
+            )}
             <Button variant="outline" onClick={onExport}>
               <Download className="mr-2 h-4 w-4" />
               Export

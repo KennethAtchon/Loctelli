@@ -257,7 +257,7 @@
   - Added explicit domain setting for localhost cookies
   - Enhanced admin auth context with retry mechanism and better error handling
   - Added manual auth check functionality for debugging
-  - Improved redirect logic to properly detect localhost vs production
+  - **Fixed Redirect Logic**: Updated redirect logic to use `window.location.hostname` and `window.location.port` instead of environment variables for more reliable localhost detection
   - Added comprehensive debugging panels to show authentication state
   - **CORS Fix**: Added proper CORS headers to website builder proxy route to handle cross-origin requests
   - **Port Configuration**: Fixed API base URL to use correct port (3001) for website builder
@@ -268,6 +268,8 @@
 - **Manual Auth Check**: Added `checkAuth()` function for manual authentication verification
 - **CORS Headers**: Added Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Headers to all proxy responses
 - **OPTIONS Handler**: Added OPTIONS method handler for CORS preflight requests
+- **Redirect Fix**: Fixed redirect logic in both website builder and main CRM dashboard to properly detect localhost vs production environments
+- **FormData Upload Fix**: Fixed website builder file upload authentication by properly handling FormData requests without JSON stringification
 
 #### **13. Reusable DataTable Component System - NEW ✅**
 - **Created**: Comprehensive reusable DataTable component in `@/components/customUI` ✅
@@ -418,22 +420,21 @@
 - **Testing**: Added comprehensive tests to verify auth endpoints don't retry on 401 errors
 - **Backward Compatibility**: Regular API endpoints still retry on 401 with token refresh as before
 
-## 🎨 **Website Builder System - IMPLEMENTED ✅**
+### **Website Builder System**
 
-### **Overview**
-AI-powered website editing tool that allows users to upload existing website files, make natural language modifications via AI, preview changes in real-time, and export modified websites. The system is integrated with the main CRM and provides admin-only access.
-
-### **Architecture**
-- **Frontend**: Next.js application running on port 3001 (`website-builder/`)
-- **Backend**: NestJS module integrated into main API (`project/src/website-builder/`)
-- **Database**: PostgreSQL with Website and WebsiteChange models
-- **AI Integration**: OpenAI GPT-4 for natural language code modifications
-- **Authentication**: Shared JWT tokens with main CRM via cookie-based auth
+### **Purpose**
+AI-powered website editing tool that allows users to:
+- Upload existing website files (including zip files)
+- Make natural language modifications via AI
+- Preview changes in real-time
+- Export modified websites
+- Track change history
 
 ### **Core Features**
 
 #### **1. File Upload & Processing**
 - **Supported Formats**: HTML, CSS, JS, React, Next.js, Vite projects
+- **Zip File Support**: Upload zip files containing website projects
 - **File Validation**: Type checking and size limits
 - **Structure Analysis**: Automatic project structure detection
 - **Content Parsing**: Extract and organize file contents
@@ -445,7 +446,8 @@ AI-powered website editing tool that allows users to upload existing website fil
 - **Smart Suggestions**: AI provides modification recommendations
 
 #### **3. Real-Time Preview**
-- **Live Preview**: Instant visualization of changes
+- **Live Preview**: Instant visualization of changes in editor
+- **Interactive Preview**: Full website preview with `/preview/[id]` route
 - **Code Highlighting**: Syntax highlighting for modified files
 - **Responsive Testing**: Mobile and desktop preview modes
 - **Error Detection**: Real-time validation and error reporting
@@ -461,7 +463,34 @@ AI-powered website editing tool that allows users to upload existing website fil
 - **File Preservation**: Maintain original file structure
 - **Metadata Inclusion**: Export change history and documentation
 
-### **Database Schema**
+### **Technical Architecture**
+
+#### **Frontend (Next.js)**
+```
+website-builder/
+├── app/
+│   ├── editor/[name]/     # Dynamic editor pages
+│   ├── preview/[id]/      # Interactive website preview
+│   └── api/proxy/         # API proxy for backend communication
+├── components/
+│   ├── ai-editor/         # AI editing interface
+│   ├── upload-zone/       # File upload component
+│   └── ui/               # Shared UI components
+└── lib/
+    └── api/              # API client and endpoints
+```
+
+#### **Backend (NestJS)**
+```
+project/src/website-builder/
+├── modules/website-builder/
+│   ├── website-builder.controller.ts  # Includes upload endpoint
+│   ├── website-builder.service.ts     # Includes zip processing
+│   └── dto/              # Data transfer objects
+└── website-builder.module.ts
+```
+
+#### **Database Schema**
 ```sql
 -- Website storage
 model Website {
@@ -490,16 +519,44 @@ model WebsiteChange {
 }
 ```
 
+## 🔄 **Integration Points**
+
+### **CRM → Website Builder**
+- **Navigation**: "Website Builder" button in admin dashboard
+- **Authentication**: Shared JWT tokens via cookies
+- **Environment Detection**: Automatic API URL configuration
+- **User Context**: Admin user information passed to builder
+
+### **Website Builder → Backend**
+- **REST API**: Standard HTTP endpoints for CRUD operations
+- **File Upload**: Multipart form data handling with zip support
+- **AI Processing**: OpenAI API integration for code modifications
+- **Real-time Updates**: WebSocket-like polling for live preview
+
+### **Data Flow**
+1. **Upload**: Files/Zip → Backend → Database storage
+2. **AI Edit**: User prompt → OpenAI → Code modifications → Database update
+3. **Preview**: Website files → Blob URL → Interactive iframe preview
+4. **Export**: Database files → ZIP generation → Download
+
 ### **API Endpoints**
 ```
-POST   /api/website-builder          # Create website
-GET    /api/website-builder          # List websites
-GET    /api/website-builder/:id      # Get website
-PATCH  /api/website-builder/:id      # Update website
-DELETE /api/website-builder/:id      # Delete website
+POST   /api/website-builder/upload     # Upload files/zip
+POST   /api/website-builder            # Create website
+GET    /api/website-builder            # List websites
+GET    /api/website-builder/:id        # Get website
+PATCH  /api/website-builder/:id        # Update website
+DELETE /api/website-builder/:id        # Delete website
 POST   /api/website-builder/:id/ai-edit    # AI edit
 GET    /api/website-builder/:id/changes    # Change history
 POST   /api/website-builder/:id/changes/:changeId/revert  # Revert change
+```
+
+### **Routes**
+```
+/website-builder/                      # Upload page
+/website-builder/editor/[name]         # Editor interface
+/website-builder/preview/[id]          # Interactive preview
 ```
 
 ### **Integration with CRM**
@@ -509,11 +566,12 @@ POST   /api/website-builder/:id/changes/:changeId/revert  # Revert change
 - **User Context**: Admin user information passed to builder
 
 ### **Implementation Status**
-- **Frontend**: Complete with upload, editor, and export functionality
-- **Backend**: Complete with AI integration and change tracking
+- **Frontend**: Complete with upload, editor, preview, and export functionality
+- **Backend**: Complete with AI integration, change tracking, and zip processing
 - **Database**: Migrated and ready for use
 - **Integration**: CRM integration button implemented
-- **Testing**: Ready for comprehensive testing
+- **Zip Support**: Basic zip file upload implemented (individual file extraction pending)
+- **Preview System**: Interactive preview with iframe rendering
 
 ---
 

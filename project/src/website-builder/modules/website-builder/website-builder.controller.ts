@@ -8,7 +8,11 @@ import {
   Delete,
   UseGuards,
   Request,
+  UseInterceptors,
+  UploadedFiles,
+  BadRequestException,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { WebsiteBuilderService } from './website-builder.service';
 import { CreateWebsiteDto } from './dto/create-website.dto';
 import { UpdateWebsiteDto } from './dto/update-website.dto';
@@ -20,6 +24,24 @@ import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 @UseGuards(AdminGuard)
 export class WebsiteBuilderController {
   constructor(private readonly websiteBuilderService: WebsiteBuilderService) {}
+
+  @Post('upload')
+  @UseInterceptors(FilesInterceptor('files'))
+  async uploadWebsite(
+    @UploadedFiles() files: any[],
+    @Body() body: { name: string; description?: string },
+    @CurrentUser() user: any,
+  ) {
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No files uploaded');
+    }
+
+    if (!body.name) {
+      throw new BadRequestException('Website name is required');
+    }
+
+    return this.websiteBuilderService.uploadWebsite(files, body.name, user.id, body.description);
+  }
 
   @Post()
   create(@Body() createWebsiteDto: CreateWebsiteDto, @CurrentUser() user: any) {

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, Code, Eye, Download, Sparkles } from "lucide-react";
 import { UploadZone } from "@/components/upload-zone";
+import { api } from "@/lib/api";
 
 export default function Home() {
   const [isUploading, setIsUploading] = useState(false);
@@ -17,15 +18,30 @@ export default function Home() {
   const handleUpload = async () => {
     setIsUploading(true);
     try {
-      // TODO: Implement actual upload logic
-      console.log("Uploading files:", uploadedFiles);
+      if (uploadedFiles.length === 0) {
+        alert("Please select files to upload");
+        return;
+      }
+
+      console.log("Starting upload process...");
+      console.log("Files to upload:", uploadedFiles.map(f => f.name));
+
+      // Create a unique website name
+      const websiteName = `website-${Date.now()}`;
+      console.log("Website name:", websiteName);
       
-      // Simulate upload delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Upload files to backend
+      console.log("Calling API...");
+      const response = await api.websiteBuilder.uploadWebsite(uploadedFiles, websiteName, "Uploaded website");
+      console.log("API response:", response);
       
-      // Navigate to editor with a sample website name
-      const websiteName = "sample-website";
-      window.location.href = `/editor/${websiteName}`;
+      if (response.success) {
+        console.log("Upload successful, redirecting to:", `/editor/${response.website.id}`);
+        // Navigate to editor with the created website
+        window.location.href = `/editor/${response.website.id}`;
+      } else {
+        throw new Error(response.error || 'Upload failed');
+      }
     } catch (error) {
       console.error("Upload failed:", error);
       alert("Upload failed. Please try again.");

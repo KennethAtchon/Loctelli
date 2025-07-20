@@ -5,6 +5,14 @@ import { UpdateWebsiteDto } from './dto/update-website.dto';
 import { AiEditDto } from './dto/ai-edit.dto';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
+import * as JSZip from 'jszip';
+
+interface UploadedFile {
+  originalname: string;
+  buffer: Buffer;
+  mimetype: string;
+  size: number;
+}
 
 @Injectable()
 export class WebsiteBuilderService {
@@ -17,6 +25,176 @@ export class WebsiteBuilderService {
     this.openai = new OpenAI({
       apiKey: this.configService.get<string>('OPENAI_API_KEY'),
     });
+  }
+
+  async uploadWebsite(files: UploadedFile[], name: string, adminId: number, description?: string) {
+    // Check if website name already exists
+    const existingWebsite = await this.prisma.website.findUnique({
+      where: { name },
+    });
+
+    if (existingWebsite) {
+      throw new BadRequestException('Website name already exists');
+    }
+
+    let processedFiles: Array<{
+      name: string;
+      content: string;
+      type: string;
+      size: number;
+    }> = [];
+
+    // Process uploaded files
+    for (const file of files) {
+      if (file.mimetype === 'application/zip' || file.mimetype === 'application/x-zip-compressed' || file.originalname.endsWith('.zip')) {
+        // Handle zip file
+        const zipFiles = await this.extractZipFile(file.buffer);
+        processedFiles = processedFiles.concat(zipFiles);
+      } else {
+        // Handle individual file
+        processedFiles.push({
+          name: file.originalname,
+          content: file.buffer.toString('utf8'),
+          type: this.getFileType(file.originalname),
+          size: file.size,
+        });
+      }
+    }
+
+    if (processedFiles.length === 0) {
+      throw new BadRequestException('No valid files found in upload');
+    }
+
+    // Detect website type and structure
+    const websiteType = this.detectWebsiteType(processedFiles);
+    const structure = this.analyzeStructure(processedFiles);
+
+    // Create website
+    const website = await this.prisma.website.create({
+      data: {
+        name,
+        description,
+        type: websiteType,
+        structure,
+        files: processedFiles,
+        createdByAdminId: adminId,
+      },
+    });
+
+    return {
+      success: true,
+      website,
+    };
+  }
+
+  private async extractZipFile(buffer: Buffer): Promise<Array<{
+    name: string;
+    content: string;
+    type: string;
+    size: number;
+  }>> {
+    const zip = new JSZip();
+    const zipContent = await zip.loadAsync(buffer);
+    
+    const files: Array<{
+      name: string;
+      content: string;
+      type: string;
+      size: number;
+    }> = [];
+
+    for (const [filename, file] of Object.entries(zipContent.files)) {
+      if (!file.dir) {
+        try {
+          const content = await file.async('string');
+          files.push({
+            name: filename,
+            content,
+            type: this.getFileType(filename),
+            size: content.length,
+          });
+        } catch (error) {
+          // Skip binary files or files that can't be read as text
+          console.warn(`Skipping file ${filename}: ${error.message}`);
+        }
+      }
+    }
+
+    return files;
+  }
+
+  private detectWebsiteType(files: Array<{ name: string; content: string; type: string; size: number }>): string {
+    const fileNames = files.map(f => f.name.toLowerCase());
+    
+    // Check for Vite project
+    if (fileNames.includes('vite.config.js') || fileNames.includes('vite.config.ts')) {
+      return 'vite';
+    }
+    
+    // Check for React project
+    if (fileNames.includes('package.json')) {
+      const packageJson = files.find(f => f.name === 'package.json');
+      if (packageJson) {
+        try {
+          const pkg = JSON.parse(packageJson.content);
+          if (pkg.dependencies?.react || pkg.devDependencies?.react) {
+            return 'react';
+          }
+        } catch (error) {
+          // Continue with other checks
+        }
+      }
+    }
+    
+    // Check for Next.js project
+    if (fileNames.includes('next.config.js') || fileNames.includes('next.config.ts')) {
+      return 'nextjs';
+    }
+    
+    // Default to static
+    return 'static';
+  }
+
+  private analyzeStructure(files: Array<{ name: string; content: string; type: string; size: number }>): Record<string, any> {
+    const structure: Record<string, any> = {
+      totalFiles: files.length,
+      fileTypes: {},
+      hasIndex: false,
+      hasPackageJson: false,
+      hasConfig: false,
+      entryPoints: [],
+    };
+
+    for (const file of files) {
+      // Count file types
+      structure.fileTypes[file.type] = (structure.fileTypes[file.type] || 0) + 1;
+      
+      // Check for important files
+      if (file.name === 'index.html' || file.name === 'index.htm') {
+        structure.hasIndex = true;
+        structure.entryPoints.push(file.name);
+      }
+      
+      if (file.name === 'package.json') {
+        structure.hasPackageJson = true;
+        try {
+          const pkg = JSON.parse(file.content);
+          structure.packageInfo = {
+            name: pkg.name,
+            version: pkg.version,
+            scripts: pkg.scripts,
+          };
+        } catch (error) {
+          // Ignore parsing errors
+        }
+      }
+      
+      if (file.name.includes('config') || file.name.includes('vite.config') || file.name.includes('next.config')) {
+        structure.hasConfig = true;
+      }
+    }
+
+    return structure;
   }
 
   async createWebsite(createWebsiteDto: CreateWebsiteDto, adminId: number) {

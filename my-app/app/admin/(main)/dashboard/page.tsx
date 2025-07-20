@@ -259,11 +259,17 @@ export default function AdminDashboardPage() {
             variant="default" 
             size="sm" 
             onClick={() => {
-              const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-              const baseUrl = apiUrl.replace('/api/proxy', '');
-              const websiteBuilderUrl = baseUrl.includes('localhost') 
-                ? 'http://localhost:3001' 
-                : 'https://website-builder.loctelli.com';
+              const currentHostname = window.location.hostname;
+              const currentPort = window.location.port;
+              
+              let websiteBuilderUrl: string;
+              if (currentHostname === 'localhost' && currentPort === '3000') {
+                websiteBuilderUrl = 'http://localhost:3001';
+              } else if (currentHostname === 'localhost') {
+                websiteBuilderUrl = 'http://localhost:3001';
+              } else {
+                websiteBuilderUrl = 'https://website-builder.loctelli.com';
+              }
               window.open(websiteBuilderUrl, '_blank');
             }}
           >

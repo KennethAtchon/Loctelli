@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { EditorInterface } from "@/components/ai-editor/editor-interface";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, AlertCircle, Download } from "lucide-react";
+import { ArrowLeft, AlertCircle, Download, Eye } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import type { Website, WebsiteFile } from "@/lib/api/website-builder";
@@ -153,6 +153,7 @@ export default function EditorPage() {
       files={files}
       onSave={handleSave}
       onExport={handleExport}
+      previewUrl={`/preview/${websiteId}`}
     />
   );
 } 

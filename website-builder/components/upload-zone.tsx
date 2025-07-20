@@ -26,7 +26,9 @@ export function UploadZone({ onFilesSelected, onUpload, isUploading = false }: U
       'text/css': ['.css'],
       'application/javascript': ['.js'],
       'text/plain': ['.txt', '.md'],
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp']
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'],
+      'application/zip': ['.zip'],
+      'application/x-zip-compressed': ['.zip']
     },
     multiple: true
   });
@@ -57,7 +59,7 @@ export function UploadZone({ onFilesSelected, onUpload, isUploading = false }: U
         ) : (
           <div>
             <p className="text-sm text-muted-foreground mb-4">
-              Drag & drop website files here, or click to browse
+              Drag & drop website files or zip archives here, or click to browse
             </p>
             <Button variant="outline">
               <Upload className="mr-2 h-4 w-4" />

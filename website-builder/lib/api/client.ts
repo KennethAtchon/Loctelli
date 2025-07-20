@@ -226,9 +226,18 @@ export class ApiClient {
     const authHeaders = this.getAuthHeaders();
     logger.debug('🔑 Auth headers:', authHeaders);
     
+    // Determine if we should set Content-Type header
+    const isFormData = options.body instanceof FormData;
+    const defaultHeaders: Record<string, string> = {};
+    
+    // Only set Content-Type for non-FormData requests
+    if (!isFormData) {
+      defaultHeaders['Content-Type'] = 'application/json';
+    }
+    
     const config: RequestInit = {
       headers: {
-        'Content-Type': 'application/json',
+        ...defaultHeaders,
         ...authHeaders,
         ...options.headers,
       },
@@ -390,12 +399,15 @@ export class ApiClient {
   protected async post<T>(endpoint: string, data?: unknown, options?: ApiRequestOptions): Promise<T> {
     logger.debug('📤 POST Request:', {
       endpoint,
-      data: data ? JSON.stringify(data, null, 2) : 'No data'
+      data: data instanceof FormData ? 'FormData' : (data ? JSON.stringify(data, null, 2) : 'No data')
     });
+    
+    // Handle FormData specially - don't JSON.stringify it
+    const body = data instanceof FormData ? data : (data ? JSON.stringify(data) : undefined);
     
     return this.request<T>(endpoint, {
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
+      body,
       ...options,
     });
   }

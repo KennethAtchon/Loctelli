@@ -15,11 +15,21 @@ export function AdminProtectedRoute({ children, fallback }: AdminProtectedRouteP
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       logger.debug('🔒 Admin not authenticated, redirecting to main CRM login...');
-      // Redirect to the main CRM login page based on API URL
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-      const baseUrl = apiUrl.replace('/api/proxy', '');
-      const mainCrmUrl = baseUrl.includes('localhost:3001') ? 'http://localhost:3000' : 'https://loctelli.com';
+      // Redirect to the main CRM login page based on current hostname
+      const currentHostname = window.location.hostname;
+      const currentPort = window.location.port;
+      
+      let mainCrmUrl: string;
+      if (currentHostname === 'localhost' && currentPort === '3001') {
+        mainCrmUrl = 'http://localhost:3000';
+      } else if (currentHostname === 'localhost') {
+        mainCrmUrl = 'http://localhost:3000';
+      } else {
+        mainCrmUrl = 'https://loctelli.com';
+      }
+      
       const redirectUrl = `${mainCrmUrl}/admin/login`;
+      logger.debug(`🔄 Redirecting to: ${redirectUrl}`);
       window.location.href = redirectUrl;
     }
   }, [isAuthenticated, isLoading]);

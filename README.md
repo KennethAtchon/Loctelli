@@ -204,6 +204,8 @@ Loctelli/
 - **Retry Mechanism**: Implemented 3-retry mechanism for profile fetching with automatic delays
 - **Manual Auth Check**: Added manual authentication verification for troubleshooting
 - **Improved UX**: Better loading states and error handling with retry options
+- **Fixed Redirect Logic**: Updated redirect logic to use `window.location.hostname` and `window.location.port` for reliable localhost vs production detection
+- **FormData Upload Fix**: Fixed website builder file upload authentication by properly handling FormData requests without JSON stringification
 
 ### **Integrations System - PARTIALLY IMPLEMENTED 🔗**
 - **GoHighLevel CRM Integration**: ✅ Fully implemented with type-safe configuration
@@ -966,3 +968,32 @@ All previous console statements in the frontend have been replaced with this log
 ---
 
 Built with ❤️ using NestJS and Next.js
+
+## 🎨 Website Builder
+
+The Website Builder is an AI-powered tool for editing websites using natural language. It's accessible at `http://localhost:3001` and provides:
+
+### Features
+- **File Upload**: Upload individual files or zip files containing website projects
+- **AI Editing**: Make changes using natural language prompts
+- **Real-time Preview**: See changes instantly in the editor
+- **Interactive Preview**: Full website preview at `/preview/[id]`
+- **Export**: Download modified websites as zip files
+- **Change History**: Track all modifications with revert capability
+
+### Supported Project Types
+- **Static HTML/CSS/JS**: Traditional web projects
+- **React**: React applications with JSX/TSX
+- **Vite**: Vite-based projects
+- **Next.js**: Next.js applications
+
+### Usage
+1. **Upload**: Drag and drop files or zip archives to the upload zone
+2. **Edit**: Use natural language to describe changes (e.g., "Make the header blue")
+3. **Preview**: Click the preview button to see the website in action
+4. **Export**: Download the modified website when ready
+
+### Routes
+- `/` - Upload page
+- `/editor/[id]` - AI-powered editor interface
+- `/preview/[id]` - Interactive website preview
