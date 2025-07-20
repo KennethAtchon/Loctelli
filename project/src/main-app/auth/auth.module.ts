@@ -11,10 +11,12 @@ import { JwtStrategy } from './jwt.strategy';
 import { RolesGuard } from './guards/roles.guard';
 import { AdminGuard } from './guards/admin.guard';
 import { PrismaModule } from '../infrastructure/prisma/prisma.module';
+import { AppCacheModule } from '../infrastructure/cache/cache.module';
 
 @Module({
   imports: [
     PrismaModule,
+    AppCacheModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

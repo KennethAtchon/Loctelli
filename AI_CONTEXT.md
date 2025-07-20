@@ -398,6 +398,105 @@
 - **Testing**: Added comprehensive tests to verify auth endpoints don't retry on 401 errors
 - **Backward Compatibility**: Regular API endpoints still retry on 401 with token refresh as before
 
+## 🎨 **Website Builder System - IMPLEMENTED ✅**
+
+### **Overview**
+AI-powered website editing tool that allows users to upload existing website files, make natural language modifications via AI, preview changes in real-time, and export modified websites. The system is integrated with the main CRM and provides admin-only access.
+
+### **Architecture**
+- **Frontend**: Next.js application running on port 3001 (`website-builder/`)
+- **Backend**: NestJS module integrated into main API (`project/src/website-builder/`)
+- **Database**: PostgreSQL with Website and WebsiteChange models
+- **AI Integration**: OpenAI GPT-4 for natural language code modifications
+- **Authentication**: Shared JWT tokens with main CRM via cookie-based auth
+
+### **Core Features**
+
+#### **1. File Upload & Processing**
+- **Supported Formats**: HTML, CSS, JS, React, Next.js, Vite projects
+- **File Validation**: Type checking and size limits
+- **Structure Analysis**: Automatic project structure detection
+- **Content Parsing**: Extract and organize file contents
+
+#### **2. AI-Powered Editing**
+- **Natural Language Interface**: Users describe changes in plain English
+- **OpenAI Integration**: GPT-4 powered code modifications
+- **Context Awareness**: AI understands project structure and file relationships
+- **Smart Suggestions**: AI provides modification recommendations
+
+#### **3. Real-Time Preview**
+- **Live Preview**: Instant visualization of changes
+- **Code Highlighting**: Syntax highlighting for modified files
+- **Responsive Testing**: Mobile and desktop preview modes
+- **Error Detection**: Real-time validation and error reporting
+
+#### **4. Change Management**
+- **Version History**: Complete audit trail of all modifications
+- **Revert Functionality**: Undo any change with one click
+- **Diff Viewing**: Visual comparison of before/after changes
+- **Confidence Scoring**: AI confidence levels for each modification
+
+#### **5. Export System**
+- **ZIP Generation**: Download complete modified website
+- **File Preservation**: Maintain original file structure
+- **Metadata Inclusion**: Export change history and documentation
+
+### **Database Schema**
+```sql
+-- Website storage
+model Website {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  type        String   // 'static', 'vite', 'react', 'nextjs'
+  structure   Json     // Parsed project structure
+  files       Json     // File contents and metadata
+  status      String   @default("active")
+  createdByAdminId Int
+  createdByAdmin AdminUser @relation(fields: [createdByAdminId], references: [id])
+  changeHistory WebsiteChange[]
+}
+
+-- Change tracking
+model WebsiteChange {
+  id          String   @id @default(cuid())
+  websiteId   String
+  website     Website  @relation(fields: [websiteId], references: [id])
+  type        String   // 'ai_edit', 'manual_edit', 'revert'
+  description String
+  prompt      String?  // Original AI prompt
+  changes     Json     // Detailed change information
+  createdByAdminId Int
+  createdByAdmin AdminUser @relation(fields: [createdByAdminId], references: [id])
+}
+```
+
+### **API Endpoints**
+```
+POST   /api/website-builder          # Create website
+GET    /api/website-builder          # List websites
+GET    /api/website-builder/:id      # Get website
+PATCH  /api/website-builder/:id      # Update website
+DELETE /api/website-builder/:id      # Delete website
+POST   /api/website-builder/:id/ai-edit    # AI edit
+GET    /api/website-builder/:id/changes    # Change history
+POST   /api/website-builder/:id/changes/:changeId/revert  # Revert change
+```
+
+### **Integration with CRM**
+- **Navigation**: "Website Builder" button in admin dashboard
+- **Authentication**: Shared JWT tokens via cookies
+- **Environment Detection**: Automatic API URL configuration
+- **User Context**: Admin user information passed to builder
+
+### **Implementation Status**
+- **Frontend**: Complete with upload, editor, and export functionality
+- **Backend**: Complete with AI integration and change tracking
+- **Database**: Migrated and ready for use
+- **Integration**: CRM integration button implemented
+- **Testing**: Ready for comprehensive testing
+
+---
+
 ## 🔗 **Integrations System - COMPLETE**
 
 ### **Overview**

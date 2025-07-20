@@ -303,4 +303,3 @@ export function ChangeHistory({ changes, onRevert, onApply }: ChangeHistoryProps
     </Card>
   );
 } 
-} 
