@@ -156,34 +156,49 @@
 ### **Phase 5: Backend Reorganization (@/project/)**
 
 #### **5.1 Reorganize Backend Structure**
-- [ ] Create `src/main-app/` directory
-- [ ] Create `src/website-builder/` directory
-- [ ] Create `src/shared/` directory for common utilities
-- [ ] Move existing modules to `src/main-app/modules/`:
-  - [ ] Move `src/modules/users/` → `src/main-app/modules/users/`
-  - [ ] Move `src/modules/leads/` → `src/main-app/modules/leads/`
-  - [ ] Move `src/modules/strategies/` → `src/main-app/modules/strategies/`
-  - [ ] Move `src/modules/bookings/` → `src/main-app/modules/bookings/`
-  - [ ] Move `src/modules/chat/` → `src/main-app/modules/chat/`
-  - [ ] Move other existing modules
-- [ ] Move `src/auth/` → `src/main-app/auth/`
-- [ ] Move `src/infrastructure/` → `src/main-app/infrastructure/`
+- [x] Create `src/main-app/` directory
+- [x] Create `src/website-builder/` directory
+- [x] Create `src/shared/` directory for common utilities
+- [x] Move existing modules to `src/main-app/modules/`:
+  - [x] Move `src/modules/users/` → `src/main-app/modules/users/`
+  - [x] Move `src/modules/leads/` → `src/main-app/modules/leads/`
+  - [x] Move `src/modules/strategies/` → `src/main-app/modules/strategies/`
+  - [x] Move `src/modules/bookings/` → `src/main-app/modules/bookings/`
+  - [x] Move `src/modules/chat/` → `src/main-app/modules/chat/`
+  - [x] Move other existing modules
+- [x] Move `src/auth/` → `src/main-app/auth/`
+- [x] Move `src/infrastructure/` → `src/main-app/infrastructure/`
 
 #### **5.2 Create Main App Module**
-- [ ] Create `src/main-app/main-app.module.ts`
-- [ ] Import all existing modules
-- [ ] Export main app module
+- [x] Create `src/main-app/main-app.module.ts`
+- [x] Import all existing modules
+- [x] Export main app module
 
 #### **5.3 Create Website Builder Module Structure**
-- [ ] Create `src/website-builder/modules/website-builder/` directory
-- [ ] Create subdirectories:
-  - [ ] `src/website-builder/modules/website-builder/dto/`
-  - [ ] `src/website-builder/modules/website-builder/guards/` (if needed)
-  - [ ] `src/website-builder/modules/website-builder/interfaces/` (if needed)
-- [ ] Create `src/website-builder/infrastructure/` directory
-- [ ] Create `src/website-builder/website-builder.module.ts`
+- [x] Create `src/website-builder/modules/website-builder/` directory
+- [x] Create subdirectories:
+  - [x] `src/website-builder/modules/website-builder/dto/`
+  - [x] `src/website-builder/modules/website-builder/guards/` (if needed)
+  - [x] `src/website-builder/modules/website-builder/interfaces/` (if needed)
+- [x] Create `src/website-builder/infrastructure/` directory
+- [x] Create `src/website-builder/website-builder.module.ts`
 
-#### **5.4 Database Schema Updates**
+#### **5.4 Create Shared Structure**
+- [x] Create `src/shared/` directory with subdirectories:
+  - [x] `src/shared/guards/` - Common guards (admin, roles)
+  - [x] `src/shared/decorators/` - Common decorators (admin, current-user, public, roles)
+  - [x] `src/shared/types/` - Common types (BaseEntity, PaginationParams, etc.)
+  - [x] `src/shared/utils/` - Common utilities (generateId, sanitizeFilename, etc.)
+  - [x] `src/shared/config/` - Shared configuration
+  - [x] `src/shared/prisma/` - Shared database module
+  - [x] `src/shared/cache/` - Shared cache module
+  - [x] `src/shared/middleware/` - Shared middleware
+- [x] Create `src/shared/shared.module.ts` to export all shared components
+- [x] Create index files for easy imports
+- [x] Move infrastructure from main-app to shared
+- [x] Update core app.module.ts to use new structure
+
+#### **5.5 Database Schema Updates**
 - [ ] Open `project/prisma/schema.prisma`
 - [ ] Add Website model:
   ```prisma
