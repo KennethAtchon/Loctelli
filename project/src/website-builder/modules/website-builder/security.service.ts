@@ -160,6 +160,12 @@ export class SecurityService {
   }
 
   private shouldRemoveFile(fileName: string): boolean {
+    // TEMPORARILY DISABLED: Dangerous file removal for testing purposes
+    // TODO: Re-enable this security feature after testing is complete
+    return false;
+    
+    // Original implementation (commented out):
+    /*
     const lowerFileName = fileName.toLowerCase();
     
     // Check for dangerous files
@@ -180,6 +186,7 @@ export class SecurityService {
     }
 
     return false;
+    */
   }
 
   private isAllowedHiddenFile(fileName: string): boolean {

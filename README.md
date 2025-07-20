@@ -208,6 +208,8 @@ Loctelli/
 - **Fixed Redirect Logic**: Updated redirect logic to use `window.location.hostname` and `window.location.port` for reliable localhost vs production detection
 - **FormData Upload Fix**: Fixed website builder file upload authentication by properly handling FormData requests without JSON stringification
 - **File Upload Size Limit Fix**: Increased body parser limits to 50MB to handle large file uploads in website builder
+- **Security Service Temporary Disable**: Dangerous file removal disabled for testing purposes to allow full React/Vite project testing
+- **ZIP Processing & HTML Preview Fixes**: Fixed critical upload and preview issues with improved error handling, encoding support, and debugging capabilities
 
 ### **Integrations System - PARTIALLY IMPLEMENTED 🔗**
 - **GoHighLevel CRM Integration**: ✅ Fully implemented with type-safe configuration
@@ -993,29 +995,116 @@ Built with ❤️ using NestJS and Next.js
 
 ## 🎨 Website Builder
 
-The Website Builder is an AI-powered tool for editing websites using natural language. It's accessible at `http://localhost:3001` and provides:
+The Website Builder is a comprehensive React/Vite build and hosting platform that automatically detects, builds, and hosts React/Vite projects from ZIP file uploads. It provides real-time build monitoring, live preview capabilities, and full process management.
 
-### Features
-- **File Upload**: Upload individual files or zip files containing website projects
-- **AI Editing**: Make changes using natural language prompts
-- **Real-time Preview**: See changes instantly in the editor
-- **Interactive Preview**: Full website preview at `/preview/[id]`
-- **Export**: Download modified websites as zip files
+### **Core Features**
+
+#### **1. React/Vite Project Support**
+- **Automatic Detection**: Detects React/Vite projects from uploaded files
+- **Build Automation**: Runs npm install, TypeScript checking, and Vite dev server startup
+- **Live Preview**: Direct access to running Vite dev servers with hot reload
+- **Process Management**: Isolated build processes with automatic cleanup
+- **Port Management**: Dynamic port allocation (4000-4999 range) with conflict detection
+
+#### **2. Static File Support**
+- **HTML File Upload**: Upload individual HTML files or complete static websites
+- **Preview System**: Interactive preview with blob URL creation for static files
+- **File Validation**: Type checking and size limits with proper encoding support
+- **Structure Analysis**: Automatic project structure detection and analysis
+
+#### **3. Build Process Management**
+- **Real-time Monitoring**: Live build status with detailed output logging
+- **Progress Tracking**: Visual progress indicators with build duration tracking
+- **Error Handling**: Comprehensive error handling with graceful failure recovery
+- **Restart Capability**: Stop and restart build processes as needed
+- **Resource Management**: Maximum 10 concurrent builds with automatic cleanup
+
+#### **4. Security & Validation**
+- **File Sanitization**: Security validation and sanitization of uploaded files
+- **Package.json Validation**: Checks for dangerous scripts and required dependencies
+- **TypeScript Support**: Multiple fallback commands for TypeScript checking
+- **Process Isolation**: Isolated build directories for security
+
+#### **5. Database Integration**
+- **Website Storage**: Complete website metadata and file content storage
+- **Build Tracking**: Build status, output logs, and process information
 - **Change History**: Track all modifications with revert capability
+- **Admin Integration**: Full integration with admin authentication system
 
-### Supported Project Types
-- **Static HTML/CSS/JS**: Traditional web projects
-- **React**: React applications with JSX/TSX
-- **Vite**: Vite-based projects
-- **Next.js**: Next.js applications
+### **Technical Architecture**
 
-### Usage
-1. **Upload**: Drag and drop files or zip archives to the upload zone
-2. **Edit**: Use natural language to describe changes (e.g., "Make the header blue")
-3. **Preview**: Click the preview button to see the website in action
-4. **Export**: Download the modified website when ready
+#### **Frontend (Next.js 14) - Port 3001**
+- **Upload Interface**: Drag-and-drop file upload with progress tracking
+- **Build Progress**: Real-time build status monitoring with restart controls
+- **Preview System**: Interactive preview for both static files and React/Vite projects
+- **API Integration**: Complete API client for backend communication
 
-### Routes
-- `/` - Upload page
-- `/editor/[id]` - AI-powered editor interface
+#### **Backend (NestJS) - Port 8000**
+- **BuildService**: Manages React/Vite project builds with npm automation
+- **SecurityService**: Validates and sanitizes uploaded files
+- **CleanupService**: Manages resource cleanup and process termination
+- **File Processing**: ZIP extraction, file validation, and structure analysis
+
+#### **Database (PostgreSQL)**
+- **Website Model**: Stores website metadata, files, and build information
+- **Build Tracking**: buildStatus, previewUrl, processId, buildOutput, portNumber
+- **Change History**: Complete audit trail of all modifications
+
+### **Build Process Flow**
+
+1. **Upload**: User uploads ZIP file containing React/Vite project
+2. **Detection**: System automatically detects project type (React/Vite vs static)
+3. **Extraction**: Files extracted to isolated build directory
+4. **Validation**: Package.json validation and security checks
+5. **Build**: npm install, TypeScript checking, Vite server startup
+6. **Preview**: Live preview URL provided for running application
+7. **Monitoring**: Real-time build status and process management
+
+### **Supported Project Types**
+- **React/Vite**: Full build automation with live preview
+- **Static HTML/CSS/JS**: Direct preview with blob URL creation
+- **ZIP Archives**: Complete project upload and extraction
+- **Individual Files**: Single file upload and preview
+
+### **Usage**
+1. **Upload**: Drag and drop React/Vite project ZIP or static files
+2. **Build**: Automatic build process with real-time progress monitoring
+3. **Preview**: Access live preview URL for running application
+4. **Manage**: Stop, restart, or monitor build processes
+5. **Export**: Download modified websites when ready
+
+### **Routes**
+- `/` - Upload page with drag-and-drop interface
 - `/preview/[id]` - Interactive website preview
+- `/editor/[id]` - AI-powered editor interface (future enhancement)
+
+### **Environment Variables**
+```bash
+# Build Configuration
+BUILD_DIR=/tmp/website-builds
+MAX_CONCURRENT_BUILDS=10
+BUILD_TIMEOUT=300000
+
+# Security
+ALLOWED_PACKAGES=react,vite,typescript
+BLOCKED_SCRIPTS=postinstall,preinstall,install
+```
+
+### **API Endpoints**
+```
+POST /website-builder/upload          # Upload files/ZIP
+GET /website-builder/:id/build-status # Get build status
+POST /website-builder/:id/stop        # Stop running website
+POST /website-builder/:id/restart     # Restart website build
+GET /website-builder/:id              # Get website details
+PATCH /website-builder/:id            # Update website
+DELETE /website-builder/:id           # Delete website
+```
+
+### **Recent Fixes & Improvements**
+- **Upload Error Fix**: Resolved admin authentication issues in file upload
+- **HTML Preview Fix**: Fixed static HTML file preview with proper blob URL creation
+- **ZIP Processing**: Enhanced ZIP file processing with better error handling
+- **Build Process**: Complete React/Vite build automation with npm and TypeScript support
+- **Security Integration**: Temporary security service disable for testing purposes
+- **Database Alignment**: Website model fully aligned with build process requirements

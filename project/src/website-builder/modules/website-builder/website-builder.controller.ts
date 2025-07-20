@@ -51,6 +51,13 @@ export class WebsiteBuilderController {
     if (files && files.length > 0) {
       files.forEach((file, index) => {
         this.logger.log(`📄 File ${index + 1}: ${file.originalname} (${file.size} bytes, ${file.mimetype})`);
+        
+        // Additional debug info for ZIP files
+        if (file.mimetype === 'application/zip' || file.mimetype === 'application/x-zip-compressed' || file.originalname.endsWith('.zip')) {
+          this.logger.log(`📦 ZIP file detected: ${file.originalname}`);
+          this.logger.log(`📦 ZIP buffer size: ${file.buffer.length} bytes`);
+          this.logger.log(`📦 ZIP buffer type: ${typeof file.buffer}`);
+        }
       });
     }
 
@@ -87,6 +94,29 @@ export class WebsiteBuilderController {
   findOne(@Param('id') id: string, @CurrentUser() user: any) {
     const adminId = user.userId || user.id;
     return this.websiteBuilderService.findWebsiteById(id, adminId);
+  }
+
+  @Get(':id/debug')
+  async debugWebsite(@Param('id') id: string, @CurrentUser() user: any) {
+    const adminId = user.userId || user.id;
+    const website = await this.websiteBuilderService.findWebsiteById(id, adminId);
+    
+    // Add debug information
+    const files = website.files as any[] || [];
+    const debugInfo = {
+      ...website,
+      debug: {
+        fileCount: files.length,
+        fileNames: files.map(f => f.name) || [],
+        fileTypes: files.map(f => ({ name: f.name, type: f.type, size: f.content?.length || 0 })) || [],
+        htmlFiles: files.filter(f => f.name.toLowerCase().endsWith('.html') || f.name.toLowerCase().endsWith('.htm')) || [],
+        hasPackageJson: files.some(f => f.name === 'package.json') || false,
+        hasViteConfig: files.some(f => f.name.includes('vite.config')) || false,
+        totalContentSize: files.reduce((sum, f) => sum + (f.content?.length || 0), 0) || 0
+      }
+    };
+    
+    return debugInfo;
   }
 
   @Patch(':id')

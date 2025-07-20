@@ -93,16 +93,34 @@ export class WebsiteBuilderService {
         this.logger.log(`📄 File type detected: ${fileType}`);
         
         try {
-          const content = file.buffer.toString('utf8');
+          // Try UTF-8 first, fallback to other encodings if needed
+          let content: string;
+          try {
+            content = file.buffer.toString('utf8');
+          } catch (utf8Error) {
+            this.logger.warn(`⚠️ UTF-8 decoding failed for ${file.originalname}, trying other encodings: ${utf8Error.message}`);
+            // Try other common encodings
+            try {
+              content = file.buffer.toString('latin1');
+            } catch (latin1Error) {
+              content = file.buffer.toString('binary');
+            }
+          }
+          
           this.logger.log(`📄 File content length: ${content.length} characters`);
           
-          processedFiles.push({
-            name: file.originalname,
-            content,
-            type: fileType,
-            size: file.size,
-          });
-          this.logger.log(`✅ Successfully processed file: ${file.originalname}`);
+          // Validate content is not empty
+          if (content && content.trim().length > 0) {
+            processedFiles.push({
+              name: file.originalname,
+              content,
+              type: fileType,
+              size: file.size,
+            });
+            this.logger.log(`✅ Successfully processed file: ${file.originalname}`);
+          } else {
+            this.logger.warn(`⚠️ Skipping empty file: ${file.originalname}`);
+          }
         } catch (error) {
           this.logger.error(`❌ Failed to process file ${file.originalname}:`, error);
           throw new BadRequestException(`Failed to process file ${file.originalname}: ${error.message}`);
@@ -245,51 +263,78 @@ export class WebsiteBuilderService {
     this.logger.log(`📦 Starting ZIP file extraction...`);
     this.logger.log(`📦 ZIP buffer size: ${buffer.length} bytes`);
     
-    const zip = new JSZip();
-    const zipContent = await zip.loadAsync(buffer);
-    
-    this.logger.log(`📦 ZIP loaded successfully. Total files in ZIP: ${Object.keys(zipContent.files).length}`);
-    
-    const files: Array<{
-      name: string;
-      content: string;
-      type: string;
-      size: number;
-    }> = [];
-
-    let processedCount = 0;
-    let skippedCount = 0;
-
-    for (const [filename, file] of Object.entries(zipContent.files)) {
-      this.logger.log(`📦 Processing ZIP entry: ${filename} (directory: ${file.dir})`);
+    try {
+      const zip = new JSZip();
+      const zipContent = await zip.loadAsync(buffer);
       
-      if (!file.dir) {
-        try {
-          this.logger.log(`📄 Extracting file content: ${filename}`);
-          const content = await file.async('string');
-          const fileType = this.getFileType(filename);
-          
-          this.logger.log(`📄 File extracted: ${filename} (${content.length} chars, type: ${fileType})`);
-          
-          files.push({
-            name: filename,
-            content,
-            type: fileType,
-            size: content.length,
-          });
-          processedCount++;
-        } catch (error) {
-          // Skip binary files or files that can't be read as text
-          this.logger.warn(`⚠️ Skipping binary file ${filename}: ${error.message}`);
-          skippedCount++;
-        }
-      } else {
-        this.logger.log(`📁 Skipping directory: ${filename}`);
-      }
-    }
+      this.logger.log(`📦 ZIP loaded successfully. Total files in ZIP: ${Object.keys(zipContent.files).length}`);
+      
+      const files: Array<{
+        name: string;
+        content: string;
+        type: string;
+        size: number;
+      }> = [];
 
-    this.logger.log(`📦 ZIP extraction complete. Processed: ${processedCount}, Skipped: ${skippedCount}`);
-    return files;
+      let processedCount = 0;
+      let skippedCount = 0;
+
+      for (const [filename, file] of Object.entries(zipContent.files)) {
+        this.logger.log(`📦 Processing ZIP entry: ${filename} (directory: ${file.dir})`);
+        
+        if (!file.dir) {
+          try {
+            this.logger.log(`📄 Extracting file content: ${filename}`);
+            
+            // Try to extract as string first
+            let content: string;
+            try {
+              content = await file.async('string');
+            } catch (stringError) {
+              // If string extraction fails, try as uint8array and convert
+              this.logger.warn(`⚠️ String extraction failed for ${filename}, trying binary conversion: ${stringError.message}`);
+              const uint8Array = await file.async('uint8array');
+              content = new TextDecoder('utf-8').decode(uint8Array);
+            }
+            
+            const fileType = this.getFileType(filename);
+            
+            this.logger.log(`📄 File extracted: ${filename} (${content.length} chars, type: ${fileType})`);
+            
+            // Validate content is not empty
+            if (content && content.trim().length > 0) {
+              files.push({
+                name: filename,
+                content,
+                type: fileType,
+                size: content.length,
+              });
+              processedCount++;
+            } else {
+              this.logger.warn(`⚠️ Skipping empty file: ${filename}`);
+              skippedCount++;
+            }
+          } catch (error) {
+            // Skip binary files or files that can't be read as text
+            this.logger.warn(`⚠️ Skipping binary file ${filename}: ${error.message}`);
+            skippedCount++;
+          }
+        } else {
+          this.logger.log(`📁 Skipping directory: ${filename}`);
+        }
+      }
+
+      this.logger.log(`📦 ZIP extraction complete. Processed: ${processedCount}, Skipped: ${skippedCount}`);
+      
+      if (processedCount === 0) {
+        throw new Error('No valid files extracted from ZIP');
+      }
+      
+      return files;
+    } catch (error) {
+      this.logger.error(`❌ ZIP extraction failed: ${error.message}`);
+      throw new BadRequestException(`Failed to extract ZIP file: ${error.message}`);
+    }
   }
 
   private detectWebsiteType(files: Array<{ name: string; content: string; type: string; size: number }>): string {

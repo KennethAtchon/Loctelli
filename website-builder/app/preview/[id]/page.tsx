@@ -39,7 +39,7 @@ export default function PreviewPage() {
         });
         
         // Handle different website types
-        if (websiteData.previewUrl) {
+        if (websiteData.previewUrl && (websiteData.type === 'react-vite' || websiteData.type === 'react' || websiteData.type === 'vite')) {
           // For React/Vite projects, use the previewUrl from backend
           setPreviewUrl(websiteData.previewUrl);
         } else if (websiteData.files && websiteData.files.length > 0) {
@@ -56,11 +56,16 @@ export default function PreviewPage() {
               name: htmlFile.name,
               type: htmlFile.type,
               contentLength: htmlContent.length,
-              contentPreview: htmlContent.substring(0, 200) + '...'
+              contentPreview: htmlContent.substring(0, 200) + '...',
+              contentEnd: htmlContent.substring(htmlContent.length - 100) + '...',
+              hasDoctype: htmlContent.includes('<!DOCTYPE'),
+              hasHtmlTag: htmlContent.includes('<html'),
+              hasHeadTag: htmlContent.includes('<head'),
+              hasBodyTag: htmlContent.includes('<body')
             });
             
             // Create a blob with the HTML content
-            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
             const url = URL.createObjectURL(blob);
             setPreviewUrl(url);
             
