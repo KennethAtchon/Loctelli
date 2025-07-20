@@ -2,11 +2,13 @@ import { ApiClient } from './client';
 import { AuthApi } from './endpoints/auth';
 import { AdminAuthApi } from './endpoints/admin-auth';
 import { StatusApi } from './endpoints/status';
+import { WebsiteBuilderApi } from './website-builder';
 
 export class Api extends ApiClient {
   public auth: AuthApi;
   public adminAuth: AdminAuthApi;
   public status: StatusApi;
+  public websiteBuilder: WebsiteBuilderApi;
 
   constructor(baseUrl?: string) {
     super(baseUrl);
@@ -15,6 +17,7 @@ export class Api extends ApiClient {
     this.auth = new AuthApi(baseUrl);
     this.adminAuth = new AdminAuthApi(baseUrl);
     this.status = new StatusApi(baseUrl);
+    this.websiteBuilder = new WebsiteBuilderApi(baseUrl);
   }
 }
 
@@ -25,6 +28,7 @@ export const api = new Api();
 export { AuthApi } from './endpoints/auth';
 export { AdminAuthApi } from './endpoints/admin-auth';
 export { StatusApi } from './endpoints/status';
+export { WebsiteBuilderApi } from './website-builder';
 
 // Export types
 export type { SystemStatus } from './endpoints/status';
@@ -36,4 +40,13 @@ export type {
   AdminAuthResponse, 
   CreateUserDto, 
   UpdateUserDto 
-} from './endpoints/admin-auth'; 
+} from './endpoints/admin-auth';
+export type {
+  Website,
+  WebsiteFile,
+  AiEditRequest,
+  AiEditResponse,
+  UploadResponse,
+  ExportResponse,
+  ChangeHistory
+} from './website-builder'; 

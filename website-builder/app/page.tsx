@@ -23,8 +23,9 @@ export default function Home() {
       // Simulate upload delay
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // TODO: Navigate to editor or show success message
-      alert("Files uploaded successfully! Editor functionality coming soon.");
+      // Navigate to editor with a sample website name
+      const websiteName = "sample-website";
+      window.location.href = `/editor/${websiteName}`;
     } catch (error) {
       console.error("Upload failed:", error);
       alert("Upload failed. Please try again.");
