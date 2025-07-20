@@ -173,4 +173,31 @@ export class WebsiteBuilderApi extends ApiClient {
       throw error;
     }
   }
+
+  // Build management methods
+  async getBuildStatus(websiteId: string): Promise<{
+    websiteId: string;
+    buildStatus: 'pending' | 'building' | 'running' | 'failed' | 'stopped';
+    previewUrl?: string;
+    portNumber?: number;
+    lastBuildAt?: string;
+    buildDuration?: number;
+    buildOutput?: string[];
+    processInfo?: {
+      status: string;
+      startTime?: string;
+      endTime?: string;
+      buildOutput: string[];
+    };
+  }> {
+    return this.get(`/website-builder/${websiteId}/build-status`);
+  }
+
+  async stopWebsite(websiteId: string): Promise<{ success: boolean; message: string }> {
+    return this.post(`/website-builder/${websiteId}/stop`);
+  }
+
+  async restartWebsite(websiteId: string): Promise<{ success: boolean; previewUrl?: string }> {
+    return this.post(`/website-builder/${websiteId}/restart`);
+  }
 } 
