@@ -1,102 +1,162 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, Code, Eye, Download } from "lucide-react";
-import Link from "next/link";
+import { Upload, Code, Eye, Download, Sparkles } from "lucide-react";
+import { UploadZone } from "@/components/upload-zone";
 
 export default function Home() {
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+
+  const handleFilesSelected = (files: File[]) => {
+    setUploadedFiles(prev => [...prev, ...files]);
+  };
+
+  const handleUpload = async () => {
+    setIsUploading(true);
+    try {
+      // TODO: Implement actual upload logic
+      console.log("Uploading files:", uploadedFiles);
+      
+      // Simulate upload delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // TODO: Navigate to editor or show success message
+      alert("Files uploaded successfully! Editor functionality coming soon.");
+    } catch (error) {
+      console.error("Upload failed:", error);
+      alert("Upload failed. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="border-b">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Header */}
+      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">Website Builder</h1>
-            <nav className="flex items-center space-x-4">
-              <Link href="/upload">
-                <Button>Get Started</Button>
-              </Link>
-            </nav>
+            <div className="flex items-center space-x-2">
+              <Sparkles className="h-6 w-6 text-blue-600" />
+              <h1 className="text-xl font-bold">AI Website Builder</h1>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Admin Access Only
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="flex-1">
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-12">
         {/* Hero Section */}
-        <section className="py-20 text-center">
-          <div className="container mx-auto px-4">
-            <h1 className="text-5xl font-bold mb-6">
-              AI-Powered Website Editor
-            </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Upload your website and edit it with AI. Change colors, text, layout - all through natural language commands. 
-              Live preview of changes as you type.
-            </p>
-            <Link href="/upload">
-              <Button size="lg" className="text-lg px-8 py-4">
-                <Upload className="mr-2 h-5 w-5" />
-                Upload Your Website
-              </Button>
-            </Link>
-          </div>
-        </section>
+        <div className="text-center mb-16">
+          <h1 className="text-4xl font-bold mb-4">
+            Upload & Edit Websites with AI
+          </h1>
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Upload your website files and edit them using natural language. 
+            Perfect for quick modifications and prototyping.
+          </p>
+        </div>
 
-        {/* Features Section */}
-        <section className="py-20 bg-muted/50">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              <Card>
-                <CardHeader>
-                  <Upload className="h-8 w-8 text-primary mb-2" />
-                  <CardTitle>1. Upload</CardTitle>
-                  <CardDescription>
-                    Upload your website files (HTML, CSS, JS) or entire project folders
-                  </CardDescription>
-                </CardHeader>
-              </Card>
+        {/* Upload Section */}
+        <Card className="max-w-2xl mx-auto mb-12">
+          <CardHeader className="text-center">
+            <Upload className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+            <CardTitle className="text-2xl">Upload Your Website</CardTitle>
+            <CardDescription>
+              Drag and drop your website files or click to browse
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <UploadZone
+              onFilesSelected={handleFilesSelected}
+              onUpload={handleUpload}
+              isUploading={isUploading}
+            />
+          </CardContent>
+        </Card>
 
-              <Card>
-                <CardHeader>
-                  <Code className="h-8 w-8 text-primary mb-2" />
-                  <CardTitle>2. Edit with AI</CardTitle>
-                  <CardDescription>
-                    Use natural language to describe changes. "Make the header blue" or "Change the title to 'Welcome'"
-                  </CardDescription>
-                </CardHeader>
-              </Card>
+        {/* Features Grid */}
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
+          <Card>
+            <CardHeader>
+              <Code className="h-8 w-8 text-blue-600 mb-2" />
+              <CardTitle>AI-Powered Editing</CardTitle>
+              <CardDescription>
+                Use natural language to describe changes. "Make the header blue" or "Change the title"
+              </CardDescription>
+            </CardHeader>
+          </Card>
 
-              <Card>
-                <CardHeader>
-                  <Eye className="h-8 w-8 text-primary mb-2" />
-                  <CardTitle>3. Live Preview</CardTitle>
-                  <CardDescription>
-                    See changes instantly in real-time. Preview your modifications side-by-side with the editor
-                  </CardDescription>
-                </CardHeader>
-              </Card>
+          <Card>
+            <CardHeader>
+              <Eye className="h-8 w-8 text-blue-600 mb-2" />
+              <CardTitle>Live Preview</CardTitle>
+              <CardDescription>
+                See changes instantly in real-time. Preview modifications as you make them
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <Download className="h-8 w-8 text-blue-600 mb-2" />
+              <CardTitle>Export & Deploy</CardTitle>
+              <CardDescription>
+                Download your modified files or deploy directly to your hosting platform
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+
+        {/* Quick Start */}
+        <Card className="max-w-4xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-center">Quick Start Guide</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="text-center">
+                <div className="bg-blue-100 w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-blue-600 font-bold">1</span>
+                </div>
+                <h3 className="font-semibold mb-2">Upload Files</h3>
+                <p className="text-sm text-muted-foreground">
+                  Upload your website files using the form above
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="bg-blue-100 w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-blue-600 font-bold">2</span>
+                </div>
+                <h3 className="font-semibold mb-2">Edit with AI</h3>
+                <p className="text-sm text-muted-foreground">
+                  Describe your changes in natural language
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="bg-blue-100 w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-blue-600 font-bold">3</span>
+                </div>
+                <h3 className="font-semibold mb-2">Download</h3>
+                <p className="text-sm text-muted-foreground">
+                  Export your modified website files
+                </p>
+              </div>
             </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-20">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl font-bold mb-6">Ready to Transform Your Website?</h2>
-            <p className="text-lg text-muted-foreground mb-8">
-              Join the future of web development with AI-powered editing
-            </p>
-            <Link href="/upload">
-              <Button size="lg" className="text-lg px-8 py-4">
-                <Download className="mr-2 h-5 w-5" />
-                Start Building Now
-              </Button>
-            </Link>
-          </div>
-        </section>
+          </CardContent>
+        </Card>
       </main>
 
-      <footer className="border-t py-8">
-        <div className="container mx-auto px-4 text-center text-muted-foreground">
-          <p>&copy; 2024 Website Builder. AI-powered website editing.</p>
+      {/* Footer */}
+      <footer className="border-t bg-white/80 mt-16">
+        <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
+          <p>AI Website Builder - Powered by Loctelli</p>
         </div>
       </footer>
     </div>

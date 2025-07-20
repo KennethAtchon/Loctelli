@@ -42,6 +42,9 @@
 - [ ] Update `tailwind.config.ts` if needed
 - [ ] Update `tsconfig.json` if needed
 - [ ] Update `.env.local` with website-builder specific variables
+- [x] Add website-builder service to `docker-compose.yml`
+- [x] Configure website-builder to run on port 3001
+- [x] Ensure Dockerfile exists and is properly configured
 
 ---
 
@@ -56,9 +59,10 @@
 - [x] Clean up auth context files (removed regular AuthProvider)
 - [x] Keep only AdminAuthProvider for admin-only access
 - [x] Update test utilities to use only AdminAuthProvider
-- [ ] Modify `components/auth/protected-route.tsx` if needed
-- [ ] Ensure it checks for existing JWT token
-- [ ] Add redirect logic to `loctelli.com/login` if not authenticated
+- [x] Create `components/auth/admin-protected-route.tsx` for admin-only protection
+- [x] Ensure it checks for existing JWT token
+- [x] Add redirect logic to main CRM admin login if not authenticated
+- [x] Wrap layout with AdminProtectedRoute
 
 #### **2.3 Update Layout**
 - [x] Modify `app/layout.tsx`
@@ -68,27 +72,29 @@
 
 #### **2.4 Update Landing Page**
 - [x] Modify `app/page.tsx`
-- [x] Create website builder landing page
-- [x] Add navigation to upload page
+- [x] Create website builder landing page (cookie-cutter single-page app)
+- [x] Add upload functionality directly to main page
 - [x] Remove CRM-specific content
+- [x] Create UploadZone component with drag & drop
 
 #### **2.5 Clean Up API Client**
-- [ ] Update `lib/api/client.ts` if needed
-- [ ] Remove CRM-specific API endpoints
-- [ ] Keep proxy functionality
-- [ ] Add website-builder API client
+- [x] Update `lib/api/index.ts` to remove CRM-specific endpoints
+- [x] Keep only auth, admin-auth, and status endpoints
+- [x] Copy admin-auth endpoint from my-app
+- [x] Keep proxy functionality
+- [ ] Add website-builder API client (Phase 3)
 
 ---
 
 ### **Phase 3: Website Builder Features**
 
 #### **3.1 Create Upload Page**
-- [ ] Create `app/upload/page.tsx`
-- [ ] Create `components/upload-form.tsx`
-- [ ] Implement file picker functionality
-- [ ] Add drag & drop support
-- [ ] Add file validation
-- [ ] Add upload progress indicator
+- [x] Create `components/upload-zone.tsx` (integrated into main page)
+- [x] Implement file picker functionality
+- [x] Add drag & drop support
+- [x] Add file validation
+- [x] Add upload progress indicator
+- [x] Add react-dropzone dependency
 
 #### **3.2 Create AI Editor Components**
 - [ ] Create `components/ai-editor/` directory

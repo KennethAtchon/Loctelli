@@ -4,55 +4,41 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AdminAuthProvider } from "@/contexts/admin-auth-context";
+import { AdminProtectedRoute } from "@/components/auth/admin-protected-route";
 import { validateEnvironmentVariables } from "@/lib/utils/envUtils";
 import logger from '@/lib/logger';
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Website Builder - AI-Powered Website Editor",
-  description:
-    "Upload your website and edit it with AI. Change colors, text, layout - all through natural language commands. Live preview of changes as you type.",
-  keywords:
-    "AI website editor, website builder, AI code editing, live preview, natural language editing",
+  title: "AI Website Builder - Loctelli",
+  description: "AI-powered website editor for quick modifications and prototyping",
 };
 
-// Validate environment variables on app startup
-if (typeof window === 'undefined') {
-  try {
-    validateEnvironmentVariables();
-    logger.debug('✅ Environment validation passed');
-  } catch (error) {
-    logger.error('❌ Environment validation failed:', error);
-    // In development, we might want to show a more user-friendly error
-    if (process.env.NODE_ENV === 'development') {
-      logger.error('Please ensure API_KEY is set in your .env.local file');
-    }
-  }
-}
+// Validate environment variables on startup
+validateEnvironmentVariables();
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-      </head>
-      <body className={inter.className}>
+      <body>
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-            <AdminAuthProvider>
+          <AdminAuthProvider>
+            <AdminProtectedRoute>
               {children}
-            </AdminAuthProvider>
-          <Toaster />
+            </AdminProtectedRoute>
+            <Toaster />
+          </AdminAuthProvider>
         </ThemeProvider>
       </body>
     </html>
