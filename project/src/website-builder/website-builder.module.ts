@@ -1,11 +1,9 @@
 import { Module } from '@nestjs/common';
+import { WebsiteBuilderSubModule } from './modules/website-builder/website-builder.module';
 
 @Module({
   imports: [
-    // TODO: Add website builder modules when created
-    // WebsiteUploadModule,
-    // WebsiteEditorModule,
-    // WebsiteExportModule,
+    WebsiteBuilderSubModule,
   ],
 })
 export class WebsiteBuilderModule {} 

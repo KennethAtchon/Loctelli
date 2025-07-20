@@ -28,6 +28,8 @@ model AdminUser {
   subAccounts     SubAccount[] // SubAccounts created by this admin
   integrationTemplates IntegrationTemplate[] // Integration templates created by this admin
   integrations    Integration[] // Integrations created by this admin
+  websites        Website[]   // Websites created by this admin
+  websiteChanges  WebsiteChange[] // Website changes created by this admin
 }
 
 model SubAccount {
@@ -196,4 +198,38 @@ model Integration {
   updatedAt             DateTime  @updatedAt
   createdByAdminId      Int
   createdByAdmin        AdminUser @relation(fields: [createdByAdminId], references: [id])
+}
+
+// Website Builder Models
+
+model Website {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  type        String   // 'static', 'vite', 'react', 'nextjs'
+  structure   Json     // Parsed HTML/CSS/JS structure
+  files       Json     // File metadata and content
+  status      String   @default("active") // 'active', 'archived', 'draft'
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relationships
+  createdByAdminId Int
+  createdByAdmin  AdminUser @relation(fields: [createdByAdminId], references: [id])
+  changeHistory   WebsiteChange[] // AI modification history
+}
+
+model WebsiteChange {
+  id          String   @id @default(cuid())
+  websiteId   String
+  website     Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  type        String   // 'ai_edit', 'manual_edit', 'revert'
+  description String   // Human-readable description of the change
+  prompt      String?  // Original AI prompt if applicable
+  changes     Json     // Detailed change information
+  createdAt   DateTime @default(now())
+  
+  // Relationships
+  createdByAdminId Int
+  createdByAdmin  AdminUser @relation(fields: [createdByAdminId], references: [id])
 }

@@ -5,22 +5,20 @@ import { useParams } from "next/navigation";
 import { EditorInterface } from "@/components/ai-editor/editor-interface";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, AlertCircle } from "lucide-react";
+import { ArrowLeft, AlertCircle, Download } from "lucide-react";
 import Link from "next/link";
-
-interface WebsiteFile {
-  name: string;
-  content: string;
-  type: string;
-}
+import { api } from "@/lib/api";
+import type { Website, WebsiteFile } from "@/lib/api/website-builder";
 
 export default function EditorPage() {
   const params = useParams();
-  const websiteName = params.name as string;
+  const websiteId = params.name as string;
   
+  const [website, setWebsite] = useState<Website | null>(null);
   const [files, setFiles] = useState<WebsiteFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     const loadWebsite = async () => {
@@ -28,166 +26,61 @@ export default function EditorPage() {
         setIsLoading(true);
         setError(null);
         
-        // TODO: Implement API call to load website files
-        console.log("Loading website:", websiteName);
-        
-        // Simulate loading website files
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Mock data for now
-        const mockFiles: WebsiteFile[] = [
-          {
-            name: "index.html",
-            content: `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sample Website</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <header>
-        <h1>Welcome to My Website</h1>
-        <nav>
-            <a href="#home">Home</a>
-            <a href="#about">About</a>
-            <a href="#contact">Contact</a>
-        </nav>
-    </header>
-    
-    <main>
-        <section id="home">
-            <h2>Home</h2>
-            <p>This is a sample website for AI editing.</p>
-            <button class="cta-button">Get Started</button>
-        </section>
-    </main>
-    
-    <footer>
-        <p>&copy; 2024 Sample Website</p>
-    </footer>
-    
-    <script src="script.js"></script>
-</body>
-</html>`,
-            type: "html"
-          },
-          {
-            name: "styles.css",
-            content: `body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    line-height: 1.6;
-}
-
-header {
-    background-color: #333;
-    color: white;
-    padding: 1rem;
-    text-align: center;
-}
-
-nav {
-    margin-top: 1rem;
-}
-
-nav a {
-    color: white;
-    text-decoration: none;
-    margin: 0 1rem;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    transition: background-color 0.3s;
-}
-
-nav a:hover {
-    background-color: #555;
-}
-
-main {
-    padding: 2rem;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.cta-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1rem;
-}
-
-.cta-button:hover {
-    background-color: #0056b3;
-}
-
-footer {
-    background-color: #333;
-    color: white;
-    text-align: center;
-    padding: 1rem;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-}`,
-            type: "css"
-          },
-          {
-            name: "script.js",
-            content: `// Sample JavaScript file
-console.log('Website loaded successfully!');
-
-// Add some interactive functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const ctaButton = document.querySelector('.cta-button');
-    if (ctaButton) {
-        ctaButton.addEventListener('click', function() {
-            alert('Button clicked! This is where you would add your functionality.');
-        });
-    }
-});`,
-            type: "js"
-          }
-        ];
-        
-        setFiles(mockFiles);
+        // Load website from API
+        const websiteData = await api.websiteBuilder.getWebsite(websiteId);
+        setWebsite(websiteData);
+        setFiles(websiteData.files);
       } catch (err) {
         console.error("Failed to load website:", err);
-        setError("Failed to load website. Please try again.");
+        setError("Failed to load website. Please check if the website exists and try again.");
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (websiteName) {
+    if (websiteId) {
       loadWebsite();
     }
-  }, [websiteName]);
+  }, [websiteId]);
 
-  const handleSave = async (changes: any) => {
+  const handleSave = async (changes: Array<{ fileName: string; content: string }>) => {
     try {
-      // TODO: Implement save functionality
-      console.log("Saving changes:", changes);
-      alert("Changes saved successfully!");
+      // Update the website with the changes
+      await api.websiteBuilder.saveChanges(websiteId, changes);
+      
+      // Update local state
+      const updatedFiles = files.map(file => {
+        const change = changes.find(c => c.fileName === file.name);
+        return change ? { ...file, content: change.content } : file;
+      });
+      setFiles(updatedFiles);
+      
+      // Update website object
+      if (website) {
+        setWebsite({ ...website, files: updatedFiles });
+      }
+      
+      return { success: true };
     } catch (error) {
       console.error("Failed to save changes:", error);
-      alert("Failed to save changes. Please try again.");
+      throw new Error("Failed to save changes. Please try again.");
     }
   };
 
   const handleExport = async () => {
     try {
-      // TODO: Implement export functionality
-      console.log("Exporting website:", websiteName);
-      alert("Website exported successfully!");
+      setIsExporting(true);
+      
+      // Use the download helper method
+      await api.websiteBuilder.downloadWebsite(websiteId);
+      
+      // Show success message
+      console.log("Website exported successfully!");
     } catch (error) {
       console.error("Failed to export website:", error);
-      alert("Failed to export website. Please try again.");
+      throw new Error("Failed to export website. Please try again.");
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -231,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
     );
   }
 
-  if (files.length === 0) {
+  if (!website || files.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="max-w-md">
@@ -240,7 +133,7 @@ document.addEventListener('DOMContentLoaded', function() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
-              No files were found for this website. Please check the website name and try again.
+              No files were found for this website. Please check the website ID and try again.
             </p>
             <Button asChild>
               <Link href="/">
@@ -256,7 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   return (
     <EditorInterface
-      websiteName={websiteName}
+      websiteName={website.name}
       files={files}
       onSave={handleSave}
       onExport={handleExport}

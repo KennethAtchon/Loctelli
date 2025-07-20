@@ -13,7 +13,7 @@ export interface Website {
   description?: string;
   type: string;
   files: WebsiteFile[];
-  status: 'active' | 'archived';
+  status: 'active' | 'archived' | 'draft';
   createdAt: string;
   updatedAt: string;
 }
@@ -23,6 +23,7 @@ export interface AiEditRequest {
   fileName: string;
   prompt: string;
   currentContent: string;
+  fileType: string;
 }
 
 export interface AiEditResponse {
@@ -31,7 +32,9 @@ export interface AiEditResponse {
   changes: {
     description: string;
     modifications: any;
+    confidence?: number;
   };
+  processingTime?: number;
   error?: string;
 }
 
@@ -43,7 +46,12 @@ export interface UploadResponse {
 
 export interface ExportResponse {
   success: boolean;
-  downloadUrl: string;
+  downloadUrl?: string;
+  files?: Array<{
+    name: string;
+    content: string;
+    type: string;
+  }>;
   error?: string;
 }
 
@@ -56,6 +64,21 @@ export interface ChangeHistory {
   modifications: any;
   status: 'applied' | 'reverted' | 'pending';
   createdAt: string;
+  confidence?: number;
+  processingTime?: number;
+}
+
+export interface CreateWebsiteRequest {
+  name: string;
+  description?: string;
+  type: string;
+  structure: Record<string, any>;
+  files: Array<{
+    name: string;
+    content: string;
+    type: string;
+    size: number;
+  }>;
 }
 
 export class WebsiteBuilderApi extends ApiClient {
@@ -77,39 +100,77 @@ export class WebsiteBuilderApi extends ApiClient {
     });
   }
 
-  async getWebsite(name: string): Promise<Website> {
-    return this.get<Website>(`/website-builder/websites/${name}`);
+  async createWebsite(request: CreateWebsiteRequest): Promise<Website> {
+    return this.post<Website>('/website-builder', request);
   }
 
-  async aiEdit(request: AiEditRequest): Promise<AiEditResponse> {
-    return this.post<AiEditResponse>('/website-builder/editor/modify', request);
-  }
-
-  async getChangeHistory(websiteName: string): Promise<ChangeHistory[]> {
-    return this.get<ChangeHistory[]>(`/website-builder/editor/${websiteName}/history`);
-  }
-
-  async exportWebsite(websiteName: string): Promise<ExportResponse> {
-    return this.get<ExportResponse>(`/website-builder/editor/${websiteName}/export`);
-  }
-
-  async saveChanges(websiteName: string, changes: any): Promise<{ success: boolean }> {
-    return this.post<{ success: boolean }>(`/website-builder/editor/${websiteName}/save`, changes);
-  }
-
-  async revertChange(changeId: string): Promise<{ success: boolean }> {
-    return this.post<{ success: boolean }>(`/website-builder/editor/revert/${changeId}`);
-  }
-
-  async applyChange(changeId: string): Promise<{ success: boolean }> {
-    return this.post<{ success: boolean }>(`/website-builder/editor/apply/${changeId}`);
+  async getWebsite(id: string): Promise<Website> {
+    return this.get<Website>(`/website-builder/${id}`);
   }
 
   async listWebsites(): Promise<Website[]> {
-    return this.get<Website[]>('/website-builder/websites');
+    return this.get<Website[]>('/website-builder');
   }
 
-  async deleteWebsite(websiteName: string): Promise<{ success: boolean }> {
-    return this.delete<{ success: boolean }>(`/website-builder/websites/${websiteName}`);
+  async updateWebsite(id: string, updates: Partial<CreateWebsiteRequest>): Promise<Website> {
+    return this.patch<Website>(`/website-builder/${id}`, updates);
+  }
+
+  async deleteWebsite(id: string): Promise<{ success: boolean }> {
+    return this.delete<{ success: boolean }>(`/website-builder/${id}`);
+  }
+
+  async aiEdit(websiteId: string, request: Omit<AiEditRequest, 'websiteName'>): Promise<AiEditResponse> {
+    return this.post<AiEditResponse>(`/website-builder/${websiteId}/ai-edit`, request);
+  }
+
+  async getChangeHistory(websiteId: string): Promise<ChangeHistory[]> {
+    return this.get<ChangeHistory[]>(`/website-builder/${websiteId}/changes`);
+  }
+
+  async revertChange(websiteId: string, changeId: string): Promise<{ success: boolean }> {
+    return this.post<{ success: boolean }>(`/website-builder/${websiteId}/changes/${changeId}/revert`);
+  }
+
+  async exportWebsite(websiteId: string): Promise<ExportResponse> {
+    return this.get<ExportResponse>(`/website-builder/${websiteId}/export`);
+  }
+
+  async saveChanges(websiteId: string, changes: Array<{ fileName: string; content: string }>): Promise<{ success: boolean }> {
+    return this.patch<{ success: boolean }>(`/website-builder/${websiteId}`, { files: changes });
+  }
+
+  // Helper method to create a downloadable zip file from exported files
+  async downloadWebsite(websiteId: string): Promise<void> {
+    try {
+      const response = await this.exportWebsite(websiteId);
+      
+      if (response.success && response.files) {
+        // Create a zip file using JSZip
+        const JSZip = (await import('jszip')).default;
+        const zip = new JSZip();
+        
+        // Add files to zip
+        response.files.forEach(file => {
+          zip.file(file.name, file.content);
+        });
+        
+        // Generate and download zip
+        const blob = await zip.generateAsync({ type: 'blob' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `website-${websiteId}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        throw new Error(response.error || 'Export failed');
+      }
+    } catch (error) {
+      console.error('Download failed:', error);
+      throw error;
+    }
   }
 } 

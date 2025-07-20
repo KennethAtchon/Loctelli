@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Users, Target, Calendar, RefreshCw, Plus, Eye, Building, Globe } from 'lucide-react';
+import { Users, Target, Calendar, RefreshCw, Plus, Eye, Building, Globe, Code } from 'lucide-react';
 import { DashboardStats, SystemStatus } from '@/lib/api/endpoints/admin-auth';
 import Link from 'next/link';
 import logger from '@/lib/logger';
@@ -254,6 +254,21 @@ export default function AdminDashboardPage() {
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh
+          </Button>
+          <Button 
+            variant="default" 
+            size="sm" 
+            onClick={() => {
+              const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+              const baseUrl = apiUrl.replace('/api/proxy', '');
+              const websiteBuilderUrl = baseUrl.includes('localhost') 
+                ? 'http://localhost:3001' 
+                : 'https://website-builder.loctelli.com';
+              window.open(websiteBuilderUrl, '_blank');
+            }}
+          >
+            <Code className="h-4 w-4 mr-2" />
+            Website Builder
           </Button>
         </div>
       </div>

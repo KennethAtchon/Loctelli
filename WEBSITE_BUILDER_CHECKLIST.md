@@ -199,71 +199,43 @@
 - [x] Update core app.module.ts to use new structure
 
 #### **5.5 Database Schema Updates**
-- [ ] Open `project/prisma/schema.prisma`
-- [ ] Add Website model:
-  ```prisma
-  model Website {
-    id          String   @id @default(cuid())
-    name        String   @unique
-    description String?
-    type        String   // 'static', 'vite', 'react'
-    structure   Json     // Parsed HTML/CSS/JS structure
-    files       Json     // File metadata and content
-    status      String   @default("active") // 'active', 'archived'
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
-    
-    // Relationships
-    changes     WebsiteChange[]
-    userId      String?
-    user        User?    @relation(fields: [userId], references: [id])
-  }
-  ```
-- [ ] Add WebsiteChange model:
-  ```prisma
-  model WebsiteChange {
-    id          String   @id @default(cuid())
-    websiteId   String
-    description String   // Natural language description
-    modifications Json   // Code changes applied
-    aiPrompt    String   // Original AI prompt
-    status      String   @default("applied") // 'applied', 'reverted'
-    createdAt   DateTime @default(now())
-    
-    website     Website  @relation(fields: [websiteId], references: [id])
-  }
-  ```
-- [ ] Update User model to include websites relationship
+- [x] Open `project/prisma/schema.prisma`
+- [x] Add Website model with proper relationships
+- [x] Add WebsiteChange model for tracking AI modifications
+- [x] Update AdminUser model to include websites relationship
 - [ ] Run migration: `npx prisma migrate dev --name add-website-builder`
 - [ ] Generate Prisma client: `npx prisma generate`
 
-#### **5.5 Create Website Builder DTOs**
-- [ ] Create `src/website-builder/modules/website-builder/dto/upload-website.dto.ts`
-- [ ] Create `src/website-builder/modules/website-builder/dto/ai-edit.dto.ts`
-- [ ] Create `src/website-builder/modules/website-builder/dto/export-website.dto.ts`
-- [ ] Create `src/website-builder/modules/website-builder/dto/update-website.dto.ts`
+#### **5.6 Create Website Builder DTOs**
+- [x] Create `src/website-builder/modules/website-builder/dto/create-website.dto.ts`
+- [x] Create `src/website-builder/modules/website-builder/dto/update-website.dto.ts`
+- [x] Create `src/website-builder/modules/website-builder/dto/ai-edit.dto.ts`
 
-#### **5.6 Create Website Builder Services**
-- [ ] Create `src/website-builder/modules/website-builder/website-builder.service.ts`
-- [ ] Create `src/website-builder/modules/website-builder/ai-editor.service.ts`
-- [ ] Create `src/website-builder/modules/website-builder/code-parser.service.ts`
-- [ ] Create `src/website-builder/modules/website-builder/file-storage.service.ts`
+#### **5.7 Create Website Builder Services**
+- [x] Create `src/website-builder/modules/website-builder/website-builder.service.ts`
+- [x] Implement CRUD operations
+- [x] Implement AI editing functionality with OpenAI integration
+- [x] Implement change history tracking
+- [x] Implement revert functionality
 
-#### **5.7 Create Website Builder Controller**
-- [ ] Create `src/website-builder/modules/website-builder/website-builder.controller.ts`
-- [ ] Implement endpoints:
-  - [ ] `POST /api/website-builder/upload`
-  - [ ] `GET /api/website-builder/websites/:name`
-  - [ ] `POST /api/website-builder/editor/:name/modify`
-  - [ ] `GET /api/website-builder/editor/:name/history`
-  - [ ] `GET /api/website-builder/editor/:name/export`
+#### **5.8 Create Website Builder Controller**
+- [x] Create `src/website-builder/modules/website-builder/website-builder.controller.ts`
+- [x] Implement endpoints:
+  - [x] `POST /api/website-builder` (create website)
+  - [x] `GET /api/website-builder` (list websites)
+  - [x] `GET /api/website-builder/:id` (get website)
+  - [x] `PATCH /api/website-builder/:id` (update website)
+  - [x] `DELETE /api/website-builder/:id` (delete website)
+  - [x] `POST /api/website-builder/:id/ai-edit` (AI edit)
+  - [x] `GET /api/website-builder/:id/changes` (change history)
+  - [x] `POST /api/website-builder/:id/changes/:changeId/revert` (revert change)
 
-#### **5.8 Create Website Builder Module**
-- [ ] Create `src/website-builder/modules/website-builder/website-builder.module.ts`
-- [ ] Create `src/website-builder/website-builder.module.ts`
-- [ ] Update `src/app.module.ts` to import both main-app and website-builder modules
+#### **5.9 Create Website Builder Module**
+- [x] Create `src/website-builder/modules/website-builder/website-builder.module.ts`
+- [x] Create `src/website-builder/website-builder.module.ts`
+- [x] Update `src/core/app.module.ts` to import both main-app and website-builder modules
 
-#### **5.9 Environment Setup**
+#### **5.10 Environment Setup**
 - [ ] Add `OPENAI_API_KEY` to `project/.env`
 - [ ] Add any other required environment variables
 - [ ] Update environment validation if needed
@@ -273,10 +245,10 @@
 ### **Phase 6: CRM Integration (my-app/)**
 
 #### **6.1 Add Website Builder Button**
-- [ ] Locate admin dashboard header component
-- [ ] Add "Website Builder" button
-- [ ] Style button to match existing UI
-- [ ] Add click handler to redirect to `website-builder.loctelli.com`
+- [x] Locate admin dashboard header component
+- [x] Add "Website Builder" button with Code icon
+- [x] Style button to match existing UI
+- [x] Add click handler to redirect to website-builder with environment detection
 
 #### **6.2 Test Integration**
 - [ ] Test button appears for authenticated users
@@ -288,22 +260,22 @@
 ### **Phase 7: Code Modification & Export**
 
 #### **7.1 Implement Real-time Code Changes**
-- [ ] Create code parsing logic
-- [ ] Implement change application
-- [ ] Add validation for AI-generated code
-- [ ] Add error handling
+- [x] Create code parsing logic
+- [ ] Implement change application (editor interface needs update)
+- [x] Add validation for AI-generated code
+- [x] Add error handling
 
 #### **7.2 Add Change History**
-- [ ] Create change history component
-- [ ] Implement undo/redo functionality
-- [ ] Add change descriptions
-- [ ] Add timestamps
+- [x] Create change history component
+- [x] Implement undo/redo functionality
+- [x] Add change descriptions
+- [x] Add timestamps
 
 #### **7.3 Create Export Functionality**
-- [ ] Implement file compilation
-- [ ] Add download functionality
-- [ ] Add export options
-- [ ] Add progress indicators
+- [x] Implement file compilation
+- [x] Add download functionality
+- [x] Add export options
+- [x] Add progress indicators
 
 #### **7.4 Testing**
 - [ ] Test with static HTML websites
