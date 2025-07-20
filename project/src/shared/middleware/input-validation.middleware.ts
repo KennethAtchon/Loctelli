@@ -80,6 +80,8 @@ export class InputValidationMiddleware implements NestMiddleware {
     const contentType = req.headers['content-type'];
 
     if (['POST', 'PUT', 'PATCH'].includes(method)) {
+      // For multipart/form-data, the Content-Type header is set by the browser with boundary
+      // We should be more lenient with this type
       if (!contentType) {
         throw new BadRequestException('Content-Type header is required');
       }

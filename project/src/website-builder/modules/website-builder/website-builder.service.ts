@@ -33,6 +33,23 @@ export class WebsiteBuilderService {
   }
 
   async uploadWebsite(files: UploadedFile[], name: string, adminId: number, description?: string) {
+    // Validate admin ID
+    if (!adminId || isNaN(adminId)) {
+      this.logger.error(`❌ Invalid adminId provided: ${adminId}`);
+      throw new BadRequestException('Valid admin ID is required');
+    }
+
+    // Verify admin exists
+    const admin = await this.prisma.adminUser.findUnique({
+      where: { id: adminId },
+    });
+
+    if (!admin) {
+      this.logger.error(`❌ Admin with ID ${adminId} not found`);
+      throw new NotFoundException('Admin user not found');
+    }
+
+    this.logger.log(`✅ Admin validation passed: ${admin.name} (ID: ${adminId})`);
     this.logger.log(`🔧 Starting website upload process for admin ID: ${adminId}`);
     this.logger.log(`📝 Website name: ${name}`);
     this.logger.log(`📄 Description: ${description || 'No description'}`);
@@ -130,18 +147,20 @@ export class WebsiteBuilderService {
         description,
         type: websiteType,
         structure,
-        files: sanitizedFiles,
+        files: sanitizedFiles as any,
         buildStatus: 'pending',
-        createdByAdminId: adminId,
+        createdByAdmin: {
+          connect: { id: adminId },
+        },
       },
     });
 
     this.logger.log(`✅ Website created successfully with ID: ${website.id}`);
 
     // Handle React/Vite projects with build process
-    let previewUrl = null;
-    let buildOutput = null;
-    let buildDuration = null;
+    let previewUrl: string | null = null;
+    let buildOutput: string[] | null = null;
+    let buildDuration: number | null = null;
     const buildStartTime = new Date();
 
     if (websiteType === 'react-vite' || websiteType === 'react' || websiteType === 'vite') {
@@ -193,10 +212,10 @@ export class WebsiteBuilderService {
       where: { id: website.id },
       data: {
         buildStatus: previewUrl ? 'running' : 'pending',
-        previewUrl,
-        buildOutput,
+        previewUrl: previewUrl || null,
+        buildOutput: buildOutput as any || null,
         lastBuildAt: new Date(),
-        buildDuration,
+        buildDuration: buildDuration || null,
       },
     });
 
@@ -360,7 +379,9 @@ export class WebsiteBuilderService {
     return this.prisma.website.create({
       data: {
         ...createWebsiteDto,
-        createdByAdminId: adminId,
+        createdByAdmin: {
+          connect: { id: adminId },
+        },
       },
     });
   }
@@ -377,12 +398,6 @@ export class WebsiteBuilderService {
       where: { 
         id,
         createdByAdminId: adminId,
-      },
-      include: {
-        changeHistory: {
-          orderBy: { createdAt: 'desc' },
-          take: 10, // Last 10 changes
-        },
       },
     });
 
@@ -553,11 +568,6 @@ export class WebsiteBuilderService {
     return this.prisma.websiteChange.findMany({
       where: { websiteId: id },
       orderBy: { createdAt: 'desc' },
-      include: {
-        createdByAdmin: {
-          select: { name: true, email: true },
-        },
-      },
     });
   }
 

@@ -28,18 +28,52 @@ export default function PreviewPage() {
         const websiteData = await api.websiteBuilder.getWebsite(websiteId);
         setWebsite(websiteData);
         
-        // Create preview URL
-        if (websiteData.files && websiteData.files.length > 0) {
-          const indexFile = websiteData.files.find(f => 
-            f.name === 'index.html' || f.name === 'index.htm'
+        console.log("📊 Website data received:", {
+          id: websiteData.id,
+          name: websiteData.name,
+          type: websiteData.type,
+          buildStatus: websiteData.buildStatus,
+          previewUrl: websiteData.previewUrl,
+          fileCount: websiteData.files?.length || 0,
+          files: websiteData.files?.map(f => ({ name: f.name, type: f.type, size: f.content?.length || 0 }))
+        });
+        
+        // Handle different website types
+        if (websiteData.previewUrl) {
+          // For React/Vite projects, use the previewUrl from backend
+          setPreviewUrl(websiteData.previewUrl);
+        } else if (websiteData.files && websiteData.files.length > 0) {
+          // For static sites, find any HTML file (not just index.html)
+          const htmlFile = websiteData.files.find(f => 
+            f.name.toLowerCase().endsWith('.html') || f.name.toLowerCase().endsWith('.htm')
           );
           
-          if (indexFile) {
-            // Create a blob URL for the HTML content
-            const blob = new Blob([indexFile.content], { type: 'text/html' });
+          if (htmlFile) {
+            // Create a blob URL for the HTML content with proper base URL
+            const htmlContent = htmlFile.content;
+            
+            console.log(`📄 HTML file details:`, {
+              name: htmlFile.name,
+              type: htmlFile.type,
+              contentLength: htmlContent.length,
+              contentPreview: htmlContent.substring(0, 200) + '...'
+            });
+            
+            // Create a blob with the HTML content
+            const blob = new Blob([htmlContent], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
             setPreviewUrl(url);
+            
+            console.log(`📄 HTML file found: ${htmlFile.name}`);
+            console.log(`📄 HTML content length: ${htmlContent.length} characters`);
+            console.log(`🌐 Preview URL created: ${url}`);
+          } else {
+            console.log("❌ No HTML file found in files:", websiteData.files.map(f => f.name));
+            setError("No HTML file found in this website.");
           }
+        } else {
+          console.log("❌ No files found in website data");
+          setError("No files found for this website.");
         }
       } catch (err) {
         console.error("Failed to load website:", err);
@@ -57,7 +91,7 @@ export default function PreviewPage() {
   // Cleanup blob URL on unmount
   useEffect(() => {
     return () => {
-      if (previewUrl) {
+      if (previewUrl && previewUrl.startsWith('blob:')) {
         URL.revokeObjectURL(previewUrl);
       }
     };
@@ -112,7 +146,7 @@ export default function PreviewPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
-              No index.html file found for this website. Please edit the website to add an entry point.
+              No HTML file found for this website. Please edit the website to add an entry point.
             </p>
             <Button asChild>
               <Link href={`/editor/${websiteId}`}>
@@ -172,6 +206,8 @@ export default function PreviewPage() {
             className="w-full h-[calc(100vh-200px)] border-0"
             title={`Preview of ${website.name}`}
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            onLoad={() => console.log(`✅ Iframe loaded successfully for ${website.name}`)}
+            onError={(e) => console.error(`❌ Iframe failed to load:`, e)}
           />
         </div>
       </main>

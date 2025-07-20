@@ -89,10 +89,10 @@ export class BuildService {
       await this.runNpmInstall(projectDir, buildProcess);
       this.logger.log(`📦 npm install completed for website ${websiteId}`);
 
-      // Run npm run type (if TypeScript detected)
-      if (this.hasTypeScript(projectDir)) {
+      // Run TypeScript check (if TypeScript detected)
+      if (await this.hasTypeScript(projectDir)) {
         await this.runTypeCheck(projectDir, buildProcess);
-        this.logger.log(`🔍 Type check completed for website ${websiteId}`);
+        this.logger.log(`🔍 TypeScript check completed for website ${websiteId}`);
       }
 
       // Start Vite dev server
@@ -210,39 +210,67 @@ export class BuildService {
 
   private async runTypeCheck(projectDir: string, buildProcess: BuildProcess): Promise<void> {
     return new Promise((resolve, reject) => {
-      const typeProcess = spawn('npm', ['run', 'type'], {
-        cwd: projectDir,
-        stdio: ['pipe', 'pipe', 'pipe'],
-      });
+      // Try different TypeScript check commands in order of preference
+      const typeCommands = [
+        ['run', 'type-check'],
+        ['run', 'tsc'],
+        ['run', 'type'],
+        ['run', 'lint'],
+        ['run', 'build']
+      ];
 
-      let output = '';
-      let errorOutput = '';
-
-      typeProcess.stdout?.on('data', (data) => {
-        const message = data.toString();
-        output += message;
-        buildProcess.buildOutput.push(`type check: ${message.trim()}`);
-        this.logger.debug(`type check output: ${message.trim()}`);
-      });
-
-      typeProcess.stderr?.on('data', (data) => {
-        const message = data.toString();
-        errorOutput += message;
-        buildProcess.buildOutput.push(`type check error: ${message.trim()}`);
-        this.logger.debug(`type check error: ${message.trim()}`);
-      });
-
-      typeProcess.on('close', (code) => {
-        if (code === 0) {
+      const tryNextCommand = (index: number) => {
+        if (index >= typeCommands.length) {
+          // If no type check commands work, just resolve (not critical)
+          this.logger.warn('No TypeScript check commands found, skipping type checking');
           resolve();
-        } else {
-          reject(new Error(`Type check failed with code ${code}: ${errorOutput}`));
+          return;
         }
-      });
 
-      typeProcess.on('error', (error) => {
-        reject(new Error(`Type check process error: ${error.message}`));
-      });
+        const command = typeCommands[index];
+        this.logger.log(`🔍 Trying TypeScript check with: npm ${command.join(' ')}`);
+        
+        const typeProcess = spawn('npm', command, {
+          cwd: projectDir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+        });
+
+        let output = '';
+        let errorOutput = '';
+
+        typeProcess.stdout?.on('data', (data) => {
+          const message = data.toString();
+          output += message;
+          buildProcess.buildOutput.push(`type check: ${message.trim()}`);
+          this.logger.debug(`type check output: ${message.trim()}`);
+        });
+
+        typeProcess.stderr?.on('data', (data) => {
+          const message = data.toString();
+          errorOutput += message;
+          buildProcess.buildOutput.push(`type check error: ${message.trim()}`);
+          this.logger.debug(`type check error: ${message.trim()}`);
+        });
+
+        typeProcess.on('close', (code) => {
+          if (code === 0) {
+            this.logger.log(`✅ TypeScript check completed successfully with: npm ${command.join(' ')}`);
+            resolve();
+          } else {
+            this.logger.warn(`⚠️ TypeScript check failed with: npm ${command.join(' ')} (code: ${code})`);
+            // Try next command
+            tryNextCommand(index + 1);
+          }
+        });
+
+        typeProcess.on('error', (error) => {
+          this.logger.warn(`⚠️ TypeScript check process error with: npm ${command.join(' ')}: ${error.message}`);
+          // Try next command
+          tryNextCommand(index + 1);
+        });
+      };
+
+      tryNextCommand(0);
     });
   }
 

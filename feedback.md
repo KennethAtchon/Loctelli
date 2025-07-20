@@ -2,7 +2,7 @@ Take all the feedback into consideration, and redesign a website builder upload 
 
 AI Model I Feedback:
 
-Goal: Is to make a flow that when I upload a zip file that contains react with vite code, it runs npm install and npm run type commands, and basically runs the file and hosts it automatically, and it redirects me to the preview so I can interact with the website on my own website, is this possible: # Website Builder Upload & Preview System
+Goal: Is to make a flow that when I upload a zip file that contains react with vite code, it runs npm install and npm run build commands, and basically runs the file and hosts it automatically, and it redirects me to the preview so I can interact with the website on my own website, is this possible: # Website Builder Upload & Preview System
 
 ## Overview
 
@@ -1642,7 +1642,7 @@ Automatic Build Process:
 
 Detects React/Vite projects from uploaded files
 Runs npm install automatically
-Executes npm run type for TypeScript checking
+Executes npm run build for TypeScript checking
 Starts development server with hot reload
 
 
@@ -1676,7 +1676,7 @@ How It Works:
 User uploads a React/Vite project zip file
 System extracts files and detects it's a React project
 Creates temporary build directory
-Runs npm install and npm run type (if TypeScript)
+Runs npm install and npm run build (if TypeScript)
 Starts Vite dev server on available port
 Returns live preview URL
 User gets redirected to running application

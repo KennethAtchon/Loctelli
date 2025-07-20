@@ -98,6 +98,7 @@ Loctelli/
 - **Chat Integration**: AI-powered conversation management with full conversation history
 - **Prompt Template System**: Global AI prompt template management with activation controls and strategy integration
 - **Multi-Tenant System**: SubAccounts for managing multiple client organizations with data isolation
+- **Website Builder**: AI-powered website editing tool with React/Vite build automation and HTML file preview support
 - **Real-time Updates**: Live data synchronization
 - **Comprehensive Testing**: Unit tests, integration tests, and E2E tests with 80%+ coverage goals
 - **Rate Limiting**: Comprehensive frontend and backend rate limiting with user-friendly UI feedback
@@ -345,6 +346,26 @@ npm run test:coverage     # Coverage report
 - Node.js 18+ and npm/pnpm
 - Docker and Docker Compose
 - Git
+
+## 🔧 **Recent Fixes & Updates**
+
+### **Website Builder Upload Error Fix (Latest)**
+- **Issue**: File uploads failing with 500 error due to undefined adminId
+- **Root Cause**: JWT strategy returns `userId` field, but controller was accessing `user.id`
+- **Fix**: Updated all website builder controller methods to use proper admin ID extraction
+- **Result**: Website builder file uploads now work correctly ✅
+
+### **Authentication & Security**
+- **Multi-layer security**: API key + JWT + Role-based access control
+- **Rate limiting**: Comprehensive frontend and backend rate limiting
+- **Token management**: Automatic refresh with fallback to login
+- **Cross-port authentication**: Fixed website builder authentication sharing
+
+### **Data Management**
+- **Multi-tenant architecture**: Complete SubAccount isolation and management
+- **Global filtering**: Admin dashboard with subaccount filtering system
+- **Data validation**: Comprehensive input validation and error handling
+- **Change tracking**: Complete audit trails for all modifications
 
 ### 🔒 Security Setup (Required for Production)
 

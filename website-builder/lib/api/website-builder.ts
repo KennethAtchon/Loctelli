@@ -16,6 +16,14 @@ export interface Website {
   status: 'active' | 'archived' | 'draft';
   createdAt: string;
   updatedAt: string;
+  // Build-related fields
+  buildStatus?: 'pending' | 'building' | 'running' | 'failed' | 'stopped';
+  previewUrl?: string;
+  processId?: string;
+  buildOutput?: string[];
+  portNumber?: number;
+  lastBuildAt?: string;
+  buildDuration?: number;
 }
 
 export interface AiEditRequest {
@@ -93,11 +101,7 @@ export class WebsiteBuilderApi extends ApiClient {
       formData.append('files', file);
     });
 
-    return this.post<UploadResponse>('/website-builder/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    return this.post<UploadResponse>('/website-builder/upload', formData);
   }
 
   async createWebsite(request: CreateWebsiteRequest): Promise<Website> {

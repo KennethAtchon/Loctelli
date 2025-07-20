@@ -1,4 +1,5 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import * as path from 'path';
 
 interface WebsiteFile {
   name: string;
@@ -101,7 +102,7 @@ export class SecurityService {
       'eval', 'exec', 'spawn', 'child_process'
     ];
 
-    const foundCommands = [];
+    const foundCommands: string[] = [];
     for (const command of dangerousCommands) {
       if (scriptContent.toLowerCase().includes(command.toLowerCase())) {
         foundCommands.push(command);
@@ -354,14 +355,4 @@ export class SecurityService {
   }
 }
 
-// Helper function for path operations
-function path.extname(fileName: string): string {
-  const lastDot = fileName.lastIndexOf('.');
-  return lastDot > 0 ? fileName.substring(lastDot) : '';
-}
-
-function path.basename(fileName: string, ext?: string): string {
-  const lastSlash = Math.max(fileName.lastIndexOf('/'), fileName.lastIndexOf('\\'));
-  const base = lastSlash >= 0 ? fileName.substring(lastSlash + 1) : fileName;
-  return ext && base.endsWith(ext) ? base.substring(0, base.length - ext.length) : base;
-} 
+ 

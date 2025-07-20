@@ -63,9 +63,9 @@ export default function Home() {
           setUploadedWebsite(response.website);
           setShowBuildProgress(true);
         } else {
-          logger.log(`🔄 Redirecting to editor: /editor/${response.website.id}`);
-          // Navigate to editor with the created website
-          window.location.href = `/editor/${response.website.id}`;
+          logger.log(`🔄 Redirecting to preview: /preview/${response.website.id}`);
+          // Navigate to preview for static files
+          window.location.href = `/preview/${response.website.id}`;
         }
       } else {
         logger.error("❌ Upload failed - API returned error:", response.error);

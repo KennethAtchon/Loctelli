@@ -23,12 +23,20 @@
 - **Technology**: Child process management, dynamic port allocation, automated npm install/type/build
 - **Features**: 
   - ✅ Automatic React/Vite project detection
-  - ✅ npm install and npm run type execution
+  - ✅ npm install and TypeScript checking execution
   - ✅ Live Vite dev server hosting
   - ✅ Real-time build status monitoring
   - ✅ Security validation and sanitization
   - ✅ Automatic resource cleanup
   - ✅ Build progress UI with restart capabilities
+  - ✅ **HTML File Upload & Preview Fixes** - Single HTML files now work correctly ✅
+    - **Fixed**: Preview page now handles any HTML file (not just index.html)
+    - **Fixed**: Upload flow redirects to preview for static files instead of editor
+    - **Fixed**: Enhanced debugging and error handling for file content issues
+    - **Fixed**: Better blob URL creation with proper content handling
+    - **Fixed**: Updated Website interface to include build-related fields from backend
+    - **Enhanced**: Added comprehensive logging for troubleshooting upload issues
+    - **Test File**: Created `test-html-file.html` for verification testing
 
 ### **Chat System Architecture**
 - **SalesBotService**: Core AI response generation service (moved from background to chat module)
@@ -284,6 +292,22 @@
 - **Redirect Fix**: Fixed redirect logic in both website builder and main CRM dashboard to properly detect localhost vs production environments
 - **FormData Upload Fix**: Fixed website builder file upload authentication by properly handling FormData requests without JSON stringification
 - **File Upload Size Limit Fix**: Increased body parser limits to 50MB to handle large file uploads in website builder
+
+#### **14. Website Builder Upload Error Fix - CRITICAL BUG RESOLUTION ✅**
+- **Issue**: Website builder file upload failing with 500 error due to undefined adminId
+- **Root Cause**: JWT strategy returns `userId` field, but controller was accessing `user.id`
+- **Error Details**: Prisma database error - "Argument `connect` of type AdminUserWhereUniqueInput needs at least one of `id` or `email` arguments"
+- **Fixes Applied**:
+  - **Controller Fix**: Updated all website builder controller methods to use `user.userId || user.id` instead of `user.id`
+  - **Admin ID Extraction**: Added proper admin ID extraction with fallback logic
+  - **Validation**: Added admin ID validation and admin user existence check in service
+  - **Error Handling**: Added comprehensive error handling for missing or invalid admin IDs
+  - **Logging**: Enhanced logging to track admin ID extraction and validation
+- **Files Updated**:
+  - `project/src/website-builder/modules/website-builder/website-builder.controller.ts` - Fixed all methods
+  - `project/src/website-builder/modules/website-builder/website-builder.service.ts` - Added validation
+- **Methods Fixed**: uploadWebsite, create, findAll, findOne, update, remove, aiEdit, getChangeHistory, revertChange, getBuildStatus, stopWebsite, restartWebsite
+- **Result**: Website builder file uploads now work correctly with proper admin authentication ✅
 
 #### **13. Reusable DataTable Component System - NEW ✅**
 - **Created**: Comprehensive reusable DataTable component in `@/components/customUI` ✅

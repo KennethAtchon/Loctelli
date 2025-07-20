@@ -54,9 +54,12 @@ export class AppModule implements NestModule {
       .apply(SecurityHeadersMiddleware)
       .forRoutes('*');
 
-    // Apply input validation to all routes
+    // Apply input validation to all routes except website-builder upload
     consumer
       .apply(InputValidationMiddleware)
+      .exclude(
+        { path: 'website-builder/upload', method: RequestMethod.POST },
+      )
       .forRoutes('*');
 
     // Apply rate limiting to auth endpoints
