@@ -558,7 +558,16 @@ export class WebsiteBuilderService {
 
   async getFileContent(websiteId: string, filePath: string, adminId: number): Promise<Buffer> {
     // Verify admin access
-    await this.findWebsiteById(websiteId, adminId);
+    const website = await this.prisma.website.findFirst({
+      where: { 
+        id: websiteId,
+        createdByAdminId: adminId,
+      },
+    });
+
+    if (!website) {
+      throw new NotFoundException('Website not found or access denied');
+    }
     
     return this.fileProcessing.getFileContent(websiteId, filePath);
   }
@@ -569,13 +578,40 @@ export class WebsiteBuilderService {
         id,
         createdByAdminId: adminId,
       },
+      include: {
+        files: {
+          orderBy: { path: 'asc' },
+        },
+      },
     });
 
     if (!website) {
       throw new NotFoundException('Website not found');
     }
 
-    return website;
+    // Transform the files to include content for frontend compatibility
+    const websiteWithFiles = {
+      ...website,
+      files: await Promise.all(
+        website.files.map(async (file) => {
+          try {
+            const content = await this.getFileContent(id, file.path, adminId);
+            return {
+              ...file,
+              content: content.toString('utf8'),
+            };
+          } catch (error) {
+            this.logger.warn(`Failed to load content for file ${file.path}: ${error.message}`);
+            return {
+              ...file,
+              content: null,
+            };
+          }
+        })
+      ),
+    };
+
+    return websiteWithFiles;
   }
 
   async updateWebsite(id: string, updateWebsiteDto: UpdateWebsiteDto, adminId: number) {

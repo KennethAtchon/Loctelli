@@ -101,19 +101,23 @@ export class WebsiteBuilderController {
     const adminId = user.userId || user.id;
     const website = await this.websiteBuilderService.findWebsiteById(id, adminId);
     
-    // Get files from the relation
-    const files = await this.websiteBuilderService.getWebsiteFiles(id, adminId);
-    
     const debugInfo = {
       ...website,
       debug: {
-        fileCount: files.length,
-        fileNames: files.map(f => f.name) || [],
-        fileTypes: files.map(f => ({ name: f.name, type: f.type, size: f.size })) || [],
-        htmlFiles: files.filter(f => f.name.toLowerCase().endsWith('.html') || f.name.toLowerCase().endsWith('.htm')) || [],
-        hasPackageJson: files.some(f => f.name === 'package.json') || false,
-        hasViteConfig: files.some(f => f.name.includes('vite.config')) || false,
-        totalContentSize: files.reduce((sum, f) => sum + f.size, 0) || 0
+        fileCount: website.files?.length || 0,
+        fileNames: website.files?.map(f => f.name) || [],
+        fileTypes: website.files?.map(f => ({ name: f.name, type: f.type, size: f.size })) || [],
+        htmlFiles: website.files?.filter(f => f.name.toLowerCase().endsWith('.html') || f.name.toLowerCase().endsWith('.htm')) || [],
+        hasPackageJson: website.files?.some(f => f.name === 'package.json') || false,
+        hasViteConfig: website.files?.some(f => f.name.includes('vite.config')) || false,
+        totalContentSize: website.files?.reduce((sum, f) => sum + f.size, 0) || 0,
+        filesWithContent: website.files?.map(f => ({
+          name: f.name,
+          type: f.type,
+          size: f.size,
+          hasContent: !!f.content,
+          contentLength: f.content?.length || 0
+        })) || []
       }
     };
     
