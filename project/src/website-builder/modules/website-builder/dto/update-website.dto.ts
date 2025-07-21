@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsObject, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsObject, IsNumber } from 'class-validator';
 
 export class UpdateWebsiteDto {
   @IsOptional()
@@ -18,13 +18,16 @@ export class UpdateWebsiteDto {
   structure?: Record<string, any>;
 
   @IsOptional()
-  @IsArray()
-  files?: Array<{
-    name: string;
-    content: string;
-    type: string;
-    size: number;
-  }>;
+  @IsString()
+  storageProvider?: string; // 'database', 'r2', 'hybrid'
+
+  @IsOptional()
+  @IsNumber()
+  totalFileSize?: number;
+
+  @IsOptional()
+  @IsNumber()
+  fileCount?: number;
 
   @IsOptional()
   @IsString()

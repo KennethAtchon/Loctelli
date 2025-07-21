@@ -8,6 +8,8 @@ import OpenAI from 'openai';
 import * as JSZip from 'jszip';
 import { BuildService } from './build.service';
 import { SecurityService } from './security.service';
+import { R2StorageService } from '../../../shared/storage/r2-storage.service';
+import { FileProcessingService, WebsiteFile } from '../../../shared/storage/file-processing.service';
 
 interface UploadedFile {
   originalname: string;
@@ -26,6 +28,8 @@ export class WebsiteBuilderService {
     private configService: ConfigService,
     private buildService: BuildService,
     private securityService: SecurityService,
+    private r2Storage: R2StorageService,
+    private fileProcessing: FileProcessingService,
   ) {
     this.openai = new OpenAI({
       apiKey: this.configService.get<string>('OPENAI_API_KEY'),
@@ -67,105 +71,20 @@ export class WebsiteBuilderService {
     }
     this.logger.log(`✅ Website name '${name}' is available`);
 
-    let processedFiles: Array<{
-      name: string;
-      content: string;
-      type: string;
-      size: number;
-    }> = [];
+    // Create ZIP buffer from uploaded files
+    this.logger.log(`📦 Creating ZIP from uploaded files...`);
+    const zipBuffer = await this.createZipFromFiles(files);
+    this.logger.log(`📦 ZIP created successfully (${zipBuffer.length} bytes)`);
 
-    // Process uploaded files
-    this.logger.log(`🔄 Processing ${files.length} uploaded files...`);
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      this.logger.log(`📄 Processing file ${i + 1}/${files.length}: ${file.originalname} (${file.size} bytes, ${file.mimetype})`);
-      
-      if (file.mimetype === 'application/zip' || file.mimetype === 'application/x-zip-compressed' || file.originalname.endsWith('.zip')) {
-        // Handle zip file
-        this.logger.log(`📦 Detected ZIP file: ${file.originalname}`);
-        const zipFiles = await this.extractZipFile(file.buffer);
-        this.logger.log(`📦 Extracted ${zipFiles.length} files from ZIP`);
-        processedFiles = processedFiles.concat(zipFiles);
-      } else {
-        // Handle individual file
-        this.logger.log(`📄 Processing individual file: ${file.originalname}`);
-        const fileType = this.getFileType(file.originalname);
-        this.logger.log(`📄 File type detected: ${fileType}`);
-        
-        try {
-          // Try UTF-8 first, fallback to other encodings if needed
-          let content: string;
-          try {
-            content = file.buffer.toString('utf8');
-          } catch (utf8Error) {
-            this.logger.warn(`⚠️ UTF-8 decoding failed for ${file.originalname}, trying other encodings: ${utf8Error.message}`);
-            // Try other common encodings
-            try {
-              content = file.buffer.toString('latin1');
-            } catch (latin1Error) {
-              content = file.buffer.toString('binary');
-            }
-          }
-          
-          this.logger.log(`📄 File content length: ${content.length} characters`);
-          
-          // Validate content is not empty
-          if (content && content.trim().length > 0) {
-            processedFiles.push({
-              name: file.originalname,
-              content,
-              type: fileType,
-              size: file.size,
-            });
-            this.logger.log(`✅ Successfully processed file: ${file.originalname}`);
-          } else {
-            this.logger.warn(`⚠️ Skipping empty file: ${file.originalname}`);
-          }
-        } catch (error) {
-          this.logger.error(`❌ Failed to process file ${file.originalname}:`, error);
-          throw new BadRequestException(`Failed to process file ${file.originalname}: ${error.message}`);
-        }
-      }
-    }
-
-    this.logger.log(`📊 Total processed files: ${processedFiles.length}`);
-    if (processedFiles.length === 0) {
-      this.logger.error('❌ No valid files found in upload');
-      throw new BadRequestException('No valid files found in upload');
-    }
-
-    // Sanitize and validate files
-    this.logger.log(`🔒 Sanitizing and validating files...`);
-    const sanitizedFiles = this.securityService.sanitizeProjectFiles(processedFiles);
-    this.logger.log(`✅ Sanitization complete. Kept ${sanitizedFiles.length} files`);
-
-    // Validate project structure
-    this.logger.log(`🔍 Validating project structure...`);
-    const structureValidation = this.securityService.validateProjectStructure(sanitizedFiles);
-    this.logger.log(`🏷️ Project type: ${structureValidation.type}, Valid: ${structureValidation.isValid}`);
-
-    if (!structureValidation.isValid) {
-      this.logger.warn(`⚠️ Project structure issues: ${structureValidation.issues.join(', ')}`);
-    }
-
-    // Detect website type and structure
-    this.logger.log(`🔍 Detecting website type...`);
-    const websiteType = this.detectWebsiteType(sanitizedFiles);
-    this.logger.log(`🏷️ Website type detected: ${websiteType}`);
-    
-    this.logger.log(`🔍 Analyzing website structure...`);
-    const structure = this.analyzeStructure(sanitizedFiles);
-    this.logger.log(`📊 Structure analysis complete:`, structure);
-
-    // Create website in database with initial build status
+    // Create website record first
     this.logger.log(`💾 Creating website record in database...`);
     const website = await this.prisma.website.create({
       data: {
         name,
         description,
-        type: websiteType,
-        structure,
-        files: sanitizedFiles as any,
+        type: 'pending', // Will be determined after processing
+        structure: {},
+        storageProvider: 'r2',
         buildStatus: 'pending',
         createdByAdmin: {
           connect: { id: adminId },
@@ -175,83 +94,229 @@ export class WebsiteBuilderService {
 
     this.logger.log(`✅ Website created successfully with ID: ${website.id}`);
 
-    // Handle React/Vite projects with build process
-    let previewUrl: string | null = null;
-    let buildOutput: string[] | null = null;
-    let buildDuration: number | null = null;
-    const buildStartTime = new Date();
+    try {
+      // Process and upload files to R2
+      this.logger.log(`☁️ Processing and uploading files to R2...`);
+      const fileRecords = await this.fileProcessing.processWebsiteUpload(website.id, zipBuffer);
+      this.logger.log(`✅ Successfully uploaded ${fileRecords.length} files to R2`);
 
-    if (websiteType === 'react-vite' || websiteType === 'react' || websiteType === 'vite') {
-      this.logger.log(`🔨 Starting build process for React/Vite project: ${website.id}`);
+      // Get file content for analysis (we need the content for type detection and structure analysis)
+      const fileContents = await this.getFileContentsForAnalysis(fileRecords);
       
+      // Sanitize and validate files
+      this.logger.log(`🔒 Sanitizing and validating files...`);
+      const sanitizedFiles = this.securityService.sanitizeProjectFiles(fileContents);
+      this.logger.log(`✅ Sanitization complete. Kept ${sanitizedFiles.length} files`);
+
+      // Validate project structure
+      this.logger.log(`🔍 Validating project structure...`);
+      const structureValidation = this.securityService.validateProjectStructure(sanitizedFiles);
+      this.logger.log(`🏷️ Project type: ${structureValidation.type}, Valid: ${structureValidation.isValid}`);
+
+      if (!structureValidation.isValid) {
+        this.logger.warn(`⚠️ Project structure issues: ${structureValidation.issues.join(', ')}`);
+      }
+
+      // Detect website type and structure
+      this.logger.log(`🔍 Detecting website type...`);
+      const websiteType = this.detectWebsiteType(sanitizedFiles);
+      this.logger.log(`🏷️ Website type detected: ${websiteType}`);
+      
+      this.logger.log(`🔍 Analyzing website structure...`);
+      const structure = this.analyzeStructure(sanitizedFiles);
+      this.logger.log(`📊 Structure analysis complete`);
+
+      // Update website with file metadata and analysis results
+      const storageStats = await this.fileProcessing.getWebsiteStorageStats(website.id);
+      const updatedWebsite = await this.prisma.website.update({
+        where: { id: website.id },
+        data: {
+          type: websiteType,
+          structure,
+          fileCount: storageStats.fileCount,
+          totalFileSize: storageStats.totalSize,
+          // Note: originalZipUrl is already set in processWebsiteUpload()
+        },
+      });
+
+      // Handle different project types
+      let previewUrl: string | null = null;
+      let buildOutput: string[] | null = null;
+      let buildDuration: number | null = null;
+
+      if (this.shouldBuildProject(websiteType)) {
+        // React/Vite projects need build process
+        this.logger.log(`🔨 Starting build process for ${websiteType} project: ${website.id}`);
+        
+        try {
+          // Update status to building
+          await this.prisma.website.update({
+            where: { id: website.id },
+            data: { buildStatus: 'building' },
+          });
+
+          // Start build process
+          previewUrl = await this.buildService.buildReactProject(website.id, sanitizedFiles);
+          
+          // Get build process details
+          const buildProcess = this.buildService.getBuildStatus(website.id);
+          buildOutput = buildProcess?.buildOutput || [];
+          buildDuration = buildProcess?.endTime && buildProcess?.startTime 
+            ? Math.floor((buildProcess.endTime.getTime() - buildProcess.startTime.getTime()) / 1000)
+            : null;
+
+          this.logger.log(`✅ Build completed successfully for website ${website.id}`);
+          this.logger.log(`🌐 Preview URL: ${previewUrl}`);
+
+        } catch (error) {
+          this.logger.error(`❌ Build failed for website ${website.id}:`, error);
+          
+          // Update status to failed
+          await this.prisma.website.update({
+            where: { id: website.id },
+            data: { 
+              buildStatus: 'failed',
+              buildOutput: [`Build failed: ${error.message}`],
+            },
+          });
+
+          // Return website with failed status
+          return {
+            success: true,
+            website: await this.prisma.website.findUnique({ where: { id: website.id } }),
+            buildError: error.message,
+          };
+        }
+      } else {
+        // Static HTML files - create direct preview URL
+        this.logger.log(`📄 Creating static HTML preview for website: ${website.id}`);
+        
+        try {
+          // Find the main HTML file
+          const htmlFile = sanitizedFiles.find(file => 
+            file.name.toLowerCase().endsWith('.html') && 
+            (file.name.toLowerCase() === 'index.html' || file.name.toLowerCase() === 'main.html')
+          ) || sanitizedFiles.find(file => file.name.toLowerCase().endsWith('.html'));
+
+          if (htmlFile) {
+            // Create a simple preview URL that serves the HTML content
+            previewUrl = `/api/website-builder/${website.id}/preview`;
+            this.logger.log(`🌐 Static HTML preview URL: ${previewUrl}`);
+          } else {
+            this.logger.warn(`⚠️ No HTML file found for static preview`);
+          }
+        } catch (error) {
+          this.logger.error(`❌ Error creating static preview: ${error.message}`);
+        }
+      }
+
+      // Final update with build results
+      const finalWebsite = await this.prisma.website.update({
+        where: { id: website.id },
+        data: {
+          buildStatus: previewUrl ? 'running' : 'pending',
+          previewUrl: previewUrl || null,
+          buildOutput: buildOutput as any || null,
+          lastBuildAt: new Date(),
+          buildDuration: buildDuration || null,
+        },
+      });
+
+      this.logger.log(`📊 Website details:`, {
+        id: finalWebsite.id,
+        name: finalWebsite.name,
+        type: finalWebsite.type,
+        fileCount: storageStats.fileCount,
+        totalSize: storageStats.totalSize,
+        buildStatus: finalWebsite.buildStatus,
+        previewUrl: finalWebsite.previewUrl,
+        storageProvider: finalWebsite.storageProvider,
+        createdByAdminId: adminId
+      });
+
+      return {
+        success: true,
+        website: finalWebsite,
+        previewUrl,
+        fileCount: storageStats.fileCount,
+      };
+
+    } catch (error) {
+      this.logger.error(`❌ Error processing website upload: ${error.message}`);
+      
+      // Cleanup on failure
       try {
-        // Update status to building
-        await this.prisma.website.update({
-          where: { id: website.id },
-          data: { buildStatus: 'building' },
-        });
+        await this.fileProcessing.deleteWebsiteFiles(website.id);
+        await this.prisma.website.delete({ where: { id: website.id } });
+      } catch (cleanupError) {
+        this.logger.error(`❌ Error during cleanup: ${cleanupError.message}`);
+      }
+      
+      throw error;
+    }
+  }
 
-        // Start build process
-        previewUrl = await this.buildService.buildReactProject(website.id, sanitizedFiles);
-        
-        // Get build process details
-        const buildProcess = this.buildService.getBuildStatus(website.id);
-        buildOutput = buildProcess?.buildOutput || [];
-        buildDuration = buildProcess?.endTime && buildProcess?.startTime 
-          ? Math.floor((buildProcess.endTime.getTime() - buildProcess.startTime.getTime()) / 1000)
-          : null;
-
-        this.logger.log(`✅ Build completed successfully for website ${website.id}`);
-        this.logger.log(`🌐 Preview URL: ${previewUrl}`);
-
-      } catch (error) {
-        this.logger.error(`❌ Build failed for website ${website.id}:`, error);
-        
-        // Update status to failed
-        await this.prisma.website.update({
-          where: { id: website.id },
-          data: { 
-            buildStatus: 'failed',
-            buildOutput: [`Build failed: ${error.message}`],
-          },
-        });
-
-        // Return website with failed status
-        return {
-          success: true,
-          website: await this.prisma.website.findUnique({ where: { id: website.id } }),
-          buildError: error.message,
-        };
+  /**
+   * Create ZIP buffer from uploaded files
+   */
+  private async createZipFromFiles(files: UploadedFile[]): Promise<Buffer> {
+    const zip = new JSZip();
+    
+    for (const file of files) {
+      if (file.mimetype === 'application/zip' || file.mimetype === 'application/x-zip-compressed' || file.originalname.endsWith('.zip')) {
+        // If it's already a ZIP, extract and add its contents
+        const extractedFiles = await this.extractZipFile(file.buffer);
+        for (const extractedFile of extractedFiles) {
+          zip.file(extractedFile.name, extractedFile.content);
+        }
+      } else {
+        // Add individual file
+        const content = file.buffer.toString('utf8');
+        zip.file(file.originalname, content);
       }
     }
+    
+    return await zip.generateAsync({ type: 'nodebuffer' });
+  }
 
-    // Update website with build results
-    const updatedWebsite = await this.prisma.website.update({
-      where: { id: website.id },
-      data: {
-        buildStatus: previewUrl ? 'running' : 'pending',
-        previewUrl: previewUrl || null,
-        buildOutput: buildOutput as any || null,
-        lastBuildAt: new Date(),
-        buildDuration: buildDuration || null,
-      },
-    });
+  /**
+   * Get file contents for analysis from R2 storage
+   */
+  private async getFileContentsForAnalysis(fileRecords: WebsiteFile[]): Promise<Array<{
+    name: string;
+    content: string;
+    type: string;
+    size: number;
+  }>> {
+    const fileContents: Array<{
+      name: string;
+      content: string;
+      type: string;
+      size: number;
+    }> = [];
+    
+    for (const fileRecord of fileRecords) {
+      try {
+        const content = await this.fileProcessing.getFileContent(fileRecord.websiteId, fileRecord.path);
+        fileContents.push({
+          name: fileRecord.name,
+          content: content.toString('utf8'),
+          type: fileRecord.type,
+          size: fileRecord.size,
+        });
+      } catch (error) {
+        this.logger.warn(`Failed to get content for file ${fileRecord.path}: ${error.message}`);
+      }
+    }
+    
+    return fileContents;
+  }
 
-    this.logger.log(`📊 Website details:`, {
-      id: updatedWebsite.id,
-      name: updatedWebsite.name,
-      type: updatedWebsite.type,
-      fileCount: sanitizedFiles.length,
-      buildStatus: updatedWebsite.buildStatus,
-      previewUrl: updatedWebsite.previewUrl,
-      createdByAdminId: adminId
-    });
-
-    return {
-      success: true,
-      website: updatedWebsite,
-      previewUrl,
-    };
+  /**
+   * Check if project should be built
+   */
+  private shouldBuildProject(websiteType: string): boolean {
+    return ['react-vite', 'react', 'vite', 'nextjs'].includes(websiteType);
   }
 
   private async extractZipFile(buffer: Buffer): Promise<Array<{
@@ -463,6 +528,29 @@ export class WebsiteBuilderService {
     });
   }
 
+  async getWebsiteFiles(websiteId: string, adminId: number) {
+    // Verify admin owns the website
+    const website = await this.prisma.website.findFirst({
+      where: { id: websiteId, createdByAdminId: adminId },
+    });
+
+    if (!website) {
+      throw new Error('Website not found or access denied');
+    }
+
+    return this.prisma.websiteFile.findMany({
+      where: { websiteId },
+      orderBy: { path: 'asc' },
+    });
+  }
+
+  async getFileContent(websiteId: string, filePath: string, adminId: number): Promise<Buffer> {
+    // Verify admin access
+    await this.findWebsiteById(websiteId, adminId);
+    
+    return this.fileProcessing.getFileContent(websiteId, filePath);
+  }
+
   async findWebsiteById(id: string, adminId: number) {
     const website = await this.prisma.website.findFirst({
       where: { 
@@ -499,13 +587,9 @@ export class WebsiteBuilderService {
     const website = await this.findWebsiteById(id, adminId);
 
     try {
-      // Parse files from JSON and ensure proper typing
-      const files = Array.isArray(website.files) ? website.files as Array<{
-        name: string;
-        content: string;
-        type: string;
-        size: number;
-      }> : [];
+      // Get files from R2 storage
+      const fileRecords = await this.getWebsiteFiles(id, adminId);
+      const files = await this.getFileContentsForAnalysis(fileRecords);
       
       // Prepare context for AI
       const context = {
@@ -599,11 +683,31 @@ export class WebsiteBuilderService {
         }
       }
 
-      // Update website with new files
+      // Update website files through WebsiteFile model
+      // First, delete existing files
+      await this.prisma.websiteFile.deleteMany({
+        where: { websiteId: id },
+      });
+
+      // Then create new files
+      for (const file of updatedFiles) {
+        await this.prisma.websiteFile.create({
+          data: {
+            websiteId: id,
+            name: file.name,
+            path: file.name, // Assuming path is the same as name for now
+            r2Key: `websites/${id}/${file.name}`,
+            r2Url: `https://your-r2-domain.com/websites/${id}/${file.name}`,
+            size: file.size,
+            type: file.type,
+          },
+        });
+      }
+
+      // Update website
       const updatedWebsite = await this.prisma.website.update({
         where: { id },
         data: {
-          files: updatedFiles,
           updatedAt: new Date(),
         },
       });
@@ -751,13 +855,9 @@ export class WebsiteBuilderService {
       });
       
       try {
-        // Parse files from JSON
-        const files = Array.isArray(website.files) ? website.files as Array<{
-          name: string;
-          content: string;
-          type: string;
-          size: number;
-        }> : [];
+        // Get files from WebsiteFile relation
+        const fileRecords = await this.getWebsiteFiles(id, adminId);
+        const files = await this.getFileContentsForAnalysis(fileRecords);
         
         // Restart build process
         const previewUrl = await this.buildService.buildReactProject(id, files);

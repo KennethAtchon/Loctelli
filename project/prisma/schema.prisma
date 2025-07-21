@@ -207,9 +207,11 @@ model Website {
   name        String   @unique
   description String?
   type        String   // 'static', 'vite', 'react', 'nextjs'
-  structure   Json     // Parsed HTML/CSS/JS structure
-  files       Json     // File metadata and content
-  status      String   @default("active") // 'active', 'archived', 'draft'
+  structure   Json     // Parsed HTML/CSS/JS structure (metadata only)
+  
+  // R2 File References (instead of file content)
+  originalZipUrl String?  // R2 URL to original ZIP file
+  extractedFiles Json?    // File metadata: [{name, path, size, type, r2Key}]
   
   // Build-related fields for React/Vite projects
   buildStatus String?  @default("pending") // 'pending', 'building', 'running', 'failed', 'stopped'
@@ -220,6 +222,11 @@ model Website {
   lastBuildAt DateTime?
   buildDuration Int?   // Build duration in seconds
   
+  // Storage metadata
+  storageProvider String @default("r2") // 'database', 'r2', 'hybrid'
+  totalFileSize   Int?   // Total size of all files in bytes
+  fileCount       Int?   // Number of files
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
@@ -227,6 +234,26 @@ model Website {
   createdByAdminId Int
   createdByAdmin  AdminUser @relation(fields: [createdByAdminId], references: [id])
   changeHistory   WebsiteChange[] // AI modification history
+  files           WebsiteFile[]   // Individual file records
+}
+
+model WebsiteFile {
+  id          String   @id @default(cuid())
+  websiteId   String
+  website     Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  
+  name        String   // Original filename
+  path        String   // File path within project
+  r2Key       String   // R2 storage key
+  r2Url       String   // Public R2 URL
+  size        Int      // File size in bytes
+  type        String   // MIME type
+  hash        String?  // File hash for caching
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([websiteId, path])
 }
 
 model WebsiteChange {

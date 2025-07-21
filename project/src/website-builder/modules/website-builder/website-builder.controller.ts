@@ -101,22 +101,49 @@ export class WebsiteBuilderController {
     const adminId = user.userId || user.id;
     const website = await this.websiteBuilderService.findWebsiteById(id, adminId);
     
-    // Add debug information
-    const files = website.files as any[] || [];
+    // Get files from the relation
+    const files = await this.websiteBuilderService.getWebsiteFiles(id, adminId);
+    
     const debugInfo = {
       ...website,
       debug: {
         fileCount: files.length,
         fileNames: files.map(f => f.name) || [],
-        fileTypes: files.map(f => ({ name: f.name, type: f.type, size: f.content?.length || 0 })) || [],
+        fileTypes: files.map(f => ({ name: f.name, type: f.type, size: f.size })) || [],
         htmlFiles: files.filter(f => f.name.toLowerCase().endsWith('.html') || f.name.toLowerCase().endsWith('.htm')) || [],
         hasPackageJson: files.some(f => f.name === 'package.json') || false,
         hasViteConfig: files.some(f => f.name.includes('vite.config')) || false,
-        totalContentSize: files.reduce((sum, f) => sum + (f.content?.length || 0), 0) || 0
+        totalContentSize: files.reduce((sum, f) => sum + f.size, 0) || 0
       }
     };
     
     return debugInfo;
+  }
+
+  @Get(':id/preview')
+  async previewWebsite(@Param('id') id: string, @CurrentUser() user: any) {
+    const adminId = user.userId || user.id;
+    const website = await this.websiteBuilderService.findWebsiteById(id, adminId);
+    const files = await this.websiteBuilderService.getWebsiteFiles(id, adminId);
+    
+    // Find the main HTML file
+    const htmlFile = files.find(file => 
+      file.name.toLowerCase().endsWith('.html') && 
+      (file.name.toLowerCase() === 'index.html' || file.name.toLowerCase() === 'main.html')
+    ) || files.find(file => file.name.toLowerCase().endsWith('.html'));
+
+    if (!htmlFile) {
+      throw new BadRequestException('No HTML file found for preview');
+    }
+
+    // Get the HTML content from R2
+    const htmlContent = await this.websiteBuilderService.getFileContent(id, htmlFile.path, adminId);
+    
+    return {
+      website,
+      htmlContent: htmlContent.toString('utf8'),
+      htmlFile: htmlFile.name,
+    };
   }
 
   @Patch(':id')
