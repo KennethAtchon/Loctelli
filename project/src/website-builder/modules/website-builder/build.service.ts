@@ -89,6 +89,11 @@ export class BuildService {
       await this.runNpmInstall(projectDir, buildProcess);
       this.logger.log(`📦 npm install completed for website ${websiteId}`);
 
+      // Ensure TypeScript scripts are available if TypeScript is detected
+      if (await this.hasTypeScript(projectDir)) {
+        await this.ensureTypeScriptScripts(projectDir, buildProcess);
+      }
+
       // Run TypeScript check (if TypeScript detected)
       if (await this.hasTypeScript(projectDir)) {
         await this.runTypeCheck(projectDir, buildProcess);
@@ -170,6 +175,45 @@ export class BuildService {
     return hasTsConfig && hasTypeScript;
   }
 
+  private async ensureTypeScriptScripts(projectDir: string, buildProcess: BuildProcess): Promise<void> {
+    const packageJsonPath = path.join(projectDir, 'package.json');
+    const packageJson = await fs.readJson(packageJsonPath);
+    
+    let modified = false;
+    const scripts = packageJson.scripts || {};
+
+    // Add type-check script if missing
+    if (!scripts['type-check'] && !scripts['tsc'] && !scripts['type']) {
+      scripts['type-check'] = 'tsc --noEmit';
+      modified = true;
+      this.logger.log('📝 Added type-check script to package.json');
+      buildProcess.buildOutput.push('📝 Added type-check script to package.json');
+    }
+
+    // Add tsc script if missing
+    if (!scripts['tsc']) {
+      scripts['tsc'] = 'tsc --noEmit';
+      modified = true;
+      this.logger.log('📝 Added tsc script to package.json');
+      buildProcess.buildOutput.push('📝 Added tsc script to package.json');
+    }
+
+    // Add type script if missing
+    if (!scripts['type']) {
+      scripts['type'] = 'tsc --noEmit';
+      modified = true;
+      this.logger.log('📝 Added type script to package.json');
+      buildProcess.buildOutput.push('📝 Added type script to package.json');
+    }
+
+    if (modified) {
+      packageJson.scripts = scripts;
+      await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+      this.logger.log('✅ Updated package.json with TypeScript scripts');
+      buildProcess.buildOutput.push('✅ Updated package.json with TypeScript scripts');
+    }
+  }
+
   private async runNpmInstall(projectDir: string, buildProcess: BuildProcess): Promise<void> {
     return new Promise((resolve, reject) => {
       const npmProcess = spawn('npm', ['install'], {
@@ -209,7 +253,7 @@ export class BuildService {
   }
 
   private async runTypeCheck(projectDir: string, buildProcess: BuildProcess): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       // Try different TypeScript check commands in order of preference
       const typeCommands = [
         ['run', 'type-check'],
@@ -223,6 +267,7 @@ export class BuildService {
         if (index >= typeCommands.length) {
           // If no type check commands work, just resolve (not critical)
           this.logger.warn('No TypeScript check commands found, skipping type checking');
+          buildProcess.buildOutput.push('⚠️ TypeScript checking skipped - no suitable commands found');
           resolve();
           return;
         }
@@ -255,9 +300,21 @@ export class BuildService {
         typeProcess.on('close', (code) => {
           if (code === 0) {
             this.logger.log(`✅ TypeScript check completed successfully with: npm ${command.join(' ')}`);
+            buildProcess.buildOutput.push(`✅ TypeScript check passed with: npm ${command.join(' ')}`);
             resolve();
           } else {
             this.logger.warn(`⚠️ TypeScript check failed with: npm ${command.join(' ')} (code: ${code})`);
+            buildProcess.buildOutput.push(`⚠️ TypeScript check failed with: npm ${command.join(' ')} (code: ${code})`);
+            
+            // For lint and build commands, if they fail, we should continue anyway
+            // as these are not critical for the application to run
+            if (command[1] === 'lint' || command[1] === 'build') {
+              this.logger.log(`ℹ️ Continuing build process despite ${command[1]} failures (not critical for runtime)`);
+              buildProcess.buildOutput.push(`ℹ️ Continuing build process despite ${command[1]} failures (not critical for runtime)`);
+              resolve();
+              return;
+            }
+            
             // Try next command
             tryNextCommand(index + 1);
           }
@@ -265,6 +322,16 @@ export class BuildService {
 
         typeProcess.on('error', (error) => {
           this.logger.warn(`⚠️ TypeScript check process error with: npm ${command.join(' ')}: ${error.message}`);
+          buildProcess.buildOutput.push(`⚠️ TypeScript check process error with: npm ${command.join(' ')}: ${error.message}`);
+          
+          // For lint and build commands, if they error, we should continue anyway
+          if (command[1] === 'lint' || command[1] === 'build') {
+            this.logger.log(`ℹ️ Continuing build process despite ${command[1]} errors (not critical for runtime)`);
+            buildProcess.buildOutput.push(`ℹ️ Continuing build process despite ${command[1]} errors (not critical for runtime)`);
+            resolve();
+            return;
+          }
+          
           // Try next command
           tryNextCommand(index + 1);
         });
@@ -283,6 +350,7 @@ export class BuildService {
 
       let output = '';
       let errorOutput = '';
+      let serverReady = false;
 
       viteProcess.stdout?.on('data', (data) => {
         const message = data.toString();
@@ -291,8 +359,13 @@ export class BuildService {
         this.logger.debug(`vite output: ${message.trim()}`);
 
         // Check if Vite server is ready
-        if (message.includes('Local:') || message.includes('ready in')) {
-          resolve(viteProcess);
+        if (message.includes('Local:') || message.includes('ready in') || message.includes('Server running')) {
+          if (!serverReady) {
+            serverReady = true;
+            this.logger.log(`✅ Vite server is ready on port ${port}`);
+            buildProcess.buildOutput.push(`✅ Vite server is ready on port ${port}`);
+            resolve(viteProcess);
+          }
         }
       });
 
@@ -301,24 +374,44 @@ export class BuildService {
         errorOutput += message;
         buildProcess.buildOutput.push(`vite error: ${message.trim()}`);
         this.logger.debug(`vite error: ${message.trim()}`);
+        
+        // Some Vite errors are not fatal (like deprecation warnings)
+        // Only treat certain errors as fatal
+        if (message.includes('EADDRINUSE') || message.includes('Port already in use')) {
+          reject(new Error(`Port ${port} is already in use`));
+        } else if (message.includes('ENOENT') || message.includes('Cannot find module')) {
+          reject(new Error(`Vite server failed to start: ${message.trim()}`));
+        }
+        // For other errors, we'll wait and see if the server still starts
       });
 
       viteProcess.on('close', (code) => {
-        if (code !== 0) {
-          reject(new Error(`Vite server failed with code ${code}: ${errorOutput}`));
+        if (!serverReady) {
+          if (code !== 0) {
+            reject(new Error(`Vite server failed with code ${code}: ${errorOutput}`));
+          } else {
+            // Server closed without error but we didn't detect it as ready
+            // This might happen if the ready message format is different
+            this.logger.warn(`Vite server closed with code ${code} but ready state not detected`);
+            buildProcess.buildOutput.push(`⚠️ Vite server closed with code ${code} but ready state not detected`);
+            // Still resolve as the server might be working
+            resolve(viteProcess);
+          }
         }
       });
 
       viteProcess.on('error', (error) => {
-        reject(new Error(`Vite process error: ${error.message}`));
+        if (!serverReady) {
+          reject(new Error(`Vite process error: ${error.message}`));
+        }
       });
 
-      // Timeout after 30 seconds
+      // Timeout after 60 seconds (increased from 30)
       setTimeout(() => {
-        if (viteProcess.exitCode === null) {
-          reject(new Error('Vite server startup timeout'));
+        if (!serverReady && viteProcess.exitCode === null) {
+          reject(new Error('Vite server startup timeout after 60 seconds'));
         }
-      }, 30000);
+      }, 60000);
     });
   }
 

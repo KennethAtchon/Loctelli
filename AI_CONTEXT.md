@@ -92,11 +92,12 @@
     - **BuildService**: Manages React/Vite project builds with npm install, TypeScript checking, and Vite server startup
     - **Port Management**: Dynamic port allocation (4000-4999 range) with conflict detection
     - **Process Isolation**: Isolated build directories with automatic cleanup
-    - **TypeScript Support**: Multiple fallback commands (type-check, tsc, type, lint, build)
-    - **Vite Integration**: Automatic Vite dev server startup with proper host configuration
+    - **TypeScript Support**: Multiple fallback commands (type-check, tsc, type, lint, build) with automatic script injection
+    - **Vite Integration**: Automatic Vite dev server startup with proper host configuration and 60-second timeout
     - **Real-time Monitoring**: Build status tracking with detailed output logging
-    - **Error Handling**: Comprehensive error handling with graceful failure recovery
+    - **Error Handling**: Comprehensive error handling with graceful failure recovery and non-critical error tolerance
     - **Resource Management**: Maximum 10 concurrent builds with automatic cleanup
+    - **Resilient Build Process**: Continues build even if TypeScript checking fails (lint/build errors are non-critical)
   - ✅ **Database Schema Alignment** - Website model matches implementation ✅
     - **Build Fields**: buildStatus, previewUrl, processId, buildOutput, portNumber, lastBuildAt, buildDuration
     - **Type Detection**: Automatic detection of 'static', 'react-vite', 'react', 'vite' project types

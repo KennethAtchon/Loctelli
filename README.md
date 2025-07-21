@@ -1023,14 +1023,15 @@ The Website Builder is a comprehensive React/Vite build and hosting platform tha
 #### **3. Build Process Management**
 - **Real-time Monitoring**: Live build status with detailed output logging
 - **Progress Tracking**: Visual progress indicators with build duration tracking
-- **Error Handling**: Comprehensive error handling with graceful failure recovery
+- **Error Handling**: Comprehensive error handling with graceful failure recovery and non-critical error tolerance
 - **Restart Capability**: Stop and restart build processes as needed
 - **Resource Management**: Maximum 10 concurrent builds with automatic cleanup
+- **Resilient Build Process**: Continues build even if TypeScript checking fails (lint/build errors are non-critical)
 
 #### **4. Security & Validation**
 - **File Sanitization**: Security validation and sanitization of uploaded files
 - **Package.json Validation**: Checks for dangerous scripts and required dependencies
-- **TypeScript Support**: Multiple fallback commands for TypeScript checking
+- **TypeScript Support**: Multiple fallback commands for TypeScript checking with automatic script injection
 - **Process Isolation**: Isolated build directories for security
 
 #### **5. Database Integration**
@@ -1110,6 +1111,9 @@ DELETE /website-builder/:id           # Delete website
 ```
 
 ### **Recent Fixes & Improvements**
+- **Build Process Resilience**: Enhanced build process to continue even if TypeScript checking fails (lint/build errors are non-critical)
+- **TypeScript Script Injection**: Automatic addition of missing TypeScript scripts to package.json for better compatibility
+- **Vite Server Improvements**: Increased timeout to 60 seconds and better error handling for Vite server startup
 - **Upload Error Fix**: Resolved admin authentication issues in file upload
 - **HTML Preview Fix**: Fixed static HTML file preview with proper blob URL creation
 - **ZIP Processing**: Enhanced ZIP file processing with better error handling
