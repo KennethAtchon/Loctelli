@@ -11,6 +11,8 @@ import { useRef } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Bell } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useSSEConnection } from "@/hooks/use-sse-connection";
+import { useToast } from "@/hooks/use-toast";
 
 const api = new WebsiteBuilderApi();
 
@@ -35,6 +37,8 @@ export default function DashboardPage() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loadingNotifs, setLoadingNotifs] = useState(false);
   const [notifError, setNotifError] = useState<string | null>(null);
+
+  const { toast } = useToast();
 
   // Fetch job queue on mount and when jobs change
   useEffect(() => {
@@ -142,6 +146,28 @@ export default function DashboardPage() {
       setIsUploading(false);
     }
   };
+
+  // SSE connection for real-time updates
+  useSSEConnection({
+    url: "/api/website-builder/user/queue/stream", // adjust if needed
+    onEvent: (evt) => {
+      if (evt.event === "notification") {
+        toast({
+          title: evt.data.title || "Notification",
+          description: evt.data.message,
+        });
+        fetchNotifications();
+      }
+      if (evt.event === "job_update") {
+        toast({
+          title: evt.data.status ? `Job ${evt.data.status}` : "Job Update",
+          description: evt.data.currentStep || undefined,
+        });
+        // Optionally, refresh jobs
+        // setTimeout(fetchJobs, 500);
+      }
+    },
+  });
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center py-10">
