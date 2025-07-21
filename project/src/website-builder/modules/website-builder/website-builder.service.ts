@@ -279,6 +279,19 @@ export class WebsiteBuilderService {
       let processedCount = 0;
       let skippedCount = 0;
 
+      // Find the root directory name by looking at the first few entries
+      const entries = Object.keys(zipContent.files);
+      let rootDir = '';
+      
+      if (entries.length > 0) {
+        const firstEntry = entries[0];
+        const pathParts = firstEntry.split('/');
+        if (pathParts.length > 1 && pathParts[0] && pathParts[0] !== '') {
+          rootDir = pathParts[0];
+          this.logger.log(`📁 Detected root directory: ${rootDir}`);
+        }
+      }
+
       for (const [filename, file] of Object.entries(zipContent.files)) {
         this.logger.log(`📦 Processing ZIP entry: ${filename} (directory: ${file.dir})`);
         
@@ -297,21 +310,28 @@ export class WebsiteBuilderService {
               content = new TextDecoder('utf-8').decode(uint8Array);
             }
             
-            const fileType = this.getFileType(filename);
+            // Remove root directory prefix if present
+            let normalizedName = filename;
+            if (rootDir && filename.startsWith(`${rootDir}/`)) {
+              normalizedName = filename.substring(rootDir.length + 1);
+              this.logger.log(`📁 Normalized filename: ${filename} -> ${normalizedName}`);
+            }
             
-            this.logger.log(`📄 File extracted: ${filename} (${content.length} chars, type: ${fileType})`);
+            const fileType = this.getFileType(normalizedName);
+            
+            this.logger.log(`📄 File extracted: ${normalizedName} (${content.length} chars, type: ${fileType})`);
             
             // Validate content is not empty
             if (content && content.trim().length > 0) {
               files.push({
-                name: filename,
+                name: normalizedName,
                 content,
                 type: fileType,
                 size: content.length,
               });
               processedCount++;
             } else {
-              this.logger.warn(`⚠️ Skipping empty file: ${filename}`);
+              this.logger.warn(`⚠️ Skipping empty file: ${normalizedName}`);
               skippedCount++;
             }
           } catch (error) {
@@ -340,8 +360,11 @@ export class WebsiteBuilderService {
   private detectWebsiteType(files: Array<{ name: string; content: string; type: string; size: number }>): string {
     const fileNames = files.map(f => f.name.toLowerCase());
     
+    this.logger.log(`🔍 Detecting website type from files: ${fileNames.slice(0, 10).join(', ')}...`);
+    
     // Check for Vite project
     if (fileNames.includes('vite.config.js') || fileNames.includes('vite.config.ts')) {
+      this.logger.log(`🏷️ Detected Vite project (vite.config found)`);
       return 'vite';
     }
     
@@ -352,20 +375,22 @@ export class WebsiteBuilderService {
         try {
           const pkg = JSON.parse(packageJson.content);
           if (pkg.dependencies?.react || pkg.devDependencies?.react) {
+            this.logger.log(`🏷️ Detected React project (React dependency found in package.json)`);
             return 'react';
           }
         } catch (error) {
-          // Continue with other checks
+          this.logger.warn(`⚠️ Failed to parse package.json: ${error.message}`);
         }
       }
     }
     
     // Check for Next.js project
     if (fileNames.includes('next.config.js') || fileNames.includes('next.config.ts')) {
+      this.logger.log(`🏷️ Detected Next.js project (next.config found)`);
       return 'nextjs';
     }
     
-    // Default to static
+    this.logger.log(`🏷️ Defaulting to static website type`);
     return 'static';
   }
 
