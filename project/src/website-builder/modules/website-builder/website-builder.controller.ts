@@ -145,6 +145,8 @@ export class WebsiteBuilderController {
     return this.websiteBuilderService.aiEditWebsite(id, aiEditDto, adminId);
   }
 
+
+
   @Get(':id/changes')
   getChangeHistory(@Param('id') id: string, @CurrentUser() user: any) {
     const adminId = user.userId || user.id;

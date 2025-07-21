@@ -154,9 +154,9 @@ export default function PreviewPage() {
               No HTML file found for this website. Please edit the website to add an entry point.
             </p>
             <Button asChild>
-              <Link href={`/editor/${websiteId}`}>
+              <Link href="/">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Edit Website
+                Back to Editor
               </Link>
             </Button>
           </CardContent>
@@ -173,7 +173,7 @@ export default function PreviewPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button asChild variant="outline">
-                <Link href={`/editor/${websiteId}`}>
+                <Link href="/">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to Editor
                 </Link>
