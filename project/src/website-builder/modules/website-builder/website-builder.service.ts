@@ -222,6 +222,14 @@ export class WebsiteBuilderService {
         },
       });
 
+      // Get the website files for the response
+      this.logger.log(`🔍 Fetching website files for response...`);
+      const websiteFiles = await this.fileProcessing.getWebsiteFiles(finalWebsite.id);
+      this.logger.log(`📁 Found ${websiteFiles.length} website files in database`);
+      
+      const filesWithContent = await this.getFileContentsForAnalysis(websiteFiles);
+      this.logger.log(`📄 Retrieved content for ${filesWithContent.length} files`);
+
       this.logger.log(`📊 Website details:`, {
         id: finalWebsite.id,
         name: finalWebsite.name,
@@ -231,12 +239,16 @@ export class WebsiteBuilderService {
         buildStatus: finalWebsite.buildStatus,
         previewUrl: finalWebsite.previewUrl,
         storageProvider: finalWebsite.storageProvider,
-        createdByAdminId: adminId
+        createdByAdminId: adminId,
+        filesCount: filesWithContent.length
       });
 
       return {
         success: true,
-        website: finalWebsite,
+        website: {
+          ...finalWebsite,
+          files: filesWithContent
+        },
         previewUrl,
         fileCount: storageStats.fileCount,
       };
