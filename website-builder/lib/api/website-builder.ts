@@ -204,4 +204,81 @@ export class WebsiteBuilderApi extends ApiClient {
   async restartWebsite(websiteId: string): Promise<{ success: boolean; previewUrl?: string }> {
     return this.post(`/website-builder/${websiteId}/restart`);
   }
+
+  // === ASYNC QUEUE & NOTIFICATIONS ===
+
+  // Get all jobs for the current user
+  async getUserQueue() {
+    return this.get('/website-builder/user/queue');
+  }
+
+  // Get all notifications for the current user
+  async getUserNotifications() {
+    return this.get('/website-builder/user/notifications');
+  }
+
+  // Get unread notifications for the current user
+  async getUnreadNotifications() {
+    return this.get('/website-builder/user/notifications/unread');
+  }
+
+  // Get unread notification count
+  async getUnreadCount() {
+    return this.get('/website-builder/user/notifications/unread-count');
+  }
+
+  // Mark a notification as read
+  async markNotificationAsRead(notificationId: string) {
+    return this.patch(`/website-builder/user/notifications/${notificationId}/read`);
+  }
+
+  // Mark all notifications as read
+  async markAllNotificationsAsRead() {
+    return this.patch('/website-builder/user/notifications/read-all');
+  }
+
+  // Delete a notification
+  async deleteNotification(notificationId: string) {
+    return this.delete(`/website-builder/user/notifications/${notificationId}`);
+  }
+
+  // Cancel a build job
+  async cancelJob(jobId: string) {
+    return this.delete(`/website-builder/jobs/${jobId}`);
+  }
+
+  // Retry a failed build job
+  async retryJob(jobId: string) {
+    return this.post(`/website-builder/jobs/${jobId}/retry`);
+  }
+
+  // Get job logs (if implemented)
+  async getJobLogs(jobId: string) {
+    return this.get(`/website-builder/jobs/${jobId}/logs`);
+  }
+
+  // Get job details
+  async getJob(jobId: string) {
+    return this.get(`/website-builder/jobs/${jobId}`);
+  }
+
+  // Get queue position for a job
+  async getJobQueuePosition(jobId: string) {
+    return this.get(`/website-builder/jobs/${jobId}/queue-position`);
+  }
+
+  // Get queue stats
+  async getQueueStats() {
+    return this.get('/website-builder/queue/stats');
+  }
+
+  // Get active workers
+  async getActiveWorkers() {
+    return this.get('/website-builder/queue/workers');
+  }
+
+  // Stream queue updates (SSE)
+  getQueueStreamUrl() {
+    return `${this.baseUrl}/website-builder/user/queue/stream`;
+  }
 } 

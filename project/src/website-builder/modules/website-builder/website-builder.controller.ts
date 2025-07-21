@@ -12,12 +12,20 @@ import {
   UploadedFiles,
   BadRequestException,
   Logger,
+  Res,
+  Query,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 import { WebsiteBuilderService } from './website-builder.service';
 import { CreateWebsiteDto } from './dto/create-website.dto';
 import { UpdateWebsiteDto } from './dto/update-website.dto';
 import { AiEditDto } from './dto/ai-edit.dto';
+import { BuildQueueService } from './services/build-queue.service';
+import { NotificationService } from './services/notification.service';
+import { BuildWorkerService } from './services/build-worker.service';
+import { RealTimeNotificationService } from './services/realtime-notification.service';
+import { QueueProcessorService } from './services/queue-processor.service';
 import { AdminGuard } from '../../../shared/guards/admin.guard';
 import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 
@@ -26,7 +34,14 @@ import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 export class WebsiteBuilderController {
   private readonly logger = new Logger(WebsiteBuilderController.name);
 
-  constructor(private readonly websiteBuilderService: WebsiteBuilderService) {}
+  constructor(
+    private readonly websiteBuilderService: WebsiteBuilderService,
+    private readonly buildQueueService: BuildQueueService,
+    private readonly notificationService: NotificationService,
+    private readonly buildWorkerService: BuildWorkerService,
+    private readonly realTimeNotificationService: RealTimeNotificationService,
+    private readonly queueProcessorService: QueueProcessorService,
+  ) {}
 
   @Post('upload')
   @UseInterceptors(FilesInterceptor('files'))
@@ -75,7 +90,35 @@ export class WebsiteBuilderController {
     const result = await this.websiteBuilderService.uploadWebsite(files, body.name, adminId, body.description);
     this.logger.log(`✅ Upload completed successfully. Website ID: ${result.website?.id}`);
     
-    return result;
+    if (!result.website) {
+      throw new BadRequestException('Failed to create website');
+    }
+    
+    // Queue the build job instead of building immediately
+    const jobId = await this.buildQueueService.enqueueJob({
+      websiteId: result.website.id,
+      userId: adminId,
+    });
+
+    // Get queue position
+    const queuePosition = await this.buildQueueService.getQueuePosition(jobId);
+
+    // Create initial notification
+    await this.notificationService.createBuildNotification(
+      adminId,
+      jobId,
+      'build_queued',
+      body.name,
+    );
+
+    this.logger.log(`📋 Build job ${jobId} queued at position ${queuePosition}`);
+    
+    return {
+      ...result,
+      jobId,
+      queuePosition,
+      message: `Website uploaded successfully. Build job queued at position ${queuePosition}.`,
+    };
   }
 
   @Post()
@@ -210,5 +253,184 @@ export class WebsiteBuilderController {
   restartWebsite(@Param('id') id: string, @CurrentUser() user: any) {
     const adminId = user.userId || user.id;
     return this.websiteBuilderService.restartWebsite(id, adminId);
+  }
+
+  // Queue Management Endpoints
+
+  @Get('user/queue')
+  async getUserQueue(@CurrentUser() user: any) {
+    const adminId = user.userId || user.id;
+    const jobs = await this.buildQueueService.getUserJobs(adminId);
+    const stats = await this.buildQueueService.getQueueStats();
+    
+    return {
+      jobs,
+      stats,
+    };
+  }
+
+  @Get('user/notifications')
+  async getUserNotifications(@CurrentUser() user: any) {
+    const adminId = user.userId || user.id;
+    return await this.notificationService.getUserNotifications(adminId);
+  }
+
+  @Get('user/notifications/unread')
+  async getUnreadNotifications(@CurrentUser() user: any) {
+    const adminId = user.userId || user.id;
+    return await this.notificationService.getUnreadNotifications(adminId);
+  }
+
+  @Get('user/notifications/unread-count')
+  async getUnreadCount(@CurrentUser() user: any) {
+    const adminId = user.userId || user.id;
+    return { count: await this.notificationService.getUnreadCount(adminId) };
+  }
+
+  @Patch('user/notifications/:id/read')
+  async markNotificationAsRead(
+    @Param('id') notificationId: string,
+    @CurrentUser() user: any,
+  ) {
+    const adminId = user.userId || user.id;
+    await this.notificationService.markAsRead(notificationId, adminId);
+    return { success: true };
+  }
+
+  @Patch('user/notifications/read-all')
+  async markAllNotificationsAsRead(@CurrentUser() user: any) {
+    const adminId = user.userId || user.id;
+    await this.notificationService.markAllAsRead(adminId);
+    return { success: true };
+  }
+
+  @Delete('user/notifications/:id')
+  async deleteNotification(
+    @Param('id') notificationId: string,
+    @CurrentUser() user: any,
+  ) {
+    const adminId = user.userId || user.id;
+    await this.notificationService.deleteNotification(notificationId, adminId);
+    return { success: true };
+  }
+
+  @Get('user/queue/stream')
+  async streamQueueUpdates(@CurrentUser() user: any, @Res() res: Response) {
+    const adminId = user.userId || user.id;
+    await this.realTimeNotificationService.handleSSEConnection(adminId, res);
+  }
+
+  @Get('jobs/:id')
+  async getJob(@Param('id') jobId: string, @CurrentUser() user: any) {
+    const adminId = user.userId || user.id;
+    const job = await this.buildQueueService.getJob(jobId);
+    
+    if (!job) {
+      throw new BadRequestException('Job not found');
+    }
+
+    if (job.userId !== adminId) {
+      throw new BadRequestException('Unauthorized to access this job');
+    }
+
+    return job;
+  }
+
+  @Get('jobs/:id/queue-position')
+  async getJobQueuePosition(@Param('id') jobId: string, @CurrentUser() user: any) {
+    const adminId = user.userId || user.id;
+    const job = await this.buildQueueService.getJob(jobId);
+    
+    if (!job) {
+      throw new BadRequestException('Job not found');
+    }
+
+    if (job.userId !== adminId) {
+      throw new BadRequestException('Unauthorized to access this job');
+    }
+
+    const position = await this.buildQueueService.getQueuePosition(jobId);
+    return { position };
+  }
+
+  @Delete('jobs/:id')
+  async cancelJob(@Param('id') jobId: string, @CurrentUser() user: any) {
+    const adminId = user.userId || user.id;
+    await this.buildQueueService.cancelJob(jobId, adminId);
+    
+    // Send cancellation notification
+    const job = await this.buildQueueService.getJob(jobId);
+    if (job) {
+      await this.notificationService.createBuildNotification(
+        adminId,
+        jobId,
+        'build_cancelled',
+        (job as any).website?.name || 'Unknown Website',
+      );
+    }
+
+    return { success: true };
+  }
+
+  @Post('jobs/:id/retry')
+  async retryJob(@Param('id') jobId: string, @CurrentUser() user: any) {
+    const adminId = user.userId || user.id;
+    const job = await this.buildQueueService.getJob(jobId);
+    
+    if (!job) {
+      throw new BadRequestException('Job not found');
+    }
+
+    if (job.userId !== adminId) {
+      throw new BadRequestException('Unauthorized to retry this job');
+    }
+
+    if (job.status !== 'failed') {
+      throw new BadRequestException('Only failed jobs can be retried');
+    }
+
+    // Create a new job with the same parameters
+    const newJobId = await this.buildQueueService.enqueueJob({
+      websiteId: job.websiteId,
+      userId: adminId,
+      priority: job.priority,
+    });
+
+    return { 
+      success: true, 
+      newJobId,
+      message: 'Job queued for retry',
+    };
+  }
+
+  @Get('queue/stats')
+  async getQueueStats() {
+    return await this.buildQueueService.getQueueStats();
+  }
+
+  @Get('queue/workers')
+  async getActiveWorkers() {
+    const workers = this.buildWorkerService.getActiveWorkers();
+    return Array.from(workers.entries()).map(([jobId, worker]) => ({
+      jobId,
+      status: worker.status,
+      startTime: worker.startTime,
+    }));
+  }
+
+  @Get('queue/health')
+  async getQueueHealth() {
+    return await this.queueProcessorService.getQueueHealth();
+  }
+
+  @Post('queue/trigger')
+  async triggerQueueProcessing() {
+    await this.queueProcessorService.triggerProcessing();
+    return { success: true, message: 'Queue processing triggered' };
+  }
+
+  @Get('queue/status')
+  async getQueueStatus() {
+    return this.queueProcessorService.getProcessingStatus();
   }
 } 

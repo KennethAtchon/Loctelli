@@ -764,6 +764,79 @@ npm run db:reset
 npm run db:generate
 ```
 
+### 🔄 **Database Reset & Fresh Prisma Setup**
+
+If you need to start fresh with Prisma (remove all migrations and start over):
+
+```bash
+cd project
+
+# 1. Stop the application and database
+docker-compose down
+
+# 2. Remove all migration files (keep schema.prisma)
+rm -rf prisma/migrations
+
+# 3. Start database fresh
+docker-compose up -d db redis
+
+# 4. Reset Prisma state (removes migration history)
+npx prisma migrate reset --force
+
+# 5. Create initial migration from current schema
+npx prisma migrate dev --name init
+
+# 6. Generate Prisma client
+npx prisma generate
+
+# 7. Seed the database (if you have seed data)
+npm run db:seed
+
+# 8. Start the application
+npm run start:dev
+```
+
+**⚠️ Warning**: This will completely remove all migration history and data. Only use in development!
+
+**Alternative: Keep Data, Reset Migrations**
+If you want to keep your data but reset migration history:
+
+```bash
+cd project
+
+# 1. Create a backup of your current data (optional)
+pg_dump your_database > backup.sql
+
+# 2. Remove migration files but keep schema
+rm -rf prisma/migrations
+
+# 3. Create new initial migration (this will match current DB state)
+npx prisma migrate dev --name init --create-only
+
+# 4. Mark migration as applied (since DB already matches schema)
+npx prisma migrate resolve --applied init
+
+# 5. Generate client
+npx prisma generate
+```
+
+**Troubleshooting Prisma Issues**
+```bash
+# If you get "database is not in sync" errors:
+npx prisma db push --force-reset
+
+# If you need to reset everything:
+npx prisma migrate reset --force
+npx prisma generate
+npx prisma db push
+
+# Check database connection:
+npx prisma db pull
+
+# View current migration status:
+npx prisma migrate status
+```
+
 ## 🐳 Docker Development
 
 Run the entire stack with Docker:

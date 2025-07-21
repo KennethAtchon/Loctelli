@@ -30,6 +30,8 @@ model AdminUser {
   integrations    Integration[] // Integrations created by this admin
   websites        Website[]   // Websites created by this admin
   websiteChanges  WebsiteChange[] // Website changes created by this admin
+  buildJobs       BuildJob[]      // Build jobs initiated by this admin
+  notifications   UserNotification[] // Notifications for this admin
 }
 
 model SubAccount {
@@ -235,6 +237,7 @@ model Website {
   createdByAdmin  AdminUser @relation(fields: [createdByAdminId], references: [id])
   changeHistory   WebsiteChange[] // AI modification history
   files           WebsiteFile[]   // Individual file records
+  buildJobs       BuildJob[]      // Build jobs for this website
 }
 
 model WebsiteFile {
@@ -269,4 +272,48 @@ model WebsiteChange {
   // Relationships
   createdByAdminId Int
   createdByAdmin  AdminUser @relation(fields: [createdByAdminId], references: [id])
+}
+
+// Asynchronous Queue System Models
+
+model BuildJob {
+  id              String   @id @default(cuid())
+  websiteId       String
+  website         Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  userId          Int      // Admin user who initiated the build
+  user            AdminUser @relation(fields: [userId], references: [id])
+  
+  status          String   @default("pending") // 'pending', 'queued', 'building', 'completed', 'failed', 'cancelled'
+  priority        Int      @default(0) // Higher number = higher priority
+  progress        Int      @default(0) // 0-100 percentage
+  currentStep     String?  // Current build step description
+  logs            Json?    // Build logs and output
+  error           String?  @db.Text // Error message if failed
+  
+  allocatedPort   Int?     // Port allocated for preview server
+  previewUrl      String?  // URL where built application is hosted
+  notificationSent Boolean @default(false) // Whether completion notification was sent
+  
+  createdAt       DateTime @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+  
+  // Relationships
+  notifications   UserNotification[]
+}
+
+model UserNotification {
+  id          String   @id @default(cuid())
+  userId      Int
+  user        AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId       String
+  job         BuildJob  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  
+  type        String   // 'build_queued', 'build_started', 'build_completed', 'build_failed', 'build_cancelled'
+  title       String
+  message     String   @db.Text
+  read        Boolean  @default(false)
+  actionUrl   String?  // URL to navigate to when notification is clicked
+  
+  createdAt   DateTime @default(now())
 }
