@@ -1,13 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { ChatPanel } from "@/components/chat-panel"
-import { CodeEditor } from "@/components/code-editor"
-import { PreviewPanel } from "@/components/preview-panel"
-import { EnhancedHeader } from "@/components/enhanced-header"
+import { ChatPanel } from "@/components/panels"
+import { CodeEditor } from "@/components/editor"
+import { PreviewPanel } from "@/components/panels"
+import { EnhancedHeader } from "@/components/layout"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import logger from "@/lib/logger"
-import type { WebsiteFile } from "@/components/file-browser"
+import type { WebsiteFile } from "@/components/editor"
 
 // This will be replaced by the dynamic route [id]/page.tsx
 export default function EditorPage({ websiteId }: { websiteId?: string }) {

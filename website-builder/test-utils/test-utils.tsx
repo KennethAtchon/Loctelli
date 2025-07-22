@@ -1,6 +1,6 @@
 import React, { ReactElement } from 'react'
 import { render, RenderOptions } from '@testing-library/react'
-import { ThemeProvider } from '@/components/theme-provider'
+import { ThemeProvider } from '@/components/layout'
 import { AdminAuthProvider } from '@/contexts/admin-auth-context'
 
 // Mock the API client

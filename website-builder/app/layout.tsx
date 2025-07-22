@@ -2,7 +2,7 @@ import type React from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from "@/components/layout";
 import { AdminAuthProvider } from "@/contexts/admin-auth-context";
 import { AdminProtectedRoute } from "@/components/auth/admin-protected-route";
 import { validateEnvironmentVariables } from "@/lib/utils/envUtils";

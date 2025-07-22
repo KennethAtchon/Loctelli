@@ -5,8 +5,8 @@ import { useMemo, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertCircle, ExternalLink, Upload, Code, Eye, Download, Sparkles, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { UploadZone } from "@/components/upload-zone"
-import { BuildProgress } from "@/components/build-progress"
+import { UploadZone } from "@/components/website-builder"
+import { BuildProgress } from "@/components/website-builder"
 
 interface PreviewPanelProps {
   code?: string

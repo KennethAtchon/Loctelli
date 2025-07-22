@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Copy, Check, Save, FileText, Code, Loader2, AlertCircle } from "lucide-react"
-import { FileBrowser, type WebsiteFile } from "@/components/file-browser"
+import { FileBrowser, type WebsiteFile } from "./file-browser"
 
 interface CodeEditorProps {
   code: string
