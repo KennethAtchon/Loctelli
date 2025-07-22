@@ -633,15 +633,15 @@ model WebsiteChange {
 
 ### **API Endpoints**
 ```
-POST   /api/website-builder/upload     # Upload files/zip
-POST   /api/website-builder            # Create website
-GET    /api/website-builder            # List websites
-GET    /api/website-builder/:id        # Get website
-PATCH  /api/website-builder/:id        # Update website
-DELETE /api/website-builder/:id        # Delete website
-POST   /api/website-builder/:id/ai-edit    # AI edit
-GET    /api/website-builder/:id/changes    # Change history
-POST   /api/website-builder/:id/changes/:changeId/revert  # Revert change
+POST   /api/proxy/website-builder/upload     # Upload files/zip
+POST   /api/proxy/website-builder            # Create website
+GET    /api/proxy/website-builder            # List websites
+GET    /api/proxy/website-builder/:id        # Get website
+PATCH  /api/proxy/website-builder/:id        # Update website
+DELETE /api/proxy/website-builder/:id        # Delete website
+POST   /api/proxy/website-builder/:id/ai-edit    # AI edit
+GET    /api/proxy/website-builder/:id/changes    # Change history
+POST   /api/proxy/website-builder/:id/changes/:changeId/revert  # Revert change
 ```
 
 ### **Routes**

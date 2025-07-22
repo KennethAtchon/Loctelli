@@ -149,7 +149,7 @@ export default function DashboardClient() {
 
   // SSE connection for real-time updates
   useSSEConnection({
-    url: "/api/website-builder/user/queue/stream", // adjust if needed
+    url: "/api/proxy/website-builder/user/queue/stream", // adjust if needed
     onEvent: (evt) => {
       if (evt.event === "notification") {
         toast({

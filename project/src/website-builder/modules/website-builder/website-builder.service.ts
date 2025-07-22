@@ -200,7 +200,7 @@ export class WebsiteBuilderService {
 
           if (htmlFile) {
             // Create a simple preview URL that serves the HTML content
-            previewUrl = `/api/website-builder/${website.id}/preview`;
+            previewUrl = `/api/proxy/website-builder/${website.id}/preview`;
             this.logger.log(`🌐 Static HTML preview URL: ${previewUrl}`);
           } else {
             this.logger.warn(`⚠️ No HTML file found for static preview`);

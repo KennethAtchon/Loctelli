@@ -32,7 +32,7 @@ export function QueueDashboard() {
   }, [fetchJobs, fetchStats]);
 
   useSSEConnection({
-    url: "/api/website-builder/user/queue/stream",
+    url: "/api/proxy/website-builder/user/queue/stream",
     onEvent: (event) => {
       if (event.event === "job_update" || event.event === "notification") {
         fetchJobs();
