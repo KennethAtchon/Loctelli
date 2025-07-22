@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api";
-import { useSSEConnection } from "@/hooks/use-sse-connection";
 import { useBuildStatus, BuildStatus } from "@/hooks/use-build-status";
 import { JobCard } from "./job-card";
 import { CompletedJobCard } from "./completed-job-card";
@@ -16,7 +15,7 @@ export function QueueDashboard() {
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
 
   const fetchJobs = useCallback(async () => {
-    const userJobs = await api.websiteBuilder.getUserQueue();
+    const userJobs: any = await api.websiteBuilder.getUserQueue();
     setJobs(userJobs.active || []);
     setCompletedJobs(userJobs.completed || []);
   }, []);
@@ -29,17 +28,12 @@ export function QueueDashboard() {
   useEffect(() => {
     fetchJobs();
     fetchStats();
+    const interval = setInterval(() => {
+      fetchJobs();
+      fetchStats();
+    }, 5000);
+    return () => clearInterval(interval);
   }, [fetchJobs, fetchStats]);
-
-  useSSEConnection({
-    url: "/api/proxy/website-builder/user/queue/stream",
-    onEvent: (event) => {
-      if (event.event === "job_update" || event.event === "notification") {
-        fetchJobs();
-        fetchStats();
-      }
-    },
-  });
 
   return (
     <div className="flex flex-col gap-6">
