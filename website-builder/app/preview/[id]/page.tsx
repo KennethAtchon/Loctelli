@@ -39,8 +39,10 @@ export default function PreviewPage() {
         });
         
         // Handle different website types
-        if (websiteData.previewUrl && (websiteData.type === 'react-vite' || websiteData.type === 'react' || websiteData.type === 'vite')) {
+        if (websiteData.previewUrl && (websiteData.type === 'vite' || websiteData.type === 'react' || websiteData.type === 'nextjs')) {
           // For React/Vite projects, use the previewUrl from backend
+          console.log(`🌐 Using backend preview URL: ${websiteData.previewUrl}`);
+          console.log(`📊 Website type: ${websiteData.type}, build status: ${websiteData.buildStatus}`);
           setPreviewUrl(websiteData.previewUrl);
         } else if (websiteData.files && websiteData.files.length > 0) {
           // For static sites, find any HTML file (not just index.html)
@@ -211,8 +213,9 @@ export default function PreviewPage() {
             className="w-full h-[calc(100vh-200px)] border-0"
             title={`Preview of ${website.name}`}
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-            onLoad={() => console.log(`✅ Iframe loaded successfully for ${website.name}`)}
+            onLoad={() => console.log(`✅ Iframe loaded successfully for ${website.name} at ${previewUrl}`)}
             onError={(e) => console.error(`❌ Iframe failed to load:`, e)}
+            onLoadStart={() => console.log(`🔄 Iframe loading started for ${website.name} at ${previewUrl}`)}
           />
         </div>
       </main>

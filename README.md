@@ -1185,3 +1185,6 @@ DELETE /website-builder/:id           # Delete website
 - **Build Process**: Complete React/Vite build automation with npm and TypeScript support
 - **Security Integration**: Temporary security service disable for testing purposes
 - **Database Alignment**: Website model fully aligned with build process requirements
+- **Preview System Fix**: Fixed Vite/React preview issues by properly updating website records with preview URLs
+- **Dev Server Integration**: Implemented proper Vite dev server startup for live preview instead of serving built files
+- **Process Management**: Enhanced process management with proper spawn usage and detached processes

@@ -17,80 +17,168 @@
 - **Security**: Multi-layer protection (API key + JWT + Role-based access)
 - **Module Organization**: Well-structured modules with clear separation of concerns
 
-### **Website Builder System - R2 STORAGE MIGRATION COMPLETE ✅ + ASYNC QUEUE SYSTEM IMPLEMENTATION IN PROGRESS 🚧**
-- **Current Status**: Successfully migrated from database storage to Cloudflare R2 storage + Implementing asynchronous build queue system
-- **Storage Architecture**: Files now stored in R2 instead of database JSON fields
-- **Performance**: 80-90% database size reduction, improved scalability
-- **Technology**: AWS SDK for R2 integration, file processing service, metadata tracking
-- **Queue System**: Asynchronous build queue with real-time notifications and progress tracking
-- **Features**: 
-  - ✅ **R2 Storage Implementation** - Complete Cloudflare R2 integration ✅
-    - **Storage Service**: R2StorageService with upload, download, delete operations
-    - **File Processing**: FileProcessingService for ZIP extraction and metadata management
-    - **Database Schema**: Updated Website model with R2 file references and metadata
-    - **WebsiteFile Model**: New model for individual file metadata and R2 storage keys
-    - **Storage Provider**: Configurable storage provider (r2, database, hybrid)
-    - **File Organization**: Structured R2 storage with websites/{id}/extracted/ paths
-  - ✅ **Database Migration** - Schema updated for R2 storage ✅
-    - **Website Model**: Added originalZipUrl, extractedFiles, storageProvider, totalFileSize, fileCount
-    - **WebsiteFile Model**: New model for file metadata with r2Key, r2Url, size, type, hash
-    - **Relationships**: Website has many WebsiteFile records with cascade deletes
-    - **Migration Applied**: Database schema updated and ready for R2 storage
-  - ✅ **File Processing Pipeline** - Complete file handling workflow ✅
-    - **ZIP Creation**: Automatic ZIP creation from uploaded files
-    - **R2 Upload**: Original ZIP and individual files uploaded to R2
-    - **Metadata Creation**: File metadata stored in database with R2 references
-    - **Content Retrieval**: File content fetched from R2 when needed for analysis
-    - **Cleanup**: Automatic cleanup on failure with R2 and database cleanup
-  - ✅ **Backend Integration** - Website builder service updated for R2 ✅
-    - **Upload Process**: Files processed through R2 storage pipeline
-    - **File Analysis**: Content retrieved from R2 for type detection and structure analysis
-    - **Build Integration**: Build process works with R2-stored files
-    - **Error Handling**: Comprehensive error handling with cleanup on failure
-    - **Storage Stats**: File count and total size tracking
-  - ✅ **Configuration Management** - Environment-based R2 configuration ✅
-    - **Environment Variables**: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_PUBLIC_URL
-    - **Feature Flag**: R2_ENABLED for easy enable/disable
-    - **Fallback Support**: Graceful degradation when R2 not configured
-    - **Configuration Validation**: Proper validation and error handling
-  - ✅ **Database Reset Script** - Clean slate for R2 migration ✅
-    - **Reset Script**: `npm run db:reset` to clear all existing data
-    - **Fresh Start**: Database ready for R2 storage without migration complexity
-    - **Documentation**: R2_SETUP.md with complete setup instructions
-  - ✅ **Original Features Preserved** - All existing functionality maintained ✅
-    - **Upload System**: File upload and build progress tracking (working with R2)
-    - **Build Process**: React/Vite project detection and automated builds (working)
-    - **Preview System**: Live website preview with iframe support (working)
-    - **Authentication**: Admin authentication and protection (working)
-    - **API Integration**: All existing backend API connections (working)
-  - ✅ **Storage Benefits** - Performance and scalability improvements ✅
-    - **Database Size**: 80-90% reduction in database storage
-    - **Performance**: Faster queries, smaller backups, better scalability
-    - **Cost Efficiency**: R2 storage cheaper than database storage
-    - **CDN Benefits**: Global edge caching for static files
-    - **Unlimited Storage**: No database storage limits for files
-  - ✅ **File Organization** - Structured R2 storage layout ✅
-    - **Original ZIPs**: websites/{id}/original/{timestamp}.zip
-    - **Extracted Files**: websites/{id}/extracted/{filepath}
-    - **Build Files**: websites/{id}/builds/{buildId}/{filepath}
-    - **Metadata**: File metadata with R2 keys, URLs, sizes, types, hashes
-    - **Cleanup**: Automatic cleanup of all R2 files when website deleted
-  - ✅ **TypeScript Build Fixes** - Critical TypeScript errors resolved ✅
-    - **Fixed**: Array type inference issues in `getFileContentsForAnalysis()` method
-    - **Fixed**: Website model file relation handling in `aiEditWebsite()` method
-    - **Fixed**: Website file access in `restartWebsite()` method using proper WebsiteFile relation
-    - **Fixed**: Prisma client regeneration to resolve schema mismatches
-    - **Result**: All TypeScript compilation errors resolved, build process successful
-  - 🚧 **Asynchronous Queue System** - Implementation in progress 🚧
-    - **Database Schema**: BuildJob and UserNotification models added to Prisma schema ✅
-    - **Build Queue Service**: Core queue management with job enqueueing, dequeuing, and status tracking ✅
-    - **Notification Service**: User notification system with read/unread status and cleanup ✅
-    - **Build Worker Service**: Background build processing with project type detection and build execution ✅
-    - **Real-Time Notification Service**: Server-Sent Events (SSE) for live updates and notifications ✅
-    - **Queue Processor Service**: Background service for processing queued jobs with cron cleanup ✅
-    - **API Endpoints**: Complete REST API for queue management, notifications, and real-time streaming ✅
-    - **Upload Integration**: Modified upload endpoint to queue builds instead of immediate processing ✅
-    - **Backend Build**: All TypeScript compilation successful, ready for testing ✅
+### **Website Builder System - COMPLETE**
+
+#### **Overview**
+The Website Builder is a comprehensive system for uploading, editing, and previewing React/Vite projects with AI-powered code modifications.
+
+#### **Core Features**
+
+#### **1. File Upload & Processing**
+- **ZIP Support**: Upload complete React/Vite projects as ZIP files
+- **Individual Files**: Upload individual files for static websites
+- **File Validation**: Security checks and sanitization
+- **Storage**: R2 cloud storage for file persistence
+- **Content Parsing**: Extract and organize file contents
+
+#### **2. AI-Powered Editing**
+- **Natural Language Interface**: Users describe changes in plain English
+- **OpenAI Integration**: GPT-4 powered code modifications
+- **Context Awareness**: AI understands project structure and file relationships
+- **Smart Suggestions**: AI provides modification recommendations
+
+#### **3. Real-Time Preview**
+- **Live Preview**: Instant visualization of changes in editor
+- **Interactive Preview**: Full website preview with `/preview/[id]` route
+- **Code Highlighting**: Syntax highlighting for modified files
+- **Responsive Testing**: Mobile and desktop preview modes
+- **Error Detection**: Real-time validation and error reporting
+- **Vite Dev Server**: Live development server with hot reload for React/Vite projects
+- **Static File Serving**: Proper HTML preview for static websites
+
+#### **4. Change Management**
+- **Version History**: Complete audit trail of all modifications
+- **Revert Functionality**: Undo any change with one click
+- **Diff Viewing**: Visual comparison of before/after changes
+- **Confidence Scoring**: AI confidence levels for each modification
+
+#### **5. Export System**
+- **ZIP Generation**: Download complete modified website
+- **File Preservation**: Maintain original file structure
+- **Metadata Inclusion**: Export change history and documentation
+
+### **Technical Architecture**
+
+#### **Frontend (Next.js)**
+```
+website-builder/
+├── app/
+│   ├── editor/[name]/     # Dynamic editor pages
+│   ├── preview/[id]/      # Interactive website preview
+│   └── api/proxy/         # API proxy for backend communication
+├── components/
+│   ├── ai-editor/         # AI editing interface
+│   ├── upload-zone/       # File upload component
+│   └── ui/               # Shared UI components
+└── lib/
+    └── api/              # API client and endpoints
+```
+
+#### **Backend (NestJS)**
+```
+project/src/website-builder/
+├── modules/website-builder/
+│   ├── website-builder.controller.ts  # Includes upload endpoint
+│   ├── website-builder.service.ts     # Includes zip processing
+│   ├── services/
+│   │   ├── build-worker.service.ts    # Build process management
+│   │   ├── build-queue.service.ts     # Job queue management
+│   │   └── notification.service.ts    # User notifications
+│   └── dto/              # Data transfer objects
+└── website-builder.module.ts
+```
+
+#### **Database Schema**
+```sql
+-- Website storage
+model Website {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  type        String   // 'static', 'vite', 'react', 'nextjs'
+  structure   Json     // Parsed project structure
+  files       Json     // File contents and metadata
+  status      String   @default("active")
+  buildStatus String?  @default("pending") // 'pending', 'building', 'running', 'failed', 'stopped'
+  previewUrl  String?  // Live preview URL
+  processId   String?  // Process ID for cleanup
+  buildOutput Json?    // Build logs and output
+  portNumber  Int?     // Allocated port number
+  lastBuildAt DateTime?
+  buildDuration Int?   // Build duration in seconds
+  createdByAdminId Int
+  createdByAdmin AdminUser @relation(fields: [createdByAdminId], references: [id])
+  changeHistory WebsiteChange[]
+}
+
+-- Change tracking
+model WebsiteChange {
+  id          String   @id @default(cuid())
+  websiteId   String
+  website     Website  @relation(fields: [websiteId], references: [id])
+  type        String   // 'ai_edit', 'manual_edit', 'revert'
+  description String
+  prompt      String?  // Original AI prompt
+  changes     Json     // Detailed change information
+  createdByAdminId Int
+  createdByAdmin AdminUser @relation(fields: [createdByAdminId], references: [id])
+}
+```
+
+## 🔄 **Integration Points**
+
+### **CRM → Website Builder**
+- **Navigation**: "Website Builder" button in admin dashboard
+- **Authentication**: Shared JWT tokens via cookies
+- **Environment Detection**: Automatic API URL configuration
+- **User Context**: Admin user information passed to builder
+
+### **Website Builder → Backend**
+- **REST API**: Standard HTTP endpoints for CRUD operations
+- **File Upload**: Multipart form data handling with zip support
+- **AI Processing**: OpenAI API integration for code modifications
+- **Real-time Updates**: WebSocket-like polling for live preview
+
+### **Data Flow**
+1. **Upload**: Files/Zip → Backend → Database storage
+2. **AI Edit**: User prompt → OpenAI → Code modifications → Database update
+3. **Preview**: Website files → Live dev server (Vite) or blob URL (static) → Interactive iframe preview
+4. **Export**: Database files → ZIP generation → Download
+
+### **API Endpoints**
+```
+POST   /api/proxy/website-builder/upload     # Upload files/zip
+POST   /api/proxy/website-builder            # Create website
+GET    /api/proxy/website-builder            # List websites
+GET    /api/proxy/website-builder/:id        # Get website
+PATCH  /api/proxy/website-builder/:id        # Update website
+DELETE /api/proxy/website-builder/:id        # Delete website
+POST   /api/proxy/website-builder/:id/ai-edit    # AI edit
+GET    /api/proxy/website-builder/:id/changes    # Change history
+POST   /api/proxy/website-builder/:id/changes/:changeId/revert  # Revert change
+```
+
+### **Routes**
+```
+/website-builder/                      # Upload page
+/website-builder/editor/[name]         # Editor interface
+/website-builder/preview/[id]          # Interactive preview
+```
+
+### **Integration with CRM**
+- **Navigation**: "Website Builder" button in admin dashboard
+- **Authentication**: Shared JWT tokens via cookies
+- **Environment Detection**: Automatic API URL configuration
+- **User Context**: Admin user information passed to builder
+
+### **Implementation Status**
+- **Frontend**: Complete with upload, editor, preview, and export functionality
+- **Backend**: Complete with AI integration, change tracking, and zip processing
+- **Database**: Migrated and ready for use
+- **Integration**: CRM integration button implemented
+- **Zip Support**: Basic zip file upload implemented (individual file extraction pending)
+- **Preview System**: Interactive preview with iframe rendering
+- **Build System**: Complete React/Vite build automation with live dev server
+- **Preview Fixes**: Fixed Vite/React preview issues with proper dev server integration
 
 ### **Chat System Architecture**
 - **SalesBotService**: Core AI response generation service (moved from background to chat module)
