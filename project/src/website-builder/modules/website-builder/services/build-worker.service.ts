@@ -5,6 +5,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { PrismaService } from '../../../../shared/prisma/prisma.service';
+import { SecurityService } from '../security.service';
+import { R2StorageService } from '../../../../shared/storage/r2-storage.service';
+import { FileProcessingService } from '../../../../shared/storage/file-processing.service';
 
 interface BuildJob {
   id: string;
@@ -53,6 +57,10 @@ export class BuildWorkerService {
   constructor(
     private readonly buildQueueService: BuildQueueService,
     private readonly notificationService: NotificationService,
+    private readonly prisma: PrismaService,
+    private readonly securityService: SecurityService,
+    private readonly r2Storage: R2StorageService,
+    private readonly fileProcessing: FileProcessingService,
   ) {
     // Ensure build directory exists
     if (!fs.existsSync(this.buildDir)) {
@@ -133,6 +141,8 @@ export class BuildWorkerService {
    */
   private async processBuild(job: BuildJob): Promise<void> {
     const jobId = job.id;
+    const websiteId = job.websiteId;
+    const userId = job.userId;
     const websiteName = job.website?.name || 'Unknown Website';
 
     try {
@@ -156,28 +166,27 @@ export class BuildWorkerService {
         fs.mkdirSync(buildPath, { recursive: true });
       }
 
-      // Extract files (if needed)
+      // Extract files (download and extract ZIP from R2)
       await this.buildQueueService.updateJobProgress(jobId, {
         progress: 10,
         currentStep: 'Extracting project files',
       });
-
       await this.extractFiles(job, buildPath);
+
+      // Perform all heavy processing (analysis, validation, build, etc.)
+      await this.processWebsiteBuild(websiteId, userId, buildPath);
 
       // Determine project type and build
       await this.buildQueueService.updateJobProgress(jobId, {
         progress: 30,
         currentStep: 'Analyzing project structure',
       });
-
       const projectType = await this.detectProjectType(buildPath);
-
       if (projectType === 'vite' || projectType === 'react') {
         await this.buildViteProject(job, buildPath);
       } else if (projectType === 'nextjs') {
         await this.buildNextProject(job, buildPath);
       } else {
-        // Static project - no build needed
         await this.buildQueueService.updateJobProgress(jobId, {
           progress: 90,
           currentStep: 'Static project - no build required',
@@ -242,6 +251,75 @@ export class BuildWorkerService {
   }
 
   /**
+   * Heavy website build logic moved from uploadWebsite
+   */
+  private async processWebsiteBuild(websiteId: string, userId: number, buildPath: string): Promise<void> {
+    // Download ZIP from R2
+    const website = await this.prisma.website.findUnique({ where: { id: websiteId } });
+    if (!website || !website.originalZipUrl) {
+      throw new Error('Website or ZIP not found');
+    }
+    const zipKey = this.r2Storage.extractKeyFromUrl(website.originalZipUrl);
+    const zipBuffer = await this.r2Storage.getFileContent(zipKey!);
+
+    // Extract files and upload to R2, create file records (do NOT re-upload ZIP)
+    const extractedFiles = await this.fileProcessing['extractAndUploadFiles'](websiteId, zipBuffer);
+    const fileRecords = await this.fileProcessing['createFileRecords'](websiteId, extractedFiles);
+
+    // Get file content for analysis (fetch content from R2 for each file)
+    const filesWithContent: Array<{ name: string; content: string; type: string; size: number }> = [];
+    for (const file of fileRecords) {
+      try {
+        const contentBuffer = await this.fileProcessing.getFileContent(file.websiteId, file.path);
+        filesWithContent.push({
+          name: file.name,
+          content: contentBuffer.toString('utf8'),
+          type: file.type,
+          size: file.size,
+        });
+      } catch (error) {
+        this.logger.warn(`Failed to get content for file ${file.path}: ${error.message}`);
+      }
+    }
+    // Sanitize and validate files
+    const sanitizedFiles = this.securityService.sanitizeProjectFiles(filesWithContent);
+    // Validate project structure
+    const structureValidation = this.securityService.validateProjectStructure(sanitizedFiles);
+    // Detect website type and structure
+    const websiteType = this.detectWebsiteType(sanitizedFiles);
+    const structure = this.analyzeStructure(sanitizedFiles);
+    // Update website with file metadata and analysis results
+    const storageStats = await this.fileProcessing.getWebsiteStorageStats(websiteId);
+    await this.prisma.website.update({
+      where: { id: websiteId },
+      data: {
+        type: websiteType,
+        structure,
+        fileCount: storageStats.fileCount,
+        totalFileSize: storageStats.totalSize,
+      },
+    });
+    // If static, create preview URL
+    if (!this.shouldBuildProject(websiteType)) {
+      const htmlFile = sanitizedFiles.find(file =>
+        file.name.toLowerCase().endsWith('.html') &&
+        (file.name.toLowerCase() === 'index.html' || file.name.toLowerCase() === 'main.html')
+      ) || sanitizedFiles.find(file => file.name.toLowerCase().endsWith('.html'));
+      let previewUrl: string | null = null;
+      if (htmlFile) {
+        previewUrl = `/api/proxy/website-builder/${websiteId}/preview`;
+      }
+      await this.prisma.website.update({
+        where: { id: websiteId },
+        data: {
+          buildStatus: previewUrl ? 'running' : 'pending',
+          previewUrl: previewUrl || null,
+        },
+      });
+    }
+  }
+
+  /**
    * Detect project type
    */
   private async detectProjectType(buildPath: string): Promise<string> {
@@ -268,6 +346,74 @@ export class BuildWorkerService {
       this.logger.warn(`Could not detect project type: ${error.message}`);
       return 'static';
     }
+  }
+
+  private shouldBuildProject(websiteType: string): boolean {
+    return ['react-vite', 'react', 'vite', 'nextjs'].includes(websiteType);
+  }
+
+  private detectWebsiteType(files: Array<{ name: string; content: string; type: string; size: number }>): string {
+    const fileNames = files.map(f => f.name.toLowerCase());
+    this.logger?.log?.(`🔍 Detecting website type from files: ${fileNames.slice(0, 10).join(', ')}...`);
+    if (fileNames.includes('vite.config.js') || fileNames.includes('vite.config.ts')) {
+      this.logger?.log?.(`🏷️ Detected Vite project (vite.config found)`);
+      return 'vite';
+    }
+    if (fileNames.includes('package.json')) {
+      const packageJson = files.find(f => f.name === 'package.json');
+      if (packageJson) {
+        try {
+          const pkg = JSON.parse(packageJson.content);
+          if (pkg.dependencies?.react || pkg.devDependencies?.react) {
+            this.logger?.log?.(`🏷️ Detected React project (React dependency found in package.json)`);
+            return 'react';
+          }
+        } catch (error) {
+          this.logger?.warn?.(`⚠️ Failed to parse package.json: ${error.message}`);
+        }
+      }
+    }
+    if (fileNames.includes('next.config.js') || fileNames.includes('next.config.ts')) {
+      this.logger?.log?.(`🏷️ Detected Next.js project (next.config found)`);
+      return 'nextjs';
+    }
+    this.logger?.log?.(`🏷️ Defaulting to static website type`);
+    return 'static';
+  }
+
+  private analyzeStructure(files: Array<{ name: string; content: string; type: string; size: number }>): Record<string, any> {
+    const structure: Record<string, any> = {
+      totalFiles: files.length,
+      fileTypes: {},
+      hasIndex: false,
+      hasPackageJson: false,
+      hasConfig: false,
+      entryPoints: [],
+    };
+    for (const file of files) {
+      structure.fileTypes[file.type] = (structure.fileTypes[file.type] || 0) + 1;
+      if (file.name === 'index.html' || file.name === 'index.htm') {
+        structure.hasIndex = true;
+        structure.entryPoints.push(file.name);
+      }
+      if (file.name === 'package.json') {
+        structure.hasPackageJson = true;
+        try {
+          const pkg = JSON.parse(file.content);
+          structure.packageInfo = {
+            name: pkg.name,
+            version: pkg.version,
+            scripts: pkg.scripts,
+          };
+        } catch (error) {
+          // Ignore parsing errors
+        }
+      }
+      if (file.name.includes('config') || file.name.includes('vite.config') || file.name.includes('next.config')) {
+        structure.hasConfig = true;
+      }
+    }
+    return structure;
   }
 
   /**

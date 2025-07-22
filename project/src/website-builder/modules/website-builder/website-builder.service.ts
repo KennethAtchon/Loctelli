@@ -94,178 +94,27 @@ export class WebsiteBuilderService {
 
     this.logger.log(`✅ Website created successfully with ID: ${website.id}`);
 
+    // Upload ZIP to R2 and update website record with ZIP URL
     try {
-      // Process and upload files to R2
-      this.logger.log(`☁️ Processing and uploading files to R2...`);
-      const fileRecords = await this.fileProcessing.processWebsiteUpload(website.id, zipBuffer);
-      this.logger.log(`✅ Successfully uploaded ${fileRecords.length} files to R2`);
-
-      // Get file content for analysis (we need the content for type detection and structure analysis)
-      const fileContents = await this.getFileContentsForAnalysis(fileRecords);
-      
-      // Sanitize and validate files
-      this.logger.log(`🔒 Sanitizing and validating files...`);
-      const sanitizedFiles = this.securityService.sanitizeProjectFiles(fileContents);
-      this.logger.log(`✅ Sanitization complete. Kept ${sanitizedFiles.length} files`);
-
-      // Validate project structure
-      this.logger.log(`🔍 Validating project structure...`);
-      const structureValidation = this.securityService.validateProjectStructure(sanitizedFiles);
-      this.logger.log(`🏷️ Project type: ${structureValidation.type}, Valid: ${structureValidation.isValid}`);
-
-      if (!structureValidation.isValid) {
-        this.logger.warn(`⚠️ Project structure issues: ${structureValidation.issues.join(', ')}`);
-      }
-
-      // Detect website type and structure
-      this.logger.log(`🔍 Detecting website type...`);
-      const websiteType = this.detectWebsiteType(sanitizedFiles);
-      this.logger.log(`🏷️ Website type detected: ${websiteType}`);
-      
-      this.logger.log(`🔍 Analyzing website structure...`);
-      const structure = this.analyzeStructure(sanitizedFiles);
-      this.logger.log(`📊 Structure analysis complete`);
-
-      // Update website with file metadata and analysis results
-      const storageStats = await this.fileProcessing.getWebsiteStorageStats(website.id);
-      const updatedWebsite = await this.prisma.website.update({
+      this.logger.log(`☁️ Uploading ZIP to R2...`);
+      const zipUrl = await this.r2Storage.uploadWebsiteZip(website.id, zipBuffer);
+      this.logger.log(`✅ ZIP uploaded to R2: ${zipUrl}`);
+      await this.prisma.website.update({
         where: { id: website.id },
-        data: {
-          type: websiteType,
-          structure,
-          fileCount: storageStats.fileCount,
-          totalFileSize: storageStats.totalSize,
-          // Note: originalZipUrl is already set in processWebsiteUpload()
-        },
+        data: { originalZipUrl: zipUrl },
       });
-
-      // Handle different project types
-      let previewUrl: string | null = null;
-      let buildOutput: string[] | null = null;
-      let buildDuration: number | null = null;
-
-      if (this.shouldBuildProject(websiteType)) {
-        // React/Vite projects need build process
-        this.logger.log(`🔨 Starting build process for ${websiteType} project: ${website.id}`);
-        
-        try {
-          // Update status to building
-          await this.prisma.website.update({
-            where: { id: website.id },
-            data: { buildStatus: 'building' },
-          });
-
-          // Start build process
-          previewUrl = await this.buildService.buildReactProject(website.id, sanitizedFiles);
-          
-          // Get build process details
-          const buildProcess = this.buildService.getBuildStatus(website.id);
-          buildOutput = buildProcess?.buildOutput || [];
-          buildDuration = buildProcess?.endTime && buildProcess?.startTime 
-            ? Math.floor((buildProcess.endTime.getTime() - buildProcess.startTime.getTime()) / 1000)
-            : null;
-
-          this.logger.log(`✅ Build completed successfully for website ${website.id}`);
-          this.logger.log(`🌐 Preview URL: ${previewUrl}`);
-
-        } catch (error) {
-          this.logger.error(`❌ Build failed for website ${website.id}:`, error);
-          
-          // Update status to failed
-          await this.prisma.website.update({
-            where: { id: website.id },
-            data: { 
-              buildStatus: 'failed',
-              buildOutput: [`Build failed: ${error.message}`],
-            },
-          });
-
-          // Return website with failed status
-          return {
-            success: true,
-            website: await this.prisma.website.findUnique({ where: { id: website.id } }),
-            buildError: error.message,
-          };
-        }
-      } else {
-        // Static HTML files - create direct preview URL
-        this.logger.log(`📄 Creating static HTML preview for website: ${website.id}`);
-        
-        try {
-          // Find the main HTML file
-          const htmlFile = sanitizedFiles.find(file => 
-            file.name.toLowerCase().endsWith('.html') && 
-            (file.name.toLowerCase() === 'index.html' || file.name.toLowerCase() === 'main.html')
-          ) || sanitizedFiles.find(file => file.name.toLowerCase().endsWith('.html'));
-
-          if (htmlFile) {
-            // Create a simple preview URL that serves the HTML content
-            previewUrl = `/api/proxy/website-builder/${website.id}/preview`;
-            this.logger.log(`🌐 Static HTML preview URL: ${previewUrl}`);
-          } else {
-            this.logger.warn(`⚠️ No HTML file found for static preview`);
-          }
-        } catch (error) {
-          this.logger.error(`❌ Error creating static preview: ${error.message}`);
-        }
-      }
-
-      // Final update with build results
-      const finalWebsite = await this.prisma.website.update({
-        where: { id: website.id },
-        data: {
-          buildStatus: previewUrl ? 'running' : 'pending',
-          previewUrl: previewUrl || null,
-          buildOutput: buildOutput as any || null,
-          lastBuildAt: new Date(),
-          buildDuration: buildDuration || null,
-        },
-      });
-
-      // Get the website files for the response
-      this.logger.log(`🔍 Fetching website files for response...`);
-      const websiteFiles = await this.fileProcessing.getWebsiteFiles(finalWebsite.id);
-      this.logger.log(`📁 Found ${websiteFiles.length} website files in database`);
-      
-      const filesWithContent = await this.getFileContentsForAnalysis(websiteFiles);
-      this.logger.log(`📄 Retrieved content for ${filesWithContent.length} files`);
-
-      this.logger.log(`📊 Website details:`, {
-        id: finalWebsite.id,
-        name: finalWebsite.name,
-        type: finalWebsite.type,
-        fileCount: storageStats.fileCount,
-        totalSize: storageStats.totalSize,
-        buildStatus: finalWebsite.buildStatus,
-        previewUrl: finalWebsite.previewUrl,
-        storageProvider: finalWebsite.storageProvider,
-        createdByAdminId: adminId,
-        filesCount: filesWithContent.length
-      });
-
-      return {
-        success: true,
-        website: {
-          ...finalWebsite,
-          files: filesWithContent
-        },
-        previewUrl,
-        fileCount: storageStats.fileCount,
-      };
-
     } catch (error) {
-      this.logger.error(`❌ Error processing website upload: ${error.message}`);
-      
+      this.logger.error(`❌ Error uploading ZIP to R2: ${error.message}`);
       // Cleanup on failure
-      try {
-        await this.fileProcessing.deleteWebsiteFiles(website.id);
-        await this.prisma.website.delete({ where: { id: website.id } });
-      } catch (cleanupError) {
-        this.logger.error(`❌ Error during cleanup: ${cleanupError.message}`);
-      }
-      
+      await this.prisma.website.delete({ where: { id: website.id } });
       throw error;
     }
+
+    // Return minimal website info (heavy processing will be done by the build worker)
+    return {
+      success: true,
+      website: await this.prisma.website.findUnique({ where: { id: website.id } }),
+    };
   }
 
   /**

@@ -40,26 +40,27 @@ export default function DashboardClient() {
   const { toast } = useToast();
 
   // Fetch job queue on mount and when jobs change
-  useEffect(() => {
-    const fetchJobs = async () => {
-      setLoadingJobs(true);
-      setJobError(null);
-      try {
-        const res = await api.getUserQueue();
-        const jobs = (res as any).jobs || [];
-        setJobs(jobs);
-        setQueueStats((res as any).stats || null);
-        // Find the most recent active job
-        const active = jobs.find((j: any) => ["pending", "queued", "building"].includes(j.status));
-        setActiveJob(active || null);
-      } catch (err: any) {
-        setJobError(err?.message || "Failed to load job queue");
-      } finally {
-        setLoadingJobs(false);
-      }
-    };
-    fetchJobs();
+  const fetchJobs = useCallback(async () => {
+    setLoadingJobs(true);
+    setJobError(null);
+    try {
+      const res = await api.getUserQueue();
+      const jobs = (res as any).jobs || [];
+      setJobs(jobs);
+      setQueueStats((res as any).stats || null);
+      // Find the most recent active job
+      const active = jobs.find((j: any) => ["pending", "queued", "building"].includes(j.status));
+      setActiveJob(active || null);
+    } catch (err: any) {
+      setJobError(err?.message || "Failed to load job queue");
+    } finally {
+      setLoadingJobs(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchJobs();
+  }, [fetchJobs]);
 
   // Poll build status for the active job
   useEffect(() => {
@@ -103,11 +104,13 @@ export default function DashboardClient() {
 
   useEffect(() => {
     fetchNotifications();
+    fetchJobs();
     const interval = setInterval(() => {
       fetchNotifications();
+      fetchJobs();
     }, 5000);
     return () => clearInterval(interval);
-  }, [fetchNotifications]);
+  }, [fetchNotifications, fetchJobs]);
 
   // Mark as read
   const markAsRead = async (id: string) => {
