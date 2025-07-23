@@ -383,15 +383,29 @@ export class BuildWorkerService {
   private detectWebsiteType(files: Array<{ name: string; content: string; type: string; size: number }>): string {
     const fileNames = files.map(f => f.name.toLowerCase());
     this.logger?.log?.(`🔍 Detecting website type from files: ${fileNames.slice(0, 10).join(', ')}...`);
-    if (fileNames.includes('vite.config.js') || fileNames.includes('vite.config.ts')) {
+    
+    // Check for Vite config files first
+    if (fileNames.includes('vite.config.js') || fileNames.includes('vite.config.ts') || fileNames.includes('vite.config.mjs')) {
       this.logger?.log?.(`🏷️ Detected Vite project (vite.config found)`);
       return 'vite';
     }
+    
+    // Check for Next.js config files before React dependency
+    if (fileNames.includes('next.config.js') || fileNames.includes('next.config.ts') || fileNames.includes('next.config.mjs')) {
+      this.logger?.log?.(`🏷️ Detected Next.js project (next.config found)`);
+      return 'nextjs';
+    }
+    
+    // Check package.json dependencies last
     if (fileNames.includes('package.json')) {
       const packageJson = files.find(f => f.name === 'package.json');
       if (packageJson) {
         try {
           const pkg = JSON.parse(packageJson.content);
+          if (pkg.dependencies?.next || pkg.devDependencies?.next) {
+            this.logger?.log?.(`🏷️ Detected Next.js project (Next.js dependency found in package.json)`);
+            return 'nextjs';
+          }
           if (pkg.dependencies?.react || pkg.devDependencies?.react) {
             this.logger?.log?.(`🏷️ Detected React project (React dependency found in package.json)`);
             return 'react';
@@ -401,10 +415,7 @@ export class BuildWorkerService {
         }
       }
     }
-    if (fileNames.includes('next.config.js') || fileNames.includes('next.config.ts')) {
-      this.logger?.log?.(`🏷️ Detected Next.js project (next.config found)`);
-      return 'nextjs';
-    }
+    
     this.logger?.log?.(`🏷️ Defaulting to static website type`);
     return 'static';
   }
@@ -495,7 +506,7 @@ export class BuildWorkerService {
         currentStep: 'Installing dependencies',
       });
 
-      await execAsync('npm install', { cwd: buildPath });
+      await execAsync('pnpm install', { cwd: buildPath });
 
       // Build the project
       await this.buildQueueService.updateJobProgress(jobId, {
@@ -503,7 +514,7 @@ export class BuildWorkerService {
         currentStep: 'Building Next.js project',
       });
 
-      await execAsync('npm run build', { cwd: buildPath });
+      await execAsync('pnpm run build', { cwd: buildPath });
 
       await this.buildQueueService.updateJobProgress(jobId, {
         progress: 85,
@@ -604,7 +615,7 @@ export default defineConfig({
       let servePath: string;
 
       if (projectType === 'nextjs') {
-        command = `npm start -- -p ${port}`;
+        command = `pnpm start -- -p ${port}`;
         servePath = buildPath;
       } else if (projectType === 'vite' || projectType === 'react') {
         // For Vite/React projects, use the dev server for live preview
