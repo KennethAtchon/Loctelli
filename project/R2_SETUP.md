@@ -1,7 +1,7 @@
 # R2 Storage Setup Guide
 
 ## Overview
-The website builder now uses Cloudflare R2 for file storage instead of storing files directly in the database. This provides better performance, scalability, and cost efficiency.
+This project uses Cloudflare R2 for file storage instead of storing files directly in the database. This provides better performance, scalability, and cost efficiency.
 
 ## Environment Variables
 
@@ -12,7 +12,7 @@ Add these variables to your `.env` file:
 R2_ACCOUNT_ID="your_cloudflare_account_id"
 R2_ACCESS_KEY_ID="your_r2_access_key_id"
 R2_SECRET_ACCESS_KEY="your_r2_secret_access_key"
-R2_BUCKET_NAME="loctelli-website-builder"
+R2_BUCKET_NAME="loctelli-storage"
 R2_PUBLIC_URL="https://your-public-r2-domain.com"
 R2_ENABLED="true"
 ```
@@ -29,7 +29,7 @@ R2_ENABLED="true"
 
 ## Database Reset
 
-Since we're starting fresh with R2 storage, you can reset the database:
+If you need to reset the database:
 
 ```bash
 npm run db:reset
@@ -42,26 +42,15 @@ This will clear all existing data and prepare the database for R2 storage.
 Files are stored in R2 with the following structure:
 
 ```
-loctelli-website-builder/
-├── websites/
-│   ├── {website-id}/
-│   │   ├── original/
-│   │   │   └── {original-zip-file}
-│   │   ├── extracted/
-│   │   │   ├── src/
-│   │   │   ├── public/
-│   │   │   ├── package.json
-│   │   │   └── ...
-│   │   ├── builds/
-│   │   │   ├── latest/
-│   │   │   └── {build-id}/
-│   │   └── previews/
-│   │       └── {preview-files}
+loctelli-storage/
+├── files/
+│   ├── {file-id}/
+│   │   └── {file-name}
 │   └── ...
 ├── temp/
 │   └── {temp-uploads}
 └── cache/
-    └── {cached-builds}
+    └── {cached-files}
 ```
 
 ## Benefits
@@ -79,6 +68,6 @@ To test the R2 integration:
 1. Set up your R2 credentials in `.env`
 2. Reset the database: `npm run db:reset`
 3. Start the application: `npm run start:dev`
-4. Upload a website through the API
+4. Test file uploads through the API
 
 The files should now be stored in R2 instead of the database. 

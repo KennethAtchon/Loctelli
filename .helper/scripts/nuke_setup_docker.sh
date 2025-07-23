@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Load R2 env vars
+#Load R2 env vars
 # set -a
 # source ./project/.env
 # set +a
