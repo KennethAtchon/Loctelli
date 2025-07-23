@@ -255,7 +255,7 @@ export default function AdminDashboardPage() {
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button 
+          {/* <Button 
             variant="default" 
             size="sm" 
             onClick={() => {
@@ -275,7 +275,7 @@ export default function AdminDashboardPage() {
           >
             <Code className="h-4 w-4 mr-2" />
             Website Builder
-          </Button>
+          </Button> */}
         </div>
       </div>
 
