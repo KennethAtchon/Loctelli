@@ -93,27 +93,6 @@ services:
     networks:
       - loctelli-network
 
-  # # Website Builder Frontend
-  # website-builder:
-  #   build:
-  #     context: ./website-builder
-  #     dockerfile: Dockerfile
-  #   container_name: loctelli_website_builder
-  #   restart: unless-stopped
-  #   ports:
-  #     - "3001:3000"
-  #   environment:
-  #     NODE_ENV: ${NODE_ENV:-development}
-  #     NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api/proxy}
-  #     BACKEND_URL: http://loctelli_api:8000
-  #   env_file:
-  #     - ./website-builder/.env
-  #   depends_on:
-  #     api:
-  #       condition: service_healthy
-  #   networks:
-  #     - loctelli-network
-
 volumes:
   pgdata:
     driver: local

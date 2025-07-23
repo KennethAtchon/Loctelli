@@ -98,8 +98,7 @@ Loctelli/
 - **Chat Integration**: AI-powered conversation management with full conversation history
 - **Prompt Template System**: Global AI prompt template management with activation controls and strategy integration
 - **Multi-Tenant System**: SubAccounts for managing multiple client organizations with data isolation
-- **Website Builder**: AI-powered website editing tool with R2 storage integration and real-time preview
-- **Website Builder**: AI-powered website editing tool with React/Vite build automation, HTML file preview support, modern v0-style interface with resizable panels, and **Cloudflare R2 storage integration** for scalable file management
+interface with resizable panels, and **Cloudflare R2 storage integration** for scalable file management
 - **Real-time Updates**: Live data synchronization
 - **Comprehensive Testing**: Unit tests, integration tests, and E2E tests with 80%+ coverage goals
 - **Rate Limiting**: Comprehensive frontend and backend rate limiting with user-friendly UI feedback
@@ -195,21 +194,6 @@ Loctelli/
 - **Usage**: Simple column definitions with custom renderers for any data type
 - **Migration**: All existing admin pages can be gradually migrated to use this component
 
-### **Website Builder R2 Storage Migration ✅**
-- **Cloudflare R2 Integration**: Successfully migrated from database storage to Cloudflare R2 for scalable file management
-- **Storage Architecture**: Files now stored in R2 instead of database JSON fields with 80-90% database size reduction
-- **File Processing Pipeline**: Complete file handling workflow with ZIP creation, R2 upload, metadata creation, and content retrieval
-- **Database Schema**: Updated Website model with R2 file references, storage provider tracking, and file metadata
-- **WebsiteFile Model**: New model for individual file metadata with R2 keys, URLs, sizes, types, and hashes
-- **Backend Integration**: Website builder service updated for R2 storage with comprehensive error handling and cleanup
-- **Configuration Management**: Environment-based R2 configuration with feature flags and graceful fallback
-- **Database Reset Script**: Clean slate approach with `npm run db:reset` for fresh R2 migration
-- **Storage Benefits**: Improved performance, scalability, cost efficiency, and CDN benefits
-- **File Organization**: Structured R2 storage with websites/{id}/extracted/ paths and automatic cleanup
-- **Original Features Preserved**: All existing upload, build, preview, and authentication functionality maintained
-- **Modern Interface**: v0-clone-interface style with resizable panels, chat panel, code editor, and preview panel
-- **Cross-Port Authentication**: Website builder (port 3001) recognizes admin authentication from main CRM (port 3000)
-- **Comprehensive Documentation**: R2_SETUP.md with complete setup instructions and configuration guide
 
 ### **Integrations System - PARTIALLY IMPLEMENTED 🔗**
 - **GoHighLevel CRM Integration**: ✅ Fully implemented with type-safe configuration
@@ -351,17 +335,10 @@ npm run test:coverage     # Coverage report
 
 ## 🔧 **Recent Fixes & Updates**
 
-### **Website Builder Upload Error Fix (Latest)**
-- **Issue**: File uploads failing with 500 error due to undefined adminId
-- **Root Cause**: JWT strategy returns `userId` field, but controller was accessing `user.id`
-- **Fix**: Updated all website builder controller methods to use proper admin ID extraction
-- **Result**: Website builder file uploads now work correctly ✅
-
 ### **Authentication & Security**
 - **Multi-layer security**: API key + JWT + Role-based access control
 - **Rate limiting**: Comprehensive frontend and backend rate limiting
 - **Token management**: Automatic refresh with fallback to login
-- **Cross-port authentication**: Fixed website builder authentication sharing
 
 ### **Data Management**
 - **Multi-tenant architecture**: Complete SubAccount isolation and management
@@ -1065,91 +1042,5 @@ All previous console statements in the frontend have been replaced with this log
 ---
 
 Built with ❤️ using NestJS and Next.js
-
-## 🎨 Website Builder
-
-The Website Builder is a comprehensive React/Vite build and hosting platform that automatically detects, builds, and hosts React/Vite projects from ZIP file uploads. It provides real-time build monitoring, live preview capabilities, and full process management.
-
-### **Core Features**
-
-#### **1. React/Vite Project Support**
-- **Automatic Detection**: Detects React/Vite projects from uploaded files
-- **Build Automation**: Runs npm install, TypeScript checking, and Vite dev server startup
-- **Live Preview**: Direct access to running Vite dev servers with hot reload
-- **Process Management**: Isolated build processes with automatic cleanup
-- **Port Management**: Dynamic port allocation (4000-4999 range) with conflict detection
-
-#### **2. Static File Support**
-- **HTML File Upload**: Upload individual HTML files or complete static websites
-- **Preview System**: Interactive preview with blob URL creation for static files
-- **File Validation**: Type checking and size limits with proper encoding support
-- **Structure Analysis**: Automatic project structure detection and analysis
-
-#### **3. Build Process Management**
-- **Real-time Monitoring**: Live build status with detailed output logging
-- **Progress Tracking**: Visual progress indicators with build duration tracking
-- **Error Handling**: Comprehensive error handling with graceful failure recovery and non-critical error tolerance
-- **Restart Capability**: Stop and restart build processes as needed
-- **Resource Management**: Maximum 10 concurrent builds with automatic cleanup
-- **Resilient Build Process**: Continues build even if TypeScript checking fails (lint/build errors are non-critical)
-
-#### **4. Security & Validation**
-- **File Sanitization**: Security validation and sanitization of uploaded files
-- **Package.json Validation**: Checks for dangerous scripts and required dependencies
-- **TypeScript Support**: Multiple fallback commands for TypeScript checking with automatic script injection
-- **Process Isolation**: Isolated build directories for security
-
-#### **5. Database Integration**
-- **Website Storage**: Complete website metadata and file content storage
-- **Build Tracking**: Build status, output logs, and process information
-- **Change History**: Track all modifications with revert capability
-- **Admin Integration**: Full integration with admin authentication system
-
-### **Technical Architecture**
-
-#### **Frontend (Next.js 14) - Port 3001**
-- **Upload Interface**: Drag-and-drop file upload with progress tracking
-- **Build Progress**: Real-time build status monitoring with restart controls
-- **Preview System**: Interactive preview for both static files and React/Vite projects
-- **API Integration**: Complete API client for backend communication
-
-#### **Backend (NestJS) - Port 8000**
-- **BuildService**: Manages React/Vite project builds with npm automation
-- **SecurityService**: Validates and sanitizes uploaded files
-- **CleanupService**: Manages resource cleanup and process termination
-- **File Processing**: ZIP extraction, file validation, and structure analysis
-
-#### **Database (PostgreSQL)**
-- **Website Model**: Stores website metadata, files, and build information
-- **Build Tracking**: buildStatus, previewUrl, processId, buildOutput, portNumber
-- **Change History**: Complete audit trail of all modifications
-
-### **Build Process Flow**
-
-1. **Upload**: User uploads ZIP file containing React/Vite project
-2. **Detection**: System automatically detects project type (React/Vite vs static)
-3. **Extraction**: Files extracted to isolated build directory
-4. **Validation**: Package.json validation and security checks
-5. **Build**: npm install, TypeScript checking, Vite server startup
-6. **Preview**: Live preview URL provided for running application
-7. **Monitoring**: Real-time build status and process management
-
-### **Supported Project Types**
-- **React/Vite**: Full build automation with live preview
-- **Static HTML/CSS/JS**: Direct preview with blob URL creation
-- **ZIP Archives**: Complete project upload and extraction
-- **Individual Files**: Single file upload and preview
-
-### **Usage**
-1. **Upload**: Drag and drop React/Vite project ZIP or static files
-2. **Build**: Automatic build process with real-time progress monitoring
-3. **Preview**: Access live preview URL for running application
-4. **Manage**: Stop, restart, or monitor build processes
-5. **Export**: Download modified websites when ready
-
-### **Routes**
-- `/` - Upload page with drag-and-drop interface
-- `/preview/[id]` - Interactive website preview
-- `/editor/[id]` - AI-powered editor interface (future enhancement)
 
 

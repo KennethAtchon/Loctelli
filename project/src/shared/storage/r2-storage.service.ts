@@ -83,37 +83,28 @@ export class R2StorageService {
   }
 
   /**
-   * Upload website ZIP file
+   * Upload a ZIP file to a generic folder/key
    */
-  async uploadWebsiteZip(websiteId: string, zipBuffer: Buffer): Promise<string> {
-    const key = `websites/${websiteId}/original/${Date.now()}.zip`;
+  async uploadZipFile(folder: string, zipBuffer: Buffer): Promise<string> {
+    const key = folder ? `${folder}/${Date.now()}.zip` : `${Date.now()}.zip`;
     return this.uploadFile(key, zipBuffer, 'application/zip');
   }
 
   /**
-   * Upload extracted file from website
+   * Upload a file to a generic folder/key
    */
-  async uploadExtractedFile(
-    websiteId: string,
-    filePath: string,
-    content: Buffer,
-    mimeType: string,
-  ): Promise<string> {
-    const key = `websites/${websiteId}/extracted/${filePath}`;
+  async uploadToFolder(folder: string, filePath: string, content: Buffer, mimeType: string): Promise<string> {
+    const key = folder ? `${folder}/${filePath}` : filePath;
     return this.uploadFile(key, content, mimeType);
   }
 
   /**
-   * Upload build files
+   * Upload multiple files to a folder
    */
-  async uploadBuildFiles(
-    websiteId: string,
-    buildId: string,
-    files: Map<string, Buffer>,
-  ): Promise<string[]> {
+  async uploadFilesToFolder(folder: string, files: Map<string, Buffer>): Promise<string[]> {
     const urls: string[] = [];
     for (const [filePath, content] of files) {
-      const key = `websites/${websiteId}/builds/${buildId}/${filePath}`;
+      const key = folder ? `${folder}/${filePath}` : filePath;
       const url = await this.uploadFile(key, content, this.getMimeType(filePath));
       urls.push(url);
     }
@@ -173,14 +164,14 @@ export class R2StorageService {
   }
 
   /**
-   * Delete all files for a website
+   * Delete all files in a folder (by prefix)
    */
-  async deleteWebsiteFiles(websiteId: string): Promise<void> {
+  async deleteFilesInFolder(folder: string): Promise<void> {
     if (!this.enabled) {
       throw new Error('R2 storage is disabled');
     }
 
-    const prefix = `websites/${websiteId}/`;
+    const prefix = folder ? `${folder}/` : '';
     
     try {
       // List all objects with the prefix
@@ -198,11 +189,11 @@ export class R2StorageService {
         );
         
         await Promise.all(deletePromises);
-        this.logger.log(`Deleted ${listResponse.Contents.length} files for website ${websiteId}`);
+        this.logger.log(`Deleted ${listResponse.Contents.length} files in folder ${folder}`);
       }
     } catch (error) {
-      this.logger.error(`Error deleting website files: ${error.message}`);
-      throw new Error(`Failed to delete website files: ${error.message}`);
+      this.logger.error(`Error deleting files in folder: ${error.message}`);
+      throw new Error(`Failed to delete files in folder: ${error.message}`);
     }
   }
 
@@ -258,7 +249,7 @@ export class R2StorageService {
       throw new Error('R2 public URL is not configured');
     }
     
-    return `${this.publicUrl}/${key}`.replace(/([^:]\/)\/+/g, '$1');
+    return `${this.publicUrl}/${key}`.replace(/([^:]\/)/+/g, '$1');
   }
 
   /**
