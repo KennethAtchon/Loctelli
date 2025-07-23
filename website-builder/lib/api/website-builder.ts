@@ -205,6 +205,14 @@ export class WebsiteBuilderApi extends ApiClient {
     return this.post(`/website-builder/${websiteId}/restart`);
   }
 
+  /**
+   * Get the proxy preview URL for a website
+   * This constructs the proxy endpoint URL that forwards to the internal Vite server
+   */
+  getProxyPreviewUrl(websiteId: string): string {
+    return `${this.baseUrl}/website-builder/${websiteId}/proxy-preview`;
+  }
+
   // === ASYNC QUEUE & NOTIFICATIONS ===
 
   // Get all jobs for the current user

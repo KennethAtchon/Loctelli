@@ -172,7 +172,6 @@ export class BuildWorkerService {
         progress: 10,
         currentStep: 'Extracting project files',
       });
-      await this.extractFiles(job, buildPath);
 
       // Perform all heavy processing (analysis, validation, build, etc.)
       await this.processWebsiteBuild(websiteId, userId, buildPath);
@@ -268,14 +267,7 @@ export class BuildWorkerService {
     }
   }
 
-  /**
-   * Extract project files
-   */
-  private async extractFiles(job: BuildJob, buildPath: string): Promise<void> {
-    // For now, we'll assume files are already extracted
-    // In a real implementation, you'd extract from R2 storage
-    this.logger.debug(`Files would be extracted to ${buildPath}`);
-  }
+
 
   /**
    * Heavy website build logic moved from uploadWebsite
@@ -292,6 +284,15 @@ export class BuildWorkerService {
     // Extract files and upload to R2, create file records (do NOT re-upload ZIP)
     const extractedFiles = await this.fileProcessing['extractAndUploadFiles'](websiteId, zipBuffer);
     const fileRecords = await this.fileProcessing['createFileRecords'](websiteId, extractedFiles);
+
+    // Write extracted files to buildPath for the build process
+    for (const file of extractedFiles) {
+      const filePath = path.join(buildPath, file.path);
+      // Ensure directory exists
+      fs.mkdirSync(path.dirname(filePath), { recursive: true });
+      // Write file content
+      fs.writeFileSync(filePath, file.content);
+    }
 
     // Get file content for analysis (fetch content from R2 for each file)
     const filesWithContent: Array<{ name: string; content: string; type: string; size: number }> = [];

@@ -28,6 +28,8 @@ import { RealTimeNotificationService } from './services/realtime-notification.se
 import { QueueProcessorService } from './services/queue-processor.service';
 import { AdminGuard } from '../../../shared/guards/admin.guard';
 import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 @Controller('website-builder')
 @UseGuards(AdminGuard)
@@ -41,6 +43,7 @@ export class WebsiteBuilderController {
     private readonly buildWorkerService: BuildWorkerService,
     private readonly realTimeNotificationService: RealTimeNotificationService,
     private readonly queueProcessorService: QueueProcessorService,
+    private readonly httpService: HttpService, // <-- Inject HttpService
   ) {}
 
   @Post('upload')
@@ -191,6 +194,144 @@ export class WebsiteBuilderController {
       htmlContent: htmlContent.toString('utf8'),
       htmlFile: htmlFile.name,
     };
+  }
+
+  /**
+   * Proxy preview endpoint for Vite/React dev server
+   * Forwards requests to the correct internal port for the website preview
+   */
+  @Get(':id/proxy-preview')
+  async proxyPreview(
+    @Param('id') websiteId: string,
+    @Res() res: Response,
+    @CurrentUser() user: any,
+    @Query() query: any,
+    @Request() req: any
+  ) {
+    // Only allow authenticated admins
+    const adminId = user.userId || user.id;
+    if (!adminId) {
+      this.logger.error('❌ Admin ID not found in user object');
+      throw new BadRequestException('Admin authentication required');
+    }
+
+    this.logger.log(`🔄 Proxy request started for website ${websiteId} from admin ${adminId}`);
+
+    try {
+      // Retrieve the website record to get the allocated port
+      const website = await this.websiteBuilderService.findWebsiteById(websiteId, adminId);
+      if (!website || !website.portNumber) {
+        this.logger.error(`❌ No preview port found for website ${websiteId}`);
+        this.logger.error(`📊 Website data:`, {
+          id: website?.id,
+          name: website?.name,
+          type: website?.type,
+          buildStatus: website?.buildStatus,
+          portNumber: website?.portNumber,
+          previewUrl: website?.previewUrl
+        });
+        return res.status(404).send('Preview server not running for this website');
+      }
+      
+      const internalPort = website.portNumber;
+      const internalUrl = `http://localhost:${internalPort}`;
+
+      this.logger.log(`🔄 Proxying request for website ${websiteId} to internal port ${internalPort}`);
+      this.logger.log(`📊 Website details:`, {
+        id: website.id,
+        name: website.name,
+        type: website.type,
+        buildStatus: website.buildStatus,
+        portNumber: website.portNumber,
+        previewUrl: website.previewUrl
+      });
+
+      // Forward the request to the internal Vite server
+      try {
+        // Forward query params if present
+        const urlWithQuery = Object.keys(query).length > 0
+          ? `${internalUrl}/?${new URLSearchParams(query).toString()}`
+          : internalUrl;
+        
+        this.logger.log(`🌐 Making request to: ${urlWithQuery}`);
+        
+        // Forward relevant headers (excluding auth headers)
+        const headersToForward: Record<string, string> = {};
+        const excludeHeaders = ['authorization', 'cookie', 'x-api-key', 'x-user-token'];
+        
+        Object.keys(req.headers).forEach(key => {
+          if (!excludeHeaders.includes(key.toLowerCase())) {
+            headersToForward[key] = req.headers[key];
+          }
+        });
+
+        this.logger.log(`📋 Forwarding headers:`, Object.keys(headersToForward));
+
+        const response = await firstValueFrom(
+          this.httpService.get(urlWithQuery, { 
+            responseType: 'stream',
+            headers: headersToForward,
+            timeout: 10000 // 10 second timeout
+          })
+        );
+        
+        this.logger.log(`✅ Received response from internal server: ${response.status}`);
+        this.logger.log(`📋 Response headers:`, Object.keys(response.headers));
+        
+        // Forward response headers (excluding security headers)
+        const excludeResponseHeaders = ['x-frame-options', 'content-security-policy'];
+        if (response.headers) {
+          Object.keys(response.headers).forEach(key => {
+            if (!excludeResponseHeaders.includes(key.toLowerCase())) {
+              res.set(key, response.headers[key]);
+            }
+          });
+        }
+        
+        // Stream the response
+        if (response.data) {
+          response.data.pipe(res);
+          this.logger.log(`✅ Successfully proxied request for website ${websiteId}`);
+        } else {
+          this.logger.error(`❌ No response data from internal server for website ${websiteId}`);
+          res.status(500).send('No response data from preview server');
+        }
+      } catch (proxyError: any) {
+        this.logger.error(`❌ Error proxying preview request for website ${websiteId}: ${proxyError.message}`);
+        this.logger.error(`📊 Proxy error details:`, {
+          code: proxyError.code,
+          errno: proxyError.errno,
+          syscall: proxyError.syscall,
+          address: proxyError.address,
+          port: proxyError.port,
+          stack: proxyError.stack
+        });
+        
+        // Check if it's a connection error (server not running)
+        if (proxyError.code === 'ECONNREFUSED' || proxyError.message.includes('connect')) {
+          this.logger.error(`❌ Connection refused to ${internalUrl} - server not running`);
+          return res.status(503).send('Preview server is not running. Please restart the website.');
+        }
+        
+        // Check if it's a timeout
+        if (proxyError.code === 'ECONNABORTED' || proxyError.message.includes('timeout')) {
+          this.logger.error(`❌ Request timeout to ${internalUrl}`);
+          return res.status(504).send('Preview server request timed out. Please try again.');
+        }
+        
+        // Check if it's a DNS error
+        if (proxyError.code === 'ENOTFOUND') {
+          this.logger.error(`❌ DNS resolution failed for ${internalUrl}`);
+          return res.status(503).send('Preview server host not found. Please restart the website.');
+        }
+        
+        res.status(500).send('Error proxying preview request');
+      }
+    } catch (error: any) {
+      this.logger.error(`❌ Error in proxy endpoint for website ${websiteId}: ${error.message}`);
+      this.logger.error(`📊 Error stack:`, error.stack);
+      res.status(500).send('Internal server error');
+    }
   }
 
   @Patch(':id')

@@ -41,3 +41,7 @@ DONT FORGET TO ADD R2
 - [ ] Test export after modifications
 
 -----
+
+Add button to redirect to editor
+Make AI work in real time
+

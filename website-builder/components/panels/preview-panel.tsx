@@ -7,6 +7,7 @@ import { AlertCircle, ExternalLink, Upload, Code, Eye, Download, Sparkles, Refre
 import { Button } from "@/components/ui/button"
 import { UploadZone } from "@/components/website-builder"
 import { BuildProgress } from "@/components/website-builder"
+import { api } from "@/lib/api"
 
 interface PreviewPanelProps {
   code?: string
@@ -52,6 +53,22 @@ export function PreviewPanel({
   const refreshPreview = () => {
     setIframeKey((prev: number) => prev + 1)
   }
+
+  // Get the appropriate preview URL - use proxy for Vite/React projects
+  const getPreviewUrl = () => {
+    if (!websiteId) return previewUrl;
+    
+    // If the website has a portNumber, it's a Vite/React project - use proxy
+    if (uploadedWebsite?.portNumber) {
+      return api.websiteBuilder.getProxyPreviewUrl(websiteId);
+    }
+    
+    // For static sites, use the original previewUrl
+    return previewUrl;
+  };
+
+  const finalPreviewUrl = getPreviewUrl();
+
   const PreviewComponent = useMemo(() => {
     if (!code) return null
     
@@ -93,7 +110,7 @@ export function PreviewPanel({
   }, [code, uploadedWebsite])
 
   // If we have a preview URL, show the live website
-  if (previewUrl) {
+  if (finalPreviewUrl) {
     return (
       <div className="h-full flex flex-col">
         {/* Preview Header */}
@@ -116,7 +133,7 @@ export function PreviewPanel({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => window.open(previewUrl, '_blank')}
+              onClick={() => window.open(finalPreviewUrl, '_blank')}
             >
               <ExternalLink className="h-4 w-4 mr-2" />
               Open in New Tab
@@ -128,7 +145,7 @@ export function PreviewPanel({
         <div className="flex-1 bg-white">
           <iframe
             key={iframeKey}
-            src={previewUrl}
+            src={finalPreviewUrl}
             className="w-full h-full border-0"
             title="Website Preview"
           />
@@ -158,7 +175,7 @@ export function PreviewPanel({
   }
 
   // Show a message when we have uploaded website but no preview URL yet
-  if (uploadedWebsite && !previewUrl) {
+  if (uploadedWebsite && !finalPreviewUrl) {
     return (
       <div className="h-full flex flex-col">
         <div className="p-4 border-b">
@@ -180,7 +197,7 @@ export function PreviewPanel({
   }
 
   // Show file content preview when we have website files but no live preview
-  if (websiteFiles.length > 0 && selectedFile && !previewUrl) {
+  if (websiteFiles.length > 0 && selectedFile && !finalPreviewUrl) {
     return (
       <div className="h-full flex flex-col">
         <div className="p-4 border-b flex items-center justify-between">
@@ -253,7 +270,7 @@ export function PreviewPanel({
   }
 
   // Show upload interface when no website is loaded
-  if (!uploadedWebsite && !previewUrl) {
+  if (!uploadedWebsite && !finalPreviewUrl) {
     return (
       <div className="h-full flex flex-col">
         <div className="p-4 border-b">
@@ -306,7 +323,12 @@ export function PreviewPanel({
                     <CardContent className="p-6">
                       <div className="flex space-x-4">
                         <Button
-                          onClick={() => window.open(uploadedWebsite.previewUrl, '_blank')}
+                          onClick={() => {
+                            const url = uploadedWebsite.portNumber 
+                              ? api.websiteBuilder.getProxyPreviewUrl(uploadedWebsite.id)
+                              : uploadedWebsite.previewUrl;
+                            window.open(url, '_blank');
+                          }}
                           className="flex-1"
                         >
                           <ExternalLink className="h-4 w-4 mr-2" />

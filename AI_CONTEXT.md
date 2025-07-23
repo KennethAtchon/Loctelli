@@ -1402,13 +1402,22 @@ All previous console statements in the frontend have been replaced with this log
 
 This context should provide AI models with comprehensive understanding of the Loctelli CRM system architecture, data flow, and implementation details for effective code analysis and generation.
 
-# Integrations System (2024-07) - COMPLETE
+# AI Context for Loctelli Backend
 
-- IntegrationTemplate and Integration models added to Prisma schema.
-- IntegrationTemplate: defines available integration types and config schemas (admin-scoped).
-- Integration: subaccount-specific integration instances, referencing a template, with config, status, and sync info.
-- Relationships: AdminUser (creates templates/integrations), SubAccount (owns integrations).
-- Backend and frontend fully implemented with complete CRUD operations.
-- Frontend includes: main page, setup flow, edit pages, and detailed views.
-- Dynamic form generation from configSchema, connection testing, and data sync.
-- 3 default integration templates: GoHighLevel (CRM), Facebook Ads (Advertising), Google Analytics (Analytics). 
+## Website Preview Proxy Endpoint
+
+- **Endpoint:** `GET /website-builder/:id/proxy-preview`
+- **Purpose:** Proxies requests from the frontend to the internal Vite dev server running inside the container for website previews. This allows previewing websites in environments (like Railway) where only the main app port is exposed.
+- **How it works:**
+  - Looks up the `portNumber` for the website with the given `id` (from the database/website record).
+  - Forwards the request to `http://localhost:<portNumber>` inside the container using `HttpService`.
+  - Streams the response back to the client, preserving headers.
+  - Only accessible to authenticated admins.
+  - Returns 404 if no preview server is running for the website.
+  - Returns 500 on proxy errors.
+- **Security:** Requires admin authentication (uses `AdminGuard`).
+- **Frontend usage:** Instead of loading the internal Vite port directly, the frontend should use this endpoint as the iframe src for previews.
+
+---
+
+(Keep this section updated if the proxy logic or endpoint changes.) 

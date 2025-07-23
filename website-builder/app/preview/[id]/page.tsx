@@ -34,16 +34,24 @@ export default function PreviewPage() {
           type: websiteData.type,
           buildStatus: websiteData.buildStatus,
           previewUrl: websiteData.previewUrl,
+          portNumber: websiteData.portNumber,
           fileCount: websiteData.files?.length || 0,
           files: websiteData.files?.map(f => ({ name: f.name, type: f.type, size: f.content?.length || 0 }))
         });
         
         // Handle different website types
         if (websiteData.previewUrl && (websiteData.type === 'vite' || websiteData.type === 'react' || websiteData.type === 'nextjs')) {
-          // For React/Vite projects, use the previewUrl from backend
-          console.log(`🌐 Using backend preview URL: ${websiteData.previewUrl}`);
-          console.log(`📊 Website type: ${websiteData.type}, build status: ${websiteData.buildStatus}`);
-          setPreviewUrl(websiteData.previewUrl);
+          // For React/Vite projects, use the proxy URL if portNumber is available
+          if (websiteData.portNumber) {
+            const proxyUrl = api.websiteBuilder.getProxyPreviewUrl(websiteId);
+            console.log(`🌐 Using proxy preview URL: ${proxyUrl}`);
+            console.log(`📊 Website type: ${websiteData.type}, build status: ${websiteData.buildStatus}, port: ${websiteData.portNumber}`);
+            setPreviewUrl(proxyUrl);
+          } else {
+            // Fallback to direct URL if no port number (legacy)
+            console.log(`🌐 Using direct preview URL: ${websiteData.previewUrl}`);
+            setPreviewUrl(websiteData.previewUrl);
+          }
         } else if (websiteData.files && websiteData.files.length > 0) {
           // For static sites, find any HTML file (not just index.html)
           const htmlFile = websiteData.files.find(f => 

@@ -11,9 +11,10 @@ import { BuildWorkerService } from './services/build-worker.service';
 import { RealTimeNotificationService } from './services/realtime-notification.service';
 import { QueueProcessorService } from './services/queue-processor.service';
 import { SharedModule } from '../../../shared/shared.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [SharedModule, ScheduleModule.forRoot()],
+  imports: [SharedModule, ScheduleModule.forRoot(), HttpModule],
   controllers: [WebsiteBuilderController],
   providers: [
     WebsiteBuilderService, 

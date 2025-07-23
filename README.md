@@ -1188,3 +1188,66 @@ DELETE /website-builder/:id           # Delete website
 - **Preview System Fix**: Fixed Vite/React preview issues by properly updating website records with preview URLs
 - **Dev Server Integration**: Implemented proper Vite dev server startup for live preview instead of serving built files
 - **Process Management**: Enhanced process management with proper spawn usage and detached processes
+
+## Website Preview Proxy Endpoint
+
+To support live website previews (e.g., Vite/React dev server) in production environments like Railway, where only the main app port is exposed, a proxy endpoint is provided:
+
+- **Endpoint:** `GET /website-builder/:id/proxy-preview`
+- **Purpose:** Proxies requests to the internal Vite dev server for a given website, allowing the frontend to load previews via the main app port.
+- **How to use:**
+  - On the frontend, set the iframe src to `/website-builder/{websiteId}/proxy-preview` instead of directly accessing the Vite port.
+  - The backend will forward the request to the correct internal port and stream the response.
+- **Security:** Only accessible to authenticated admins.
+- **Error Handling:**
+  - 404 if no preview server is running for the website.
+  - 500 on proxy errors.
+
+This enables seamless previewing of websites in environments where dynamic port exposure is not possible.
+
+## Testing the Proxy Endpoint
+
+To test the proxy endpoint locally:
+
+1. **Start your backend server** (make sure it's running on port 3000)
+2. **Upload a Vite/React website** through the frontend
+3. **Wait for the build to complete** and note the website ID
+4. **Test the proxy endpoint**:
+
+```bash
+# Set your API key
+export API_KEY=your_api_key_here
+
+# Test with a website ID
+node project/test-proxy.js <websiteId>
+```
+
+The test script will:
+- Check if the website has a port number assigned
+- Test the proxy endpoint
+- Show the response status and details
+
+**Expected results:**
+- ✅ Status 200: Proxy working correctly
+- ❌ Status 404: Website not found or no preview server
+- ❌ Status 503: Preview server not running (restart needed)
+
+## Production Deployment
+
+When deploying to Railway or similar PaaS:
+
+1. **Deploy the backend** with the new proxy endpoint
+2. **Update the frontend** to use proxy URLs for Vite/React projects
+3. **Test the proxy endpoint** using the test script with your production URL:
+
+```bash
+export API_BASE_URL=https://your-railway-app.up.railway.app
+export API_KEY=your_api_key_here
+node project/test-proxy.js <websiteId>
+```
+
+The proxy endpoint will automatically handle:
+- Authentication (requires admin access)
+- Port mapping (uses website.portNumber)
+- Error handling (connection failures, timeouts)
+- Header forwarding (excluding security headers)

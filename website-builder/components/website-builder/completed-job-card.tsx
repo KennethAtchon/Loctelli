@@ -11,6 +11,21 @@ export function CompletedJobCard({ job }: { job: any }) {
     await api.websiteBuilder.retryJob(job.id);
   };
 
+  // Get the appropriate preview URL - use proxy for Vite/React projects
+  const getPreviewUrl = () => {
+    if (!job.previewUrl) return null;
+    
+    // If the job has a portNumber, it's a Vite/React project - use proxy
+    if (job.portNumber) {
+      return api.websiteBuilder.getProxyPreviewUrl(job.websiteId);
+    }
+    
+    // For static sites, use the original previewUrl
+    return job.previewUrl;
+  };
+
+  const finalPreviewUrl = getPreviewUrl();
+
   return (
     <Card>
       <CardHeader>
@@ -21,8 +36,8 @@ export function CompletedJobCard({ job }: { job: any }) {
       </CardHeader>
       <CardContent>
         <div className="mb-2 text-sm">Completed At: {job.completedAt ? new Date(job.completedAt).toLocaleString() : 'N/A'}</div>
-        {isSuccess && job.previewUrl && (
-          <Button variant="outline" size="sm" onClick={() => window.open(job.previewUrl, '_blank')}>
+        {isSuccess && finalPreviewUrl && (
+          <Button variant="outline" size="sm" onClick={() => window.open(finalPreviewUrl, '_blank')}>
             Open Preview
           </Button>
         )}

@@ -12,8 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { Bell } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-
-const api = new WebsiteBuilderApi();
+import { api } from "@/lib/api";
 
 export default function DashboardClient() {
   const [files, setFiles] = useState<File[]>([]);
@@ -44,7 +43,7 @@ export default function DashboardClient() {
     setLoadingJobs(true);
     setJobError(null);
     try {
-      const res = await api.getUserQueue();
+      const res = await api.websiteBuilder.getUserQueue();
       const jobs = (res as any).jobs || [];
       setJobs(jobs);
       setQueueStats((res as any).stats || null);
@@ -69,7 +68,7 @@ export default function DashboardClient() {
     const poll = async () => {
       if (stopped) return;
       try {
-        const status = await api.getJob(activeJob.id);
+        const status = await api.websiteBuilder.getJob(activeJob.id);
         setActiveJob(status);
         // If job is done, refresh the job queue
         if (["completed", "failed", "cancelled"].includes((status as any).status)) {
@@ -91,7 +90,7 @@ export default function DashboardClient() {
     setLoadingNotifs(true);
     setNotifError(null);
     try {
-      const notifs = await api.getUserNotifications();
+      const notifs = await api.websiteBuilder.getUserNotifications();
       const notifArr = Array.isArray(notifs) ? notifs : [];
       setNotifications(notifArr);
       setUnreadCount(notifArr.filter((n: any) => !n.read).length);
@@ -114,13 +113,13 @@ export default function DashboardClient() {
 
   // Mark as read
   const markAsRead = async (id: string) => {
-    await api.markNotificationAsRead(id);
+    await api.websiteBuilder.markNotificationAsRead(id);
     fetchNotifications();
   };
 
   // Delete notification
   const deleteNotif = async (id: string) => {
-    await api.deleteNotification(id);
+    await api.websiteBuilder.deleteNotification(id);
     fetchNotifications();
   };
 
@@ -140,7 +139,7 @@ export default function DashboardClient() {
     setJobId(null);
     try {
       const websiteName = `website-${Date.now()}`;
-      const response = await api.uploadWebsite(files, websiteName, "Uploaded via dashboard");
+      const response = await api.websiteBuilder.uploadWebsite(files, websiteName, "Uploaded via dashboard");
       setUploadResult(response);
       if (response && 'jobId' in response) {
         setJobId((response as any).jobId ?? null);
@@ -151,6 +150,19 @@ export default function DashboardClient() {
     } finally {
       setIsUploading(false);
     }
+  };
+
+  // Get the appropriate preview URL - use proxy for Vite/React projects
+  const getPreviewUrl = (job: any) => {
+    if (!job.previewUrl) return null;
+    
+    // If the job has a portNumber, it's a Vite/React project - use proxy
+    if (job.portNumber) {
+      return api.websiteBuilder.getProxyPreviewUrl(job.websiteId);
+    }
+    
+    // For static sites, use the original previewUrl
+    return job.previewUrl;
   };
 
   return (
@@ -225,14 +237,14 @@ export default function DashboardClient() {
                     </div>
                     <div className="flex gap-2">
                       {job.status === "pending" || job.status === "building" ? (
-                        <Button size="sm" variant="destructive" onClick={() => api.cancelJob(job.id)}>Cancel</Button>
+                        <Button size="sm" variant="destructive" onClick={() => api.websiteBuilder.cancelJob(job.id)}>Cancel</Button>
                       ) : null}
                       {job.status === "failed" ? (
-                        <Button size="sm" variant="outline" onClick={() => api.retryJob(job.id)}>Retry</Button>
+                        <Button size="sm" variant="outline" onClick={() => api.websiteBuilder.retryJob(job.id)}>Retry</Button>
                       ) : null}
                       {job.previewUrl && (
                         <Button size="sm" asChild variant="secondary">
-                          <a href={`/preview/${job.websiteId}`} target="_blank" rel="noopener noreferrer">Preview</a>
+                          <a href={getPreviewUrl(job) || `/preview/${job.websiteId}`} target="_blank" rel="noopener noreferrer">Preview</a>
                         </Button>
                       )}
                     </div>

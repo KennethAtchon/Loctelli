@@ -177,6 +177,21 @@ export function BuildProgress({ websiteId, onBuildComplete, onBuildError }: Buil
     }
   };
 
+  // Get the appropriate preview URL - use proxy for Vite/React projects
+  const getPreviewUrl = () => {
+    if (!buildStatus?.previewUrl) return null;
+    
+    // If the website has a portNumber, it's a Vite/React project - use proxy
+    if (buildStatus.portNumber) {
+      return api.websiteBuilder.getProxyPreviewUrl(websiteId);
+    }
+    
+    // For static sites, use the original previewUrl
+    return buildStatus.previewUrl;
+  };
+
+  const finalPreviewUrl = getPreviewUrl();
+
   return (
     <Card>
       <CardHeader>
@@ -245,9 +260,9 @@ export function BuildProgress({ websiteId, onBuildComplete, onBuildError }: Buil
 
         {/* Action Buttons */}
         <div className="flex space-x-2">
-          {buildStatus.buildStatus === 'running' && buildStatus.previewUrl && (
+          {buildStatus.buildStatus === 'running' && finalPreviewUrl && (
             <Button
-              onClick={() => window.open(buildStatus.previewUrl, '_blank')}
+              onClick={() => window.open(finalPreviewUrl, '_blank')}
               className="flex-1"
             >
               <ExternalLink className="h-4 w-4 mr-2" />
