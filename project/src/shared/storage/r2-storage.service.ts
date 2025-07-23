@@ -249,7 +249,7 @@ export class R2StorageService {
       throw new Error('R2 public URL is not configured');
     }
     
-    return `${this.publicUrl}/${key}`.replace(/([^:]\/)/+/g, '$1');
+    return `${this.publicUrl}/${key}`.replace(/([^:]\/)(\/+)/g, '$1');
   }
 
   /**
