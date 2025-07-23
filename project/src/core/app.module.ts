@@ -15,9 +15,6 @@ import { ConfigService } from '@nestjs/config';
 // Main app modules
 import { MainAppModule } from '../main-app/main-app.module';
 
-// Website builder modules
-import { WebsiteBuilderModule } from '../website-builder/website-builder.module';
-
 // Guards and middleware
 import { JwtAuthGuard } from '../main-app/auth/auth.guard';
 import { ApiKeyMiddleware } from '../shared/middleware/api-key.middleware';
@@ -33,8 +30,8 @@ import { InputValidationMiddleware } from '../shared/middleware/input-validation
     // Main app modules
     MainAppModule,
     
-    // Website builder modules
-    WebsiteBuilderModule,
+    // Website builder modules - REMOVED
+    // WebsiteBuilderModule,
   ],
   controllers: [AppController],
   providers: [

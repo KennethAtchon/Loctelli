@@ -1,1 +1,0 @@
-export { default as DashboardClient } from './dashboard-client'; 

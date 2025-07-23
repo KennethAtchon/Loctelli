@@ -255,27 +255,6 @@ export default function AdminDashboardPage() {
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          {/* <Button 
-            variant="default" 
-            size="sm" 
-            onClick={() => {
-              const currentHostname = window.location.hostname;
-              const currentPort = window.location.port;
-              
-              let websiteBuilderUrl: string;
-              if (currentHostname === 'localhost' && currentPort === '3000') {
-                websiteBuilderUrl = 'http://localhost:3001';
-              } else if (currentHostname === 'localhost') {
-                websiteBuilderUrl = 'http://localhost:3001';
-              } else {
-                websiteBuilderUrl = 'https://website-builder.loctelli.com';
-              }
-              window.open(websiteBuilderUrl, '_blank');
-            }}
-          >
-            <Code className="h-4 w-4 mr-2" />
-            Website Builder
-          </Button> */}
         </div>
       </div>
 
