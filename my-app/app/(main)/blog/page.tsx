@@ -1,24 +1,33 @@
-import { HeroSection } from "@/components/version1/hero-section";
-import { HowItWorks } from "@/components/version1/how-it-works";
-import { FeaturesSection } from "@/components/version1/features-section";
-import { ContactSection } from "@/components/version1/contact-section";
-import { Footer } from "@/components/version1/footer";
-import { Navigation } from "@/components/version1/navigation";
+import { Metadata } from 'next';
 
-export default function Home() {
+export const metadata: Metadata = {
+  title: 'Blog - Loctelli',
+  description: 'Latest insights on AI-powered lead generation and sales automation',
+};
+
+export default function BlogPage() {
   return (
     <div className="flex min-h-screen flex-col">
-      <Navigation />
-      <main className="flex-1">
-        <HeroSection />
-        <HowItWorks />
-        <FeaturesSection />
-        {/* <DemoSection />
-        <Testimonials />
-        <PricingSection /> */}
-        <ContactSection />
+      <main className="flex-1 container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <header className="mb-12">
+            <h1 className="text-4xl font-bold tracking-tight mb-4">
+              Blog
+            </h1>
+            <p className="text-xl text-muted-foreground">
+              Insights on AI-powered lead generation and sales automation
+            </p>
+          </header>
+
+          <section className="space-y-8">
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">
+                Blog posts coming soon...
+              </p>
+            </div>
+          </section>
+        </div>
       </main>
-      <Footer />
     </div>
   );
 }
