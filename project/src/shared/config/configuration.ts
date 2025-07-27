@@ -43,4 +43,16 @@ export default () => ({
     publicUrl: process.env.R2_PUBLIC_URL,
     enabled: process.env.R2_ENABLED === 'true' || true,
   },
+  // Twilio Configuration
+  twilio: {
+    accountSid: process.env.TWILIO_ACCOUNT_SID,
+    authToken: process.env.TWILIO_AUTH_TOKEN,
+    phoneNumber: process.env.TWILIO_PHONE_NUMBER,
+  },
+  // SMS Settings
+  sms: {
+    rateLimitPerMinute: parseInt(process.env.SMS_RATE_LIMIT_PER_MINUTE || '60', 10),
+    maxBatchSize: parseInt(process.env.SMS_MAX_BATCH_SIZE || '100', 10),
+    retryAttempts: parseInt(process.env.SMS_RETRY_ATTEMPTS || '3', 10),
+  },
 }); 
