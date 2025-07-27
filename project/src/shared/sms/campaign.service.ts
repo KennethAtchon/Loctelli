@@ -341,6 +341,72 @@ export class CampaignService {
   }
 
   /**
+   * Get SMS messages for user
+   */
+  async getMessages(
+    userId: number,
+    subAccountId: number,
+    page: number = 1,
+    limit: number = 10,
+    status?: string,
+    campaignId?: number,
+    phoneNumber?: string,
+  ): Promise<{
+    messages: SmsMessage[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const skip = (page - 1) * limit;
+
+    const whereClause: any = {
+      userId,
+      subAccountId,
+    };
+
+    if (status) {
+      whereClause.status = status;
+    }
+
+    if (campaignId) {
+      whereClause.campaignId = campaignId;
+    }
+
+    if (phoneNumber) {
+      whereClause.phoneNumber = {
+        contains: phoneNumber,
+      };
+    }
+
+    const [messages, total] = await Promise.all([
+      this.prisma.smsMessage.findMany({
+        where: whereClause,
+        include: {
+          campaign: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.smsMessage.count({
+        where: whereClause,
+      }),
+    ]);
+
+    return {
+      messages,
+      total,
+      page,
+      limit,
+    };
+  }
+
+  /**
    * Get campaign statistics
    */
   async getCampaignStats(userId: number, subAccountId: number): Promise<CampaignStats> {

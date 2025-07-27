@@ -54,11 +54,25 @@ export default function SmsDashboardPage() {
       ]);
 
       if (statsResponse?.success) {
-        setStats(statsResponse.data);
+        setStats(statsResponse.data || {
+          totalSent: 0,
+          totalDelivered: 0,
+          totalFailed: 0,
+          totalPending: 0,
+          monthlyStats: {},
+          recentMessages: []
+        });
       }
 
       if (campaignStatsResponse?.success) {
-        setCampaignStats(campaignStatsResponse.data);
+        setCampaignStats(campaignStatsResponse.data || {
+          totalCampaigns: 0,
+          activeCampaigns: 0,
+          completedCampaigns: 0,
+          totalMessagesSent: 0,
+          totalMessagesDelivered: 0,
+          totalMessagesFailed: 0
+        });
       }
 
       if (campaignsResponse?.success) {
@@ -70,7 +84,12 @@ export default function SmsDashboardPage() {
       }
 
       if (statusResponse?.success) {
-        setServiceStatus(statusResponse.data);
+        setServiceStatus(statusResponse.data || {
+          configured: false,
+          rateLimitPerMinute: 60,
+          maxBatchSize: 100,
+          retryAttempts: 3
+        });
       }
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
@@ -101,13 +120,18 @@ export default function SmsDashboardPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'N/A';
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch (error) {
+      return 'Invalid Date';
+    }
   };
 
   return (
@@ -235,21 +259,21 @@ export default function SmsDashboardPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm">Rate Limit</span>
                       <span className="text-sm text-muted-foreground">
-                        {serviceStatus.rateLimitPerMinute}/min
+                        {serviceStatus?.rateLimitPerMinute || 60}/min
                       </span>
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <span className="text-sm">Batch Size</span>
                       <span className="text-sm text-muted-foreground">
-                        {serviceStatus.maxBatchSize}
+                        {serviceStatus?.maxBatchSize || 100}
                       </span>
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <span className="text-sm">Retry Attempts</span>
                       <span className="text-sm text-muted-foreground">
-                        {serviceStatus.retryAttempts}
+                        {serviceStatus?.retryAttempts || 3}
                       </span>
                     </div>
                   </>
@@ -298,14 +322,14 @@ export default function SmsDashboardPage() {
                     <div className="flex items-center justify-between">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <h4 className="font-medium">{campaign.name}</h4>
+                          <h4 className="font-medium">{campaign.name || 'Unnamed Campaign'}</h4>
                           {getStatusBadge(campaign.status)}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {campaign.totalRecipients} recipients • Created {formatDate(campaign.createdAt)}
+                          {campaign.totalRecipients || 0} recipients • Created {formatDate(campaign.createdAt)}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          Sent: {campaign.sentCount} • Failed: {campaign.failedCount}
+                          Sent: {campaign.sentCount || 0} • Failed: {campaign.failedCount || 0}
                         </div>
                       </div>
                       <Button asChild variant="outline" size="sm">
@@ -367,18 +391,18 @@ export default function SmsDashboardPage() {
                     <div className="flex items-start justify-between">
                       <div className="space-y-1 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{message.phoneNumber}</span>
+                          <span className="font-medium">{message.phoneNumber || 'Unknown'}</span>
                           {getStatusBadge(message.status)}
                           <span className="text-xs text-muted-foreground">
                             {formatDate(message.createdAt)}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2">
-                          {message.message}
+                          {message.message || 'No message content'}
                         </p>
                         {message.campaign && (
                           <div className="text-xs text-muted-foreground">
-                            Campaign: {message.campaign.name}
+                            Campaign: {message.campaign.name || 'Unknown Campaign'}
                           </div>
                         )}
                       </div>

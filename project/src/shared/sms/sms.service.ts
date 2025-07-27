@@ -14,7 +14,7 @@ import {
 @Injectable()
 export class SmsService implements SmsServiceInterface {
   private readonly logger = new Logger(SmsService.name);
-  private readonly twilioClient: Twilio;
+  private readonly twilioClient?: Twilio;
   private readonly smsConfig: SmsConfig;
   private readonly rateLimitPerMinute: number;
   private readonly maxBatchSize: number;
@@ -40,6 +40,15 @@ export class SmsService implements SmsServiceInterface {
    */
   async sendSms(phoneNumber: string, message: string): Promise<SmsResult> {
     try {
+      // Check if SMS service is configured
+      if (!this.isConfigured()) {
+        return {
+          success: false,
+          error: 'SMS service is not configured. Please configure Twilio credentials.',
+          status: 'failed',
+        };
+      }
+
       // Validate phone number
       const phoneValidation = this.validatePhoneNumber(phoneNumber);
       if (!phoneValidation.isValid) {
@@ -54,7 +63,7 @@ export class SmsService implements SmsServiceInterface {
       const formattedMessage = this.formatMessage(message);
 
       // Send SMS via Twilio
-      const twilioMessage = await this.twilioClient.messages.create({
+      const twilioMessage = await this.twilioClient!.messages.create({
         body: formattedMessage,
         from: this.smsConfig.phoneNumber,
         to: phoneValidation.formattedNumber!,
@@ -266,7 +275,7 @@ export class SmsService implements SmsServiceInterface {
       }
 
       // Test the connection by getting account info
-      const account = await this.twilioClient.api.accounts(this.smsConfig.accountSid).fetch();
+      const account = await this.twilioClient!.api.accounts(this.smsConfig.accountSid).fetch();
       
       return {
         success: true,

@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import { SharedModule } from '../../../shared/shared.module';
 import { SmsController } from './sms.controller';
-import { SmsModuleService } from './sms.service';
 
 @Module({
   imports: [
@@ -21,7 +20,5 @@ import { SmsModuleService } from './sms.service';
     }),
   ],
   controllers: [SmsController],
-  providers: [SmsModuleService],
-  exports: [SmsModuleService],
 })
 export class SmsModule {}

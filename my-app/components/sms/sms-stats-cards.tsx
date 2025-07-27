@@ -93,7 +93,9 @@ function StatCard({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{value.toLocaleString()}</div>
+        <div className="text-2xl font-bold">
+          {typeof value === 'number' ? value.toLocaleString() : value}
+        </div>
         {(description || trend) && (
           <div className="flex items-center justify-between mt-1">
             {description && (

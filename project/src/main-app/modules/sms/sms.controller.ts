@@ -158,23 +158,55 @@ export class SmsController {
   @Get('campaigns')
   async getCampaigns(
     @CurrentUser() user: User,
-    @Query('page', ParseIntPipe) page: number = 1,
-    @Query('limit', ParseIntPipe) limit: number = 10,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
   ) {
     try {
+      const pageNum = parseInt(page, 10);
+      const limitNum = parseInt(limit, 10);
+
+      if (isNaN(pageNum) || isNaN(limitNum)) {
+        throw new BadRequestException('Page and limit must be valid numbers');
+      }
+
       const result = await this.campaignService.getCampaigns(
         user.id,
         user.subAccountId,
-        page,
-        limit,
+        pageNum,
+        limitNum,
       );
 
       return {
         success: true,
-        data: result,
+        data: {
+          data: result.campaigns,
+          total: result.total,
+          page: result.page,
+          limit: result.limit,
+        },
       };
     } catch (error) {
       throw new BadRequestException(error.message || 'Failed to fetch campaigns');
+    }
+  }
+
+  /**
+   * Get campaign statistics
+   */
+  @Get('campaigns/stats')
+  async getCampaignStats(@CurrentUser() user: User) {
+    try {
+      const stats = await this.campaignService.getCampaignStats(
+        user.id,
+        user.subAccountId,
+      );
+
+      return {
+        success: true,
+        data: stats,
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message || 'Failed to fetch campaign statistics');
     }
   }
 
@@ -209,24 +241,81 @@ export class SmsController {
   async getCampaignMessages(
     @CurrentUser() user: User,
     @Param('id', ParseIntPipe) campaignId: number,
-    @Query('page', ParseIntPipe) page: number = 1,
-    @Query('limit', ParseIntPipe) limit: number = 50,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '50',
   ) {
     try {
+      const pageNum = parseInt(page, 10);
+      const limitNum = parseInt(limit, 10);
+
+      if (isNaN(pageNum) || isNaN(limitNum)) {
+        throw new BadRequestException('Page and limit must be valid numbers');
+      }
+
       const result = await this.campaignService.getCampaignMessages(
         campaignId,
         user.id,
         user.subAccountId,
-        page,
-        limit,
+        pageNum,
+        limitNum,
       );
 
       return {
         success: true,
-        data: result,
+        data: {
+          data: result.messages,
+          total: result.total,
+          page: result.page,
+          limit: result.limit,
+        },
       };
     } catch (error) {
       throw new BadRequestException(error.message || 'Failed to fetch campaign messages');
+    }
+  }
+
+  /**
+   * Get SMS messages
+   */
+  @Get('messages')
+  async getMessages(
+    @CurrentUser() user: User,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+    @Query('status') status?: string,
+    @Query('campaignId') campaignId?: string,
+    @Query('phoneNumber') phoneNumber?: string,
+  ) {
+    try {
+      const pageNum = parseInt(page, 10);
+      const limitNum = parseInt(limit, 10);
+      const campaignIdNum = campaignId ? parseInt(campaignId, 10) : undefined;
+
+      if (isNaN(pageNum) || isNaN(limitNum)) {
+        throw new BadRequestException('Page and limit must be valid numbers');
+      }
+
+      const result = await this.campaignService.getMessages(
+        user.id,
+        user.subAccountId,
+        pageNum,
+        limitNum,
+        status,
+        campaignIdNum,
+        phoneNumber,
+      );
+
+      return {
+        success: true,
+        data: {
+          data: result.messages,
+          total: result.total,
+          page: result.page,
+          limit: result.limit,
+        },
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message || 'Failed to fetch SMS messages');
     }
   }
 
