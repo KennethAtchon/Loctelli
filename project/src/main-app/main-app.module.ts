@@ -9,6 +9,7 @@ import { PromptTemplatesModule } from './modules/prompt-templates/prompt-templat
 import { IntegrationTemplatesModule } from './integrations/modules/integration-templates/integration-templates.module';
 import { IntegrationsModule } from './integrations/modules/integrations/integrations.module';
 import { SubAccountsModule } from './modules/subaccounts/subaccounts.module';
+import { SmsModule } from './modules/sms/sms.module';
 import { WebhooksModule } from './integrations/ghl-integrations/webhooks/webhooks.module';
 import { StatusModule } from './status/status.module';
 import { BgProcessModule } from './background/bgprocess/bgprocess.module';
@@ -28,6 +29,7 @@ import { DebugModule } from './debug/debug.module';
     IntegrationTemplatesModule,
     IntegrationsModule,
     SubAccountsModule,
+    SmsModule,
     WebhooksModule,
     StatusModule,
     BgProcessModule,

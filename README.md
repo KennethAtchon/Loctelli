@@ -50,6 +50,7 @@ Loctelli/
 - **Booking System**: Handle appointment scheduling with calendar integration
 - **Chat Integration**: AI-powered conversation management with full history
 - **Prompt Template System**: Global AI prompt template management with strategy integration
+- **SMS System**: Complete Twilio SMS integration with campaign management, bulk messaging, and delivery tracking
 
 ### **Multi-Tenant System**
 - **SubAccounts**: Multi-client support with complete data isolation
@@ -62,6 +63,7 @@ Loctelli/
 - **Conversation Summarization**: Automatic summarization for long conversations (50+ messages)
 - **Booking Integration**: Automatic booking creation from AI responses
 - **Background Processes**: Automated booking slot management and sales automation
+- **SMS Automation**: Campaign scheduling, bulk messaging, and delivery status tracking
 
 ### **Security & Performance**
 - **Multi-layer Security**: API key + JWT + Role-based access control
@@ -102,6 +104,9 @@ npm run dev
 - `API_KEY` - Generate with `openssl rand -hex 32`
 - `ADMIN_AUTH_CODE` - Generate with `openssl rand -hex 16`
 - `DEFAULT_ADMIN_PASSWORD` - Secure admin password
+- `TWILIO_ACCOUNT_SID` - Your Twilio Account SID
+- `TWILIO_AUTH_TOKEN` - Your Twilio Auth Token
+- `TWILIO_PHONE_NUMBER` - Your Twilio phone number
 
 ### 3. Access the Application
 - **Frontend**: http://localhost:3000
@@ -257,6 +262,7 @@ docker-compose down
 - **Strategies**: `/strategy/*` - Sales strategy management
 - **Bookings**: `/booking/*` - Booking management with calendar integration
 - **Chat**: `/chat/*` - AI-powered messaging functionality
+- **SMS**: `/sms/*` - Twilio SMS integration with campaigns and bulk messaging
 - **SubAccounts**: `/admin/subaccounts/*` - Multi-tenant SubAccount management
 
 ### API Features

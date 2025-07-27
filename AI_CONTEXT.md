@@ -72,6 +72,13 @@
 - **Prompt Templates**: `/admin/prompt-templates/*` - CRUD + activation + default management
 - **SubAccounts**: `/admin/subaccounts/*` - Multi-tenant SubAccount management
 
+#### **SMS System** ✅ **FULLY IMPLEMENTED**
+- **SMS Core**: `/sms/*` - Single SMS, bulk SMS, campaigns, history, statistics
+- **SMS Campaigns**: `/sms/campaigns/*` - Campaign management, scheduling, tracking
+- **SMS Settings**: `/sms/settings` - Twilio configuration, rate limits, testing
+- **SMS History**: `/sms/messages` - Message history, filtering, export
+- **Twilio Integration**: Complete Twilio API integration with error handling and retry logic
+
 #### **System**
 - **Status**: `/status/*` - Health, version, system status
 - **General**: `/general/*` - Dashboard stats, schema, detailed views
@@ -83,6 +90,7 @@
 - **HTTP Methods**: Admin profile update uses PUT instead of PATCH
 - **Prompt Template Integration**: Strategy creation includes prompt template selection
 - **Auto-Login**: Both admin and user registration automatically log users in
+- **SMS Integration**: Complete Twilio SMS integration with campaign management and bulk messaging
 
 ## 💬 Chat System Architecture
 

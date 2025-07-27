@@ -47,6 +47,8 @@ model SubAccount {
   leads           Lead[]      // Leads created within this SubAccount
   bookings        Booking[]   // Bookings created within this SubAccount
   integrations    Integration[] // Integrations configured for this SubAccount
+  smsMessages     SmsMessage[] // SMS messages sent within this SubAccount
+  smsCampaigns    SmsCampaign[] // SMS campaigns created within this SubAccount
 }
 
 model User {
@@ -73,6 +75,8 @@ model User {
   strategies      Strategy[]
   leads           Lead[]      // Leads created by this user
   bookings        Booking[]
+  smsMessages     SmsMessage[] // SMS messages sent by this user
+  smsCampaigns    SmsCampaign[] // SMS campaigns created by this user
 }
 
 model Strategy {
@@ -196,6 +200,62 @@ model Integration {
   updatedAt             DateTime  @updatedAt
   createdByAdminId      Int
   createdByAdmin        AdminUser @relation(fields: [createdByAdminId], references: [id])
+}
+
+model SmsMessage {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  subAccountId Int      // Required: SMS belongs to a SubAccount
+  subAccount   SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Message details
+  phoneNumber  String   // Recipient phone number
+  message      String   @db.Text // SMS content
+  status       String   @default("pending") // pending, sent, delivered, failed
+  
+  // Twilio details
+  twilioSid    String?  // Twilio message SID
+  errorMessage String?  @db.Text // Error details if failed
+  
+  // Campaign tracking
+  campaignId   Int?     // Optional: Link to SMS campaign
+  campaign     SmsCampaign? @relation(fields: [campaignId], references: [id])
+  
+  // Timestamps
+  sentAt       DateTime?
+  deliveredAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model SmsCampaign {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  subAccountId Int      // Required: Campaign belongs to a SubAccount
+  subAccount   SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Campaign details
+  name         String   // Campaign name
+  message      String   @db.Text // SMS template
+  status       String   @default("draft") // draft, sending, completed, failed
+  
+  // Statistics
+  totalRecipients Int   @default(0)
+  sentCount      Int   @default(0)
+  deliveredCount Int   @default(0)
+  failedCount    Int   @default(0)
+  
+  // Timestamps
+  scheduledAt  DateTime?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relations
+  messages     SmsMessage[]
 }
 
 

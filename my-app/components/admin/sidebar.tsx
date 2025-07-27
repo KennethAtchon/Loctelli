@@ -18,6 +18,7 @@ import {
   FileText,
   Building2,
   Link2,
+  Send,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -30,6 +31,7 @@ const navigation = [
   { name: 'Leads', href: '/admin/leads', icon: Users },
   { name: 'Bookings', href: '/admin/bookings', icon: Calendar },
   { name: 'Chat', href: '/admin/chat', icon: MessageSquare },
+  { name: 'SMS', href: '/admin/sms', icon: Send },
   { name: 'Prompt Builder', href: '/admin/prompt-templates', icon: FileText },
   { name: 'Integrations', href: '/admin/integrations', icon: Link2 },
   { name: 'Dev', href: '/admin/dev', icon: Database },
