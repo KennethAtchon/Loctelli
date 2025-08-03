@@ -8,11 +8,11 @@ A comprehensive CRM application built with NestJS backend and Next.js frontend, 
 - **Frontend**: Next.js 15.2.4 with React 19 and TailwindCSS
 - **Database**: PostgreSQL 15-alpine with Prisma ORM 6.9.0
 - **Cache**: Redis 7-alpine (backend only)
-- **Authentication**: Cookie-based JWT authentication with automatic login
+- **Authentication**: Cookie-based JWT authentication with AuthService for token management
 - **AI Integration**: OpenAI-powered chat responses and sales strategies
 - **UI Framework**: TailwindCSS with shadcn/ui components
 - **State Management**: React Context API with cookie-based persistence
-- **API Communication**: Next.js API proxy for secure backend communication
+- **API Communication**: Next.js API proxy with AuthService for secure backend communication
 
 ## 📁 Project Structure
 

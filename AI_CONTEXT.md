@@ -6,8 +6,8 @@
 - **Framework**: Next.js with App Router
 - **UI Library**: Shadcn/ui components with Tailwind CSS
 - **State Management**: React Context for auth state
-- **API Client**: Custom API client with automatic token refresh
-- **Authentication**: JWT tokens stored in HTTP-only cookies
+- **API Client**: Custom API client with AuthService for token management and automatic refresh
+- **Authentication**: JWT tokens stored in HTTP-only cookies with separate AuthService
 
 ### **Backend (NestJS 11)**
 - **Framework**: NestJS with TypeScript

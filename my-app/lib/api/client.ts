@@ -1,9 +1,9 @@
 import { ApiRequestOptions } from './types';
 import { API_CONFIG } from '../utils/envUtils';
-import { AuthCookies } from '../cookies';
 import logger from '@/lib/logger';
 import { toast } from 'sonner';
 import { RateLimitBlocker } from '../utils/rate-limit-blocker';
+import { AuthService } from './auth-service';
 
 const API_BASE_URL = API_CONFIG.BASE_URL;
 
@@ -13,13 +13,12 @@ export class ApiClient {
     timeout: 10000,
     retries: 3,
   };
-  private isRefreshing = false;
-  private refreshPromise: Promise<void> | null = null;
-  private isRefreshRequest = false; // Flag to prevent recursive refresh attempts
   private rateLimitBlocker = new RateLimitBlocker();
+  private authService: AuthService;
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
+    this.authService = new AuthService(baseUrl);
     
     // Clean up expired blocks every minute
     setInterval(() => {
@@ -27,174 +26,12 @@ export class ApiClient {
     }, 60000);
   }
 
-  // Check if an endpoint is an authentication endpoint that should not be retried
-  private isAuthEndpoint(endpoint: string): boolean {
-    const authEndpoints = [
-      '/auth/login',
-      '/auth/register',
-      '/auth/refresh',
-      '/auth/logout',
-      '/admin/auth/login',
-      '/admin/auth/register',
-      '/admin/auth/refresh',
-      '/admin/auth/logout'
-    ];
-    return authEndpoints.includes(endpoint);
-  }
-
-  // Get authentication headers based on available tokens
-  private getAuthHeaders(): Record<string, string> {
-    const headers: Record<string, string> = {};
-    
-    // Note: API key is now handled server-side by the proxy
-    // No need to include it in frontend requests
-    
-    // Debug: Check all tokens
-    const adminAccessToken = AuthCookies.getAdminAccessToken();
-    const adminRefreshToken = AuthCookies.getAdminRefreshToken();
-    const userAccessToken = AuthCookies.getAccessToken();
-    const userRefreshToken = AuthCookies.getRefreshToken();
-    
-    logger.debug('🔍 Token Debug:', {
-      adminAccess: !!adminAccessToken,
-      adminRefresh: !!adminRefreshToken,
-      userAccess: !!userAccessToken,
-      userRefresh: !!userRefreshToken,
-      adminAccessLength: adminAccessToken?.length || 0,
-      adminRefreshLength: adminRefreshToken?.length || 0,
-    });
-    
-    // Check for admin tokens first (admin takes precedence)
-    if (adminAccessToken) {
-      headers['x-user-token'] = adminAccessToken;
-      logger.debug('🔑 Admin access token found and added to headers');
-      return headers;
-    }
-    
-    // Check for regular user tokens
-    if (userAccessToken) {
-      headers['x-user-token'] = userAccessToken;
-      logger.debug('🔑 User access token found and added to headers');
-    } else {
-      logger.debug('ℹ️ No access tokens found');
-    }
-    
-    return headers;
-  }
-
-  // Refresh tokens automatically
-  private async refreshTokens(): Promise<void> {
-    if (this.isRefreshing && this.refreshPromise) {
-      // If already refreshing, wait for the existing promise
-      await this.refreshPromise;
-      return;
-    }
-
-    this.isRefreshing = true;
-    this.refreshPromise = this.performTokenRefresh();
-    
-    try {
-      await this.refreshPromise;
-    } finally {
-      this.isRefreshing = false;
-      this.refreshPromise = null;
-    }
-  }
-
-  private async performTokenRefresh(): Promise<void> {
-    try {
-      // Try admin refresh first
-      const adminRefreshToken = AuthCookies.getAdminRefreshToken();
-      if (adminRefreshToken) {
-        try {
-          logger.debug('🔄 Attempting admin token refresh...');
-          // Use direct fetch to avoid infinite loop
-          this.isRefreshRequest = true;
-          const response = await fetch(`${this.baseUrl}/admin/auth/refresh`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ refresh_token: adminRefreshToken }),
-          });
-          this.isRefreshRequest = false;
-
-          if (!response.ok) {
-            const errorText = await response.text();
-            logger.debug(`❌ Admin refresh failed with status ${response.status}:`, errorText);
-            throw new Error(`Refresh failed: ${response.status} - ${errorText}`);
-          }
-
-          const data = await response.json();
-          logger.debug('✅ Admin token refresh successful, updating cookies...');
-          AuthCookies.setAdminAccessToken(data.access_token);
-          AuthCookies.setAdminRefreshToken(data.refresh_token);
-          logger.debug('✅ Admin tokens updated successfully');
-          return;
-        } catch (error) {
-          logger.debug('❌ Admin token refresh failed:', error);
-          // Clear only admin tokens on failure
-          AuthCookies.clearAdminTokens();
-          throw error;
-        }
-      }
-
-      // Try regular user refresh
-      const refreshToken = AuthCookies.getRefreshToken();
-      if (refreshToken) {
-        try {
-          logger.debug('🔄 Attempting user token refresh...');
-          // Use direct fetch to avoid infinite loop
-          this.isRefreshRequest = true;
-          const response = await fetch(`${this.baseUrl}/auth/refresh`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ refresh_token: refreshToken }),
-          });
-          this.isRefreshRequest = false;
-
-          if (!response.ok) {
-            const errorText = await response.text();
-            logger.debug(`❌ User refresh failed with status ${response.status}:`, errorText);
-            throw new Error(`Refresh failed: ${response.status} - ${errorText}`);
-          }
-
-          const data = await response.json();
-          logger.debug('✅ User token refresh successful, updating cookies...');
-          AuthCookies.setAccessToken(data.access_token);
-          AuthCookies.setRefreshToken(data.refresh_token);
-          logger.debug('✅ User tokens updated successfully');
-          return;
-        } catch (error) {
-          logger.debug('❌ User token refresh failed:', error);
-          // Clear only user tokens on failure
-          AuthCookies.clearUserTokens();
-          throw error;
-        }
-      }
-
-      // This is expected for initial login attempts - don't treat as error
-      logger.debug('⚠️ No refresh tokens available for refresh');
-      throw new Error('No refresh tokens available');
-    } catch (error) {
-      // Only log as error if it's not the expected "no refresh tokens" case
-      if (error instanceof Error && error.message === 'No refresh tokens available') {
-        logger.debug('❌ Token refresh failed completely:', error.message);
-      } else {
-        logger.error('❌ Token refresh failed completely:', error);
-      }
-      throw error;
-    }
-  }
-
   protected async request<T = unknown>(
     endpoint: string,
     options: RequestInit & ApiRequestOptions = {}
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    const isAuthEndpoint = this.isAuthEndpoint(endpoint);
+    const isAuthEndpoint = this.authService.isAuthEndpoint(endpoint);
     
     logger.debug('🌐 API Request:', {
       url,
@@ -223,7 +60,7 @@ export class ApiClient {
     }
     
     // Add auth headers
-    const authHeaders = this.getAuthHeaders();
+    const authHeaders = this.authService.getAuthHeaders();
     logger.debug('🔑 Auth headers:', authHeaders);
     
     const config: RequestInit = {
@@ -249,13 +86,12 @@ export class ApiClient {
       logger.debug('📡 Response status:', response.status, response.statusText);
       
       // Handle 401 Unauthorized - but NOT for auth endpoints or refresh requests
-      if (response.status === 401 && !this.isRefreshRequest && !isAuthEndpoint) {
+      if (response.status === 401 && !this.authService.isInRefreshRequest() && !isAuthEndpoint) {
         logger.debug('🔒 401 Unauthorized, attempting token refresh...');
         try {
-          await this.refreshTokens();
+          const newAuthHeaders = await this.authService.handleUnauthorized(endpoint);
           
           // Retry the request with new tokens
-          const newAuthHeaders = this.getAuthHeaders();
           logger.debug('🔄 Retrying with new auth headers:', newAuthHeaders);
           const retryConfig: RequestInit = {
             ...config,
@@ -277,7 +113,7 @@ export class ApiClient {
             logger.debug('❌ Retry failed after token refresh, redirecting to login...');
             
             // Clear all tokens since refresh failed
-            AuthCookies.clearAll();
+            this.authService.clearAllTokens();
             
             // Redirect to appropriate login page based on current path
             const currentPath = window.location.pathname;
