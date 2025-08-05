@@ -228,13 +228,71 @@ useEffect(() => {
 - `NEXT_PUBLIC_API_KEY`
 
 ### Docker Development
-```bash
-# Start services
-docker-compose up -d db redis
 
-# Full stack development
+The project uses Docker Compose to run the complete stack with the following services:
+
+**Services:**
+- **Database**: PostgreSQL 15 (port 5432) with health checks
+- **Cache**: Redis 7 (port 6379) with persistence
+- **Backend**: NestJS API (port 8000) with health checks
+- **Frontend**: Next.js app (port 3000)
+
+**Docker Commands:**
+```bash
+# Start all services (full stack)
+docker-compose up -d
+
+# Start specific services only
+docker-compose up -d db redis
+docker-compose up -d db redis api
+
+# View logs
+docker-compose logs -f
+docker-compose logs -f api frontend
+
+# Stop all services
+docker-compose down
+
+# Rebuild and start (after code changes)
+docker-compose up --build -d
+
+# Reset everything (removes volumes)
+docker-compose down -v
+```
+
+**Service URLs:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- Database: postgresql://postgres:password@localhost:5432/loctelli
+- Redis: redis://localhost:6379
+
+**Environment Variables:**
+- Default admin password: `defaultAdmin123!CANTUNA`
+- Database credentials: `postgres/password/loctelli`
+- Services auto-configure internal networking
+
+**Development Workflow:**
+```bash
+# Full containerized development
+docker-compose up -d
+
+# Hybrid development (external frontend/backend)
+docker-compose up -d db redis
 cd project && npm run start:dev &
 cd my-app && npm run dev
 ```
+
+**Helper Scripts (.helper/scripts/):**
+```bash
+# Quick setup - Stop all containers and rebuild
+./.helper/scripts/setup_docker.sh
+
+# Nuclear option - Remove everything and rebuild
+./.helper/scripts/nuke_setup_docker.sh
+```
+
+**Script Details:**
+- **setup_docker.sh**: Stops/removes all containers, then rebuilds with `docker-compose up --build`
+- **nuke_setup_docker.sh**: Complete Docker cleanup (containers, volumes, images) + rebuild
 
 Use this information to understand the codebase structure and implement changes following established patterns.
