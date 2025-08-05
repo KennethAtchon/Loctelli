@@ -10,6 +10,7 @@ import { IntegrationTemplatesModule } from './integrations/modules/integration-t
 import { IntegrationsModule } from './integrations/modules/integrations/integrations.module';
 import { SubAccountsModule } from './modules/subaccounts/subaccounts.module';
 import { SmsModule } from './modules/sms/sms.module';
+import { ScrapingModule } from './modules/scraping/scraping.module';
 import { WebhooksModule } from './integrations/ghl-integrations/webhooks/webhooks.module';
 import { StatusModule } from './status/status.module';
 import { BgProcessModule } from './background/bgprocess/bgprocess.module';
@@ -30,6 +31,7 @@ import { DebugModule } from './debug/debug.module';
     IntegrationsModule,
     SubAccountsModule,
     SmsModule,
+    ScrapingModule,
     WebhooksModule,
     StatusModule,
     BgProcessModule,
