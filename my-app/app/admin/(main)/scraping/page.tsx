@@ -39,21 +39,13 @@ export default function ScrapingDashboardPage() {
     try {
       setLoading(true);
       
-      // Load all dashboard data in parallel
-      const [
-        statsResponse,
-        recentJobsResponse,
-        activeJobsResponse,
-        statusResponse,
-      ] = await Promise.all([
-        api.scraping.getStats().catch(() => null),
-        api.scraping.getJobs({ limit: 5 }).catch(() => null),
-        api.scraping.getJobs({ status: 'RUNNING', limit: 10 }).catch(() => null),
-        api.scraping.getServiceStatus().catch(() => null),
-      ]);
+      // Single optimized API call to get all dashboard data
+      const response = await api.scraping.getDashboardData();
 
-      if (statsResponse?.success) {
-        setStats(statsResponse.data || {
+      if (response?.success) {
+        const { stats, recentJobs, activeJobs, serviceStatus } = response.data;
+        
+        setStats(stats || {
           totalJobs: 0,
           activeJobs: 0,
           completedJobs: 0,
@@ -63,28 +55,39 @@ export default function ScrapingDashboardPage() {
           averageProcessingTime: 0,
           successRate: 0
         });
-      }
 
-      if (recentJobsResponse?.success) {
-        setRecentJobs(recentJobsResponse.data.jobs || []);
-      }
-
-      if (activeJobsResponse?.success) {
-        setActiveJobs(activeJobsResponse.data.jobs || []);
-      }
-
-      if (statusResponse?.success) {
-        setServiceStatus(statusResponse.data || {
+        setRecentJobs(recentJobs || []);
+        setActiveJobs(activeJobs || []);
+        setServiceStatus(serviceStatus || {
           isHealthy: false,
           queueLength: 0,
           activeWorkers: 0,
           averageProcessingTime: 0,
-          errorRate: 0
+          errorRate: 0,
+          memoryUsage: {
+            used: 0,
+            total: 0,
+            percentage: 0
+          }
         });
       }
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
       toast.error('Failed to load dashboard data');
+      
+      // Set fallback empty state
+      setStats({
+        totalJobs: 0,
+        activeJobs: 0,
+        completedJobs: 0,
+        failedJobs: 0,
+        totalPagesScraped: 0,
+        totalItemsExtracted: 0,
+        averageProcessingTime: 0,
+        successRate: 0
+      });
+      setRecentJobs([]);
+      setActiveJobs([]);
     } finally {
       setLoading(false);
     }
@@ -174,21 +177,21 @@ export default function ScrapingDashboardPage() {
         </div>
       </div>
 
-      {/* Service Status Alert */}
+      {/* Service Status Alert - Only show if really problematic */}
       {serviceStatus && !serviceStatus.isHealthy && (
-        <Card className="border-orange-200 bg-orange-50">
+        <Card className="border-yellow-200 bg-yellow-50">
           <CardContent className="flex items-center gap-3 p-4">
-            <AlertCircle className="h-5 w-5 text-orange-500" />
+            <AlertCircle className="h-5 w-5 text-yellow-600" />
             <div className="flex-1">
-              <div className="font-medium text-orange-800">Scraping Service Unhealthy</div>
-              <div className="text-sm text-orange-600">
-                The scraping service is currently experiencing issues. Some features may be unavailable.
+              <div className="font-medium text-yellow-800">Queue Service Unavailable</div>
+              <div className="text-sm text-yellow-700">
+                Background processing may be affected. You can still create and manage jobs.
               </div>
             </div>
             <Button asChild variant="outline" size="sm">
               <Link href="/admin/scraping/settings">
                 <Settings className="h-4 w-4 mr-2" />
-                Check Settings
+                View Details
               </Link>
             </Button>
           </CardContent>

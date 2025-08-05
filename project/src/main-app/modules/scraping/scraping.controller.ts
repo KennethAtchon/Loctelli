@@ -362,6 +362,57 @@ export class ScrapingController {
   }
 
   /**
+   * Get dashboard data (optimized - combines multiple endpoints)
+   */
+  @Get('dashboard')
+  async getDashboardData(@CurrentUser() user: User) {
+    try {
+      // Get essential data first (database queries are fast)
+      const [stats, recentJobsResult, activeJobsResult] = await Promise.all([
+        this.scrapingService.getStats(user.id, user.subAccountId),
+        this.scrapingService.getJobs(user.id, user.subAccountId, 1, 5),
+        this.scrapingService.getJobs(user.id, user.subAccountId, 1, 10, 'RUNNING'),
+      ]);
+
+      // Get service status separately with timeout to prevent blocking
+      let serviceStatus;
+      try {
+        const statusPromise = this.scrapingService.getServiceStatus();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Service status timeout')), 1000)
+        );
+        serviceStatus = await Promise.race([statusPromise, timeoutPromise]);
+      } catch (error) {
+        // Fallback service status if Redis is unavailable
+        serviceStatus = {
+          isHealthy: false,
+          queueLength: 0,
+          activeWorkers: 0,
+          averageProcessingTime: 0,
+          errorRate: 0,
+          memoryUsage: {
+            used: process.memoryUsage().heapUsed,
+            total: process.memoryUsage().heapTotal,
+            percentage: Math.round((process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100),
+          },
+        };
+      }
+
+      return {
+        success: true,
+        data: {
+          stats,
+          recentJobs: recentJobsResult.jobs,
+          activeJobs: activeJobsResult.jobs,
+          serviceStatus,
+        },
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message || 'Failed to fetch dashboard data');
+    }
+  }
+
+  /**
    * Get real-time job status
    */
   @Get('jobs/:id/status')

@@ -198,28 +198,47 @@ export class ScrapingService {
       }
 
       // Add job to queue for processing
-      const queueJob = await this.scrapingQueue.add('scrape-website', {
-        jobId: job.id,
-        targetUrl: job.targetUrl,
-        maxPages: job.maxPages,
-        maxDepth: job.maxDepth,
-        selectors: job.selectors,
-        filters: job.filters,
-        userAgent: job.userAgent,
-        delayMin: job.delayMin,
-        delayMax: job.delayMax,
-        timeout: job.timeout,
-      }, {
-        attempts: 3,
-        backoff: {
-          type: 'exponential',
-          delay: 2000,
-        },
-        removeOnComplete: 10,
-        removeOnFail: 5,
-      });
+      try {
+        const queueJob = await this.scrapingQueue.add('scrape-website', {
+          jobId: job.id,
+          targetUrl: job.targetUrl,
+          maxPages: job.maxPages,
+          maxDepth: job.maxDepth,
+          selectors: job.selectors,
+          filters: job.filters,
+          userAgent: job.userAgent,
+          delayMin: job.delayMin,
+          delayMax: job.delayMax,
+          timeout: job.timeout,
+        }, {
+          attempts: 3,
+          backoff: {
+            type: 'exponential',
+            delay: 2000,
+          },
+          removeOnComplete: 10,
+          removeOnFail: 5,
+        });
 
-      this.logger.log(`🚀 Job queued for processing: ${jobId} (Queue Job ID: ${queueJob.id})`);
+        this.logger.log(`🚀 Job queued for processing: ${jobId} (Queue Job ID: ${queueJob.id})`);
+      } catch (queueError) {
+        this.logger.error(`Failed to queue job ${jobId}: ${queueError.message}`);
+        
+        // Mark job as failed if can't queue
+        await this.prisma.scrapingJob.update({
+          where: { id: jobId },
+          data: {
+            status: 'FAILED',
+            errors: {
+              message: 'Failed to queue job for processing',
+              error: queueError.message,
+              timestamp: new Date().toISOString(),
+            },
+          },
+        });
+        
+        throw new BadRequestException('Queue service unavailable. Please try again later.');
+      }
       
       // The processor will update the job status to RUNNING when it starts
       return job;
@@ -361,49 +380,59 @@ export class ScrapingService {
     this.logger.log(`Getting scraping stats for user: ${userId}, subAccount: ${subAccountId}`);
     
     try {
-      const [
-        totalJobs,
-        activeJobs,
-        completedJobs,
-        failedJobs,
-        allJobs
-      ] = await Promise.all([
-        this.prisma.scrapingJob.count({
-          where: { userId, subAccountId }
-        }),
-        this.prisma.scrapingJob.count({
-          where: { userId, subAccountId, status: 'RUNNING' }
-        }),
-        this.prisma.scrapingJob.count({
-          where: { userId, subAccountId, status: 'COMPLETED' }
-        }),
-        this.prisma.scrapingJob.count({
-          where: { userId, subAccountId, status: 'FAILED' }
-        }),
-        this.prisma.scrapingJob.findMany({
-          where: { userId, subAccountId, status: 'COMPLETED' },
-          select: {
-            totalPages: true,
-            extractedItems: true,
-            createdAt: true,
-            completedAt: true,
-          }
-        })
-      ]);
+      // Single optimized query to get all stats
+      const jobs = await this.prisma.scrapingJob.findMany({
+        where: { userId, subAccountId },
+        select: {
+          status: true,
+          totalPages: true,
+          extractedItems: true,
+          createdAt: true,
+          completedAt: true,
+        }
+      });
 
-      const totalPagesScraped = allJobs.reduce((sum, job) => sum + job.totalPages, 0);
-      const totalItemsExtracted = allJobs.reduce((sum, job) => sum + job.extractedItems, 0);
-      
-      const avgProcessingTime = allJobs.length > 0 
-        ? allJobs.reduce((sum, job) => {
-            const duration = job.completedAt && job.createdAt 
-              ? new Date(job.completedAt).getTime() - new Date(job.createdAt).getTime()
-              : 0;
-            return sum + duration;
-          }, 0) / allJobs.length / 1000 // Convert to seconds
+      // Calculate all stats in one pass
+      let totalJobs = jobs.length;
+      let activeJobs = 0;
+      let completedJobs = 0; 
+      let failedJobs = 0;
+      let totalPagesScraped = 0;
+      let totalItemsExtracted = 0;
+      let totalProcessingTime = 0;
+      let completedJobsCount = 0;
+
+      for (const job of jobs) {
+        // Count by status
+        switch (job.status) {
+          case 'RUNNING':
+            activeJobs++;
+            break;
+          case 'COMPLETED':
+            completedJobs++;
+            completedJobsCount++;
+            break;
+          case 'FAILED':
+            failedJobs++;
+            break;
+        }
+
+        // Accumulate totals
+        totalPagesScraped += job.totalPages || 0;
+        totalItemsExtracted += job.extractedItems || 0;
+
+        // Calculate processing time for completed jobs
+        if (job.status === 'COMPLETED' && job.completedAt && job.createdAt) {
+          const duration = new Date(job.completedAt).getTime() - new Date(job.createdAt).getTime();
+          totalProcessingTime += duration;
+        }
+      }
+
+      const avgProcessingTime = completedJobsCount > 0 
+        ? Math.round(totalProcessingTime / completedJobsCount / 1000) // Convert to seconds
         : 0;
 
-      const successRate = totalJobs > 0 ? (completedJobs / totalJobs) * 100 : 0;
+      const successRate = totalJobs > 0 ? Math.round((completedJobs / totalJobs) * 100 * 100) / 100 : 0;
 
       return {
         totalJobs,
@@ -412,8 +441,8 @@ export class ScrapingService {
         failedJobs,
         totalPagesScraped,
         totalItemsExtracted,
-        averageProcessingTime: Math.round(avgProcessingTime),
-        successRate: Math.round(successRate * 100) / 100,
+        averageProcessingTime: avgProcessingTime,
+        successRate: successRate,
       };
     } catch (error) {
       this.logger.error(`❌ Failed to get scraping stats: ${error.message}`, error.stack);
@@ -560,37 +589,45 @@ export class ScrapingService {
 
   async getServiceStatus(): Promise<ScrapingServiceStatus> {
     try {
-      const [waiting, active, completed, failed] = await Promise.all([
-        this.scrapingQueue.getWaiting(),
-        this.scrapingQueue.getActive(),
-        this.scrapingQueue.getCompleted(),
-        this.scrapingQueue.getFailed(),
-      ]);
+      // Check if Redis queue is available first
+      if (!this.scrapingQueue) {
+        throw new Error('Queue not initialized');
+      }
+
+      // Use queue.getJobCounts() with timeout for better performance
+      const countsPromise = this.scrapingQueue.getJobCounts();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Redis timeout')), 2000)
+      );
+
+      const counts = await Promise.race([countsPromise, timeoutPromise]) as any;
 
       return {
         isHealthy: true,
-        queueLength: waiting.length,
-        activeWorkers: active.length,
+        queueLength: counts.waiting || 0,
+        activeWorkers: counts.active || 0,
         averageProcessingTime: 0, // TODO: Calculate from completed jobs
-        errorRate: failed.length > 0 ? (failed.length / (completed.length + failed.length)) * 100 : 0,
+        errorRate: counts.failed > 0 ? (counts.failed / (counts.completed + counts.failed)) * 100 : 0,
         memoryUsage: {
           used: process.memoryUsage().heapUsed,
           total: process.memoryUsage().heapTotal,
-          percentage: (process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100,
+          percentage: Math.round((process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100),
         },
       };
     } catch (error) {
-      this.logger.error(`Failed to get service status: ${error.message}`);
+      this.logger.warn(`Queue service unavailable: ${error.message}`);
+      
+      // Return basic service status without queue info
       return {
         isHealthy: false,
         queueLength: 0,
         activeWorkers: 0,
         averageProcessingTime: 0,
-        errorRate: 100,
+        errorRate: 0,
         memoryUsage: {
           used: process.memoryUsage().heapUsed,
           total: process.memoryUsage().heapTotal,
-          percentage: (process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100,
+          percentage: Math.round((process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100),
         },
       };
     }

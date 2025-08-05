@@ -137,6 +137,23 @@ export class ScrapingApi extends ApiClient {
     }
 
     /**
+     * Get dashboard data (optimized - single API call)
+     */
+    async getDashboardData(): Promise<ApiResponse<{
+        stats: ScrapingStats;
+        recentJobs: ScrapingJob[];
+        activeJobs: ScrapingJob[];
+        serviceStatus: ScrapingServiceStatus;
+    }>> {
+        return this.get<ApiResponse<{
+            stats: ScrapingStats;
+            recentJobs: ScrapingJob[];
+            activeJobs: ScrapingJob[];
+            serviceStatus: ScrapingServiceStatus;
+        }>>('/scraping/dashboard');
+    }
+
+    /**
      * Get real-time job status
      */
     async getJobStatus(jobId: number): Promise<ApiResponse<{
