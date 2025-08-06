@@ -1,6 +1,5 @@
-import { Process, Processor } from '@nestjs/bull';
-import { Logger } from '@nestjs/common';
-import { Job } from 'bull';
+import { Injectable, Logger, Inject, OnModuleInit } from '@nestjs/common';
+import * as Queue from 'bee-queue';
 import * as puppeteer from 'puppeteer';
 import * as cheerio from 'cheerio';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
@@ -18,14 +17,35 @@ interface ScrapingJobData {
   timeout: number;
 }
 
-@Processor('scraping')
-export class ScrapingProcessor {
+@Injectable()
+export class ScrapingProcessor implements OnModuleInit {
   private readonly logger = new Logger(ScrapingProcessor.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject('SCRAPING_QUEUE') private readonly queue: Queue
+  ) {}
 
-  @Process('scrape-website')
-  async handleScrapingJob(job: Job<ScrapingJobData>) {
+  onModuleInit() {
+    try {
+      // Add error handling for queue connection issues
+      this.queue.on('error', (error) => {
+        this.logger.error('Queue connection error:', error);
+      });
+
+      this.queue.on('ready', () => {
+        this.logger.log('✅ Queue connected and ready');
+      });
+
+      this.queue.process(this.handleScrapingJob.bind(this));
+      this.logger.log('🔄 Scraping processor initialized');
+    } catch (error) {
+      this.logger.error('❌ Failed to initialize scraping processor:', error);
+      throw error;
+    }
+  }
+
+  async handleScrapingJob(job: Queue.Job<ScrapingJobData>) {
     const { jobId, targetUrl, maxPages, selectors, delayMin, delayMax, timeout, userAgent } = job.data;
     
     this.logger.log(`🚀 Starting scraping job ${jobId} for URL: ${targetUrl}`);

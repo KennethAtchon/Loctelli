@@ -27,16 +27,23 @@ services:
     image: redis:7-alpine
     container_name: loctelli_redis
     restart: unless-stopped
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru --timeout 0 --tcp-keepalive 60 --tcp-backlog 511 --databases 16
     ports:
       - "6379:6379"
     volumes:
       - redisdata:/data
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 60s
-      timeout: 3s
-      retries: 5
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
     networks:
       - loctelli-network
 
@@ -54,6 +61,8 @@ services:
       PORT: 8000
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-loctelli}
       REDIS_URL: redis://redis:6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-your-super-secret-refresh-key-change-in-production}
       DEFAULT_ADMIN_PASSWORD: "defaultAdmin123!CANTUNA"
@@ -65,6 +74,12 @@ services:
       redis:
         condition: service_healthy
     volumes: []
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
     networks:
       - loctelli-network
     healthcheck:
