@@ -49,8 +49,6 @@ model SubAccount {
   integrations    Integration[] // Integrations configured for this SubAccount
   smsMessages     SmsMessage[] // SMS messages sent within this SubAccount
   smsCampaigns    SmsCampaign[] // SMS campaigns created within this SubAccount
-  scrapingJobs    ScrapingJob[] // Scraping jobs created within this SubAccount
-  scrapingConfigs ScrapingConfig[] // Scraping configurations created within this SubAccount
 }
 
 model User {
@@ -79,8 +77,6 @@ model User {
   bookings        Booking[]
   smsMessages     SmsMessage[] // SMS messages sent by this user
   smsCampaigns    SmsCampaign[] // SMS campaigns created by this user
-  scrapingJobs    ScrapingJob[] // Scraping jobs created by this user
-  scrapingConfigs ScrapingConfig[] // Scraping configurations created by this user
 }
 
 model Strategy {
@@ -262,76 +258,7 @@ model SmsCampaign {
   messages     SmsMessage[]
 }
 
-model ScrapingJob {
-  id            Int      @id @default(autoincrement())
-  name          String
-  description   String?  @db.Text
-  status        ScrapingJobStatus @default(PENDING)
-  
-  // Configuration
-  targetUrl     String
-  maxPages      Int      @default(10)
-  maxDepth      Int      @default(2)
-  selectors     Json     // CSS selectors for data extraction
-  filters       Json?    // Filtering rules
-  schedule      Json?    // Cron schedule for recurring jobs
-  
-  // Browser options
-  userAgent     String?
-  delayMin      Int      @default(1000) // Minimum delay in milliseconds
-  delayMax      Int      @default(3000) // Maximum delay in milliseconds
-  timeout       Int      @default(30000) // Request timeout in milliseconds
-  
-  // Results
-  totalPages    Int      @default(0)
-  processedPages Int     @default(0)
-  extractedItems Int     @default(0)
-  errors        Json?    // Error log
-  results       Json?    // Scraped data
-  
-  // Metadata
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  startedAt     DateTime?
-  completedAt   DateTime?
-  
-  // Relationships
-  userId        Int
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subAccountId  Int
-  subAccount    SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
-  
-  @@map("scraping_jobs")
-}
 
-model ScrapingConfig {
-  id           Int      @id @default(autoincrement())
-  name         String
-  description  String?  @db.Text
-  
-  // Configuration template
-  config       Json     // Reusable scraping configuration
-  
-  // Metadata
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
-  // Relationships
-  userId       Int
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subAccountId Int
-  subAccount   SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
-  
-  @@map("scraping_configs")
-}
 
-enum ScrapingJobStatus {
-  PENDING
-  RUNNING
-  PAUSED
-  COMPLETED
-  FAILED
-  CANCELLED
-}
 
 
