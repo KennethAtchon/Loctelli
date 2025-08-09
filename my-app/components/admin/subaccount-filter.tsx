@@ -60,7 +60,7 @@ export function SubaccountFilter({ className, variant = 'default' }: SubaccountF
             variant="outline"
             size="sm"
             className={cn(
-              'flex items-center gap-2 min-w-[120px] justify-between bg-white/80 backdrop-blur-sm border-gray-200/60 hover:bg-blue-50 transition-all duration-200',
+              'flex items-center gap-2 min-w-[120px] justify-between bg-white/80 dark:bg-slate-700/50 backdrop-blur-sm border-gray-200/60 dark:border-slate-600/60 hover:bg-blue-50 dark:hover:bg-slate-600 transition-all duration-200 dark:text-gray-200',
               className
             )}
             disabled={isSubaccountsLoading}
@@ -76,7 +76,7 @@ export function SubaccountFilter({ className, variant = 'default' }: SubaccountF
             )}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56 bg-white/95 backdrop-blur-sm border-gray-200/60">
+        <DropdownMenuContent align="end" className="w-56 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border-gray-200/60 dark:border-slate-700/60">
           <DropdownMenuLabel>Filter by Subaccount</DropdownMenuLabel>
           <DropdownMenuSeparator />
           

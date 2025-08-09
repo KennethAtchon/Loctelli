@@ -96,7 +96,7 @@ export default function AdminDashboardPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<DetailedUser | null>(null);
-  const [selectedlead, setSelectedlead] = useState<DetailedLead | null>(null);
+  const [selectedLead, setSelectedLead] = useState<DetailedLead | null>(null);
 
   const loadDashboardData = useCallback(async () => {
     try {
@@ -142,7 +142,7 @@ export default function AdminDashboardPage() {
   const loadDetailedLead = async (leadId: number) => {
     try {
       const lead = await api.adminAuth.getDetailedLead(leadId);
-      setSelectedlead(lead);
+      setSelectedLead(lead);
     } catch (error) {
       logger.error('Failed to load lead details:', error);
     }
@@ -195,12 +195,10 @@ export default function AdminDashboardPage() {
     );
   }
 
-
-
   if (!stats || !systemStatus) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-gray-600">No data available</p>
+        <p className="text-gray-600 dark:text-gray-400">No data available</p>
       </div>
     );
   }
@@ -225,7 +223,7 @@ export default function AdminDashboardPage() {
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6">
         <div className="space-y-2">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 bg-clip-text text-transparent">
+            <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 dark:from-gray-100 dark:via-blue-200 dark:to-indigo-200 bg-clip-text text-transparent">
               Admin Dashboard
             </h1>
             {!isGlobalView() && (
@@ -245,7 +243,7 @@ export default function AdminDashboardPage() {
               </div>
             )}
           </div>
-          <p className="text-gray-600 text-lg">
+          <p className="text-gray-600 dark:text-gray-300 text-lg">
             {isGlobalView() 
               ? 'Comprehensive overview of all subaccounts and system metrics' 
               : `Detailed insights for ${getCurrentSubaccount()?.name} subaccount`
@@ -258,7 +256,7 @@ export default function AdminDashboardPage() {
             size="sm" 
             onClick={loadDashboardData}
             disabled={isRefreshing}
-            className="bg-white/80 backdrop-blur-sm hover:bg-blue-50 border-gray-200/60 transition-all duration-200"
+            className="bg-white/80 dark:bg-slate-700/50 backdrop-blur-sm hover:bg-blue-50 dark:hover:bg-slate-600 border-gray-200/60 dark:border-slate-600/60 transition-all duration-200 dark:text-gray-200"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
             <span className="hidden sm:inline">Refresh</span>
@@ -268,16 +266,16 @@ export default function AdminDashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-        <Card className="group relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-50/50 border-blue-200/60 hover:shadow-xl hover:shadow-blue-100/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer" onClick={() => window.location.href = '/admin/users'}>
+        <Card className="group relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-50/50 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800/50 border-blue-200/60 dark:border-slate-600/60 hover:shadow-xl hover:shadow-blue-100/50 dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer" onClick={() => window.location.href = '/admin/users'}>
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-blue-700 transition-colors">Total Users</CardTitle>
+            <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Total Users</CardTitle>
             <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
               <Users className="h-5 w-5 text-blue-600" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900 mb-2">{stats.totalUsers}</div>
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{stats.totalUsers}</div>
             <div className="flex items-center gap-1">
               {stats.growthRates.users >= 0 ? (
                 <TrendingUp className="h-4 w-4 text-green-500" />
@@ -287,21 +285,21 @@ export default function AdminDashboardPage() {
               <span className={`text-sm font-medium ${stats.growthRates.users >= 0 ? "text-green-600" : "text-red-600"}`}>
                 {stats.growthRates.users >= 0 ? "+" : ""}{stats.growthRates.users}%
               </span>
-              <span className="text-sm text-gray-500">from last month</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">from last month</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-emerald-50/50 border-emerald-200/60 hover:shadow-xl hover:shadow-emerald-100/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer" onClick={() => window.location.href = '/admin/users'}>
+        <Card className="group relative overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-emerald-50/50 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800/50 border-emerald-200/60 dark:border-slate-600/60 hover:shadow-xl hover:shadow-emerald-100/50 dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer" onClick={() => window.location.href = '/admin/users'}>
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-emerald-700 transition-colors">Active Users</CardTitle>
+            <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">Active Users</CardTitle>
             <div className="p-2 bg-emerald-100 rounded-lg group-hover:bg-emerald-200 transition-colors">
               <Zap className="h-5 w-5 text-emerald-600" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900 mb-2">{stats.activeUsers}</div>
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{stats.activeUsers}</div>
             <div className="flex items-center gap-1">
               {stats.growthRates.activeUsers >= 0 ? (
                 <TrendingUp className="h-4 w-4 text-green-500" />
@@ -311,21 +309,21 @@ export default function AdminDashboardPage() {
               <span className={`text-sm font-medium ${stats.growthRates.activeUsers >= 0 ? "text-green-600" : "text-red-600"}`}>
                 {stats.growthRates.activeUsers >= 0 ? "+" : ""}{stats.growthRates.activeUsers}%
               </span>
-              <span className="text-sm text-gray-500">from last month</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">from last month</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden bg-gradient-to-br from-purple-50 via-white to-purple-50/50 border-purple-200/60 hover:shadow-xl hover:shadow-purple-100/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer" onClick={() => window.location.href = '/admin/strategies'}>
+        <Card className="group relative overflow-hidden bg-gradient-to-br from-purple-50 via-white to-purple-50/50 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800/50 border-purple-200/60 dark:border-slate-600/60 hover:shadow-xl hover:shadow-purple-100/50 dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer" onClick={() => window.location.href = '/admin/strategies'}>
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-purple-700 transition-colors">Total Strategies</CardTitle>
+            <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-purple-700 dark:group-hover:text-purple-400 transition-colors">Total Strategies</CardTitle>
             <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
               <Target className="h-5 w-5 text-purple-600" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900 mb-2">{stats.totalStrategies}</div>
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{stats.totalStrategies}</div>
             <div className="flex items-center gap-1">
               {stats.growthRates.strategies >= 0 ? (
                 <TrendingUp className="h-4 w-4 text-green-500" />
@@ -335,21 +333,21 @@ export default function AdminDashboardPage() {
               <span className={`text-sm font-medium ${stats.growthRates.strategies >= 0 ? "text-green-600" : "text-red-600"}`}>
                 {stats.growthRates.strategies >= 0 ? "+" : ""}{stats.growthRates.strategies}%
               </span>
-              <span className="text-sm text-gray-500">from last month</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">from last month</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden bg-gradient-to-br from-orange-50 via-white to-orange-50/50 border-orange-200/60 hover:shadow-xl hover:shadow-orange-100/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer" onClick={() => window.location.href = '/admin/bookings'}>
+        <Card className="group relative overflow-hidden bg-gradient-to-br from-orange-50 via-white to-orange-50/50 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800/50 border-orange-200/60 dark:border-slate-600/60 hover:shadow-xl hover:shadow-orange-100/50 dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer" onClick={() => window.location.href = '/admin/bookings'}>
           <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-semibold text-gray-700 group-hover:text-orange-700 transition-colors">Total Bookings</CardTitle>
+            <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-orange-700 dark:group-hover:text-orange-400 transition-colors">Total Bookings</CardTitle>
             <div className="p-2 bg-orange-100 rounded-lg group-hover:bg-orange-200 transition-colors">
               <Calendar className="h-5 w-5 text-orange-600" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900 mb-2">{stats.totalBookings}</div>
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{stats.totalBookings}</div>
             <div className="flex items-center gap-1">
               {stats.growthRates.bookings >= 0 ? (
                 <TrendingUp className="h-4 w-4 text-green-500" />
@@ -359,7 +357,7 @@ export default function AdminDashboardPage() {
               <span className={`text-sm font-medium ${stats.growthRates.bookings >= 0 ? "text-green-600" : "text-red-600"}`}>
                 {stats.growthRates.bookings >= 0 ? "+" : ""}{stats.growthRates.bookings}%
               </span>
-              <span className="text-sm text-gray-500">from last month</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">from last month</span>
             </div>
           </CardContent>
         </Card>
@@ -367,14 +365,14 @@ export default function AdminDashboardPage() {
 
       {/* Recent Activity */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
-        <Card className="bg-white/80 backdrop-blur-sm border-gray-200/60 shadow-lg hover:shadow-xl transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 pb-4">
+        <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-gray-200/60 dark:border-slate-700/60 shadow-lg hover:shadow-xl transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 dark:border-slate-700 pb-4">
             <div>
-              <CardTitle className="text-xl font-bold text-gray-800 flex items-center gap-2">
+              <CardTitle className="text-xl font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
                 <Users className="h-5 w-5 text-blue-600" />
                 Recent Users
               </CardTitle>
-              <CardDescription className="text-gray-600 mt-1">
+              <CardDescription className="text-gray-600 dark:text-gray-400 mt-1">
                 Latest users who joined the platform
               </CardDescription>
             </div>
@@ -396,10 +394,10 @@ export default function AdminDashboardPage() {
                       </span>
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium">{user.name}</p>
-                      <p className="text-xs text-gray-500">{user.email}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
                       {user.company && (
-                        <p className="text-xs text-gray-400">{user.company}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">{user.company}</p>
                       )}
                     </div>
                     <div className="flex items-center space-x-2">
@@ -540,20 +538,20 @@ export default function AdminDashboardPage() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-gray-500">No recent users</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">No recent users</p>
               )}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white/80 backdrop-blur-sm border-gray-200/60 shadow-lg hover:shadow-xl transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 pb-4">
+        <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-gray-200/60 dark:border-slate-700/60 shadow-lg hover:shadow-xl transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 dark:border-slate-700 pb-4">
             <div>
-              <CardTitle className="text-xl font-bold text-gray-800 flex items-center gap-2">
+              <CardTitle className="text-xl font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
                 <Building className="h-5 w-5 text-emerald-600" />
                 Recent Leads
               </CardTitle>
-              <CardDescription className="text-gray-600 mt-1">
+              <CardDescription className="text-gray-600 dark:text-gray-400 mt-1">
                 Latest leads added to the platform
               </CardDescription>
             </div>
@@ -573,10 +571,10 @@ export default function AdminDashboardPage() {
                       <Building className="h-5 w-5 text-white" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium">{lead.name}</p>
-                      <p className="text-xs text-gray-500">{lead.email || 'No email'}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{lead.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{lead.email || 'No email'}</p>
                       {lead.company && (
-                        <p className="text-xs text-gray-400">{lead.company}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">{lead.company}</p>
                       )}
                     </div>
                     <div className="flex items-center space-x-2">
@@ -598,21 +596,21 @@ export default function AdminDashboardPage() {
                               Complete lead information and related data
                             </DialogDescription>
                           </DialogHeader>
-                          {selectedlead && selectedlead.id === lead.id && (
+                          {selectedLead && selectedLead.id === lead.id && (
                             <div className="space-y-6">
                               {/* Basic Information */}
                               <div>
                                 <h3 className="font-semibold mb-3">Basic Information</h3>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
-                                  <div><strong>ID:</strong> {selectedlead.id}</div>
-                                  <div><strong>Name:</strong> {selectedlead.name}</div>
-                                  <div><strong>Email:</strong> {selectedlead.email || 'N/A'}</div>
-                                  <div><strong>Phone:</strong> {selectedlead.phone || 'N/A'}</div>
-                                  <div><strong>Company:</strong> {selectedlead.company || 'N/A'}</div>
-                                  <div><strong>Position:</strong> {selectedlead.position || 'N/A'}</div>
-                                  <div><strong>Custom ID:</strong> {selectedlead.customId || 'N/A'}</div>
+                                  <div><strong>ID:</strong> {selectedLead.id}</div>
+                                  <div><strong>Name:</strong> {selectedLead.name}</div>
+                                  <div><strong>Email:</strong> {selectedLead.email || 'N/A'}</div>
+                                  <div><strong>Phone:</strong> {selectedLead.phone || 'N/A'}</div>
+                                  <div><strong>Company:</strong> {selectedLead.company || 'N/A'}</div>
+                                  <div><strong>Position:</strong> {selectedLead.position || 'N/A'}</div>
+                                  <div><strong>Custom ID:</strong> {selectedLead.customId || 'N/A'}</div>
                                   <div><strong>Status:</strong> 
-                                    <Badge variant="outline" className="ml-2">{selectedlead.status}</Badge>
+                                    <Badge variant="outline" className="ml-2">{selectedLead.status}</Badge>
                                   </div>
                                 </div>
                               </div>
@@ -621,58 +619,58 @@ export default function AdminDashboardPage() {
                               <div>
                                 <h3 className="font-semibold mb-3">Timestamps</h3>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
-                                  <div><strong>Created:</strong> {formatDate(selectedlead.createdAt)}</div>
-                                  <div><strong>Updated:</strong> {formatDate(selectedlead.updatedAt)}</div>
-                                  <div><strong>Last Message:</strong> {selectedlead.lastMessageDate ? formatDate(selectedlead.lastMessageDate) : 'No messages'}</div>
+                                  <div><strong>Created:</strong> {formatDate(selectedLead.createdAt)}</div>
+                                  <div><strong>Updated:</strong> {formatDate(selectedLead.updatedAt)}</div>
+                                  <div><strong>Last Message:</strong> {selectedLead.lastMessageDate ? formatDate(selectedLead.lastMessageDate) : 'No messages'}</div>
                                 </div>
                               </div>
 
                               {/* Notes */}
-                              {selectedlead.notes && (
+                              {selectedLead.notes && (
                                 <div>
                                   <h3 className="font-semibold mb-3">Notes</h3>
-                                  <p className="text-sm bg-gray-50 p-3 rounded">{selectedlead.notes}</p>
+                                  <p className="text-sm bg-gray-50 p-3 rounded">{selectedLead.notes}</p>
                                 </div>
                               )}
 
                               {/* Last Message */}
-                              {selectedlead.lastMessage && (
+                              {selectedLead.lastMessage && (
                                 <div>
                                   <h3 className="font-semibold mb-3">Last Message</h3>
-                                  <p className="text-sm bg-gray-50 p-3 rounded">{selectedlead.lastMessage}</p>
+                                  <p className="text-sm bg-gray-50 p-3 rounded">{selectedLead.lastMessage}</p>
                                 </div>
                               )}
 
                               {/* Assigned User */}
-                              {selectedlead.user && (
+                              {selectedLead.user && (
                                 <div>
                                   <h3 className="font-semibold mb-3">Assigned User</h3>
                                   <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div><strong>User ID:</strong> {selectedlead.user.id}</div>
-                                    <div><strong>User Name:</strong> {selectedlead.user.name}</div>
-                                    <div><strong>User Email:</strong> {selectedlead.user.email}</div>
+                                    <div><strong>User ID:</strong> {selectedLead.user.id}</div>
+                                    <div><strong>User Name:</strong> {selectedLead.user.name}</div>
+                                    <div><strong>User Email:</strong> {selectedLead.user.email}</div>
                                   </div>
                                 </div>
                               )}
 
                               {/* Assigned Strategy */}
-                              {selectedlead.strategy && (
+                              {selectedLead.strategy && (
                                 <div>
                                   <h3 className="font-semibold mb-3">Assigned Strategy</h3>
                                   <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div><strong>Strategy ID:</strong> {selectedlead.strategy.id}</div>
-                                    <div><strong>Strategy Name:</strong> {selectedlead.strategy.name}</div>
-                                    <div><strong>Strategy Tag:</strong> {selectedlead.strategy.tag || 'N/A'}</div>
+                                    <div><strong>Strategy ID:</strong> {selectedLead.strategy.id}</div>
+                                    <div><strong>Strategy Name:</strong> {selectedLead.strategy.name}</div>
+                                    <div><strong>Strategy Tag:</strong> {selectedLead.strategy.tag || 'N/A'}</div>
                                   </div>
                                 </div>
                               )}
 
                               {/* Bookings */}
-                              {selectedlead.bookings && selectedlead.bookings.length > 0 && (
+                              {selectedLead.bookings && selectedLead.bookings.length > 0 && (
                                 <div>
-                                  <h3 className="font-semibold mb-3">Bookings ({selectedlead.bookings.length})</h3>
+                                  <h3 className="font-semibold mb-3">Bookings ({selectedLead.bookings.length})</h3>
                                   <div className="space-y-2">
-                                    {selectedlead.bookings.map((booking) => (
+                                    {selectedLead.bookings.map((booking) => (
                                       <div key={booking.id} className="p-2 border rounded">
                                         <div className="font-medium">{booking.bookingType}</div>
                                         <div className="text-sm text-gray-600">
@@ -691,7 +689,7 @@ export default function AdminDashboardPage() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-gray-500">No recent leads</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">No recent leads</p>
               )}
             </div>
           </CardContent>
@@ -699,13 +697,13 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* System Status */}
-      <Card className="bg-white/80 backdrop-blur-sm border-gray-200/60 shadow-lg hover:shadow-xl transition-all duration-300">
-        <CardHeader className="border-b border-gray-100 pb-4">
-          <CardTitle className="text-xl font-bold text-gray-800 flex items-center gap-2">
+      <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-gray-200/60 dark:border-slate-700/60 shadow-lg hover:shadow-xl transition-all duration-300">
+        <CardHeader className="border-b border-gray-100 dark:border-slate-700 pb-4">
+          <CardTitle className="text-xl font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
             <Activity className="h-5 w-5 text-indigo-600" />
             System Status
           </CardTitle>
-          <CardDescription className="text-gray-600 mt-1">
+          <CardDescription className="text-gray-600 dark:text-gray-400 mt-1">
             Real-time system health and performance monitoring
           </CardDescription>
         </CardHeader>
@@ -716,7 +714,7 @@ export default function AdminDashboardPage() {
                 <div className="p-2 bg-blue-100 rounded-lg">
                   <Code className="h-4 w-4 text-blue-600" />
                 </div>
-                <span className="text-sm font-semibold text-gray-700">Database</span>
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Database</span>
               </div>
               <Badge variant={getStatusBadgeVariant(systemStatus.database)} className={`${
                 systemStatus.database.toLowerCase() === 'healthy' 
@@ -731,7 +729,7 @@ export default function AdminDashboardPage() {
                 <div className="p-2 bg-emerald-100 rounded-lg">
                   <Globe className="h-4 w-4 text-emerald-600" />
                 </div>
-                <span className="text-sm font-semibold text-gray-700">API Server</span>
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">API Server</span>
               </div>
               <Badge variant={getStatusBadgeVariant(systemStatus.apiServer)} className={`${
                 systemStatus.apiServer.toLowerCase() === 'healthy' 
@@ -746,7 +744,7 @@ export default function AdminDashboardPage() {
                 <div className="p-2 bg-orange-100 rounded-lg">
                   <Zap className="h-4 w-4 text-orange-600" />
                 </div>
-                <span className="text-sm font-semibold text-gray-700">Redis Cache</span>
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Redis Cache</span>
               </div>
               <Badge variant={getStatusBadgeVariant(systemStatus.redisCache)} className={`${
                 systemStatus.redisCache.toLowerCase() === 'healthy' 
@@ -761,7 +759,7 @@ export default function AdminDashboardPage() {
                 <div className="p-2 bg-purple-100 rounded-lg">
                   <Building className="h-4 w-4 text-purple-600" />
                 </div>
-                <span className="text-sm font-semibold text-gray-700">File Storage</span>
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">File Storage</span>
               </div>
               <Badge variant={getStatusBadgeVariant(systemStatus.fileStorage)} className={`${
                 systemStatus.fileStorage.toLowerCase() === 'healthy' 

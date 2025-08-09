@@ -1,6 +1,5 @@
 'use client';
 
-import { Moon, Sun } from 'lucide-react';
 import { useDarkMode } from '@/contexts/dark-mode-context';
 import { cn } from '@/lib/utils';
 
@@ -63,49 +62,20 @@ export function DarkModeToggle({ className, size = 'md' }: DarkModeToggleProps) 
         className={cn(
           'relative flex items-center justify-center rounded-full bg-white shadow-lg transform transition-all duration-300 ease-in-out',
           thumb,
-          isDark ? 'translate-x-7 shadow-slate-900/20' : 'translate-x-0.5 shadow-blue-900/20'
+          size === 'sm' && (isDark ? 'translate-x-6' : 'translate-x-0.5'),
+          size === 'md' && (isDark ? 'translate-x-7' : 'translate-x-0.5'),
+          size === 'lg' && (isDark ? 'translate-x-8' : 'translate-x-0.5'),
+          isDark ? 'shadow-slate-900/20' : 'shadow-blue-900/20'
         )}
       >
-        {/* Icon with rotation animation */}
-        <div className="relative">
-          <Sun
-            className={cn(
-              'absolute transition-all duration-300 text-yellow-500',
-              icon,
-              isDark
-                ? 'opacity-0 rotate-180 scale-0'
-                : 'opacity-100 rotate-0 scale-100'
-            )}
-          />
-          <Moon
-            className={cn(
-              'absolute transition-all duration-300 text-slate-700',
-              icon,
-              isDark
-                ? 'opacity-100 rotate-0 scale-100'
-                : 'opacity-0 -rotate-180 scale-0'
-            )}
-          />
-        </div>
+        {/* Simple indicator dot */}
+        <div className={cn(
+          'rounded-full transition-all duration-300',
+          'w-2 h-2',
+          isDark ? 'bg-slate-600' : 'bg-blue-500'
+        )} />
       </div>
 
-      {/* Background icons for extra flair */}
-      <div
-        className={cn(
-          'absolute left-1 top-1/2 -translate-y-1/2 transition-all duration-300',
-          isDark ? 'opacity-30' : 'opacity-60'
-        )}
-      >
-        <Sun className={cn('text-white', icon)} />
-      </div>
-      <div
-        className={cn(
-          'absolute right-1 top-1/2 -translate-y-1/2 transition-all duration-300',
-          isDark ? 'opacity-60' : 'opacity-30'
-        )}
-      >
-        <Moon className={cn('text-white', icon)} />
-      </div>
     </button>
   );
 }
