@@ -51,14 +51,14 @@ export function Sidebar() {
   };
 
   const NavigationContent = () => (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-white/80 backdrop-blur-sm border-r border-gray-200/60">
       {/* Logo */}
-      <div className="flex h-16 items-center justify-center border-b border-gray-200">
-        <h1 className="text-xl font-bold text-gray-900">Loctelli CRM</h1>
+      <div className="flex h-16 items-center justify-center border-b border-gray-200/60 bg-gradient-to-r from-blue-600 to-indigo-600">
+        <h1 className="text-xl font-bold text-white">Loctelli CRM</h1>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-4 py-4">
+      <nav className="flex-1 space-y-1 px-4 py-6">
         {navigation.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -67,16 +67,16 @@ export function Sidebar() {
               href={item.href}
               onClick={() => setIsOpen(false)}
               className={cn(
-                'group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                'group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200',
                 isActive
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-200/50 transform scale-[1.02]'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md hover:transform hover:scale-[1.01]'
               )}
             >
               <item.icon
                 className={cn(
                   'mr-3 h-5 w-5 flex-shrink-0',
-                  isActive ? 'text-blue-700' : 'text-gray-400 group-hover:text-gray-500'
+                  isActive ? 'text-white' : 'text-gray-400 group-hover:text-blue-500'
                 )}
               />
               {item.name}
@@ -86,17 +86,17 @@ export function Sidebar() {
       </nav>
 
       {/* User section */}
-      <div className="border-t border-gray-200 p-4">
-        <div className="flex items-center">
+      <div className="border-t border-gray-200/60 p-4 bg-gray-50/50">
+        <div className="flex items-center bg-white rounded-xl p-3 shadow-sm border border-gray-200/50">
           <div className="flex-shrink-0">
-            <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
-              <span className="text-sm font-medium text-gray-700">
+            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md">
+              <span className="text-sm font-bold text-white">
                 {admin?.name ? admin.name.charAt(0).toUpperCase() : 'A'}
               </span>
             </div>
           </div>
           <div className="ml-3 flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-700 truncate">
+            <p className="text-sm font-semibold text-gray-800 truncate">
               {admin?.name ? (admin.name.length > 20 ? admin.name.substring(0, 20) + '...' : admin.name) : 'Admin User'}
             </p>
             <p className="text-xs text-gray-500 truncate">
@@ -105,7 +105,7 @@ export function Sidebar() {
           </div>
           <button 
             onClick={handleLogout}
-            className="ml-2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+            className="ml-2 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
             title="Logout"
           >
             <LogOut className="h-4 w-4" />
@@ -132,7 +132,7 @@ export function Sidebar() {
       </div>
 
       {/* Desktop sidebar */}
-      <div className="hidden lg:flex w-64 flex-col bg-white border-r border-gray-200">
+      <div className="hidden lg:flex w-64 flex-col">
         <NavigationContent />
       </div>
     </>

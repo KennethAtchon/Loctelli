@@ -60,7 +60,7 @@ export function SubaccountFilter({ className, variant = 'default' }: SubaccountF
             variant="outline"
             size="sm"
             className={cn(
-              'flex items-center gap-2 min-w-[120px] justify-between',
+              'flex items-center gap-2 min-w-[120px] justify-between bg-white/80 backdrop-blur-sm border-gray-200/60 hover:bg-blue-50 transition-all duration-200',
               className
             )}
             disabled={isSubaccountsLoading}
@@ -76,14 +76,14 @@ export function SubaccountFilter({ className, variant = 'default' }: SubaccountF
             )}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuContent align="end" className="w-56 bg-white/95 backdrop-blur-sm border-gray-200/60">
           <DropdownMenuLabel>Filter by Subaccount</DropdownMenuLabel>
           <DropdownMenuSeparator />
           
           <DropdownMenuItem
             onClick={() => handleFilterChange('GLOBAL')}
             className={cn(
-              'flex items-center gap-2',
+              'flex items-center gap-2 hover:bg-blue-50 transition-colors duration-200',
               currentFilter === 'GLOBAL' && 'bg-blue-50 text-blue-700'
             )}
           >
@@ -101,7 +101,7 @@ export function SubaccountFilter({ className, variant = 'default' }: SubaccountF
               key={subaccount.id}
               onClick={() => handleFilterChange(subaccount.id.toString())}
               className={cn(
-                'flex items-center gap-2',
+                'flex items-center gap-2 hover:bg-blue-50 transition-colors duration-200',
                 currentFilter === subaccount.id.toString() && 'bg-blue-50 text-blue-700'
               )}
             >
