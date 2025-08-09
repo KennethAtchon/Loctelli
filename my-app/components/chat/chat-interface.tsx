@@ -2,8 +2,7 @@
 
 import "ios-vibrator-pro-max"
 
-import type React from "react"
-import { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import {
   Search,
   Plus,
@@ -59,9 +58,14 @@ export interface ChatInterfaceConfig {
   theme?: 'light' | 'dark'
 }
 
+export interface ChatInterfaceRef {
+  startStreamingMessage: (messageId: string, content: string) => Promise<void>
+}
+
 export interface ChatInterfaceProps {
   messages?: Message[]
   onSendMessage?: (message: string) => void
+  onStreamingMessage?: (messageId: string, content: string) => void
   isStreaming?: boolean
   className?: string
   config?: ChatInterfaceConfig
@@ -82,19 +86,20 @@ interface StreamingWord {
   text: string
 }
 
-// Faster word delay for smoother streaming
-const WORD_DELAY = 40 // ms per word
-const CHUNK_SIZE = 2 // Number of words to add at once
+// Slower word delay for better visual effect
+const WORD_DELAY = 80 // ms per word (increased from 40)
+const CHUNK_SIZE = 1 // Number of words to add at once (reduced from 2)
 
-export default function ChatInterface({ 
+const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({ 
   messages: externalMessages = [], 
   onSendMessage, 
+  onStreamingMessage,
   isStreaming: externalIsStreaming = false,
   className,
   config = {},
   disabled = false,
   loading = false
-}: ChatInterfaceProps) {
+}, ref) => {
   // Default configuration
   const defaultConfig: Required<ChatInterfaceConfig> = {
     showHeader: false,
@@ -135,6 +140,71 @@ export default function ChatInterface({
   const shouldFocusAfterStreamingRef = useRef(false)
   // Store selection state
   const selectionStateRef = useRef<{ start: number | null; end: number | null }>({ start: null, end: null })
+
+  // Streaming functionality
+  const simulateTextStreaming = async (text: string, messageId: string) => {
+    // Split text into words
+    const words = text.split(" ")
+    let currentIndex = 0
+    setStreamingWords([])
+    setIsStreaming(true)
+    setStreamingMessageId(messageId)
+
+    return new Promise<void>((resolve) => {
+      const streamInterval = setInterval(() => {
+        if (currentIndex < words.length) {
+          // Add a few words at a time
+          const nextIndex = Math.min(currentIndex + CHUNK_SIZE, words.length)
+          const newWords = words.slice(currentIndex, nextIndex)
+
+          setStreamingWords((prev) => [
+            ...prev,
+            {
+              id: Date.now() + currentIndex,
+              text: newWords.join(" ") + " ",
+            },
+          ])
+
+          currentIndex = nextIndex
+        } else {
+          clearInterval(streamInterval)
+          // Reset streaming state
+          setStreamingWords([])
+          setStreamingMessageId(null)
+          setIsStreaming(false)
+          resolve()
+        }
+      }, WORD_DELAY)
+    })
+  }
+
+  // Public method to start streaming a message
+  const startStreamingMessage = async (messageId: string, content: string) => {
+    // Add vibration when streaming begins
+    if (navigator.vibrate) {
+      setTimeout(() => {
+        navigator.vibrate(50)
+      }, 200) // 200ms delay to make it distinct from the first vibration
+    }
+
+    // Stream the text
+    await simulateTextStreaming(content, messageId)
+
+    // Add vibration when streaming ends
+    if (navigator.vibrate) {
+      navigator.vibrate(50)
+    }
+
+    // Callback to parent to mark message as completed
+    if (onStreamingMessage) {
+      onStreamingMessage(messageId, content)
+    }
+  }
+
+  // Expose streaming function via ref (for external control)
+  React.useImperativeHandle(ref, () => ({
+    startStreamingMessage
+  }), [startStreamingMessage])
 
   // Update internal streaming state when external prop changes
   useEffect(() => {
@@ -348,6 +418,22 @@ export default function ChatInterface({
     }
   }
 
+  // Typing indicator component
+  const TypingIndicator = () => (
+    <div className="flex flex-col items-start">
+      <div className="max-w-[80%] px-4 py-2 rounded-2xl text-gray-900">
+        <div className="flex items-center space-x-1">
+          <div className="flex space-x-1">
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+          </div>
+          <span className="text-sm text-gray-500 ml-2">AI is thinking...</span>
+        </div>
+      </div>
+    </div>
+  )
+
   const renderMessage = (message: Message) => {
     const isCompleted = completedMessages.has(message.id)
 
@@ -425,7 +511,7 @@ export default function ChatInterface({
       )}
       
       <div ref={chatContainerRef} className="flex-1 p-4 overflow-y-auto ">
-        <div className="space-y-4">
+        <div className="space-y-4 pb-2">
           {messageSections.map((section, sectionIndex) => (
             <div
               key={section.id}
@@ -440,6 +526,12 @@ export default function ChatInterface({
               {!section.isNewSection && <div>{section.messages.map((message) => renderMessage(message))}</div>}
             </div>
           ))}
+          
+          {/* Show typing indicator when external isStreaming is true but no internal streaming is happening */}
+          {externalIsStreaming && !streamingMessageId && (
+            <TypingIndicator />
+          )}
+          
           <div ref={messagesEndRef} />
         </div>
       </div>
@@ -574,4 +666,8 @@ export default function ChatInterface({
       </div>
     </div>
   )
-}
+})
+
+ChatInterface.displayName = "ChatInterface"
+
+export default ChatInterface

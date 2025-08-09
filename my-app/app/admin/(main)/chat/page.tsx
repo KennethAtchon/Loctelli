@@ -19,7 +19,7 @@ import logger from '@/lib/logger';
 import { useToast } from '@/hooks/use-toast';
 import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
 import { cn } from '@/lib/utils';
-import ChatInterface, { type Message as ChatInterfaceMessage, type ChatInterfaceConfig } from '@/components/chat/chat-interface';
+import ChatInterface, { type Message as ChatInterfaceMessage, type ChatInterfaceConfig, type ChatInterfaceRef } from '@/components/chat/chat-interface';
 
 interface ChatMessage {
   id: string;
@@ -61,6 +61,7 @@ export default function ChatPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [isLoadingLeads, setIsLoadingLeads] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const chatInterfaceRef = useRef<ChatInterfaceRef>(null);
   
   const { toast } = useToast();
 
@@ -286,8 +287,25 @@ export default function ChatPage() {
     }
 
     setIsLoading(true);
-    setIsTyping(true);
     setError(null);
+
+    // First, add the user message immediately
+    const userMessage: ChatMessage = {
+      id: `${Date.now()}-user`,
+      role: 'user',
+      content: message,
+      timestamp: new Date(),
+      metadata: {
+        leadId: parseInt(selectedLeadId, 10),
+        leadName: leadProfile?.name
+      }
+    };
+
+    // Add user message to the chat immediately
+    setMessages(prev => [...prev, userMessage]);
+
+    // Start typing indicator for API call (not streaming yet)
+    setIsTyping(true);
 
     try {
       // Send message to API with lead ID
@@ -299,25 +317,12 @@ export default function ChatPage() {
 
       logger.debug('Chat API response:', response);
 
-      // Remove typing indicator
-      setIsTyping(false);
-
-      // Add both user message and AI response to chat
-      const userMessage: ChatMessage = {
-        id: `${Date.now()}-user`,
-        role: 'user',
-        content: message,
-        timestamp: new Date(),
-        metadata: {
-          leadId: parseInt(selectedLeadId, 10),
-          leadName: leadProfile?.name
-        }
-      };
-
+      // Create AI message with empty content first
+      const aiMessageId = `${Date.now()}-ai`;
       const aiMessage: ChatMessage = {
-        id: `${Date.now()}-ai`,
+        id: aiMessageId,
         role: 'assistant',
-        content: response.aiMessage?.content || 'No response received',
+        content: '', // Start with empty content
         timestamp: new Date(),
         metadata: {
           leadId: parseInt(selectedLeadId, 10),
@@ -325,8 +330,15 @@ export default function ChatPage() {
         }
       };
 
-      // Update messages with both user and AI messages
-      setMessages(prev => [...prev, userMessage, aiMessage]);
+      // Add AI message placeholder to chat
+      setMessages(prev => [...prev, aiMessage]);
+
+      // Stop the typing indicator and start streaming the AI response
+      setIsTyping(false);
+      const aiContent = response.aiMessage?.content || 'No response received';
+      if (chatInterfaceRef.current) {
+        await chatInterfaceRef.current.startStreamingMessage(aiMessageId, aiContent);
+      }
 
     } catch (err) {
       logger.error('Failed to send message:', err);
@@ -335,6 +347,16 @@ export default function ChatPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Handle streaming message completion
+  const handleStreamingMessageComplete = (messageId: string, content: string) => {
+    // Update the message with the complete content and mark as completed
+    setMessages(prev => prev.map(msg => 
+      msg.id === messageId 
+        ? { ...msg, content, completed: true }
+        : msg
+    ));
   };
 
   // ChatInterface configuration
@@ -601,8 +623,10 @@ export default function ChatPage() {
               
               {chatInterfaceMessages.length > 0 && (
                 <ChatInterface
+                  ref={chatInterfaceRef}
                   messages={chatInterfaceMessages}
                   onSendMessage={handleChatInterfaceSendMessage}
+                  onStreamingMessage={handleStreamingMessageComplete}
                   isStreaming={isTyping}
                   config={chatInterfaceConfig}
                   disabled={!leadProfile}
