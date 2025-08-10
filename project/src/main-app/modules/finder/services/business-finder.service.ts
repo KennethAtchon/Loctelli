@@ -59,6 +59,68 @@ export class BusinessFinderService {
     }
 
     try {
+      const result = await this.executeSearch(searchDto, userId, subAccountId, ipAddress, startTime);
+      
+      // Increment rate limit usage for sync searches
+      await this.rateLimitService.incrementUsage(userId, 'business_finder', ipAddress);
+      
+      return result;
+    } catch (error) {
+      // Record rate limit violation if it's a client error
+      if (error instanceof HttpException && error.getStatus() >= 400 && error.getStatus() < 500) {
+        await this.rateLimitService.recordViolation(userId, 'business_finder', ipAddress);
+      }
+
+      throw error;
+    }
+  }
+
+  async searchBusinessesAsync(
+    searchDto: SearchBusinessDto,
+    userId: number,
+    ipAddress?: string,
+  ): Promise<{ searchId: string }> {
+    const startTime = Date.now();
+
+    // Get default SubAccount for business finder results (admin feature)
+    const defaultSubAccount = await this.prisma.subAccount.findFirst({
+      where: { name: 'Default SubAccount' },
+    });
+    
+    if (!defaultSubAccount) {
+      throw new HttpException(
+        'Default SubAccount not found. Please contact administrator.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+    
+    const subAccountId = defaultSubAccount.id;
+
+    try {
+      const result = await this.executeSearch(searchDto, userId, subAccountId, ipAddress, startTime);
+      
+      // Increment rate limit usage after successful completion
+      await this.rateLimitService.incrementUsage(userId, 'business_finder', ipAddress);
+      
+      return { searchId: result.searchId };
+    } catch (error) {
+      // Record rate limit violation if it's a client error
+      if (error instanceof HttpException && error.getStatus() >= 400 && error.getStatus() < 500) {
+        await this.rateLimitService.recordViolation(userId, 'business_finder', ipAddress);
+      }
+
+      throw error;
+    }
+  }
+
+  private async executeSearch(
+    searchDto: SearchBusinessDto,
+    userId: number,
+    subAccountId: number,
+    ipAddress?: string,
+    startTime: number = Date.now()
+  ): Promise<SearchResponseDto> {
+    try {
       // Check cache first
       const searchHash = this.generateSearchHash(searchDto);
       const cachedResult = await this.getCachedResult(searchHash, userId);
@@ -74,33 +136,37 @@ export class BusinessFinderService {
       // Get user's API keys
       const userApiKeys = await this.getUserApiKeys(userId);
 
-      // Determine which sources to use
-      const sources = searchDto.sources || ['google_places', 'yelp', 'openstreetmap'];
-      const availableSources = sources.filter((source) => {
-        // Check if we have service keys or user has provided their own
-        return this.hasApiKey(source, userApiKeys) || this.hasServiceApiKey(source);
-      });
-
-      if (availableSources.length === 0) {
+      // Determine which source to use (single source only)
+      const requestedSource = searchDto.sources?.[0] || 'google_places'; // Default to Google Places
+      
+      // Check if we have API key for the requested source
+      const hasApiKey = this.hasApiKey(requestedSource, userApiKeys) || this.hasServiceApiKey(requestedSource);
+      
+      if (!hasApiKey) {
         throw new HttpException(
-          'No API keys available for business search',
+          `API key not available for ${requestedSource}. Please configure your API key or select a different source.`,
           HttpStatus.SERVICE_UNAVAILABLE,
         );
       }
 
-      // Execute searches in parallel
-      const searchPromises = availableSources.map(async (source) => {
-        try {
-          const apiKey = userApiKeys.find((key) => key.service === source)?.keyValue;
-          return await this.searchBySource(source, searchDto, apiKey);
-        } catch (error) {
-          this.logger.warn(`Search failed for ${source}: ${error.message}`);
-          return [];
-        }
-      });
+      this.logger.log(`🔍 Starting search for "${searchDto.query}" using source: ${requestedSource}`);
 
-      const searchResults = await Promise.all(searchPromises);
-      const allResults = searchResults.flat();
+      // Execute single source search
+      let searchResults: BusinessSearchResultDto[] = [];
+      try {
+        this.logger.log(`📡 Calling ${requestedSource} API for "${searchDto.query}"`);
+        const apiKey = userApiKeys.find((key) => key.service === requestedSource)?.keyValue;
+        searchResults = await this.searchBySource(requestedSource, searchDto, apiKey);
+        this.logger.log(`✅ ${requestedSource} returned ${searchResults.length} results`);
+      } catch (error) {
+        this.logger.error(`❌ ${requestedSource} search failed: ${error.message}`);
+        throw new HttpException(
+          `Search failed for ${requestedSource}: ${error.message}`,
+          HttpStatus.SERVICE_UNAVAILABLE,
+        );
+      }
+
+      const allResults = searchResults;
 
       // Deduplicate and merge results
       const mergedResults = this.deduplicateResults(allResults, searchDto.limit || 20);
@@ -112,13 +178,10 @@ export class BusinessFinderService {
         subAccountId,
         searchDto,
         results: mergedResults,
-        sources: availableSources,
+        sources: [requestedSource],
         responseTime: Date.now() - startTime,
-        apiCalls: this.countApiCalls(availableSources),
+        apiCalls: this.countApiCalls([requestedSource]),
       });
-
-      // Increment rate limit usage
-      await this.rateLimitService.incrementUsage(userId, 'business_finder', ipAddress);
 
       const response: SearchResponseDto = {
         searchId: searchRecord.id,
@@ -126,23 +189,19 @@ export class BusinessFinderService {
         location: searchDto.location,
         totalResults: mergedResults.length,
         results: mergedResults,
-        sources: availableSources,
+        sources: [requestedSource],
         responseTime: Date.now() - startTime,
         cached: false,
         expiresAt: searchRecord.expiresAt,
       };
 
       this.logger.log(
-        `Business search completed: ${mergedResults.length} results from ${availableSources.length} sources`,
+        `🎉 Business search completed: ${mergedResults.length} results from ${requestedSource} in ${Date.now() - startTime}ms`,
       );
 
       return response;
     } catch (error) {
-      // Record rate limit violation if it's a client error
-      if (error instanceof HttpException && error.getStatus() >= 400 && error.getStatus() < 500) {
-        await this.rateLimitService.recordViolation(userId, 'business_finder', ipAddress);
-      }
-
+      this.logger.error(`💥 Search execution failed: ${error.message}`);
       throw error;
     }
   }

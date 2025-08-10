@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Slider } from '@/components/ui/slider';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Badge } from '@/components/ui/badge';
@@ -25,16 +25,16 @@ export function SearchForm({ onSearch, isSearching, availableSources }: SearchFo
   const [location, setLocation] = useState('');
   const [radius, setRadius] = useState([5]);
   const [category, setCategory] = useState('');
-  const [selectedSources, setSelectedSources] = useState<string[]>([]);
+  const [selectedSource, setSelectedSource] = useState<string>('');
   const [limit, setLimit] = useState(20);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  // Initialize with all available sources
+  // Initialize with first available source
   useEffect(() => {
-    if (availableSources.length > 0 && selectedSources.length === 0) {
-      setSelectedSources(availableSources.map(source => source.id));
+    if (availableSources.length > 0 && !selectedSource) {
+      setSelectedSource(availableSources[0].id);
     }
-  }, [availableSources, selectedSources.length]);
+  }, [availableSources, selectedSource]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,8 +44,8 @@ export function SearchForm({ onSearch, isSearching, availableSources }: SearchFo
       return;
     }
 
-    if (selectedSources.length === 0) {
-      toast.error('Please select at least one data source');
+    if (!selectedSource) {
+      toast.error('Please select a data source');
       return;
     }
 
@@ -54,20 +54,13 @@ export function SearchForm({ onSearch, isSearching, availableSources }: SearchFo
       location: location.trim() || undefined,
       radius: radius[0],
       category: category.trim() || undefined,
-      sources: selectedSources,
+      sources: [selectedSource], // Single source in array format
       limit,
     };
 
     await onSearch(searchData);
   };
 
-  const handleSourceToggle = (sourceId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedSources(prev => [...prev, sourceId]);
-    } else {
-      setSelectedSources(prev => prev.filter(id => id !== sourceId));
-    }
-  };
 
   const categories = [
     'restaurant',
@@ -123,43 +116,47 @@ export function SearchForm({ onSearch, isSearching, availableSources }: SearchFo
             </div>
           </div>
 
-          {/* Data sources */}
+          {/* Data source selection */}
           <div>
-            <Label>Data Sources</Label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-              {availableSources.map((source) => (
-                <div
-                  key={source.id}
-                  className="flex items-center space-x-2 p-3 border rounded-lg"
-                >
-                  <Checkbox
-                    id={source.id}
-                    checked={selectedSources.includes(source.id)}
-                    onCheckedChange={(checked) => 
-                      handleSourceToggle(source.id, checked as boolean)
-                    }
-                  />
-                  <div className="flex-1">
-                    <Label htmlFor={source.id} className="font-medium">
-                      {source.name}
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      {source.description}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      {source.requiresApiKey && (
-                        <Badge variant="outline" className="text-xs">
-                          API Key Required
+            <Label>Select Data Source</Label>
+            <RadioGroup 
+              value={selectedSource} 
+              onValueChange={setSelectedSource}
+              className="mt-2"
+            >
+              <div className="grid grid-cols-1 gap-4">
+                {availableSources.map((source) => (
+                  <div
+                    key={source.id}
+                    className={`flex items-center space-x-3 p-4 border rounded-lg transition-colors ${
+                      selectedSource === source.id 
+                        ? 'border-primary bg-primary/5' 
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <RadioGroupItem value={source.id} id={source.id} />
+                    <div className="flex-1">
+                      <Label htmlFor={source.id} className="font-medium cursor-pointer">
+                        {source.name}
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        {source.description}
+                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        {source.requiresApiKey && (
+                          <Badge variant="outline" className="text-xs">
+                            API Key Required
+                          </Badge>
+                        )}
+                        <Badge variant="secondary" className="text-xs">
+                          {source.freeQuota}
                         </Badge>
-                      )}
-                      <Badge variant="secondary" className="text-xs">
-                        {source.freeQuota}
-                      </Badge>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </RadioGroup>
           </div>
 
           {/* Advanced options */}

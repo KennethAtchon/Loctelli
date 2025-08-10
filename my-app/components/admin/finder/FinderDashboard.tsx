@@ -18,6 +18,7 @@ import {
   ApiSource,
   UsageStats,
   SearchHistory,
+  JobStatusDto,
   finderApi 
 } from '@/lib/api/endpoints/finder';
 
@@ -29,6 +30,8 @@ export function FinderDashboard() {
   const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
   const [searchHistory, setSearchHistory] = useState<SearchHistory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentJobId, setCurrentJobId] = useState<string | null>(null);
+  const [jobStatus, setJobStatus] = useState<JobStatusDto | null>(null);
 
   // Load initial data
   useEffect(() => {
@@ -57,20 +60,24 @@ export function FinderDashboard() {
 
   const handleSearch = async (searchData: SearchBusinessDto) => {
     setIsSearching(true);
+    setSearchResponse(null);
+    setCurrentJobId(null);
+    setJobStatus(null);
     
     try {
-      const response = await finderApi.searchBusinesses(searchData);
-      setSearchResponse(response);
+      // Always use async processing since all searches call external APIs with latency
+      toast.info('Starting search in background. This may take a moment...');
       
-      // Refresh usage stats after search
-      const statsRes = await finderApi.getUsageStats();
-      setUsageStats(statsRes);
+      // Start async job
+      const jobResponse = await finderApi.searchBusinessesAsync(searchData);
+      setCurrentJobId(jobResponse.jobId);
       
-      // Refresh search history
-      const historyRes = await finderApi.getSearchHistory(undefined, 10);
-      setSearchHistory(historyRes);
-
-      toast.success(`Found ${response.totalResults} businesses in ${response.responseTime}ms`);
+      // Start polling for job status
+      pollJobStatus(jobResponse.jobId);
+      
+      const sourceName = searchData.sources?.[0] || 'default source';
+      toast.success(`Search queued! Calling ${sourceName} API...`);
+      
     } catch (error: any) {
       console.error('Search failed:', error);
       let errorMessage = 'Search failed. Please try again.';
@@ -84,8 +91,73 @@ export function FinderDashboard() {
       }
       
       toast.error(errorMessage);
-    } finally {
       setIsSearching(false);
+    }
+  };
+
+  const pollJobStatus = async (jobId: string) => {
+    const maxAttempts = 60; // Poll for up to 5 minutes (5s intervals)
+    let attempts = 0;
+    
+    const poll = async () => {
+      try {
+        attempts++;
+        const status = await finderApi.getJobStatus(jobId);
+        setJobStatus(status);
+        
+        if (status.status === 'completed') {
+          setIsSearching(false);
+          setCurrentJobId(null);
+          
+          if (status.searchResult) {
+            setSearchResponse(status.searchResult);
+            toast.success(`Search completed! Found ${status.searchResult.totalResults} businesses in ${status.searchResult.responseTime}ms`);
+          }
+          
+          // Refresh dashboard data
+          await refreshDashboardData();
+          return;
+        } else if (status.status === 'failed') {
+          setIsSearching(false);
+          setCurrentJobId(null);
+          toast.error(status.error || 'Search failed');
+          return;
+        } else if (attempts >= maxAttempts) {
+          setIsSearching(false);
+          setCurrentJobId(null);
+          toast.error('Search timed out. Please try again.');
+          return;
+        }
+        
+        // Continue polling every 5 seconds
+        setTimeout(poll, 5000);
+      } catch (error: any) {
+        console.error('Failed to poll job status:', error);
+        if (attempts >= maxAttempts) {
+          setIsSearching(false);
+          setCurrentJobId(null);
+          toast.error('Unable to get search status. Please refresh the page.');
+        } else {
+          // Retry after 5 seconds
+          setTimeout(poll, 5000);
+        }
+      }
+    };
+    
+    // Start first poll after 2 seconds
+    setTimeout(poll, 2000);
+  };
+
+  const refreshDashboardData = async () => {
+    try {
+      const [statsRes, historyRes] = await Promise.all([
+        finderApi.getUsageStats(),
+        finderApi.getSearchHistory(undefined, 10),
+      ]);
+      setUsageStats(statsRes);
+      setSearchHistory(historyRes);
+    } catch (error) {
+      console.error('Failed to refresh dashboard data:', error);
     }
   };
 
@@ -175,6 +247,27 @@ export function FinderDashboard() {
             isSearching={isSearching}
             availableSources={availableSources}
           />
+          
+          {/* Job Status Indicator */}
+          {currentJobId && jobStatus && (
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  <div className="flex-1">
+                    <p className="font-medium text-blue-900">
+                      {jobStatus.status === 'pending' && 'Search queued and waiting to start...'}
+                      {jobStatus.status === 'processing' && 'Calling API (this may take a few seconds)...'}
+                    </p>
+                    <p className="text-sm text-blue-700">
+                      Job ID: {currentJobId} • Status: {jobStatus.status}
+                      {jobStatus.progress && ` • Progress: ${jobStatus.progress}%`}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           
           {searchResponse && (
             <ResultsTable

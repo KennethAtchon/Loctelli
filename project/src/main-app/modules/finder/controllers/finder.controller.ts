@@ -18,6 +18,7 @@ import { Request, Response } from 'express';
 import { BusinessFinderService } from '../services/business-finder.service';
 import { ExportService } from '../services/export.service';
 import { RateLimitService } from '../services/rate-limit.service';
+import { JobQueueService } from '../../../../shared/job-queue/job-queue.service';
 import { 
   SearchBusinessDto, 
   SearchResponseDto 
@@ -38,6 +39,7 @@ export class FinderController {
     private businessFinderService: BusinessFinderService,
     private exportService: ExportService,
     private rateLimitService: RateLimitService,
+    private jobQueueService: JobQueueService,
   ) {}
 
   @Post('search')
@@ -51,6 +53,82 @@ export class FinderController {
       user.userId,
       request,
     );
+  }
+
+  @Post('search-async')
+  async searchBusinessesAsync(
+    @Body(ValidationPipe) searchDto: SearchBusinessDto,
+    @CurrentUser() user: any,
+    @Req() request: Request,
+  ): Promise<{ jobId: string; message: string; status: string }> {
+    // Check rate limits first
+    const ipAddress = this.rateLimitService.getClientIp(request);
+    const canProceed = await this.rateLimitService.checkRateLimit(
+      user.userId,
+      'business_finder',
+      ipAddress,
+    );
+
+    if (!canProceed) {
+      throw new HttpException(
+        'Rate limit exceeded. Please try again later.',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    // Queue the job
+    const jobId = await this.jobQueueService.executeServiceMethod(
+      'business-finder-search',
+      'BusinessFinderService',
+      'searchBusinessesAsync',
+      [searchDto, user.userId, ipAddress],
+      {
+        subAccountId: 'finder',
+        userId: user.userId.toString(),
+        context: {
+          searchQuery: searchDto.query,
+          location: searchDto.location,
+          sources: searchDto.sources,
+        },
+        retries: 2,
+      }
+    );
+
+    return {
+      jobId,
+      message: 'Search started. Use the job ID to check progress.',
+      status: 'processing'
+    };
+  }
+
+  @Get('jobs/:jobId')
+  async getJobStatus(
+    @Param('jobId') jobId: string,
+    @CurrentUser() user: any,
+  ): Promise<any> {
+    const jobResult = await this.jobQueueService.getJobStatus('generic-task', jobId);
+    
+    if (jobResult.status === 'not_found') {
+      throw new HttpException(
+        'Job not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    // If job is completed, get the search results
+    if (jobResult.status === 'completed' && jobResult.result?.searchId) {
+      const searchResult = await this.businessFinderService.getSearchResult(
+        jobResult.result.searchId,
+        user.userId
+      );
+      
+      return {
+        ...jobResult,
+        searchResult,
+      };
+    }
+
+    return jobResult;
   }
 
   @Get('results/:searchId')
@@ -218,6 +296,11 @@ export class FinderController {
         },
       ],
     };
+  }
+
+  @Get('queue/stats')
+  async getQueueStats(): Promise<any> {
+    return this.jobQueueService.getQueueStats('generic-task');
   }
 
   @Get('stats')

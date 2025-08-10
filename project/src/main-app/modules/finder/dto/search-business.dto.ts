@@ -23,7 +23,7 @@ export class SearchBusinessDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  sources?: string[]; // ['google_places', 'yelp', 'openstreetmap']
+  sources?: string[]; // Single source: ['google_places'] OR ['yelp'] OR ['openstreetmap']
 
   @IsOptional()
   @IsNumber()
@@ -64,7 +64,7 @@ export class SearchResponseDto {
   location?: string;
   totalResults: number;
   results: BusinessSearchResultDto[];
-  sources: string[];
+  sources: string[]; // Single source array, e.g., ['google_places']
   responseTime: number;
   cached: boolean;
   expiresAt: Date;

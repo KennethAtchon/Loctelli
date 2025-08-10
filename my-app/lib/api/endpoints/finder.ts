@@ -99,10 +99,27 @@ export interface ApiSource {
   freeQuota: string;
 }
 
+export interface JobStatusDto {
+  jobId: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'not_found' | 'error';
+  progress?: number;
+  result?: any;
+  error?: string;
+  createdAt?: string;
+  completedAt?: string;
+  searchResult?: SearchResponseDto;
+}
+
 export const finderApi = {
   // Search operations
   searchBusinesses: (data: SearchBusinessDto): Promise<SearchResponseDto> =>
     apiClient.post('/admin/finder/search', data),
+
+  searchBusinessesAsync: (data: SearchBusinessDto): Promise<{ jobId: string; message: string; status: string }> =>
+    apiClient.post('/admin/finder/search-async', data),
+
+  getJobStatus: (jobId: string): Promise<JobStatusDto> =>
+    apiClient.get(`/admin/finder/jobs/${jobId}`),
 
   getSearchResult: (searchId: string): Promise<SearchResponseDto> =>
     apiClient.get(`/admin/finder/results/${searchId}`),

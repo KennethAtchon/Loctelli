@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
+import { SharedModule } from '../../../shared/shared.module';
 import { FinderController } from './controllers/finder.controller';
 import { BusinessFinderService } from './services/business-finder.service';
 import { GooglePlacesService } from './services/google-places.service';
@@ -13,6 +14,7 @@ import { ExportService } from './services/export.service';
   imports: [
     ConfigModule,
     PrismaModule,
+    SharedModule,
   ],
   controllers: [FinderController],
   providers: [
