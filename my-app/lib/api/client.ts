@@ -226,4 +226,7 @@ export class ApiClient {
     
     return searchParams.toString();
   }
-} 
+}
+
+// Create and export a default instance for backward compatibility
+export const apiClient = new ApiClient(); 

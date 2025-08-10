@@ -16,6 +16,7 @@ import { BgProcessModule } from './background/bgprocess/bgprocess.module';
 import { GhlModule } from './integrations/ghl-integrations/ghl/ghl.module';
 import { GeneralModule } from './general/general.module';
 import { DebugModule } from './debug/debug.module';
+import { FinderModule } from './modules/finder/finder.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { DebugModule } from './debug/debug.module';
     GhlModule,
     GeneralModule,
     DebugModule,
+    FinderModule,
   ],
 })
 export class MainAppModule {} 

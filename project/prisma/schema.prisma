@@ -49,6 +49,7 @@ model SubAccount {
   integrations    Integration[] // Integrations configured for this SubAccount
   smsMessages     SmsMessage[] // SMS messages sent within this SubAccount
   smsCampaigns    SmsCampaign[] // SMS campaigns created within this SubAccount
+  businessSearches BusinessSearch[] // Business searches performed within this SubAccount
 }
 
 model User {
@@ -77,6 +78,9 @@ model User {
   bookings        Booking[]
   smsMessages     SmsMessage[] // SMS messages sent by this user
   smsCampaigns    SmsCampaign[] // SMS campaigns created by this user
+  apiKeys         ApiKey[] // User's custom API keys
+  businessSearches BusinessSearch[] // Business searches performed by this user
+  rateLimits      RateLimit[] // Rate limit tracking for this user
 }
 
 model Strategy {
@@ -256,6 +260,81 @@ model SmsCampaign {
   
   // Relations
   messages     SmsMessage[]
+}
+
+// Business Finder Models
+
+model ApiKey {
+  id          Int      @id @default(autoincrement())
+  userId      Int?     // Optional: Can be global (service keys) or user-specific
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  service     String   // "google_places", "yelp", "openstreetmap"
+  keyName     String   // Display name for the key
+  keyValue    String   // Encrypted API key
+  isActive    Boolean  @default(true)
+  dailyLimit  Int?     // Daily request limit for this key
+  usageCount  Int      @default(0) // Current day usage
+  lastUsed    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, service, keyName])
+}
+
+model BusinessSearch {
+  id            String   @id @default(uuid())
+  userId        Int
+  subAccountId  Int      // Required: Search belongs to a SubAccount
+  subAccount    SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Search parameters
+  query         String   // Business name or category
+  location      String?  // Address, city, coordinates
+  radius        Float?   // Search radius in kilometers
+  category      String?  // Business category filter
+  
+  // Search metadata
+  searchHash    String   @unique // Hash of search parameters for caching
+  totalResults  Int      @default(0)
+  results       Json     // Array of business results from all APIs
+  sources       Json     // Array of APIs used: ["google_places", "yelp", "osm"]
+  
+  // Performance tracking
+  responseTime  Int?     // Total search time in milliseconds
+  apiCalls      Json     // Object tracking calls per API: {google: 1, yelp: 1}
+  
+  // Status
+  status        String   @default("completed") // pending, completed, failed, expired
+  errorMessage  String?  @db.Text
+  
+  // Cache management
+  expiresAt     DateTime // Cache expiry (24 hours from creation)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model RateLimit {
+  id          Int      @id @default(autoincrement())
+  userId      Int?     // Optional: Can track global or per-user limits
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress   String?  // Track by IP for abuse prevention
+  service     String   // "business_finder", "google_places", "yelp", etc.
+  
+  // Usage tracking
+  requestCount Int     @default(0)
+  dailyLimit   Int     @default(500) // Default daily limit
+  windowStart  DateTime // Start of current rate limit window
+  
+  // Violation tracking
+  violations   Int     @default(0) // Number of times limit exceeded
+  blockedUntil DateTime? // Temporary ban expiry
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, service])
+  @@unique([ipAddress, service])
 }
 
 
