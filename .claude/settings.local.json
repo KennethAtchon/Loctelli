@@ -8,5 +8,9 @@
       "Bash(npm run lint)"
     ],
     "deny": []
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bun x ccusage statusline"
   }
 }

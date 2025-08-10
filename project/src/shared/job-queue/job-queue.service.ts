@@ -36,15 +36,27 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
 
   private async initializeQueues() {
     const redisConfig = this.configService.get('redis');
-    const queueSettings = {
-      removeOnSuccess: true, // Remove successful jobs
-      removeOnFailure: false, // Keep failed jobs for debugging
-      redis: redisConfig.url || {
+    
+    // Handle Railway IPv6 compatibility
+    let redisConnection;
+    if (redisConfig.url) {
+      // For Railway, append family=0 to enable dual-stack DNS resolution
+      const urlSuffix = redisConfig.url.includes('railway.internal') ? '?family=0' : '';
+      redisConnection = redisConfig.url + urlSuffix;
+    } else {
+      redisConnection = {
         host: redisConfig.host,
         port: redisConfig.port,
         password: redisConfig.password,
         db: redisConfig.db,
-      },
+        family: 0, // Enable dual-stack DNS resolution
+      };
+    }
+    
+    const queueSettings = {
+      removeOnSuccess: true, // Remove successful jobs
+      removeOnFailure: false, // Keep failed jobs for debugging
+      redis: redisConnection,
     };
 
     // Initialize queues for different job types
