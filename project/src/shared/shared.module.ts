@@ -4,6 +4,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { CacheModule } from './cache/cache.module';
 import { StorageModule } from './storage/storage.module';
 import { SmsModule } from './sms/sms.module';
+import { JobQueueModule } from './job-queue/job-queue.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { SmsModule } from './sms/sms.module';
     CacheModule,
     StorageModule,
     SmsModule,
+    JobQueueModule,
   ],
   exports: [
     ConfigModule,
@@ -19,6 +21,7 @@ import { SmsModule } from './sms/sms.module';
     CacheModule,
     StorageModule,
     SmsModule,
+    JobQueueModule,
   ],
 })
 export class SharedModule {} 

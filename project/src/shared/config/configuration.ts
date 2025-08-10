@@ -55,4 +55,11 @@ export default () => ({
     maxBatchSize: parseInt(process.env.SMS_MAX_BATCH_SIZE || '100', 10),
     retryAttempts: parseInt(process.env.SMS_RETRY_ATTEMPTS || '3', 10),
   },
+  // Job Queue Settings
+  jobQueue: {
+    removeOnSuccess: parseInt(process.env.QUEUE_REMOVE_ON_SUCCESS || '10', 10),
+    removeOnFailure: parseInt(process.env.QUEUE_REMOVE_ON_FAILURE || '50', 10),
+    defaultRetries: parseInt(process.env.QUEUE_DEFAULT_RETRIES || '3', 10),
+    maxConcurrency: parseInt(process.env.QUEUE_MAX_CONCURRENCY || '10', 10),
+  },
 }); 
