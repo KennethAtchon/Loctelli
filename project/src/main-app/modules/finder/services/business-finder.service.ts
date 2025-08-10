@@ -25,11 +25,24 @@ export class BusinessFinderService {
   async searchBusinesses(
     searchDto: SearchBusinessDto,
     userId: number,
-    subAccountId: number,
     request?: Request,
   ): Promise<SearchResponseDto> {
     const startTime = Date.now();
     const ipAddress = request ? this.rateLimitService.getClientIp(request) : undefined;
+
+    // Get default SubAccount for business finder results (admin feature)
+    const defaultSubAccount = await this.prisma.subAccount.findFirst({
+      where: { name: 'Default SubAccount' },
+    });
+    
+    if (!defaultSubAccount) {
+      throw new HttpException(
+        'Default SubAccount not found. Please contact administrator.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+    
+    const subAccountId = defaultSubAccount.id;
 
     // Check rate limits
     const canProceed = await this.rateLimitService.checkRateLimit(
@@ -163,20 +176,13 @@ export class BusinessFinderService {
 
   async getUserSearchHistory(
     userId: number,
-    subAccountId?: number,
     limit: number = 20,
   ): Promise<any[]> {
-    const where: any = {
-      userId,
-      status: 'completed',
-    };
-
-    if (subAccountId) {
-      where.subAccountId = subAccountId;
-    }
-
     return this.prisma.businessSearch.findMany({
-      where,
+      where: {
+        userId,
+        status: 'completed',
+      },
       select: {
         id: true,
         query: true,

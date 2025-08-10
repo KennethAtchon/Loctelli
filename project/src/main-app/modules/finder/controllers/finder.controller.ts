@@ -43,13 +43,12 @@ export class FinderController {
   @Post('search')
   async searchBusinesses(
     @Body(ValidationPipe) searchDto: SearchBusinessDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
     @Req() request: Request,
   ): Promise<SearchResponseDto> {
     return this.businessFinderService.searchBusinesses(
       searchDto,
-      user.id,
-      user.subAccountId,
+      user.userId,
       request,
     );
   }
@@ -57,9 +56,9 @@ export class FinderController {
   @Get('results/:searchId')
   async getSearchResult(
     @Param('searchId') searchId: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<SearchResponseDto> {
-    const result = await this.businessFinderService.getSearchResult(searchId, user.id);
+    const result = await this.businessFinderService.getSearchResult(searchId, user.userId);
     
     if (!result) {
       throw new HttpException(
@@ -74,13 +73,13 @@ export class FinderController {
   @Post('export')
   async exportResults(
     @Body(ValidationPipe) exportDto: ExportResultsDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
     @Res() response: Response,
   ): Promise<void> {
     // Get the search results first
     const searchResult = await this.businessFinderService.getSearchResult(
       exportDto.searchId,
-      user.id,
+      user.userId,
     );
 
     if (!searchResult) {
@@ -106,23 +105,20 @@ export class FinderController {
 
   @Get('history')
   async getSearchHistory(
-    @CurrentUser() user: User,
-    @Query('subAccountId') subAccountId?: number,
+    @CurrentUser() user: any,
     @Query('limit') limit?: number,
   ): Promise<any[]> {
     const parsedLimit = limit ? Math.min(parseInt(limit.toString()), 100) : 20;
-    const parsedSubAccountId = subAccountId ? parseInt(subAccountId.toString()) : undefined;
 
     return this.businessFinderService.getUserSearchHistory(
-      user.id,
-      parsedSubAccountId,
+      user.userId,
       parsedLimit,
     );
   }
 
   @Get('api-keys')
-  async getUserApiKeys(@CurrentUser() user: User): Promise<any[]> {
-    const apiKeys = await this.businessFinderService.getUserApiKeys(user.id);
+  async getUserApiKeys(@CurrentUser() user: any): Promise<any[]> {
+    const apiKeys = await this.businessFinderService.getUserApiKeys(user.userId);
     
     // Don't return the actual key values for security
     return apiKeys.map((key) => ({
@@ -137,7 +133,7 @@ export class FinderController {
   @Put('api-keys')
   async saveApiKey(
     @Body(ValidationPipe) apiKeyDto: ApiKeyDto,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<{ message: string }> {
     // Validate service type
     const validServices = ['google_places', 'yelp'];
@@ -157,7 +153,7 @@ export class FinderController {
     }
 
     await this.businessFinderService.saveUserApiKey(
-      user.id,
+      user.userId,
       apiKeyDto.service,
       apiKeyDto.keyName,
       apiKeyDto.keyValue,
@@ -171,27 +167,27 @@ export class FinderController {
   async deleteApiKey(
     @Param('service') service: string,
     @Param('keyName') keyName: string,
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
   ): Promise<{ message: string }> {
-    await this.businessFinderService.deleteUserApiKey(user.id, service, keyName);
+    await this.businessFinderService.deleteUserApiKey(user.userId, service, keyName);
     return { message: 'API key deleted successfully' };
   }
 
   @Get('rate-limit/status')
   async getRateLimitStatus(
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
     @Query('service') service: string = 'business_finder',
   ): Promise<any> {
-    return this.rateLimitService.getRateLimitStatus(user.id, service);
+    return this.rateLimitService.getRateLimitStatus(user.userId, service);
   }
 
   @Post('rate-limit/reset')
   async resetRateLimit(
-    @CurrentUser() user: User,
+    @CurrentUser() user: any,
     @Query('service') service: string = 'business_finder',
   ): Promise<{ message: string }> {
     // This endpoint should be protected by admin permissions in a real app
-    await this.rateLimitService.resetUserLimit(user.id, service);
+    await this.rateLimitService.resetUserLimit(user.userId, service);
     return { message: 'Rate limit reset successfully' };
   }
 
@@ -225,15 +221,14 @@ export class FinderController {
   }
 
   @Get('stats')
-  async getUsageStats(@CurrentUser() user: User): Promise<any> {
+  async getUsageStats(@CurrentUser() user: any): Promise<any> {
     const searchHistory = await this.businessFinderService.getUserSearchHistory(
-      user.id,
-      undefined,
+      user.userId,
       100,
     );
 
     const rateLimitStatus = await this.rateLimitService.getRateLimitStatus(
-      user.id,
+      user.userId,
       'business_finder',
     );
 

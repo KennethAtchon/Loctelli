@@ -109,6 +109,11 @@ export class ApiClient {
             throw new Error('Authentication failed. Redirecting to login page.');
           }
           
+          // Handle blob responses in retry logic too
+          if (options.responseType === 'blob') {
+            return (await retryResponse.blob()) as T;
+          }
+          
           return await retryResponse.json();
         } catch (refreshError) {
           logger.debug('❌ Token refresh failed:', refreshError);
@@ -151,6 +156,11 @@ export class ApiClient {
         }
         
         throw new Error(errorMessage);
+      }
+      
+      // Handle blob responses (for file downloads)
+      if (options.responseType === 'blob') {
+        return (await response.blob()) as T;
       }
       
       return await response.json();

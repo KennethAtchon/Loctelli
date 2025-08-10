@@ -49,6 +49,7 @@ export interface ApiRequestOptions {
   headers?: Record<string, string>;
   timeout?: number;
   retries?: number;
+  responseType?: 'json' | 'blob' | 'text';
 }
 
 // WebSocket/Real-time types

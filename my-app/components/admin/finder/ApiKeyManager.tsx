@@ -80,52 +80,49 @@ const ProviderInstructions: React.FC<ProviderInstructionsProps> = React.memo(({ 
   </Card>
 ));
 
-export function ApiKeyManager() {
-  const [apiKeys, setApiKeys] = useState<ApiKeyData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [editingKey, setEditingKey] = useState<ApiKeyData | null>(null);
+interface AddKeyDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (data: ApiKeyDto) => Promise<void>;
+}
 
-  // Form states
-  const [service, setService] = useState('');
-  const [keyName, setKeyName] = useState('');
-  const [keyValue, setKeyValue] = useState('');
-  const [dailyLimit, setDailyLimit] = useState('');
+function AddKeyDialogComponent({ open, onOpenChange, onSubmit }: AddKeyDialogProps) {
+  const [formData, setFormData] = useState({
+    service: '',
+    keyName: '',
+    keyValue: '',
+    dailyLimit: '',
+  });
   const [showKeyValue, setShowKeyValue] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const selectedProvider = useMemo(() => {
-    return service ? getProviderInfo(service) : null;
-  }, [service]);
-
-  useEffect(() => {
-    loadApiKeys();
-  }, []);
-
-  const loadApiKeys = async () => {
-    try {
-      setLoading(true);
-      const keys = await finderApi.getUserApiKeys();
-      setApiKeys(keys);
-    } catch (error) {
-      console.error('Failed to load API keys:', error);
-      toast.error('Failed to load API keys');
-    } finally {
-      setLoading(false);
-    }
+  const getProviderInfo = (serviceId: string) => {
+    return API_PROVIDERS.find(p => p.id === serviceId);
   };
 
-  const resetForm = useCallback(() => {
-    setService('');
-    setKeyName('');
-    setKeyValue('');
-    setDailyLimit('');
-    setShowKeyValue(false);
-    setEditingKey(null);
-  }, []);
+  const selectedProvider = formData.service ? getProviderInfo(formData.service) : null;
 
-  const handleAddKey = async () => {
-    if (!service || !keyName.trim() || !keyValue.trim()) {
+  const resetForm = () => {
+    setFormData({
+      service: '',
+      keyName: '',
+      keyValue: '',
+      dailyLimit: '',
+    });
+    setShowKeyValue(false);
+  };
+
+  const handleInputChange = (field: keyof typeof formData, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.service || !formData.keyName.trim() || !formData.keyValue.trim()) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -133,68 +130,34 @@ export function ApiKeyManager() {
     setIsSubmitting(true);
     try {
       const apiKeyData: ApiKeyDto = {
-        service,
-        keyName: keyName.trim(),
-        keyValue: keyValue.trim(),
-        dailyLimit: dailyLimit ? parseInt(dailyLimit) : undefined,
+        service: formData.service,
+        keyName: formData.keyName.trim(),
+        keyValue: formData.keyValue.trim(),
+        dailyLimit: formData.dailyLimit ? parseInt(formData.dailyLimit) : undefined,
       };
 
-      await finderApi.saveApiKey(apiKeyData);
-      await loadApiKeys();
-      
-      setAddDialogOpen(false);
+      await onSubmit(apiKeyData);
       resetForm();
-      toast.success('API key added successfully');
-    } catch (error: any) {
-      console.error('Failed to save API key:', error);
-      toast.error(error.response?.data?.message || 'Failed to save API key');
+      onOpenChange(false);
+    } catch (error) {
+      // Error handling is done by parent
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDeleteKey = async (service: string, keyName: string) => {
-    if (!confirm('Are you sure you want to delete this API key?')) {
-      return;
-    }
-
-    try {
-      await finderApi.deleteApiKey(service, keyName);
-      await loadApiKeys();
-      toast.success('API key deleted successfully');
-    } catch (error: any) {
-      console.error('Failed to delete API key:', error);
-      toast.error(error.response?.data?.message || 'Failed to delete API key');
-    }
-  };
-
-  const getProviderInfo = (serviceId: string) => {
-    return API_PROVIDERS.find(p => p.id === serviceId);
-  };
-
-  const formatServiceName = (service: string) => {
-    const provider = getProviderInfo(service);
-    return provider ? provider.name : service.replace('_', ' ').toUpperCase();
-  };
-
-  const AddKeyDialog = () => (
-    <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-      <DialogTrigger asChild>
-        <Button className="mb-4">
-          <Plus className="h-4 w-4 mr-2" />
-          Add API Key
-        </Button>
-      </DialogTrigger>
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Add New API Key</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Service Selection */}
           <div>
             <Label htmlFor="service">API Provider *</Label>
-            <Select value={service} onValueChange={setService}>
+            <Select value={formData.service} onValueChange={(value) => handleInputChange('service', value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select API provider" />
               </SelectTrigger>
@@ -219,8 +182,8 @@ export function ApiKeyManager() {
               <Label htmlFor="keyName">Key Name *</Label>
               <Input
                 id="keyName"
-                value={keyName}
-                onChange={(e) => setKeyName(e.target.value)}
+                value={formData.keyName}
+                onChange={(e) => handleInputChange('keyName', e.target.value)}
                 placeholder="e.g., My Google API Key"
               />
             </div>
@@ -229,8 +192,8 @@ export function ApiKeyManager() {
               <Input
                 id="dailyLimit"
                 type="number"
-                value={dailyLimit}
-                onChange={(e) => setDailyLimit(e.target.value)}
+                value={formData.dailyLimit}
+                onChange={(e) => handleInputChange('dailyLimit', e.target.value)}
                 placeholder="e.g., 1000"
               />
             </div>
@@ -243,8 +206,8 @@ export function ApiKeyManager() {
               <Input
                 id="keyValue"
                 type={showKeyValue ? 'text' : 'password'}
-                value={keyValue}
-                onChange={(e) => setKeyValue(e.target.value)}
+                value={formData.keyValue}
+                onChange={(e) => handleInputChange('keyValue', e.target.value)}
                 placeholder="Paste your API key here"
               />
               <Button
@@ -270,16 +233,18 @@ export function ApiKeyManager() {
           {/* Actions */}
           <div className="flex justify-end gap-3">
             <Button 
+              type="button"
               variant="outline" 
               onClick={() => {
-                setAddDialogOpen(false);
+                onOpenChange(false);
                 resetForm();
               }}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button 
-              onClick={handleAddKey}
+              type="submit"
               disabled={isSubmitting}
             >
               {isSubmitting ? (
@@ -295,10 +260,71 @@ export function ApiKeyManager() {
               )}
             </Button>
           </div>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
+}
+
+export function ApiKeyManager() {
+  const [apiKeys, setApiKeys] = useState<ApiKeyData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editingKey, setEditingKey] = useState<ApiKeyData | null>(null);
+
+  useEffect(() => {
+    loadApiKeys();
+  }, []);
+
+  const loadApiKeys = async () => {
+    try {
+      setLoading(true);
+      const keys = await finderApi.getUserApiKeys();
+      setApiKeys(keys);
+    } catch (error) {
+      console.error('Failed to load API keys:', error);
+      toast.error('Failed to load API keys');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddKey = async (apiKeyData: ApiKeyDto) => {
+    try {
+      await finderApi.saveApiKey(apiKeyData);
+      await loadApiKeys();
+      toast.success('API key added successfully');
+    } catch (error: any) {
+      console.error('Failed to save API key:', error);
+      toast.error(error.response?.data?.message || 'Failed to save API key');
+      throw error; // Re-throw so dialog can handle it
+    }
+  };
+
+  const getProviderInfo = (serviceId: string) => {
+    return API_PROVIDERS.find(p => p.id === serviceId);
+  };
+
+  const handleDeleteKey = async (service: string, keyName: string) => {
+    if (!confirm('Are you sure you want to delete this API key?')) {
+      return;
+    }
+
+    try {
+      await finderApi.deleteApiKey(service, keyName);
+      await loadApiKeys();
+      toast.success('API key deleted successfully');
+    } catch (error: any) {
+      console.error('Failed to delete API key:', error);
+      toast.error(error.response?.data?.message || 'Failed to delete API key');
+    }
+  };
+
+  const formatServiceName = (service: string) => {
+    const provider = getProviderInfo(service);
+    return provider ? provider.name : service.replace('_', ' ').toUpperCase();
+  };
+
 
   if (loading) {
     return (
@@ -322,7 +348,10 @@ export function ApiKeyManager() {
                 Manage your API keys for different business data providers
               </CardDescription>
             </div>
-            <AddKeyDialog />
+            <Button className="mb-4" onClick={() => setAddDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add API Key
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -425,6 +454,12 @@ export function ApiKeyManager() {
           </div>
         </CardContent>
       </Card>
+
+      <AddKeyDialogComponent 
+        open={addDialogOpen}
+        onOpenChange={setAddDialogOpen}
+        onSubmit={handleAddKey}
+      />
     </div>
   );
 }
