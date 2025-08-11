@@ -29,6 +29,7 @@ interface GooglePlacesSearchResponse {
     user_ratings_total?: number;
   }>;
   status: string;
+  error_message?: string;
   next_page_token?: string;
 }
 
@@ -58,7 +59,10 @@ export class GooglePlacesService {
   ): Promise<BusinessSearchResultDto[]> {
     const key = apiKey || this.configService.get<string>('GOOGLE_PLACES_API_KEY');
     
+    this.logger.log(`🔑 Google Places API key status: ${key ? 'Present' : 'Missing'}`);
+    
     if (!key) {
+      this.logger.error('❌ Google Places API key not configured - please set GOOGLE_PLACES_API_KEY environment variable');
       throw new HttpException(
         'Google Places API key not configured',
         HttpStatus.SERVICE_UNAVAILABLE,
@@ -82,15 +86,52 @@ export class GooglePlacesService {
         params.radius = Math.min(radius * 1000, 50000); // Convert km to meters, max 50km
       }
 
-      this.logger.log(`Searching Google Places with query: ${params.query}`);
+      this.logger.log(`📡 Searching Google Places with query: ${params.query}`);
+      this.logger.debug(`🔍 Request URL: ${searchUrl}`);
+      this.logger.debug(`📝 Request params: ${JSON.stringify({ ...params, key: '[REDACTED]' })}`);
 
       const response: AxiosResponse<GooglePlacesSearchResponse> = await axios.get(
         searchUrl,
         { params },
       );
 
+      this.logger.log(`📊 Google Places API response status: ${response.data.status}`);
+      this.logger.debug(`📄 Full response data: ${JSON.stringify(response.data, null, 2)}`);
+      
       if (response.data.status !== 'OK') {
-        this.logger.warn(`Google Places API returned status: ${response.data.status}`);
+        this.logger.warn(`⚠️ Google Places API returned status: ${response.data.status}`);
+        this.logger.error(`💾 Full error response: ${JSON.stringify(response.data, null, 2)}`);
+        
+        // Enhanced error messages for common status codes
+        switch (response.data.status) {
+          case 'REQUEST_DENIED':
+            this.logger.error('🔒 REQUEST_DENIED - Check API key validity and Google Places API is enabled in Google Cloud Console');
+            if (response.data.error_message) {
+              this.logger.error(`🔍 Google error message: ${response.data.error_message}`);
+            }
+            break;
+          case 'INVALID_REQUEST':
+            this.logger.error('❌ INVALID_REQUEST - Check request parameters and format');
+            if (response.data.error_message) {
+              this.logger.error(`🔍 Google error message: ${response.data.error_message}`);
+            }
+            break;
+          case 'OVER_QUERY_LIMIT':
+            this.logger.error('🚫 OVER_QUERY_LIMIT - API quota exceeded or billing not enabled');
+            if (response.data.error_message) {
+              this.logger.error(`🔍 Google error message: ${response.data.error_message}`);
+            }
+            break;
+          case 'ZERO_RESULTS':
+            this.logger.warn('🔍 ZERO_RESULTS - No results found for the query');
+            break;
+          default:
+            this.logger.error(`❓ Unknown status: ${response.data.status}`);
+            if (response.data.error_message) {
+              this.logger.error(`🔍 Google error message: ${response.data.error_message}`);
+            }
+        }
+        
         if (response.data.status === 'OVER_QUERY_LIMIT') {
           throw new HttpException(
             'Google Places API quota exceeded',
@@ -104,10 +145,10 @@ export class GooglePlacesService {
         response.data.results.map((place) => this.transformGooglePlace(place, key)),
       );
 
-      this.logger.log(`Found ${results.length} results from Google Places`);
+      this.logger.log(`✅ Found ${results.length} results from Google Places`);
       return results;
     } catch (error) {
-      this.logger.error(`Google Places search error: ${error.message}`, error.stack);
+      this.logger.error(`💥 Google Places search error: ${error.message}`, error.stack);
       
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 429) {

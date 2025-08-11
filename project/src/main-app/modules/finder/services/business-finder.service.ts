@@ -511,7 +511,7 @@ export class BusinessFinderService {
   }
 
   private hasApiKey(source: string, userKeys: any[]): boolean {
-    return userKeys.some((key) => key.service === source && key.isActive);
+    return userKeys.some((key) => key.service === source);
   }
 
   private hasServiceApiKey(source: string): boolean {

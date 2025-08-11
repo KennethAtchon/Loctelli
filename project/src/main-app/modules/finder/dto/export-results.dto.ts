@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsArray, IsIn, IsUUID } from 'class-validator';
+import { IsString, IsOptional, IsArray, IsIn, IsUUID, IsNumber, Min } from 'class-validator';
 
 export class ExportResultsDto {
   @IsUUID()
@@ -34,7 +34,8 @@ export class ApiKeyDto {
   keyValue: string;
 
   @IsOptional()
-  @IsString()
+  @IsNumber()
+  @Min(1)
   dailyLimit?: number;
 }
 
@@ -48,7 +49,8 @@ export class UpdateApiKeyDto {
   keyValue?: string;
 
   @IsOptional()
-  @IsString()
+  @IsNumber()
+  @Min(1)
   dailyLimit?: number;
 
   @IsOptional()
