@@ -1,12 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ModuleRef } from '@nestjs/core';
 import { BaseProcessor } from './base-processor';
 import { GenericTaskJobData } from '../interfaces/job-data.interface';
+import { ServiceRegistry } from '../service-registry';
 
 @Injectable()
 export class GenericTaskProcessor extends BaseProcessor {
+  private serviceRegistry = ServiceRegistry.getInstance();
 
-  constructor(private moduleRef: ModuleRef) {
+  constructor() {
     super();
   }
 
@@ -41,21 +42,26 @@ export class GenericTaskProcessor extends BaseProcessor {
 
   private async executeServiceMethod(data: GenericTaskJobData): Promise<any> {
     try {
-      // Get service instance from NestJS dependency injection container
-      const service = this.moduleRef.get(data.serviceName!, { strict: false });
+      // Get service method from registry
+      const method = this.serviceRegistry.getServiceMethod(data.serviceName!, data.functionName);
       
-      if (!service) {
-        throw new Error(`Service '${data.serviceName}' not found`);
+      if (!method) {
+        const availableServices = this.serviceRegistry.getRegisteredServices();
+        const availableMethods = this.serviceRegistry.hasService(data.serviceName!) 
+          ? this.serviceRegistry.getServiceMethods(data.serviceName!)
+          : [];
+        
+        throw new Error(
+          `Service method '${data.serviceName}.${data.functionName}' not found in registry.\n` +
+          `Available services: ${availableServices.join(', ')}\n` +
+          `Available methods for ${data.serviceName}: ${availableMethods.join(', ')}`
+        );
       }
 
-      if (typeof service[data.functionName] !== 'function') {
-        throw new Error(`Method '${data.functionName}' not found on service '${data.serviceName}'`);
-      }
-
-      this.logger.log(`📞 Calling ${data.serviceName}.${data.functionName}()`);
+      this.logger.log(`📞 Calling ${data.serviceName}.${data.functionName}() via registry`);
       
       // Execute the method with provided parameters
-      const result = await service[data.functionName](...data.parameters);
+      const result = await method(...data.parameters);
       
       return result;
     } catch (error) {

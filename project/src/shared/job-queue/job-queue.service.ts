@@ -49,6 +49,7 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
         username: redisURL.username || 'default',
         password: redisURL.password || redisConfig.password,
         db: redisConfig.db || 0,
+        maxRetriesPerRequest: null, // Disable eviction policy warnings
       };
     } else {
       connectionConfig = {
@@ -57,6 +58,7 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
         port: redisConfig.port,
         password: redisConfig.password,
         db: redisConfig.db,
+        maxRetriesPerRequest: null, // Disable eviction policy warnings
       };
     }
     

@@ -2,26 +2,47 @@
 
 ## Overview
 
-This is a complete implementation of a Redis-based job queue system using `bee-queue` in your NestJS backend, following the specifications in `.helper/async-job-queue-implementation-guide.md`.
+This is a complete implementation of a Redis-based job queue system using `BullMQ` in your NestJS backend, featuring a **Service Registry** pattern for dynamic service method execution.
 
 ## Features
 
-- ✅ Redis-based job queue using `bee-queue`
+- ✅ Redis-based job queue using `BullMQ`
 - ✅ Multiple job types: `email`, `sms`, `data-export`, `file-processing`, `generic-task`
 - ✅ **Generic task execution - run ANY function/method in background**
+- ✅ **Service Registry pattern for cross-module service calls**
 - ✅ Background job processing with workers
 - ✅ Job status tracking and monitoring
 - ✅ Error handling and retry logic
 - ✅ Queue statistics and health monitoring
 - ✅ Modular processor architecture
-- ✅ Service method execution via dependency injection
+- ✅ Dynamic service method execution without circular dependencies
 
 ## Architecture
+
+### Service Registry Pattern
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   FinderModule  │    │ ServiceRegistry  │    │ JobQueueModule  │
+│                 │    │   (Singleton)    │    │                 │
+│ ┌─────────────┐ │    │                  │    │ ┌─────────────┐ │
+│ │BusinessFinder│─┼────┼─► register()    │    │ │GenericTask  │ │
+│ │   Service   │ │    │                  │    │ │ Processor   │─┼──┐
+│ └─────────────┘ │    │  ┌────────────┐  │    │ └─────────────┘ │  │
+│                 │    │  │  Methods   │  │◄───┼─────────────────┼──┘
+│ ┌─────────────┐ │    │  │ Registry   │  │    │                 │
+│ │   Other     │─┼────┼─►│            │  │    │                 │
+│ │ Services    │ │    │  └────────────┘  │    │                 │
+│ └─────────────┘ │    │                  │    │                 │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+```
+
+### Job Processing Flow
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   API Endpoint  │───▶│   Job Queue     │───▶│  Worker Process │
-│   (Controller)  │    │   (Redis)       │    │   (Background)  │
+│   (Controller)  │    │   (BullMQ)      │    │   (Background)  │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                                 ▲                       │
                                 │                       ▼
@@ -34,12 +55,14 @@ This is a complete implementation of a Redis-based job queue system using `bee-q
 ```
 src/shared/job-queue/
 ├── job-queue.module.ts          # Main module
-├── job-queue.service.ts         # Core service
+├── job-queue.service.ts         # Core service (BullMQ)
+├── service-registry.ts          # Service Registry singleton
 ├── processors/
 │   ├── base-processor.ts        # Abstract base processor
 │   ├── email-processor.ts       # Email job processor
 │   ├── sms-processor.ts         # SMS job processor
-│   └── data-export-processor.ts # Data export processor
+│   ├── data-export-processor.ts # Data export processor
+│   └── generic-task-processor.ts # Generic task processor (uses registry)
 ├── dto/
 │   ├── job-result.dto.ts        # Job result data structure
 │   └── job-status.dto.ts        # Job status data structure
@@ -52,9 +75,77 @@ src/shared/job-queue/
 
 ## Usage
 
-### 1. Generic Task Execution (NEW!)
+### 1. Service Registry Pattern (NEW!)
 
-**Execute ANY function in the background:**
+The job queue now uses a **Service Registry** pattern to execute service methods across modules without circular dependencies.
+
+#### How It Works
+
+1. **Services register themselves** when their modules initialize
+2. **Job processor looks up methods** in the registry instead of using DI
+3. **No circular dependencies** between job queue and business logic modules
+
+#### Registering Services
+
+```typescript
+// In your module (e.g., finder.module.ts)
+import { OnModuleInit } from '@nestjs/common';
+import { ServiceRegistry } from '../../../shared/job-queue/service-registry';
+
+export class FinderModule implements OnModuleInit {
+  constructor(private businessFinderService: BusinessFinderService) {}
+
+  onModuleInit() {
+    const registry = ServiceRegistry.getInstance();
+    
+    // Register services with specific methods that can be called via jobs
+    registry.registerService('BusinessFinderService', this.businessFinderService, [
+      'searchBusinesses',
+      'searchBusinessesAsync',
+      'getSearchResult'
+    ]);
+  }
+}
+```
+
+#### Available Registered Services
+
+Currently registered services and their callable methods:
+
+- **BusinessFinderService**: `searchBusinesses`, `searchBusinessesAsync`, `getSearchResult`, `getUserSearchHistory`
+- **GooglePlacesService**: `searchBusinesses`  
+- **YelpService**: `searchBusinesses`
+- **OpenStreetMapService**: `searchBusinesses`
+- **ExportService**: `exportResults`
+
+### 2. Generic Task Execution
+
+**Execute registered service methods in background:**
+
+```typescript
+// Execute ANY registered service method in background
+const searchJobId = await this.jobQueueService.executeServiceMethod(
+  'Business Search',
+  'BusinessFinderService',  // service name (must be registered)
+  'searchBusinesses',       // method name (must be registered)
+  [searchDto, userId], // parameters
+  {
+    retries: 3,
+    delay: 2000 // 2 second delay
+  }
+);
+
+// Execute export job
+const exportJobId = await this.jobQueueService.executeServiceMethod(
+  'Data Export',
+  'ExportService',
+  'exportResults', 
+  [results, 'csv', { includeHeaders: true }],
+  { retries: 1 }
+);
+```
+
+**Execute built-in utility functions:**
 
 ```typescript
 // Execute built-in utility functions
@@ -68,18 +159,6 @@ const jobId = await this.jobQueueService.executeTask(
     context: { source: 'user-upload' }
   }
 );
-
-// Execute ANY service method in background
-const exportJobId = await this.jobQueueService.executeServiceMethod(
-  'Background Export',
-  'LeadsService',    // service name
-  'exportLeads',     // method name
-  [subAccountId, 'csv'], // parameters
-  {
-    retries: 3,
-    delay: 5000 // 5 second delay
-  }
-);
 ```
 
 **Built-in functions available:**
@@ -91,7 +170,7 @@ const exportJobId = await this.jobQueueService.executeServiceMethod(
 - `generateReport(type, filters, context)` - Report generation
 - `customAsyncTask(taskId, data, context)` - Custom logic
 
-### 2. Injecting the Service
+### 3. Injecting the Service
 
 ```typescript
 import { JobQueueService } from '../shared/job-queue/job-queue.service';
@@ -102,7 +181,7 @@ export class SmsController {
 }
 ```
 
-### 3. Queuing Jobs
+### 4. Queuing Jobs
 
 ```typescript
 // Queue SMS job
@@ -124,7 +203,7 @@ const exportJobId = await this.jobQueueService.addJob('data-export', {
 });
 ```
 
-### 4. Checking Job Status
+### 5. Checking Job Status
 
 ```typescript
 const status = await this.jobQueueService.getJobStatus('sms', jobId);
@@ -138,7 +217,7 @@ console.log(status);
 // }
 ```
 
-### 5. Queue Statistics
+### 6. Queue Statistics
 
 ```typescript
 const stats = await this.jobQueueService.getQueueStats('sms');
@@ -406,7 +485,25 @@ export class JobsController {
 
 ### Common Issues
 
-1. **Jobs Stuck in Pending**
+1. **Service Not Found Errors**
+   ```
+   Service method 'BusinessFinderService.searchBusinesses' not found in registry
+   ```
+   **Solution**: 
+   - Ensure the service module implements `OnModuleInit`
+   - Check that the service is registered with correct method names
+   - Verify the module is imported in the application
+
+2. **Method Not Found Warnings**
+   ```
+   Method exportToCSV not found on service ExportService
+   ```
+   **Solution**: 
+   - Check the actual method names in the service class
+   - Only register public methods that should be callable via jobs
+   - Update the registration with correct method names
+
+3. **Jobs Stuck in Pending**
    ```bash
    # Check Redis connection
    docker exec -it loctelli_redis redis-cli ping
@@ -415,14 +512,26 @@ export class JobsController {
    docker exec -it loctelli_redis redis-cli KEYS "*queue*"
    ```
 
-2. **High Memory Usage**
+4. **High Memory Usage**
    - Completed jobs are automatically removed
    - Failed jobs are kept for debugging (configure `removeOnFailure`)
 
-3. **Slow Processing**
+5. **Slow Processing**
    - Check `maxConcurrency` setting
    - Monitor Redis memory usage
    - Consider job batching for large datasets
+
+### Service Registry Debugging
+
+```typescript
+// Check what services are registered
+const registry = ServiceRegistry.getInstance();
+console.log('Registered services:', registry.getRegisteredServices());
+
+// Check methods for a specific service
+console.log('BusinessFinderService methods:', 
+  registry.getServiceMethods('BusinessFinderService'));
+```
 
 ### Debug Commands
 ```bash
@@ -444,6 +553,8 @@ docker exec -it loctelli_redis redis-cli LLEN "sms-queue:failed"
 4. **UI Components**: Create frontend components for job status monitoring
 5. **Webhook Support**: Add webhook notifications for job completion
 6. **AI Context**: Add AI-powered job queue optimization and insights
+7. **Auto-Registration**: Add decorator-based service registration (`@JobQueueService()`)
+8. **Type Safety**: Add TypeScript interfaces for registered service methods
 
 ## Implementation Notes
 
@@ -453,4 +564,7 @@ docker exec -it loctelli_redis redis-cli LLEN "sms-queue:failed"
 - All processors follow the same base interface for consistency
 - The implementation is fully typed with TypeScript for better developer experience
 - Generic task execution allows ANY function to run in background
-- Service method execution provides dependency injection for complex operations
+- **Service Registry pattern eliminates circular dependency issues**
+- **Services maintain their original dependency injection context**
+- **Only explicitly registered methods are callable via job queue for security**
+- **BullMQ provides better performance and reliability than bee-queue**
