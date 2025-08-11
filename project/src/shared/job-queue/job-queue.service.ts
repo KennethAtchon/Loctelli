@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as Queue from 'bee-queue';
+import { Queue, Worker } from 'bullmq';
 import { JobProcessor } from './interfaces/job-processor.interface';
 import { JobData, JobType } from './interfaces/job-data.interface';
 import { JobResultDto } from './dto/job-result.dto';
@@ -13,6 +13,7 @@ import { GenericTaskProcessor } from './processors/generic-task-processor';
 export class JobQueueService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(JobQueueService.name);
   private queues = new Map<JobType, Queue>();
+  private workers = new Map<JobType, Worker>();
   private processors = new Map<JobType, JobProcessor>();
 
   constructor(
@@ -37,63 +38,87 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
   private async initializeQueues() {
     const redisConfig = this.configService.get('redis');
     
-    // bee-queue uses node_redis, not ioredis - need to parse URL for Railway compatibility
-    let redisConnection;
+    // BullMQ connection configuration with Railway IPv6 compatibility
+    let connectionConfig;
     if (redisConfig.url) {
-      // Parse Redis URL to extract components for node_redis compatibility
-      const url = new URL(redisConfig.url);
-      redisConnection = {
-        host: url.hostname,
-        port: parseInt(url.port) || 6379,
-        password: url.password || redisConfig.password,
+      const redisURL = new URL(redisConfig.url);
+      connectionConfig = {
+        family: 0, // Enable dual-stack DNS resolution for Railway
+        host: redisURL.hostname,
+        port: parseInt(redisURL.port) || 6379,
+        username: redisURL.username || 'default',
+        password: redisURL.password || redisConfig.password,
         db: redisConfig.db || 0,
-        family: 'IPv4', // node_redis uses 'IPv4'/'IPv6', try IPv4 first
       };
     } else {
-      redisConnection = {
+      connectionConfig = {
+        family: 0, // Enable dual-stack DNS resolution
         host: redisConfig.host,
         port: redisConfig.port,
         password: redisConfig.password,
         db: redisConfig.db,
-        family: 'IPv4',
       };
     }
     
-    const queueSettings = {
-      removeOnSuccess: true, // Remove successful jobs
-      removeOnFailure: false, // Keep failed jobs for debugging
-      redis: redisConnection,
+    const defaultJobOptions = {
+      removeOnComplete: 10, // Keep last 10 successful jobs
+      removeOnFail: 50, // Keep last 50 failed jobs for debugging
     };
 
     // Initialize queues for different job types
     const jobTypes: JobType[] = ['email', 'sms', 'data-export', 'file-processing', 'generic-task'];
     
     for (const type of jobTypes) {
-      const queue = new Queue(`${type}-queue`, queueSettings);
-      this.queues.set(type, queue);
-      
-      queue.on('ready', () => {
-        this.logger.log(`📊 ${type} queue ready`);
+      const queue = new Queue(`${type}-queue`, {
+        connection: connectionConfig,
+        defaultJobOptions,
       });
+      this.queues.set(type, queue);
       
       queue.on('error', (err) => {
         this.logger.error(`❌ ${type} queue error:`, err);
       });
+      
+      this.logger.log(`📊 ${type} queue initialized`);
     }
   }
 
   private registerProcessors() {
+    const redisConfig = this.configService.get('redis');
+    
+    // BullMQ connection configuration
+    let connectionConfig;
+    if (redisConfig.url) {
+      const redisURL = new URL(redisConfig.url);
+      connectionConfig = {
+        family: 0,
+        host: redisURL.hostname,
+        port: parseInt(redisURL.port) || 6379,
+        username: redisURL.username || 'default',
+        password: redisURL.password || redisConfig.password,
+        db: redisConfig.db || 0,
+      };
+    } else {
+      connectionConfig = {
+        family: 0,
+        host: redisConfig.host,
+        port: redisConfig.port,
+        password: redisConfig.password,
+        db: redisConfig.db,
+      };
+    }
+
     // Register processors for each job type
     this.processors.set('email', this.emailProcessor);
     this.processors.set('sms', this.smsProcessor);
     this.processors.set('data-export', this.dataExportProcessor);
     this.processors.set('generic-task', this.genericTaskProcessor);
 
-    // Set up queue processors
+    // Set up BullMQ workers
     this.queues.forEach((queue, type) => {
       const processor = this.processors.get(type);
       if (processor) {
-        queue.process(async (job) => {
+        const worker = new Worker(`${type}-queue`, async (job) => {
           this.logger.log(`🔄 Processing ${type} job ${job.id}`);
           try {
             const result = await processor.process(job.data);
@@ -103,7 +128,12 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
             this.logger.error(`❌ ${type} job ${job.id} failed:`, error);
             throw error;
           }
+        }, {
+          connection: connectionConfig,
+          concurrency: 5,
         });
+        
+        this.workers.set(type, worker);
       }
     });
   }
@@ -125,23 +155,24 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
       throw new Error(`Queue for type ${type} not found`);
     }
 
-    const job = queue.createJob(data);
+    const jobOptions: any = {};
     
     if (options?.delay) {
-      job.delayUntil(Date.now() + options.delay);
+      jobOptions.delay = options.delay;
     }
     
     if (options?.retries) {
-      job.retries(options.retries);
+      jobOptions.attempts = options.retries;
     }
     
-    // Note: bee-queue doesn't support priority in the same way
-    // Priority would be handled by using different queues or other mechanisms
+    if (options?.priority) {
+      jobOptions.priority = options.priority;
+    }
 
-    await job.save();
+    const job = await queue.add(`${type}-job`, data, jobOptions);
     this.logger.log(`📤 ${type} job ${job.id} queued`);
     
-    return job.id.toString();
+    return job.id!;
   }
 
   /**
@@ -159,18 +190,16 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
         return { status: 'not_found', jobId };
       }
 
-      const status = this.mapJobStatus(job.status as string);
+      const status = this.mapBullMQJobStatus(await job.getState());
       
       return {
         jobId,
         status,
-        progress: (job as any).progress || 0,
-        result: job.status === 'succeeded' ? (job as any).returnvalue : null,
-        error: job.status === 'failed' ? (job as any).stacktrace : null,
-        createdAt: new Date((job as any).created_at || Date.now()),
-        completedAt: job.status === 'succeeded' || job.status === 'failed' 
-          ? new Date((job as any).processed_on || Date.now()) 
-          : undefined,
+        progress: job.progress as number || 0,
+        result: job.returnvalue || null,
+        error: job.failedReason || null,
+        createdAt: new Date(job.timestamp),
+        completedAt: job.finishedOn ? new Date(job.finishedOn) : undefined,
       };
     } catch (error) {
       this.logger.error(`Error getting job status for ${jobId}:`, error);
@@ -187,25 +216,31 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
       throw new Error(`Queue for type ${type} not found`);
     }
 
-    const health = await queue.checkHealth();
+    const [waiting, active, completed, failed, delayed] = await Promise.all([
+      queue.getWaiting(),
+      queue.getActive(),
+      queue.getCompleted(),
+      queue.getFailed(),
+      queue.getDelayed(),
+    ]);
+
     return {
-      waiting: health.waiting,
-      active: health.active,
-      succeeded: health.succeeded,
-      failed: health.failed,
-      delayed: health.delayed,
-      newestJob: health.newestJob,
+      waiting: waiting.length,
+      active: active.length,
+      succeeded: completed.length,
+      failed: failed.length,
+      delayed: delayed.length,
     };
   }
 
-  private mapJobStatus(status: string): 'pending' | 'processing' | 'completed' | 'failed' | 'not_found' | 'error' {
+  private mapBullMQJobStatus(status: string): 'pending' | 'processing' | 'completed' | 'failed' | 'not_found' | 'error' {
     switch (status) {
-      case 'created':
-      case 'retrying':
+      case 'waiting':
+      case 'delayed':
         return 'pending';
       case 'active':
         return 'processing';
-      case 'succeeded':
+      case 'completed':
         return 'completed';
       case 'failed':
         return 'failed';
@@ -285,6 +320,12 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async closeQueues() {
+    // Close workers first
+    for (const worker of this.workers.values()) {
+      await worker.close();
+    }
+    
+    // Then close queues
     for (const queue of this.queues.values()) {
       await queue.close();
     }

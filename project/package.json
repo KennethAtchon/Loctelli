@@ -46,7 +46,7 @@
     "@types/pdfkit": "^0.17.2",
     "axios": "^1.10.0",
     "bcrypt": "^5.1.1",
-    "bee-queue": "^1.7.1",
+    "bullmq": "^5.56.10",
     "cache-manager": "^7.0.1",
     "cache-manager-redis-yet": "^5.1.5",
     "class-transformer": "^0.5.1",
