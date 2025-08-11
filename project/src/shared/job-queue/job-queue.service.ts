@@ -37,19 +37,25 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
   private async initializeQueues() {
     const redisConfig = this.configService.get('redis');
     
-    // Handle Railway IPv6 compatibility
+    // bee-queue uses node_redis, not ioredis - need to parse URL for Railway compatibility
     let redisConnection;
     if (redisConfig.url) {
-      // For Railway, append family=0 to enable dual-stack DNS resolution
-      const urlSuffix = redisConfig.url.includes('railway.internal') ? '?family=0' : '';
-      redisConnection = redisConfig.url + urlSuffix;
+      // Parse Redis URL to extract components for node_redis compatibility
+      const url = new URL(redisConfig.url);
+      redisConnection = {
+        host: url.hostname,
+        port: parseInt(url.port) || 6379,
+        password: url.password || redisConfig.password,
+        db: redisConfig.db || 0,
+        family: 'IPv4', // node_redis uses 'IPv4'/'IPv6', try IPv4 first
+      };
     } else {
       redisConnection = {
         host: redisConfig.host,
         port: redisConfig.port,
         password: redisConfig.password,
         db: redisConfig.db,
-        family: 0, // Enable dual-stack DNS resolution
+        family: 'IPv4',
       };
     }
     
