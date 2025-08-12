@@ -53,28 +53,28 @@ interface ProviderInstructionsProps {
 }
 
 const ProviderInstructions: React.FC<ProviderInstructionsProps> = React.memo(({ provider }) => (
-  <Card>
+  <Card className="bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800 border-blue-200/60 dark:border-slate-600/60 shadow-lg">
     <CardContent className="pt-4">
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h4 className="font-medium">{provider.name}</h4>
-          <Button variant="outline" size="sm" asChild>
+          <h4 className="font-semibold text-gray-900 dark:text-gray-100">{provider.name}</h4>
+          <Button variant="outline" size="sm" asChild className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors">
             <a href={provider.signupUrl} target="_blank" rel="noopener noreferrer">
               <ExternalLink className="h-3 w-3 mr-1" />
               Get API Key
             </a>
           </Button>
         </div>
-        <p className="text-sm text-muted-foreground">{provider.description}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400">{provider.description}</p>
         <div className="text-sm">
-          <p className="font-medium mb-1">Setup Instructions:</p>
-          <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+          <p className="font-semibold mb-2 text-gray-900 dark:text-gray-100">Setup Instructions:</p>
+          <ol className="list-decimal list-inside space-y-1 text-gray-600 dark:text-gray-400">
             {provider.instructions.map((instruction, index) => (
               <li key={index}>{instruction}</li>
             ))}
           </ol>
         </div>
-        <Badge variant="secondary">{provider.freeQuota}</Badge>
+        <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 border-emerald-200">{provider.freeQuota}</Badge>
       </div>
     </CardContent>
   </Card>
@@ -148,17 +148,20 @@ function AddKeyDialogComponent({ open, onOpenChange, onSubmit }: AddKeyDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border-gray-200/60 dark:border-slate-700/60">
         <DialogHeader>
-          <DialogTitle>Add New API Key</DialogTitle>
+          <DialogTitle className="text-xl font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+            <Key className="h-5 w-5 text-blue-600" />
+            Add New API Key
+          </DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Service Selection */}
           <div>
-            <Label htmlFor="service">API Provider *</Label>
+            <Label htmlFor="service" className="text-sm font-semibold text-gray-700 dark:text-gray-300">API Provider *</Label>
             <Select value={formData.service} onValueChange={(value) => handleInputChange('service', value)}>
-              <SelectTrigger>
+              <SelectTrigger className="mt-2 border-gray-200/60 dark:border-slate-600/60 focus:border-blue-500 focus:ring-blue-500/20">
                 <SelectValue placeholder="Select API provider" />
               </SelectTrigger>
               <SelectContent>
@@ -179,42 +182,45 @@ function AddKeyDialogComponent({ open, onOpenChange, onSubmit }: AddKeyDialogPro
           {/* Key Details */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="keyName">Key Name *</Label>
+              <Label htmlFor="keyName" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Key Name *</Label>
               <Input
                 id="keyName"
                 value={formData.keyName}
                 onChange={(e) => handleInputChange('keyName', e.target.value)}
                 placeholder="e.g., My Google API Key"
+                className="mt-2 border-gray-200/60 dark:border-slate-600/60 focus:border-blue-500 focus:ring-blue-500/20"
               />
             </div>
             <div>
-              <Label htmlFor="dailyLimit">Daily Limit (optional)</Label>
+              <Label htmlFor="dailyLimit" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Daily Limit (optional)</Label>
               <Input
                 id="dailyLimit"
                 type="number"
                 value={formData.dailyLimit}
                 onChange={(e) => handleInputChange('dailyLimit', e.target.value)}
                 placeholder="e.g., 1000"
+                className="mt-2 border-gray-200/60 dark:border-slate-600/60 focus:border-blue-500 focus:ring-blue-500/20"
               />
             </div>
           </div>
 
           {/* API Key Input */}
           <div>
-            <Label htmlFor="keyValue">API Key *</Label>
-            <div className="relative">
+            <Label htmlFor="keyValue" className="text-sm font-semibold text-gray-700 dark:text-gray-300">API Key *</Label>
+            <div className="relative mt-2">
               <Input
                 id="keyValue"
                 type={showKeyValue ? 'text' : 'password'}
                 value={formData.keyValue}
                 onChange={(e) => handleInputChange('keyValue', e.target.value)}
                 placeholder="Paste your API key here"
+                className="border-gray-200/60 dark:border-slate-600/60 focus:border-blue-500 focus:ring-blue-500/20 pr-12"
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="absolute right-1 top-1 h-8 w-8 p-0"
+                className="absolute right-1 top-1 h-8 w-8 p-0 hover:bg-blue-50 transition-colors"
                 onClick={() => setShowKeyValue(!showKeyValue)}
               >
                 {showKeyValue ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -223,9 +229,9 @@ function AddKeyDialogComponent({ open, onOpenChange, onSubmit }: AddKeyDialogPro
           </div>
 
           {/* Security Notice */}
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
+          <Alert className="border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20">
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-amber-800 dark:text-amber-200">
               Your API keys are encrypted and stored securely. They will only be used for business searches within this application.
             </AlertDescription>
           </Alert>
@@ -240,16 +246,23 @@ function AddKeyDialogComponent({ open, onOpenChange, onSubmit }: AddKeyDialogPro
                 resetForm();
               }}
               disabled={isSubmitting}
+              className="border-gray-200/60 hover:bg-gray-50 transition-colors"
             >
               Cancel
             </Button>
             <Button 
               type="submit"
               disabled={isSubmitting}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
             >
               {isSubmitting ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                  <div className="relative mr-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Key className="h-2 w-2 text-white" />
+                    </div>
+                  </div>
                   Adding...
                 </>
               ) : (
@@ -329,40 +342,47 @@ export function ApiKeyManager() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+        <div className="relative">
+          <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-200 border-t-blue-600"></div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Key className="h-4 w-4 text-blue-600" />
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
+      <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-gray-200/60 dark:border-slate-700/60 shadow-lg hover:shadow-xl transition-all duration-300">
+        <CardHeader className="border-b border-gray-100 dark:border-slate-700 pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <Key className="h-5 w-5" />
+              <CardTitle className="text-xl font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                <Key className="h-5 w-5 text-blue-600" />
                 API Key Management
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-gray-600 dark:text-gray-400 mt-1">
                 Manage your API keys for different business data providers
               </CardDescription>
             </div>
-            <Button className="mb-4" onClick={() => setAddDialogOpen(true)}>
+            <Button className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200" onClick={() => setAddDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add API Key
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {apiKeys.length === 0 ? (
-            <div className="text-center py-8">
-              <Key className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">No API Keys Configured</h3>
-              <p className="text-muted-foreground mb-4">
-                Add your API keys to unlock additional data sources and higher rate limits.
+            <div className="text-center py-12">
+              <div className="w-20 h-20 mx-auto bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-slate-700 dark:to-slate-600 rounded-full flex items-center justify-center mb-6">
+                <Key className="h-10 w-10 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No API Keys Configured</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                Add your API keys to unlock additional data sources and higher rate limits for better search results.
               </p>
-              <Button onClick={() => setAddDialogOpen(true)}>
+              <Button onClick={() => setAddDialogOpen(true)} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Your First API Key
               </Button>
@@ -384,14 +404,14 @@ export function ApiKeyManager() {
                   <TableRow key={index}>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline">
+                        <Badge variant="outline" className="border-blue-200 text-blue-700 bg-blue-50">
                           {formatServiceName(key.service)}
                         </Badge>
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">{key.keyName}</TableCell>
-                    <TableCell>{key.usageCount || 0}</TableCell>
-                    <TableCell>
+                    <TableCell className="font-semibold text-gray-900 dark:text-gray-100">{key.keyName}</TableCell>
+                    <TableCell className="font-medium">{key.usageCount || 0}</TableCell>
+                    <TableCell className="font-medium">
                       {key.dailyLimit ? key.dailyLimit.toLocaleString() : 'Unlimited'}
                     </TableCell>
                     <TableCell>
@@ -405,7 +425,7 @@ export function ApiKeyManager() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDeleteKey(key.service, key.keyName)}
-                        className="text-destructive hover:text-destructive"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -419,30 +439,34 @@ export function ApiKeyManager() {
       </Card>
 
       {/* Provider Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Available API Providers</CardTitle>
-          <CardDescription>
+      <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-gray-200/60 dark:border-slate-700/60 shadow-lg hover:shadow-xl transition-all duration-300">
+        <CardHeader className="border-b border-gray-100 dark:border-slate-700 pb-4">
+          <CardTitle className="text-xl font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+            <ExternalLink className="h-5 w-5 text-purple-600" />
+            Available API Providers
+          </CardTitle>
+          <CardDescription className="text-gray-600 dark:text-gray-400 mt-1">
             Information about supported business data providers
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {API_PROVIDERS.map(provider => (
-              <Card key={provider.id}>
+              <Card key={provider.id} className="group relative overflow-hidden bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-slate-700 dark:via-slate-600 dark:to-slate-700 border-gray-200/60 dark:border-slate-600/60 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">{provider.name}</CardTitle>
-                    <Badge variant="secondary" className="text-xs">
+                    <CardTitle className="text-base font-semibold text-gray-900 dark:text-gray-100">{provider.name}</CardTitle>
+                    <Badge variant="secondary" className="text-xs bg-emerald-100 text-emerald-700 border-emerald-200">
                       {provider.freeQuota}
                     </Badge>
                   </div>
-                  <CardDescription className="text-sm">
+                  <CardDescription className="text-sm text-gray-600 dark:text-gray-400">
                     {provider.description}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <Button variant="outline" size="sm" asChild>
+                  <Button variant="outline" size="sm" asChild className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors">
                     <a href={provider.signupUrl} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="h-3 w-3 mr-1" />
                       Get API Key
