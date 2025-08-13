@@ -75,16 +75,11 @@ export default function AdminLoginPage() {
   // Show loading state while checking authentication
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 dark:from-slate-950 dark:via-blue-950 dark:to-slate-950">
+      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 dark:from-slate-950 dark:via-blue-950 dark:to-slate-950">
         <div className="text-center space-y-6">
-          <div className="relative">
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
-            <div className="absolute inset-0 rounded-full bg-blue-500/20 animate-pulse"></div>
-          </div>
-          <div className="space-y-2">
             <p className="text-white font-medium">Checking authentication...</p>
             <p className="text-blue-200 text-sm">Securing your admin session</p>
-          </div>
         </div>
       </div>
     );

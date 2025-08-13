@@ -3,6 +3,10 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
+// Controllers
+import { AuthController } from '../../main-app/controllers/auth.controller';
+import { AdminAuthController } from '../../main-app/controllers/admin-auth.controller';
+
 // Services
 import { AuthService } from './services/auth.service';
 import { AdminAuthService } from './services/admin-auth.service';
@@ -35,6 +39,10 @@ import { CacheModule } from '../cache/cache.module';
     PrismaModule,
     CacheModule,
     ConfigModule,
+  ],
+  controllers: [
+    AuthController,
+    AdminAuthController,
   ],
   providers: [
     AuthService,
