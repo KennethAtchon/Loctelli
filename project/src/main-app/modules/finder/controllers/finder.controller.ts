@@ -28,8 +28,8 @@ import {
   ApiKeyDto, 
   UpdateApiKeyDto 
 } from '../dto/export-results.dto';
-import { JwtAuthGuard } from '../../../auth/auth.guard';
-import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
+import { JwtAuthGuard } from '../../../../shared/auth/auth.guard';
+import { CurrentUser } from '../../../../shared/decorators/current-user.decorator';
 import { User } from '@prisma/client';
 
 @Controller('admin/finder')

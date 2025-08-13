@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '../infrastructure/prisma/prisma.service';
-import { CacheService } from '../infrastructure/cache/cache.service';
+import { PrismaService } from '../../prisma/prisma.service';
+import { CacheService } from '../../cache/cache.service';
 import * as bcrypt from 'bcrypt';
 
 export interface LoginDto {
@@ -393,4 +393,4 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
-} 
+}

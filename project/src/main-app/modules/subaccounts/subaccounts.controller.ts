@@ -12,11 +12,11 @@ import {
 import { SubAccountsService } from './subaccounts.service';
 import { CreateSubAccountDto } from './dto/create-subaccount.dto';
 import { UpdateSubAccountDto } from './dto/update-subaccount.dto';
-import { JwtAuthGuard } from '../../auth/auth.guard';
-import { AdminGuard } from '../../auth/guards/admin.guard';
-import { RolesGuard } from '../../auth/guards/roles.guard';
-import { Roles } from '../../auth/decorators/roles.decorator';
-import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { JwtAuthGuard } from '../../../shared/auth/auth.guard';
+import { AdminGuard } from '../../../shared/guards/admin.guard';
+import { RolesGuard } from '../../../shared/guards/roles.guard';
+import { Roles } from '../../../shared/decorators/roles.decorator';
+import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 
 @Controller('admin/subaccounts')
 @UseGuards(JwtAuthGuard, AdminGuard)

@@ -62,7 +62,7 @@ export class BookingsService {
     }
 
     // Check if user has permission to access this booking
-    if (userRole !== 'admin' && userRole !== 'super_admin' && booking.userId !== userId) {
+    if (userRole !== 'admin' && userRole !== 'super_admin' && booking.regularUserId !== userId) {
       throw new ForbiddenException('Access denied');
     }
 
@@ -73,7 +73,7 @@ export class BookingsService {
 
   async findByUserId(userId: number) {
     return this.prisma.booking.findMany({
-      where: { userId },
+      where: { regularUserId: userId },
       include: {
         lead: true,
       },
@@ -91,7 +91,7 @@ export class BookingsService {
     }
 
     // Check if user has permission to access this lead's bookings
-    if (userRole !== 'admin' && userRole !== 'super_admin' && lead.userId !== userId) {
+    if (userRole !== 'admin' && userRole !== 'super_admin' && lead.regularUserId !== userId) {
       throw new ForbiddenException('Access denied');
     }
 
@@ -114,7 +114,7 @@ export class BookingsService {
     }
 
     // Check if user has permission to update this booking
-    if (userRole !== 'admin' && userRole !== 'super_admin' && booking.userId !== userId) {
+    if (userRole !== 'admin' && userRole !== 'super_admin' && booking.regularUserId !== userId) {
       throw new ForbiddenException('Access denied');
     }
 
@@ -151,7 +151,7 @@ export class BookingsService {
     }
 
     // Check if user has permission to delete this booking
-    if (userRole !== 'admin' && userRole !== 'super_admin' && booking.userId !== userId) {
+    if (userRole !== 'admin' && userRole !== 'super_admin' && booking.regularUserId !== userId) {
       throw new ForbiddenException('Access denied');
     }
 

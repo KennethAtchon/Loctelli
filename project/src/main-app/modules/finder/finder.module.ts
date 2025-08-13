@@ -2,7 +2,7 @@ import { Global, Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
 import { SharedModule } from '../../../shared/shared.module';
-import { AuthModule } from '../../auth/auth.module';
+import { AuthModule } from '../../../shared/auth/auth.module';
 import { FinderController } from './controllers/finder.controller';
 import { BusinessFinderService } from './services/business-finder.service';
 import { GooglePlacesService } from './services/google-places.service';

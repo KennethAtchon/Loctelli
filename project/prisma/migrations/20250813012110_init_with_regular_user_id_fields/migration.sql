@@ -55,7 +55,7 @@ CREATE TABLE "User" (
 -- CreateTable
 CREATE TABLE "Strategy" (
     "id" SERIAL NOT NULL,
-    "userId" INTEGER NOT NULL,
+    "regularUserId" INTEGER NOT NULL,
     "subAccountId" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
     "tag" TEXT,
@@ -79,7 +79,7 @@ CREATE TABLE "Strategy" (
 -- CreateTable
 CREATE TABLE "Lead" (
     "id" SERIAL NOT NULL,
-    "userId" INTEGER NOT NULL,
+    "regularUserId" INTEGER NOT NULL,
     "strategyId" INTEGER NOT NULL,
     "subAccountId" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
@@ -102,7 +102,7 @@ CREATE TABLE "Lead" (
 -- CreateTable
 CREATE TABLE "Booking" (
     "id" SERIAL NOT NULL,
-    "userId" INTEGER NOT NULL,
+    "regularUserId" INTEGER NOT NULL,
     "leadId" INTEGER,
     "subAccountId" INTEGER NOT NULL,
     "bookingType" TEXT NOT NULL,
@@ -178,7 +178,7 @@ CREATE TABLE "Integration" (
 -- CreateTable
 CREATE TABLE "SmsMessage" (
     "id" SERIAL NOT NULL,
-    "userId" INTEGER NOT NULL,
+    "regularUserId" INTEGER NOT NULL,
     "subAccountId" INTEGER NOT NULL,
     "phoneNumber" TEXT NOT NULL,
     "message" TEXT NOT NULL,
@@ -197,7 +197,7 @@ CREATE TABLE "SmsMessage" (
 -- CreateTable
 CREATE TABLE "SmsCampaign" (
     "id" SERIAL NOT NULL,
-    "userId" INTEGER NOT NULL,
+    "regularUserId" INTEGER NOT NULL,
     "subAccountId" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
     "message" TEXT NOT NULL,
@@ -215,11 +215,81 @@ CREATE TABLE "SmsCampaign" (
     CONSTRAINT "SmsCampaign_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "ApiKey" (
+    "id" SERIAL NOT NULL,
+    "regularUserId" INTEGER,
+    "service" TEXT NOT NULL,
+    "keyName" TEXT NOT NULL,
+    "keyValue" TEXT NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "dailyLimit" INTEGER,
+    "usageCount" INTEGER NOT NULL DEFAULT 0,
+    "lastUsed" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ApiKey_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "BusinessSearch" (
+    "id" TEXT NOT NULL,
+    "regularUserId" INTEGER NOT NULL,
+    "subAccountId" INTEGER NOT NULL,
+    "query" TEXT NOT NULL,
+    "location" TEXT,
+    "radius" DOUBLE PRECISION,
+    "category" TEXT,
+    "searchHash" TEXT NOT NULL,
+    "totalResults" INTEGER NOT NULL DEFAULT 0,
+    "results" JSONB NOT NULL,
+    "sources" JSONB NOT NULL,
+    "responseTime" INTEGER,
+    "apiCalls" JSONB NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'completed',
+    "errorMessage" TEXT,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "BusinessSearch_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "RateLimit" (
+    "id" SERIAL NOT NULL,
+    "regularUserId" INTEGER,
+    "ipAddress" TEXT,
+    "service" TEXT NOT NULL,
+    "requestCount" INTEGER NOT NULL DEFAULT 0,
+    "dailyLimit" INTEGER NOT NULL DEFAULT 500,
+    "windowStart" TIMESTAMP(3) NOT NULL,
+    "violations" INTEGER NOT NULL DEFAULT 0,
+    "blockedUntil" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "RateLimit_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "AdminUser_email_key" ON "AdminUser"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ApiKey_regularUserId_service_keyName_key" ON "ApiKey"("regularUserId", "service", "keyName");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "BusinessSearch_searchHash_key" ON "BusinessSearch"("searchHash");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "RateLimit_regularUserId_service_key" ON "RateLimit"("regularUserId", "service");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "RateLimit_ipAddress_service_key" ON "RateLimit"("ipAddress", "service");
 
 -- AddForeignKey
 ALTER TABLE "SubAccount" ADD CONSTRAINT "SubAccount_createdByAdminId_fkey" FOREIGN KEY ("createdByAdminId") REFERENCES "AdminUser"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -234,7 +304,7 @@ ALTER TABLE "User" ADD CONSTRAINT "User_createdByAdminId_fkey" FOREIGN KEY ("cre
 ALTER TABLE "Strategy" ADD CONSTRAINT "Strategy_subAccountId_fkey" FOREIGN KEY ("subAccountId") REFERENCES "SubAccount"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Strategy" ADD CONSTRAINT "Strategy_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Strategy" ADD CONSTRAINT "Strategy_regularUserId_fkey" FOREIGN KEY ("regularUserId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Strategy" ADD CONSTRAINT "Strategy_promptTemplateId_fkey" FOREIGN KEY ("promptTemplateId") REFERENCES "PromptTemplate"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -243,7 +313,7 @@ ALTER TABLE "Strategy" ADD CONSTRAINT "Strategy_promptTemplateId_fkey" FOREIGN K
 ALTER TABLE "Lead" ADD CONSTRAINT "Lead_subAccountId_fkey" FOREIGN KEY ("subAccountId") REFERENCES "SubAccount"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Lead" ADD CONSTRAINT "Lead_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Lead" ADD CONSTRAINT "Lead_regularUserId_fkey" FOREIGN KEY ("regularUserId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Lead" ADD CONSTRAINT "Lead_strategyId_fkey" FOREIGN KEY ("strategyId") REFERENCES "Strategy"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -252,7 +322,7 @@ ALTER TABLE "Lead" ADD CONSTRAINT "Lead_strategyId_fkey" FOREIGN KEY ("strategyI
 ALTER TABLE "Booking" ADD CONSTRAINT "Booking_subAccountId_fkey" FOREIGN KEY ("subAccountId") REFERENCES "SubAccount"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Booking" ADD CONSTRAINT "Booking_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Booking" ADD CONSTRAINT "Booking_regularUserId_fkey" FOREIGN KEY ("regularUserId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Booking" ADD CONSTRAINT "Booking_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "Lead"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -276,7 +346,7 @@ ALTER TABLE "Integration" ADD CONSTRAINT "Integration_createdByAdminId_fkey" FOR
 ALTER TABLE "SmsMessage" ADD CONSTRAINT "SmsMessage_subAccountId_fkey" FOREIGN KEY ("subAccountId") REFERENCES "SubAccount"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "SmsMessage" ADD CONSTRAINT "SmsMessage_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "SmsMessage" ADD CONSTRAINT "SmsMessage_regularUserId_fkey" FOREIGN KEY ("regularUserId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "SmsMessage" ADD CONSTRAINT "SmsMessage_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "SmsCampaign"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -285,4 +355,16 @@ ALTER TABLE "SmsMessage" ADD CONSTRAINT "SmsMessage_campaignId_fkey" FOREIGN KEY
 ALTER TABLE "SmsCampaign" ADD CONSTRAINT "SmsCampaign_subAccountId_fkey" FOREIGN KEY ("subAccountId") REFERENCES "SubAccount"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "SmsCampaign" ADD CONSTRAINT "SmsCampaign_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "SmsCampaign" ADD CONSTRAINT "SmsCampaign_regularUserId_fkey" FOREIGN KEY ("regularUserId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ApiKey" ADD CONSTRAINT "ApiKey_regularUserId_fkey" FOREIGN KEY ("regularUserId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BusinessSearch" ADD CONSTRAINT "BusinessSearch_subAccountId_fkey" FOREIGN KEY ("subAccountId") REFERENCES "SubAccount"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BusinessSearch" ADD CONSTRAINT "BusinessSearch_regularUserId_fkey" FOREIGN KEY ("regularUserId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "RateLimit" ADD CONSTRAINT "RateLimit_regularUserId_fkey" FOREIGN KEY ("regularUserId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

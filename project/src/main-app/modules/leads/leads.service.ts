@@ -66,7 +66,7 @@ export class LeadsService {
     }
 
     // Check if user has permission to access this lead
-    if (userRole !== 'admin' && userRole !== 'super_admin' && lead.userId !== userId) {
+    if (userRole !== 'admin' && userRole !== 'super_admin' && lead.regularUserId !== userId) {
       throw new ForbiddenException('Access denied');
     }
 
@@ -75,7 +75,7 @@ export class LeadsService {
 
   async findByUserId(userId: number) {
     return this.prisma.lead.findMany({
-      where: { userId },
+      where: { regularUserId: userId },
       include: {
         strategy: true,
         bookings: true,
@@ -94,7 +94,7 @@ export class LeadsService {
     }
 
     // Check if user has permission to access this strategy's leads
-    if (userRole !== 'admin' && userRole !== 'super_admin' && strategy.userId !== userId) {
+    if (userRole !== 'admin' && userRole !== 'super_admin' && strategy.regularUserId !== userId) {
       throw new ForbiddenException('Access denied');
     }
 
@@ -118,7 +118,7 @@ export class LeadsService {
     }
 
     // Check if user has permission to update this lead
-    if (userRole !== 'admin' && userRole !== 'super_admin' && lead.userId !== userId) {
+    if (userRole !== 'admin' && userRole !== 'super_admin' && lead.regularUserId !== userId) {
       throw new ForbiddenException('Access denied');
     }
 
@@ -170,7 +170,7 @@ export class LeadsService {
     }
 
     // Check if user has permission to delete this lead
-    if (userRole !== 'admin' && userRole !== 'super_admin' && lead.userId !== userId) {
+    if (userRole !== 'admin' && userRole !== 'super_admin' && lead.regularUserId !== userId) {
       throw new ForbiddenException('Access denied');
     }
 

@@ -7,7 +7,7 @@ import { GooglePlacesService } from './google-places.service';
 import { YelpService } from './yelp.service';
 import { OpenStreetMapService } from './openstreetmap.service';
 import { RateLimitService } from './rate-limit.service';
-import { SystemUserService } from '../../../auth/system-user.service';
+import { SystemUserService } from '../../../../shared/auth/services/system-user.service';
 import { SearchBusinessDto, SearchResponseDto, BusinessSearchResultDto } from '../dto/search-business.dto';
 
 @Injectable()
@@ -209,7 +209,7 @@ export class BusinessFinderService {
     const searchRecord = await this.prisma.businessSearch.findFirst({
       where: {
         id: searchId,
-        userId: effectiveUserId,
+        regularUserId: effectiveUserId,
         status: 'completed',
         expiresAt: { gte: new Date() },
       },
@@ -239,7 +239,7 @@ export class BusinessFinderService {
     const effectiveUserId = this.systemUserService.getEffectiveUserId(user);
     return this.prisma.businessSearch.findMany({
       where: {
-        userId: effectiveUserId,
+        regularUserId: effectiveUserId,
         status: 'completed',
       },
       select: {
@@ -261,7 +261,7 @@ export class BusinessFinderService {
     const effectiveUserId = this.systemUserService.getEffectiveUserId(user);
     const apiKeys = await this.prisma.apiKey.findMany({
       where: {
-        userId: effectiveUserId,
+        regularUserId: effectiveUserId,
         isActive: true,
       },
       select: {
@@ -305,8 +305,8 @@ export class BusinessFinderService {
 
     await this.prisma.apiKey.upsert({
       where: {
-        userId_service_keyName: {
-          userId: effectiveUserId,
+        regularUserId_service_keyName: {
+          regularUserId: effectiveUserId,
           service,
           keyName,
         },
@@ -318,7 +318,7 @@ export class BusinessFinderService {
         updatedAt: new Date(),
       },
       create: {
-        userId: effectiveUserId,
+        regularUserId: effectiveUserId,
         service,
         keyName,
         keyValue: encryptedKey,
@@ -332,7 +332,7 @@ export class BusinessFinderService {
     const effectiveUserId = this.systemUserService.getEffectiveUserId(user);
     await this.prisma.apiKey.deleteMany({
       where: {
-        userId: effectiveUserId,
+        regularUserId: effectiveUserId,
         service,
         keyName,
       },
@@ -381,7 +381,7 @@ export class BusinessFinderService {
     const cached = await this.prisma.businessSearch.findFirst({
       where: {
         searchHash,
-        userId,
+        regularUserId: userId,
         status: 'completed',
         expiresAt: { gte: new Date() },
       },
@@ -487,7 +487,7 @@ export class BusinessFinderService {
 
     return this.prisma.businessSearch.create({
       data: {
-        userId: params.userId,
+        regularUserId: params.userId,
         subAccountId: params.subAccountId,
         query: params.searchDto.query,
         location: params.searchDto.location,

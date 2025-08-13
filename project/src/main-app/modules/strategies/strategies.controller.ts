@@ -2,9 +2,9 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query,
 import { StrategiesService } from './strategies.service';
 import { CreateStrategyDto } from './dto/create-strategy.dto';
 import { UpdateStrategyDto } from './dto/update-strategy.dto';
-import { CurrentUser } from '../../auth/decorators/current-user.decorator';
-import { Admin } from '../../auth/decorators/admin.decorator';
-import { AdminGuard } from '../../auth/guards/admin.guard';
+import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
+import { Admin } from '../../../shared/decorators/admin.decorator';
+import { AdminGuard } from '../../../shared/guards/admin.guard';
 
 @Controller('strategy')
 @UseGuards(AdminGuard)

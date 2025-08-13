@@ -2,10 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, HttpEx
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { CurrentUser } from '../../auth/decorators/current-user.decorator';
-import { JwtAuthGuard } from '../../auth/auth.guard';
-import { RolesGuard } from '../../auth/guards/roles.guard';
-import { Roles } from '../../auth/decorators/roles.decorator';
+import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
+import { JwtAuthGuard } from '../../../shared/auth/auth.guard';
+import { RolesGuard } from '../../../shared/guards/roles.guard';
+import { Roles } from '../../../shared/decorators/roles.decorator';
 
 @Controller('user')
 @UseGuards(JwtAuthGuard)

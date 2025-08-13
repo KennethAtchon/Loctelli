@@ -2,9 +2,9 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query,
 import { LeadsService } from './leads.service';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { UpdateLeadDto } from './dto/update-lead.dto';
-import { CurrentUser } from '../../auth/decorators/current-user.decorator';
-import { Admin } from '../../auth/decorators/admin.decorator';
-import { AdminGuard } from '../../auth/guards/admin.guard';
+import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
+import { Admin } from '../../../shared/decorators/admin.decorator';
+import { AdminGuard } from '../../../shared/guards/admin.guard';
 
 @Controller('lead')
 @UseGuards(AdminGuard)

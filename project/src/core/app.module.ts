@@ -16,7 +16,7 @@ import { ConfigService } from '@nestjs/config';
 import { MainAppModule } from '../main-app/main-app.module';
 
 // Guards and middleware
-import { JwtAuthGuard } from '../main-app/auth/auth.guard';
+import { JwtAuthGuard } from '../shared/auth/auth.guard';
 import { ApiKeyMiddleware } from '../shared/middleware/api-key.middleware';
 import { SecurityHeadersMiddleware } from '../shared/middleware/security-headers.middleware';
 import { RateLimitMiddleware } from '../shared/middleware/rate-limit.middleware';

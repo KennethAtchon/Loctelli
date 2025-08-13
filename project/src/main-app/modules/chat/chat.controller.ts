@@ -2,10 +2,10 @@ import { Controller, Post, Body, Get, Param, ParseIntPipe, HttpException, HttpSt
 import { ChatService } from './chat.service';
 import { ChatMessageDto } from './dto/chat-message.dto';
 import { SendMessageDto } from './dto/send-message.dto';
-import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
-import { JwtAuthGuard } from '../../auth/auth.guard';
-import { Public } from '../../auth/decorators/public.decorator';
+import { JwtAuthGuard } from '../../../shared/auth/auth.guard';
+import { Public } from '../../../shared/decorators/public.decorator';
 
 @Controller('chat')
 @UseGuards(JwtAuthGuard)

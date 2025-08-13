@@ -77,14 +77,14 @@ export class RateLimitService {
     try {
       if (userId) {
         await this.prisma.rateLimit.upsert({
-          where: { userId_service: { userId, service } },
+          where: { regularUserId_service: { regularUserId: userId, service } },
           update: {
             violations: { increment: 1 },
             blockedUntil: blockedUntil,
             updatedAt: now,
           },
           create: {
-            userId,
+            regularUserId: userId,
             service,
             requestCount: 0,
             dailyLimit: 500,
@@ -147,8 +147,8 @@ export class RateLimitService {
 
     const rateLimit = await this.prisma.rateLimit.findUnique({
       where: { 
-        userId_service: { 
-          userId: userId, 
+        regularUserId_service: { 
+          regularUserId: userId, 
           service: service 
         } 
       },
@@ -184,7 +184,7 @@ export class RateLimitService {
     const windowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     await this.prisma.rateLimit.upsert({
-      where: { userId_service: { userId, service } },
+      where: { regularUserId_service: { regularUserId: userId, service } },
       update: {
         requestCount: 0,
         windowStart: windowStart,
@@ -193,7 +193,7 @@ export class RateLimitService {
         updatedAt: now,
       },
       create: {
-        userId,
+        regularUserId: userId,
         service,
         requestCount: 0,
         dailyLimit: 500,
@@ -212,7 +212,7 @@ export class RateLimitService {
     const now = new Date();
 
     const rateLimit = await this.prisma.rateLimit.upsert({
-      where: { userId_service: { userId, service } },
+      where: { regularUserId_service: { regularUserId: userId, service } },
       update: {
         // Reset counter if it's a new day
         requestCount: {
@@ -222,7 +222,7 @@ export class RateLimitService {
         updatedAt: now,
       },
       create: {
-        userId,
+        regularUserId: userId,
         service,
         requestCount: 0,
         dailyLimit: customLimit || 500,
@@ -295,7 +295,7 @@ export class RateLimitService {
   private async incrementUserUsage(userId: number, service: string, windowStart: Date): Promise<void> {
     await this.prisma.rateLimit.updateMany({
       where: {
-        userId,
+        regularUserId: userId,
         service,
         windowStart,
       },

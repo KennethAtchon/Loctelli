@@ -60,7 +60,7 @@ export class CampaignService {
       // Create campaign
       const campaign = await this.prisma.smsCampaign.create({
         data: {
-          userId,
+          regularUserId: userId,
           subAccountId,
           name: createCampaignDto.name,
           message: createCampaignDto.message,
@@ -118,7 +118,7 @@ export class CampaignService {
 
       // Save message records
       const messageRecords = result.results.map((smsResult, index) => ({
-        userId: campaign.userId,
+        regularUserId: campaign.regularUserId,
         subAccountId: campaign.subAccountId,
         campaignId: campaign.id,
         phoneNumber: recipients[index],
@@ -171,7 +171,7 @@ export class CampaignService {
     const campaign = await this.prisma.smsCampaign.findFirst({
       where: {
         id: campaignId,
-        userId,
+        regularUserId: userId,
         subAccountId,
       },
       include: {
@@ -208,7 +208,7 @@ export class CampaignService {
     const [campaigns, total] = await Promise.all([
       this.prisma.smsCampaign.findMany({
         where: {
-          userId,
+          regularUserId: userId,
           subAccountId,
         },
         orderBy: { createdAt: 'desc' },
@@ -217,7 +217,7 @@ export class CampaignService {
       }),
       this.prisma.smsCampaign.count({
         where: {
-          userId,
+          regularUserId: userId,
           subAccountId,
         },
       }),
@@ -243,7 +243,7 @@ export class CampaignService {
     const campaign = await this.prisma.smsCampaign.findFirst({
       where: {
         id: campaignId,
-        userId,
+        regularUserId: userId,
         subAccountId,
       },
     });
@@ -272,7 +272,7 @@ export class CampaignService {
     const campaign = await this.prisma.smsCampaign.findFirst({
       where: {
         id: campaignId,
-        userId,
+        regularUserId: userId,
         subAccountId,
       },
     });
@@ -309,7 +309,7 @@ export class CampaignService {
     const campaign = await this.prisma.smsCampaign.findFirst({
       where: {
         id: campaignId,
-        userId,
+        regularUserId: userId,
         subAccountId,
       },
     });
@@ -360,7 +360,7 @@ export class CampaignService {
     const skip = (page - 1) * limit;
 
     const whereClause: any = {
-      userId,
+      regularUserId: userId,
       subAccountId,
     };
 
@@ -417,17 +417,17 @@ export class CampaignService {
       messageStats,
     ] = await Promise.all([
       this.prisma.smsCampaign.count({
-        where: { userId, subAccountId },
+        where: { regularUserId: userId, subAccountId },
       }),
       this.prisma.smsCampaign.count({
-        where: { userId, subAccountId, status: 'sending' },
+        where: { regularUserId: userId, subAccountId, status: 'sending' },
       }),
       this.prisma.smsCampaign.count({
-        where: { userId, subAccountId, status: 'completed' },
+        where: { regularUserId: userId, subAccountId, status: 'completed' },
       }),
       this.prisma.smsMessage.groupBy({
         by: ['status'],
-        where: { userId, subAccountId },
+        where: { regularUserId: userId, subAccountId },
         _count: { status: true },
       }),
     ]);

@@ -48,7 +48,7 @@ export class SmsModuleService {
     ): Promise<SmsMessage> {
         return this.prisma.smsMessage.create({
             data: {
-                userId,
+                regularUserId: userId,
                 subAccountId,
                 phoneNumber,
                 message,
@@ -106,7 +106,7 @@ export class SmsModuleService {
 
         // Build where clause
         const where: any = {
-            userId,
+            regularUserId: userId,
             subAccountId,
         };
 
@@ -168,7 +168,7 @@ export class SmsModuleService {
         // Get message counts by status
         const statusCounts = await this.prisma.smsMessage.groupBy({
             by: ['status'],
-            where: { userId, subAccountId },
+            where: { regularUserId: userId, subAccountId },
             _count: { status: true },
         });
 
@@ -179,7 +179,7 @@ export class SmsModuleService {
         const monthlyStats = await this.prisma.smsMessage.groupBy({
             by: ['status'],
             where: {
-                userId,
+                regularUserId: userId,
                 subAccountId,
                 createdAt: {
                     gte: twelveMonthsAgo,
@@ -193,7 +193,7 @@ export class SmsModuleService {
 
         // Get recent messages
         const recentMessages = await this.prisma.smsMessage.findMany({
-            where: { userId, subAccountId },
+            where: { regularUserId: userId, subAccountId },
             orderBy: { createdAt: 'desc' },
             take: 10,
             include: {
@@ -244,7 +244,7 @@ export class SmsModuleService {
         const message = await this.prisma.smsMessage.findFirst({
             where: {
                 id: messageId,
-                userId,
+                regularUserId: userId,
                 subAccountId,
             },
             include: {
@@ -275,7 +275,7 @@ export class SmsModuleService {
         const message = await this.prisma.smsMessage.findFirst({
             where: {
                 id: messageId,
-                userId,
+                regularUserId: userId,
                 subAccountId,
             },
         });

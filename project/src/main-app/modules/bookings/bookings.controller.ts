@@ -2,9 +2,9 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query,
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
-import { CurrentUser } from '../../auth/decorators/current-user.decorator';
-import { Admin } from '../../auth/decorators/admin.decorator';
-import { AdminGuard } from '../../auth/guards/admin.guard';
+import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
+import { Admin } from '../../../shared/decorators/admin.decorator';
+import { AdminGuard } from '../../../shared/guards/admin.guard';
 
 @Controller('booking')
 @UseGuards(AdminGuard)

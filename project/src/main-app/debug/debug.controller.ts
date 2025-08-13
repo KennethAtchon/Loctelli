@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Delete, Param, Body, Query, Logger } from '@nestjs/common';
-import { Public } from '../auth/decorators/public.decorator';
+import { Public } from '../../shared/decorators/public.decorator';
 import { CacheService } from '../infrastructure/cache/cache.service';
 
 interface TTLTestResult {

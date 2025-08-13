@@ -61,7 +61,7 @@ export class StrategiesService {
 
   async findAllByUser(userId: number) {
     return this.prisma.strategy.findMany({
-      where: { userId },
+      where: { regularUserId: userId },
       include: {
         leads: true,
       },
@@ -99,7 +99,7 @@ export class StrategiesService {
 
   async findByUserId(userId: number) {
     return this.prisma.strategy.findMany({
-      where: { userId },
+      where: { regularUserId: userId },
       include: {
         leads: true,
       },
@@ -158,7 +158,7 @@ export class StrategiesService {
     // Create a duplicate strategy with "(Copy)" suffix
     const duplicateData: CreateStrategyDto = {
       name: `${strategy.name} (Copy)`,
-      userId: strategy.userId, // Keep the same user assignment
+      userId: strategy.regularUserId, // Keep the same user assignment
       tag: strategy.tag || undefined,
       tone: strategy.tone || undefined,
       aiInstructions: strategy.aiInstructions || undefined,

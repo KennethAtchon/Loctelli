@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { StatusService } from './status.service';
-import { Public } from '../auth/decorators/public.decorator';
+import { Public } from '../../shared/decorators/public.decorator';
 
 @Controller('status')
 export class StatusController {

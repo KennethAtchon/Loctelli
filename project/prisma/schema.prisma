@@ -85,7 +85,7 @@ model User {
 
 model Strategy {
   id                      Int        @id @default(autoincrement())
-  userId                  Int
+  regularUserId           Int
   subAccountId            Int        // Required: Strategy belongs to a SubAccount
   subAccount              SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
   name                    String
@@ -102,7 +102,7 @@ model Strategy {
   delayMax                Int?       // Maximum delay in seconds
   createdAt               DateTime   @default(now())
   updatedAt               DateTime   @default(now()) @updatedAt
-  user                    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  regularUser             User       @relation(fields: [regularUserId], references: [id], onDelete: Cascade)
   leads                   Lead[]
   promptTemplateId        Int
   promptTemplate          PromptTemplate @relation(fields: [promptTemplateId], references: [id])
@@ -110,7 +110,7 @@ model Strategy {
 
 model Lead {
   id             Int       @id @default(autoincrement())
-  userId         Int
+  regularUserId  Int
   strategyId     Int
   subAccountId   Int       // Required: Lead belongs to a SubAccount
   subAccount     SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
@@ -127,14 +127,14 @@ model Lead {
   lastMessageDate String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  regularUser    User      @relation(fields: [regularUserId], references: [id], onDelete: Cascade)
   strategy       Strategy  @relation(fields: [strategyId], references: [id], onDelete: Cascade)
   bookings       Booking[]
 }
 
 model Booking {
   id           Int      @id @default(autoincrement())
-  userId       Int
+  regularUserId Int
   leadId       Int?
   subAccountId Int      // Required: Booking belongs to a SubAccount
   subAccount   SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
@@ -143,7 +143,7 @@ model Booking {
   status       String   @default("pending")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @default(now()) @updatedAt
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  regularUser  User     @relation(fields: [regularUserId], references: [id], onDelete: Cascade)
   lead         Lead?    @relation(fields: [leadId], references: [id])
 }
 
@@ -208,10 +208,10 @@ model Integration {
 
 model SmsMessage {
   id           Int      @id @default(autoincrement())
-  userId       Int
+  regularUserId Int
   subAccountId Int      // Required: SMS belongs to a SubAccount
   subAccount   SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  regularUser  User     @relation(fields: [regularUserId], references: [id], onDelete: Cascade)
   
   // Message details
   phoneNumber  String   // Recipient phone number
@@ -235,10 +235,10 @@ model SmsMessage {
 
 model SmsCampaign {
   id           Int      @id @default(autoincrement())
-  userId       Int
+  regularUserId Int
   subAccountId Int      // Required: Campaign belongs to a SubAccount
   subAccount   SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  regularUser  User     @relation(fields: [regularUserId], references: [id], onDelete: Cascade)
   
   // Campaign details
   name         String   // Campaign name
@@ -266,8 +266,8 @@ model SmsCampaign {
 
 model ApiKey {
   id          Int      @id @default(autoincrement())
-  userId      Int?     // Optional: Can be global (service keys) or user-specific
-  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  regularUserId Int?   // Optional: Can be global (service keys) or user-specific
+  regularUser User?    @relation(fields: [regularUserId], references: [id], onDelete: Cascade)
   service     String   // "google_places", "yelp", "openstreetmap"
   keyName     String   // Display name for the key
   keyValue    String   // Encrypted API key
@@ -278,15 +278,15 @@ model ApiKey {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@unique([userId, service, keyName])
+  @@unique([regularUserId, service, keyName])
 }
 
 model BusinessSearch {
   id            String   @id @default(uuid())
-  userId        Int
+  regularUserId Int
   subAccountId  Int      // Required: Search belongs to a SubAccount
   subAccount    SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  regularUser   User     @relation(fields: [regularUserId], references: [id], onDelete: Cascade)
   
   // Search parameters
   query         String   // Business name or category
@@ -316,8 +316,8 @@ model BusinessSearch {
 
 model RateLimit {
   id          Int      @id @default(autoincrement())
-  userId      Int?     // Optional: Can track global or per-user limits
-  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  regularUserId Int?   // Optional: Can track global or per-user limits
+  regularUser User?    @relation(fields: [regularUserId], references: [id], onDelete: Cascade)
   ipAddress   String?  // Track by IP for abuse prevention
   service     String   // "business_finder", "google_places", "yelp", etc.
   
@@ -333,7 +333,7 @@ model RateLimit {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@unique([userId, service])
+  @@unique([regularUserId, service])
   @@unique([ipAddress, service])
 }
 

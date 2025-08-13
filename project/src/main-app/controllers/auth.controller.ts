@@ -9,10 +9,10 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import { AuthService, LoginDto, RegisterDto } from './auth.service';
-import { JwtAuthGuard } from './auth.guard';
-import { CurrentUser } from './decorators/current-user.decorator';
-import { Public } from './decorators/public.decorator';
+import { AuthService, LoginDto, RegisterDto } from '../../shared/auth/services/auth.service';
+import { JwtAuthGuard } from '../../shared/auth/auth.guard';
+import { CurrentUser } from '../../shared/decorators/current-user.decorator';
+import { Public } from '../../shared/decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -117,4 +117,4 @@ export class AuthController {
       throw error;
     }
   }
-} 
+}

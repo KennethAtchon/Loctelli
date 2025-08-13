@@ -2,9 +2,9 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request }
 import { PromptTemplatesService } from './prompt-templates.service';
 import { CreatePromptTemplateDto } from './dto/create-prompt-template.dto';
 import { UpdatePromptTemplateDto } from './dto/update-prompt-template.dto';
-import { JwtAuthGuard } from '../../auth/auth.guard';
-import { RolesGuard } from '../../auth/guards/roles.guard';
-import { Roles } from '../../auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../../shared/auth/auth.guard';
+import { RolesGuard } from '../../../shared/guards/roles.guard';
+import { Roles } from '../../../shared/decorators/roles.decorator';
 
 @Controller('admin/prompt-templates')
 @UseGuards(JwtAuthGuard, RolesGuard)

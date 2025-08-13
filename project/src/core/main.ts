@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 import { CacheService } from '../main-app/infrastructure/cache/cache.service';
-import { SystemUserService } from '../main-app/auth/system-user.service';
+import { SystemUserService } from '../shared/auth/services/system-user.service';
 import { json, urlencoded } from 'express';
 
 async function bootstrap() {

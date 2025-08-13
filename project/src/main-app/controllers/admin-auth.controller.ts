@@ -15,13 +15,13 @@ import {
   BadRequestException,
   Logger,
 } from '@nestjs/common';
-import { AdminAuthService, AdminLoginDto, AdminRegisterDto } from './admin-auth.service';
-import { AdminAuthCodeService } from './admin-auth-code.service';
-import { JwtAuthGuard } from './auth.guard';
-import { RolesGuard } from './guards/roles.guard';
-import { Roles } from './decorators/roles.decorator';
-import { CurrentUser } from './decorators/current-user.decorator';
-import { Public } from './decorators/public.decorator';
+import { AdminAuthService, AdminLoginDto, AdminRegisterDto } from '../../shared/auth/services/admin-auth.service';
+import { AdminAuthCodeService } from '../../shared/auth/services/admin-auth-code.service';
+import { JwtAuthGuard } from '../../shared/auth/auth.guard';
+import { RolesGuard } from '../../shared/guards/roles.guard';
+import { Roles } from '../../shared/decorators/roles.decorator';
+import { CurrentUser } from '../../shared/decorators/current-user.decorator';
+import { Public } from '../../shared/decorators/public.decorator';
 
 @Controller('admin/auth')
 export class AdminAuthController {
@@ -324,4 +324,4 @@ export class AdminAuthController {
       throw error;
     }
   }
-} 
+}

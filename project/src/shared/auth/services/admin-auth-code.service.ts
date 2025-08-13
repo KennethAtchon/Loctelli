@@ -57,4 +57,4 @@ export class AdminAuthCodeService {
     const randomPart = this.generateAuthCode(8);
     return `ADMIN_${timestamp}_${randomPart}`;
   }
-} 
+}

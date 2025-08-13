@@ -1,7 +1,7 @@
 import { Controller, Post, Body, Headers, Logger } from '@nestjs/common';
 import { WebhooksService } from './webhooks.service';
 import { WebhookEventDto } from './dto/webhook-event.dto';
-import { Public } from '../../../auth/decorators/public.decorator';
+import { Public } from '../../../../../shared/decorators/public.decorator';
 
 @Controller('webhook')
 @Public()

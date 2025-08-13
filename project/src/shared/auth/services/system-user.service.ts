@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../infrastructure/prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -108,10 +108,10 @@ export class SystemUserService {
   }
 
   /**
-   * Get the effective user ID for operations
+   * Get the effective regular user ID for operations
    * Returns system user ID for admins, original user ID for regular users
    */
-  getEffectiveUserId(user: any): number {
+  getEffectiveRegularUserId(user: any): number {
     if (this.isAdminUser(user)) {
       this.logger.debug(`Admin user ${user.email} mapped to system user ID: ${this.SYSTEM_USER_ID}`);
       return this.SYSTEM_USER_ID;
@@ -119,6 +119,18 @@ export class SystemUserService {
     
     this.logger.debug(`Regular user ${user.email} using their own ID: ${user.userId}`);
     return user.userId;
+  }
+
+  /**
+   * Get the effective admin user ID for operations (for future admin-specific features)
+   * Returns admin user ID for admins, null for regular users
+   */
+  getEffectiveAdminUserId(user: any): number | null {
+    if (this.isAdminUser(user)) {
+      return user.userId; // This is the admin's real ID
+    }
+    
+    return null; // Regular users don't have admin IDs
   }
 
   /**
