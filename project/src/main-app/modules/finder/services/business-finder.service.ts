@@ -7,6 +7,7 @@ import { GooglePlacesService } from './google-places.service';
 import { YelpService } from './yelp.service';
 import { OpenStreetMapService } from './openstreetmap.service';
 import { RateLimitService } from './rate-limit.service';
+import { SystemUserService } from '../../../auth/system-user.service';
 import { SearchBusinessDto, SearchResponseDto, BusinessSearchResultDto } from '../dto/search-business.dto';
 
 @Injectable()
@@ -20,33 +21,32 @@ export class BusinessFinderService {
     private yelpService: YelpService,
     private openStreetMapService: OpenStreetMapService,
     private rateLimitService: RateLimitService,
+    private systemUserService: SystemUserService,
   ) {}
 
   async searchBusinesses(
     searchDto: SearchBusinessDto,
-    userId: number,
+    user: any, // User object from JWT (could be admin or regular user)
     request?: Request,
   ): Promise<SearchResponseDto> {
     const startTime = Date.now();
     const ipAddress = request ? this.rateLimitService.getClientIp(request) : undefined;
 
-    // Get default SubAccount for business finder results (admin feature)
-    const defaultSubAccount = await this.prisma.subAccount.findFirst({
-      where: { name: 'Default SubAccount' },
-    });
+    // Get effective user ID (system user for admins, regular user for users)
+    const effectiveUserId = this.systemUserService.getEffectiveUserId(user);
+    const effectiveSubAccountId = await this.systemUserService.getEffectiveSubAccountId(user);
     
-    if (!defaultSubAccount) {
-      throw new HttpException(
-        'Default SubAccount not found. Please contact administrator.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+    // Log admin operations for audit
+    if (this.systemUserService.isAdminUser(user)) {
+      this.systemUserService.logAdminOperation(user, 'business_search', { 
+        query: searchDto.query, 
+        location: searchDto.location 
+      });
     }
-    
-    const subAccountId = defaultSubAccount.id;
 
-    // Check rate limits
+    // Check rate limits using effective user ID
     const canProceed = await this.rateLimitService.checkRateLimit(
-      userId,
+      effectiveUserId,
       'business_finder',
       ipAddress,
     );
@@ -59,16 +59,16 @@ export class BusinessFinderService {
     }
 
     try {
-      const result = await this.executeSearch(searchDto, userId, subAccountId, ipAddress, startTime);
+      const result = await this.executeSearch(searchDto, effectiveUserId, effectiveSubAccountId, ipAddress, startTime);
       
       // Increment rate limit usage for sync searches
-      await this.rateLimitService.incrementUsage(userId, 'business_finder', ipAddress);
+      await this.rateLimitService.incrementUsage(effectiveUserId, 'business_finder', ipAddress);
       
       return result;
     } catch (error) {
       // Record rate limit violation if it's a client error
       if (error instanceof HttpException && error.getStatus() >= 400 && error.getStatus() < 500) {
-        await this.rateLimitService.recordViolation(userId, 'business_finder', ipAddress);
+        await this.rateLimitService.recordViolation(effectiveUserId, 'business_finder', ipAddress);
       }
 
       throw error;
@@ -77,36 +77,34 @@ export class BusinessFinderService {
 
   async searchBusinessesAsync(
     searchDto: SearchBusinessDto,
-    userId: number,
+    user: any, // User object from JWT (could be admin or regular user)
     ipAddress?: string,
   ): Promise<{ searchId: string }> {
     const startTime = Date.now();
 
-    // Get default SubAccount for business finder results (admin feature)
-    const defaultSubAccount = await this.prisma.subAccount.findFirst({
-      where: { name: 'Default SubAccount' },
-    });
+    // Get effective user ID (system user for admins, regular user for users)
+    const effectiveUserId = this.systemUserService.getEffectiveUserId(user);
+    const effectiveSubAccountId = await this.systemUserService.getEffectiveSubAccountId(user);
     
-    if (!defaultSubAccount) {
-      throw new HttpException(
-        'Default SubAccount not found. Please contact administrator.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+    // Log admin operations for audit
+    if (this.systemUserService.isAdminUser(user)) {
+      this.systemUserService.logAdminOperation(user, 'business_search_async', { 
+        query: searchDto.query, 
+        location: searchDto.location 
+      });
     }
-    
-    const subAccountId = defaultSubAccount.id;
 
     try {
-      const result = await this.executeSearch(searchDto, userId, subAccountId, ipAddress, startTime);
+      const result = await this.executeSearch(searchDto, effectiveUserId, effectiveSubAccountId, ipAddress, startTime);
       
       // Increment rate limit usage after successful completion
-      await this.rateLimitService.incrementUsage(userId, 'business_finder', ipAddress);
+      await this.rateLimitService.incrementUsage(effectiveUserId, 'business_finder', ipAddress);
       
       return { searchId: result.searchId };
     } catch (error) {
       // Record rate limit violation if it's a client error
       if (error instanceof HttpException && error.getStatus() >= 400 && error.getStatus() < 500) {
-        await this.rateLimitService.recordViolation(userId, 'business_finder', ipAddress);
+        await this.rateLimitService.recordViolation(effectiveUserId, 'business_finder', ipAddress);
       }
 
       throw error;
@@ -133,8 +131,8 @@ export class BusinessFinderService {
         };
       }
 
-      // Get user's API keys
-      const userApiKeys = await this.getUserApiKeys(userId);
+      // Get user's API keys (using effective user)
+      const userApiKeys = await this.getUserApiKeys({ userId, type: userId === this.systemUserService.getSystemUserId() ? 'admin' : 'user' });
 
       // Determine which source to use (single source only)
       const requestedSource = searchDto.sources?.[0] || 'google_places'; // Default to Google Places
@@ -206,11 +204,12 @@ export class BusinessFinderService {
     }
   }
 
-  async getSearchResult(searchId: string, userId: number): Promise<SearchResponseDto | null> {
+  async getSearchResult(searchId: string, user: any): Promise<SearchResponseDto | null> {
+    const effectiveUserId = this.systemUserService.getEffectiveUserId(user);
     const searchRecord = await this.prisma.businessSearch.findFirst({
       where: {
         id: searchId,
-        userId: userId,
+        userId: effectiveUserId,
         status: 'completed',
         expiresAt: { gte: new Date() },
       },
@@ -234,12 +233,13 @@ export class BusinessFinderService {
   }
 
   async getUserSearchHistory(
-    userId: number,
+    user: any,
     limit: number = 20,
   ): Promise<any[]> {
+    const effectiveUserId = this.systemUserService.getEffectiveUserId(user);
     return this.prisma.businessSearch.findMany({
       where: {
-        userId,
+        userId: effectiveUserId,
         status: 'completed',
       },
       select: {
@@ -257,10 +257,11 @@ export class BusinessFinderService {
     });
   }
 
-  async getUserApiKeys(userId: number): Promise<any[]> {
+  async getUserApiKeys(user: any): Promise<any[]> {
+    const effectiveUserId = this.systemUserService.getEffectiveUserId(user);
     const apiKeys = await this.prisma.apiKey.findMany({
       where: {
-        userId,
+        userId: effectiveUserId,
         isActive: true,
       },
       select: {
@@ -292,19 +293,20 @@ export class BusinessFinderService {
   }
 
   async saveUserApiKey(
-    userId: number,
+    user: any,
     service: string,
     keyName: string,
     keyValue: string,
     dailyLimit?: number,
   ): Promise<void> {
+    const effectiveUserId = this.systemUserService.getEffectiveUserId(user);
     // In a real implementation, encrypt the API key
     const encryptedKey = this.encryptApiKey(keyValue);
 
     await this.prisma.apiKey.upsert({
       where: {
         userId_service_keyName: {
-          userId,
+          userId: effectiveUserId,
           service,
           keyName,
         },
@@ -316,7 +318,7 @@ export class BusinessFinderService {
         updatedAt: new Date(),
       },
       create: {
-        userId,
+        userId: effectiveUserId,
         service,
         keyName,
         keyValue: encryptedKey,
@@ -326,10 +328,11 @@ export class BusinessFinderService {
     });
   }
 
-  async deleteUserApiKey(userId: number, service: string, keyName: string): Promise<void> {
+  async deleteUserApiKey(user: any, service: string, keyName: string): Promise<void> {
+    const effectiveUserId = this.systemUserService.getEffectiveUserId(user);
     await this.prisma.apiKey.deleteMany({
       where: {
-        userId,
+        userId: effectiveUserId,
         service,
         keyName,
       },

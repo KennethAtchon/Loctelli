@@ -9,7 +9,6 @@ import {
   Clock, 
   Camera,
   Download,
-  Filter,
   ArrowUpDown,
   Search,
   Tag,
@@ -74,8 +73,8 @@ export function ResultsTable({ searchResponse, onExport }: ResultsTableProps) {
 
     // Apply sorting
     results.sort((a, b) => {
-      let valueA: any;
-      let valueB: any;
+      let valueA: string | number;
+      let valueB: string | number;
 
       switch (sortBy) {
         case 'name':

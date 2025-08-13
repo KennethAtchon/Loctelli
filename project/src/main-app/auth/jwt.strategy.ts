@@ -4,6 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { AuthService, JwtPayload } from './auth.service';
 import { AdminAuthService, AdminJwtPayload } from './admin-auth.service';
+import { SystemUserService } from './system-user.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -13,6 +14,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private configService: ConfigService,
     private authService: AuthService,
     private adminAuthService: AdminAuthService,
+    private systemUserService: SystemUserService,
   ) {
     const jwtSecret = configService.get<string>('JWT_SECRET');
     if (!jwtSecret) {
@@ -45,8 +47,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       // Check if this is an admin user
       if ('type' in payload && payload.type === 'admin') {
         this.logger.debug(`Admin user validation for ID: ${payload.sub}, email: ${payload.email}`);
+        
+        // For admin users, we include both their admin ID and the system user ID
+        // This allows services to use the system user ID for user-specific operations
         return {
-          userId: payload.sub,
+          userId: payload.sub, // Admin's real ID
+          systemUserId: this.systemUserService.getSystemUserId(), // System user ID for operations
           email: payload.email,
           role: payload.role,
           type: 'admin',

@@ -29,6 +29,7 @@
 2. **Global JWT Guard**: Authenticates all requests (except public endpoints)
 3. **Role-Based Access Control**: Enforces user permissions
 4. **Resource-Level Authorization**: Users can only access their own data
+5. **System User Pattern**: Admins map to shared system user for user-specific operations
 
 ### **Public Endpoints** (No Authentication Required)
 - `POST /auth/login`, `POST /auth/register`, `POST /auth/refresh`
@@ -144,7 +145,7 @@
 
 ### **Resource-Level Access**
 - **Users**: Can only access their own data within their SubAccount
-- **Admins**: Can access all user data within their created SubAccounts
+- **Admins**: Can access all user data within their created SubAccounts (via system user mapping)
 - **Super Admins**: Can manage admin accounts and all SubAccounts
 
 ### **SubAccount Isolation**
@@ -245,6 +246,67 @@ setLogLevel('error'); // Only errors will be logged
 - **Authentication**: ✅ Secure & Functional
 - **Authorization**: ✅ Properly Implemented
 - **Data Flow**: ✅ Correctly Configured
+
+## 🔑 System User Pattern for Admin Operations
+
+### **Problem Solved**
+- **Foreign Key Constraints**: Admin users (AdminUser table) couldn't access user-specific features (User table)
+- **Business Finder Access**: Admin searches failed due to `BusinessSearch.userId` foreign key violations
+- **Scalable Solution**: All admin operations now use a shared system user account
+
+### **Implementation Architecture**
+
+#### **System User (user@loctelli.com - ID: 1)**
+- **Shared Resource**: All admins share this single user account for operations
+- **Security**: Extremely secure password (128+ chars, high salt rounds, auto-generated)
+- **Role**: Marked as `system` role to distinguish from regular users
+- **SubAccount**: Uses Default SubAccount for proper data isolation
+
+#### **Authentication Flow**
+```typescript
+// JWT Strategy automatically maps admin users
+AdminUser (JWT) -> SystemUserService -> user@loctelli.com (operations)
+
+// Admin token includes both IDs
+{
+  userId: 123,        // Admin's real ID (for rate limiting, audit)
+  systemUserId: 1,    // System user ID (for operations)
+  type: 'admin'
+}
+```
+
+#### **SystemUserService Pattern**
+```typescript
+// Get effective user ID for operations
+getEffectiveUserId(user) -> user.type === 'admin' ? 1 : user.userId
+
+// Services use this pattern
+businessFinderService.searchBusinesses(searchDto, user) // Pass full user object
+-> systemUserService.getEffectiveUserId(user) // Internally resolves to system user
+```
+
+#### **Service Layer Updates**
+- **Business Finder**: Updated to accept user objects, maps admins to system user
+- **API Keys**: Admin API keys stored under system user account
+- **Search History**: Admin searches tracked under system user
+- **Rate Limiting**: Still uses admin's real ID for proper tracking
+- **Audit Logging**: Logs admin operations with both admin ID and system user mapping
+
+#### **Security Features**
+- **Password Security**: 128+ character auto-generated password with bcrypt(15)
+- **Startup Initialization**: System user password updated on every app start
+- **Audit Trail**: All admin operations logged with admin identity
+- **Rate Limit Separation**: Admin rate limits separate from user operations
+
+### **Usage in Other Services**
+When implementing user-specific features that admins need access to:
+
+1. **Accept full user object** instead of just `userId`
+2. **Use SystemUserService.getEffectiveUserId()** for database operations
+3. **Keep rate limiting on admin's real ID** for proper tracking
+4. **Log admin operations** for audit purposes
+
+This pattern ensures admins can access all user-specific systems while maintaining security, audit trails, and proper data isolation.
 
 This context provides AI models with comprehensive understanding of the Loctelli CRM system architecture, data flow, and implementation details for effective code analysis and generation.
 

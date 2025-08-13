@@ -50,7 +50,7 @@ export class FinderController {
   ): Promise<SearchResponseDto> {
     return this.businessFinderService.searchBusinesses(
       searchDto,
-      user.userId,
+      user,
       request,
     );
   }
@@ -64,7 +64,7 @@ export class FinderController {
     // Check rate limits first
     const ipAddress = this.rateLimitService.getClientIp(request);
     const canProceed = await this.rateLimitService.checkRateLimit(
-      user.userId,
+      user.userId, // Rate limiting still uses admin ID for tracking
       'business_finder',
       ipAddress,
     );
@@ -81,7 +81,7 @@ export class FinderController {
       'business-finder-search',
       'BusinessFinderService',
       'searchBusinessesAsync',
-      [searchDto, user.userId, ipAddress],
+      [searchDto, user, ipAddress],
       {
         subAccountId: 'finder',
         userId: user.userId.toString(),
@@ -119,7 +119,7 @@ export class FinderController {
     if (jobResult.status === 'completed' && jobResult.result?.searchId) {
       const searchResult = await this.businessFinderService.getSearchResult(
         jobResult.result.searchId,
-        user.userId
+        user
       );
       
       return {
@@ -136,7 +136,7 @@ export class FinderController {
     @Param('searchId') searchId: string,
     @CurrentUser() user: any,
   ): Promise<SearchResponseDto> {
-    const result = await this.businessFinderService.getSearchResult(searchId, user.userId);
+    const result = await this.businessFinderService.getSearchResult(searchId, user);
     
     if (!result) {
       throw new HttpException(
@@ -157,7 +157,7 @@ export class FinderController {
     // Get the search results first
     const searchResult = await this.businessFinderService.getSearchResult(
       exportDto.searchId,
-      user.userId,
+      user,
     );
 
     if (!searchResult) {
@@ -189,14 +189,14 @@ export class FinderController {
     const parsedLimit = limit ? Math.min(parseInt(limit.toString()), 100) : 20;
 
     return this.businessFinderService.getUserSearchHistory(
-      user.userId,
+      user,
       parsedLimit,
     );
   }
 
   @Get('api-keys')
   async getUserApiKeys(@CurrentUser() user: any): Promise<any[]> {
-    const apiKeys = await this.businessFinderService.getUserApiKeys(user.userId);
+    const apiKeys = await this.businessFinderService.getUserApiKeys(user);
     
     // Don't return the actual key values for security
     return apiKeys.map((key) => ({
@@ -231,7 +231,7 @@ export class FinderController {
     }
 
     await this.businessFinderService.saveUserApiKey(
-      user.userId,
+      user,
       apiKeyDto.service,
       apiKeyDto.keyName,
       apiKeyDto.keyValue,
@@ -247,7 +247,7 @@ export class FinderController {
     @Param('keyName') keyName: string,
     @CurrentUser() user: any,
   ): Promise<{ message: string }> {
-    await this.businessFinderService.deleteUserApiKey(user.userId, service, keyName);
+    await this.businessFinderService.deleteUserApiKey(user, service, keyName);
     return { message: 'API key deleted successfully' };
   }
 
@@ -256,7 +256,7 @@ export class FinderController {
     @CurrentUser() user: any,
     @Query('service') service: string = 'business_finder',
   ): Promise<any> {
-    return this.rateLimitService.getRateLimitStatus(user.userId, service);
+    return this.rateLimitService.getRateLimitStatus(user.userId, service); // Rate limiting uses admin ID
   }
 
   @Post('rate-limit/reset')
@@ -265,7 +265,7 @@ export class FinderController {
     @Query('service') service: string = 'business_finder',
   ): Promise<{ message: string }> {
     // This endpoint should be protected by admin permissions in a real app
-    await this.rateLimitService.resetUserLimit(user.userId, service);
+    await this.rateLimitService.resetUserLimit(user.userId, service); // Rate limiting uses admin ID
     return { message: 'Rate limit reset successfully' };
   }
 
@@ -306,12 +306,12 @@ export class FinderController {
   @Get('stats')
   async getUsageStats(@CurrentUser() user: any): Promise<any> {
     const searchHistory = await this.businessFinderService.getUserSearchHistory(
-      user.userId,
+      user,
       100,
     );
 
     const rateLimitStatus = await this.rateLimitService.getRateLimitStatus(
-      user.userId,
+      user.userId, // Rate limiting uses admin ID for tracking
       'business_finder',
     );
 

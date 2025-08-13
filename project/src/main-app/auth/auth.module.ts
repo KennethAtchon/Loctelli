@@ -7,6 +7,7 @@ import { AuthController } from './auth.controller';
 import { AdminAuthService } from './admin-auth.service';
 import { AdminAuthController } from './admin-auth.controller';
 import { AdminAuthCodeService } from './admin-auth-code.service';
+import { SystemUserService } from './system-user.service';
 import { JwtStrategy } from './jwt.strategy';
 import { RolesGuard } from './guards/roles.guard';
 import { AdminGuard } from './guards/admin.guard';
@@ -26,8 +27,8 @@ import { AppCacheModule } from '../infrastructure/cache/cache.module';
       inject: [ConfigService],
     }),
   ],
-  providers: [AuthService, AdminAuthService, AdminAuthCodeService, JwtStrategy, RolesGuard, AdminGuard],
+  providers: [AuthService, AdminAuthService, AdminAuthCodeService, SystemUserService, JwtStrategy, RolesGuard, AdminGuard],
   controllers: [AuthController, AdminAuthController],
-  exports: [AuthService, AdminAuthService],
+  exports: [AuthService, AdminAuthService, SystemUserService],
 })
 export class AuthModule {} 

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, History, Settings, BarChart3, AlertCircle, RefreshCw, Activity, TrendingUp, TrendingDown, Target, Building, MapPin, Clock, Database, Calendar, ArrowRight } from 'lucide-react';
+import { Search, History, Settings, BarChart3, AlertCircle, RefreshCw, Activity, Target, Building, MapPin, Clock, Database, Calendar, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { SearchForm } from './SearchForm';
 import { ResultsTable } from './ResultsTable';
 import { ExportDialog } from './ExportDialog';
+import { SearchResultsModal } from './SearchResultsModal';
 import { ApiKeyManager } from './ApiKeyManager';
 import { 
   SearchBusinessDto, 
@@ -27,6 +28,8 @@ export function FinderDashboard() {
   const [searchResponse, setSearchResponse] = useState<SearchResponseDto | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [searchResultsModalOpen, setSearchResultsModalOpen] = useState(false);
+  const [modalSearchResponse, setModalSearchResponse] = useState<SearchResponseDto | null>(null);
   const [availableSources, setAvailableSources] = useState<ApiSource[]>([]);
   const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
   const [searchHistory, setSearchHistory] = useState<SearchHistory[]>([]);
@@ -185,12 +188,28 @@ export function FinderDashboard() {
   const handleHistorySearch = async (historyItem: SearchHistory) => {
     try {
       const response = await finderApi.getSearchResult(historyItem.id);
-      setSearchResponse(response);
+      setModalSearchResponse(response);
+      setSearchResultsModalOpen(true);
       toast.success('Previous search results loaded');
     } catch (error) {
       console.error('Failed to load search history:', error);
       toast.error('Failed to load previous search results');
     }
+  };
+
+  const handleExportFromModal = (results: BusinessSearchResultDto[]) => {
+    if (!modalSearchResponse) return;
+    
+    // Create a temporary search response for export
+    const exportResponse: SearchResponseDto = {
+      ...modalSearchResponse,
+      results: results
+    };
+    
+    // Set this as the current search response temporarily for export
+    setSearchResponse(exportResponse);
+    setExportDialogOpen(true);
+    setSearchResultsModalOpen(false);
   };
 
   if (loading) {
@@ -538,6 +557,14 @@ export function FinderDashboard() {
         onClose={() => setExportDialogOpen(false)}
         searchId={searchResponse?.searchId || null}
         results={searchResponse?.results || []}
+      />
+
+      {/* Search Results Modal */}
+      <SearchResultsModal
+        isOpen={searchResultsModalOpen}
+        onClose={() => setSearchResultsModalOpen(false)}
+        searchResponse={modalSearchResponse}
+        onExport={handleExportFromModal}
       />
     </div>
   );

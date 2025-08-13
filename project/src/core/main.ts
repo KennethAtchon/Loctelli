@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 import { CacheService } from '../main-app/infrastructure/cache/cache.service';
+import { SystemUserService } from '../main-app/auth/system-user.service';
 import { json, urlencoded } from 'express';
 
 async function bootstrap() {
@@ -32,6 +33,16 @@ async function bootstrap() {
       }
     } catch (error) {
       logger.error('❌ Failed to test Redis connection:', error);
+    }
+    
+    // Initialize system user security
+    try {
+      const systemUserService = app.get(SystemUserService);
+      logger.log('🔒 Initializing system user security...');
+      await systemUserService.ensureSystemUserSecurity();
+      logger.log('✅ System user security initialized successfully');
+    } catch (error) {
+      logger.error('❌ Failed to initialize system user security:', error);
     }
     
     logger.log('🌐 Configuring CORS...');
