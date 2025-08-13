@@ -8,9 +8,11 @@ export class LeadsService {
   constructor(private prisma: PrismaService) {}
 
   async create(CreateLeadDto: CreateLeadDto, subAccountId: number) {
+    const { userId, ...leadData } = CreateLeadDto;
     return this.prisma.lead.create({
       data: {
-        ...CreateLeadDto,
+        ...leadData,
+        regularUserId: userId,
         subAccountId, // Add SubAccount context
       },
     });
@@ -19,7 +21,7 @@ export class LeadsService {
   async findAll() {
     return this.prisma.lead.findMany({
       include: {
-        user: true,
+        regularUser: true,
         strategy: true,
         bookings: true,
       },
@@ -30,7 +32,7 @@ export class LeadsService {
     return this.prisma.lead.findMany({
       where: { subAccountId },
       include: {
-        user: true,
+        regularUser: true,
         strategy: true,
         bookings: true,
       },
@@ -41,7 +43,7 @@ export class LeadsService {
     // All admins can see all leads
     return this.prisma.lead.findMany({
       include: {
-        user: true,
+        regularUser: true,
         strategy: true,
         bookings: true,
         subAccount: {
@@ -55,7 +57,7 @@ export class LeadsService {
     const lead = await this.prisma.lead.findUnique({
       where: { id },
       include: {
-        user: true,
+        regularUser: true,
         strategy: true,
         bookings: true,
       },

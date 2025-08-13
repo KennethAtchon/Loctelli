@@ -137,7 +137,7 @@ async function main() {
       await prisma.strategy.create({
         data: {
           ...DEFAULT_STRATEGY_DATA,
-          userId: defaultUser.id,
+          regularUserId: defaultUser.id,
           subAccountId: defaultSubAccount.id,
           promptTemplateId: defaultTemplate.id,
         },
@@ -162,7 +162,7 @@ async function main() {
       await prisma.lead.create({
         data: {
           ...DEFAULT_LEAD_DATA,
-          userId: defaultUser.id,
+          regularUserId: defaultUser.id,
           strategyId: defaultStrategy.id,
           subAccountId: defaultSubAccount.id,
         },

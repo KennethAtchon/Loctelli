@@ -2,9 +2,9 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, 
 import { IntegrationsService } from './integrations.service';
 import { CreateIntegrationDto } from './dto/create-integration.dto';
 import { UpdateIntegrationDto } from './dto/update-integration.dto';
-import { JwtAuthGuard } from '../../../../../shared/auth/auth.guard';
-import { RolesGuard } from '../../../../../shared/guards/roles.guard';
-import { Roles } from '../../../../../shared/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../../../shared/auth/auth.guard';
+import { RolesGuard } from '../../../../shared/guards/roles.guard';
+import { Roles } from '../../../../shared/decorators/roles.decorator';
 
 @Controller('admin/integrations')
 @UseGuards(JwtAuthGuard, RolesGuard)

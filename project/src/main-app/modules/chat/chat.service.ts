@@ -17,7 +17,7 @@ export class ChatService {
     // Find the lead
     const lead = await this.prisma.lead.findUnique({
       where: { id: leadId },
-      select: { id: true, messageHistory: true, strategyId: true, userId: true }
+      select: { id: true, messageHistory: true, strategyId: true, regularUserId: true }
     });
 
     if (!lead) {
@@ -47,7 +47,7 @@ export class ChatService {
     const updatedLead = await this.prisma.lead.findUnique({
       where: { id: leadId },
       include: {
-        user: true,
+        regularUser: true,
         strategy: true,
       }
     });

@@ -248,7 +248,7 @@ export class BookingHelperService {
     // Create booking in database
     const booking = await this.prisma.booking.create({
       data: {
-        userId,
+        regularUserId: userId,
         leadId,
         bookingType: 'meeting',
         details,

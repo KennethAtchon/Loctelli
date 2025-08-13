@@ -66,7 +66,7 @@ describe('LeadsController (e2e)', () => {
   let leadId: number;
 
   beforeEach(() => {
-    testLead.userId = userId;
+    testLead.regularUserId = userId;
     testLead.strategyId = strategyId;
   });
 

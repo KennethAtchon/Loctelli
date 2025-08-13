@@ -177,7 +177,7 @@ export class GeneralService {
           id: 'desc'
         },
         include: {
-          user: {
+          regularUser: {
             select: {
               id: true,
               name: true,
@@ -260,7 +260,7 @@ export class GeneralService {
       const lead = await this.prisma.lead.findUnique({
         where: { id: leadId },
         include: {
-          user: {
+          regularUser: {
             select: {
               id: true,
               name: true,

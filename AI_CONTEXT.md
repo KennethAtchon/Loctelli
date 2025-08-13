@@ -278,11 +278,11 @@ AdminUser (JWT) -> SystemUserService -> user@loctelli.com (operations)
 #### **SystemUserService Pattern**
 ```typescript
 // Get effective user ID for operations
-getEffectiveUserId(user) -> user.type === 'admin' ? 1 : user.userId
+getEffectiveRegularUserId(user) -> user.type === 'admin' ? 1 : user.userId
 
 // Services use this pattern
 businessFinderService.searchBusinesses(searchDto, user) // Pass full user object
--> systemUserService.getEffectiveUserId(user) // Internally resolves to system user
+-> systemUserService.getEffectiveRegularUserId(user) // Internally resolves to system user
 ```
 
 #### **Service Layer Updates**
@@ -302,7 +302,7 @@ businessFinderService.searchBusinesses(searchDto, user) // Pass full user object
 When implementing user-specific features that admins need access to:
 
 1. **Accept full user object** instead of just `userId`
-2. **Use SystemUserService.getEffectiveUserId()** for database operations
+2. **Use SystemUserService.getEffectiveRegularUserId()** for database operations
 3. **Keep rate limiting on admin's real ID** for proper tracking
 4. **Log admin operations** for audit purposes
 

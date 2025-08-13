@@ -29,8 +29,10 @@ export class StrategiesService {
     }
 
     // Ensure promptTemplateId is set before creating
+    const { userId, ...restDto } = createStrategyDto;
     const strategyData = {
-      ...createStrategyDto,
+      ...restDto,
+      regularUserId: userId,
       promptTemplateId: createStrategyDto.promptTemplateId!,
       subAccountId, // Add SubAccount context
     };
@@ -43,7 +45,7 @@ export class StrategiesService {
   async findAll() {
     return this.prisma.strategy.findMany({
       include: {
-        user: true,
+        regularUser: true,
         leads: true,
       },
     });
@@ -53,7 +55,7 @@ export class StrategiesService {
     return this.prisma.strategy.findMany({
       where: { subAccountId },
       include: {
-        user: true,
+        regularUser: true,
         leads: true,
       },
     });
@@ -72,7 +74,7 @@ export class StrategiesService {
     // All admins can see all strategies
     return this.prisma.strategy.findMany({
       include: {
-        user: true,
+        regularUser: true,
         leads: true,
         subAccount: {
           select: { id: true, name: true }
@@ -85,7 +87,7 @@ export class StrategiesService {
     const strategy = await this.prisma.strategy.findUnique({
       where: { id },
       include: {
-        user: true,
+        regularUser: true,
         leads: true,
       },
     });
@@ -174,8 +176,10 @@ export class StrategiesService {
     };
 
     // Ensure promptTemplateId is set and include SubAccount context
+    const { userId: duplicateUserId, ...restDuplicateData } = duplicateData;
     const strategyData = {
-      ...duplicateData,
+      ...restDuplicateData,
+      regularUserId: duplicateUserId,
       promptTemplateId: duplicateData.promptTemplateId!,
       subAccountId: strategy.subAccountId, // Keep the same SubAccount
     };

@@ -79,7 +79,7 @@ export class SalesBotService implements OnModuleInit {
       
       // Get user and strategy
       const user = await this.prisma.user.findUnique({
-        where: { id: lead.userId }
+        where: { id: lead.regularUserId }
       });
       
       const strategy = await this.prisma.strategy.findUnique({
@@ -140,7 +140,7 @@ export class SalesBotService implements OnModuleInit {
           }
         } as any, // Type assertion to bypass type checking for dynamic fields
         include: {
-          user: true,
+          regularUser: true,
           strategy: true
         }
       });

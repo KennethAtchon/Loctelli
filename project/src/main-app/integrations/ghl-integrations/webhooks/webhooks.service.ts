@@ -89,7 +89,7 @@ export class WebhooksService {
       
       // Get the first strategy for this user
       const strategy = await this.prisma.strategy.findFirst({
-        where: { userId }
+        where: { regularUserId: userId }
       });
       const strategyId = strategy?.id || 1;
       
@@ -107,7 +107,7 @@ export class WebhooksService {
       
       const lead = await this.prisma.lead.create({
         data: {
-          userId,
+          regularUserId: userId,
           strategyId,
           name,
           customId: contactData.id,
@@ -123,7 +123,7 @@ export class WebhooksService {
         status: 'lead_created',
         lead: {
           id: lead.id,
-          userId: lead.userId,
+          userId: lead.regularUserId,
           strategyId: lead.strategyId,
           name: lead.name,
           customId: lead.customId,

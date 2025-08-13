@@ -33,7 +33,7 @@ export class BusinessFinderService {
     const ipAddress = request ? this.rateLimitService.getClientIp(request) : undefined;
 
     // Get effective user ID (system user for admins, regular user for users)
-    const effectiveUserId = this.systemUserService.getEffectiveUserId(user);
+    const effectiveUserId = this.systemUserService.getEffectiveRegularUserId(user);
     const effectiveSubAccountId = await this.systemUserService.getEffectiveSubAccountId(user);
     
     // Log admin operations for audit
@@ -83,7 +83,7 @@ export class BusinessFinderService {
     const startTime = Date.now();
 
     // Get effective user ID (system user for admins, regular user for users)
-    const effectiveUserId = this.systemUserService.getEffectiveUserId(user);
+    const effectiveUserId = this.systemUserService.getEffectiveRegularUserId(user);
     const effectiveSubAccountId = await this.systemUserService.getEffectiveSubAccountId(user);
     
     // Log admin operations for audit
@@ -205,7 +205,7 @@ export class BusinessFinderService {
   }
 
   async getSearchResult(searchId: string, user: any): Promise<SearchResponseDto | null> {
-    const effectiveUserId = this.systemUserService.getEffectiveUserId(user);
+    const effectiveUserId = this.systemUserService.getEffectiveRegularUserId(user);
     const searchRecord = await this.prisma.businessSearch.findFirst({
       where: {
         id: searchId,
@@ -236,7 +236,7 @@ export class BusinessFinderService {
     user: any,
     limit: number = 20,
   ): Promise<any[]> {
-    const effectiveUserId = this.systemUserService.getEffectiveUserId(user);
+    const effectiveUserId = this.systemUserService.getEffectiveRegularUserId(user);
     return this.prisma.businessSearch.findMany({
       where: {
         regularUserId: effectiveUserId,
@@ -258,7 +258,7 @@ export class BusinessFinderService {
   }
 
   async getUserApiKeys(user: any): Promise<any[]> {
-    const effectiveUserId = this.systemUserService.getEffectiveUserId(user);
+    const effectiveUserId = this.systemUserService.getEffectiveRegularUserId(user);
     const apiKeys = await this.prisma.apiKey.findMany({
       where: {
         regularUserId: effectiveUserId,
@@ -299,7 +299,7 @@ export class BusinessFinderService {
     keyValue: string,
     dailyLimit?: number,
   ): Promise<void> {
-    const effectiveUserId = this.systemUserService.getEffectiveUserId(user);
+    const effectiveUserId = this.systemUserService.getEffectiveRegularUserId(user);
     // In a real implementation, encrypt the API key
     const encryptedKey = this.encryptApiKey(keyValue);
 
@@ -329,7 +329,7 @@ export class BusinessFinderService {
   }
 
   async deleteUserApiKey(user: any, service: string, keyName: string): Promise<void> {
-    const effectiveUserId = this.systemUserService.getEffectiveUserId(user);
+    const effectiveUserId = this.systemUserService.getEffectiveRegularUserId(user);
     await this.prisma.apiKey.deleteMany({
       where: {
         regularUserId: effectiveUserId,

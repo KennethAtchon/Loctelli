@@ -10,7 +10,11 @@ export class BookingsService {
   async create(createBookingDto: CreateBookingDto, subAccountId: number) {
     return this.prisma.booking.create({
       data: {
-        ...createBookingDto,
+        regularUserId: createBookingDto.userId,
+        leadId: createBookingDto.leadId,
+        bookingType: createBookingDto.bookingType,
+        details: createBookingDto.details,
+        status: createBookingDto.status || 'pending',
         subAccountId, // Add SubAccount context
       },
     });
@@ -19,7 +23,7 @@ export class BookingsService {
   async findAll() {
     return this.prisma.booking.findMany({
       include: {
-        user: true,
+        regularUser: true,
         lead: true,
       },
     });
@@ -29,7 +33,7 @@ export class BookingsService {
     return this.prisma.booking.findMany({
       where: { subAccountId },
       include: {
-        user: true,
+        regularUser: true,
         lead: true,
       },
     });
@@ -39,7 +43,7 @@ export class BookingsService {
     // All admins can see all bookings
     return this.prisma.booking.findMany({
       include: {
-        user: true,
+        regularUser: true,
         lead: true,
         subAccount: {
           select: { id: true, name: true }
@@ -52,7 +56,7 @@ export class BookingsService {
     const booking = await this.prisma.booking.findUnique({
       where: { id },
       include: {
-        user: true,
+        regularUser: true,
         lead: true,
       },
     });
@@ -123,7 +127,7 @@ export class BookingsService {
         where: { id },
         data: updateBookingDto,
         include: {
-          user: true,
+          regularUser: true,
           lead: true,
         },
       });

@@ -34,7 +34,7 @@ export class ChatController {
         throw new HttpException('Lead not found', HttpStatus.NOT_FOUND);
       }
       
-      if (user.role !== 'admin' && user.role !== 'super_admin' && lead.userId !== user.userId) {
+      if (user.role !== 'admin' && user.role !== 'super_admin' && lead.regularUserId !== user.userId) {
         this.logger.warn(`Message send failed - access denied for user: ${user.email} on lead: ${chatMessageDto.leadId}`);
         throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
       }
@@ -65,7 +65,7 @@ export class ChatController {
         throw new HttpException('Lead not found', HttpStatus.NOT_FOUND);
       }
       
-      if (user.role !== 'admin' && user.role !== 'super_admin' && lead.userId !== user.userId) {
+      if (user.role !== 'admin' && user.role !== 'super_admin' && lead.regularUserId !== user.userId) {
         this.logger.warn(`Message history failed - access denied for user: ${user.email} on lead: ${leadId}`);
         throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
       }
@@ -116,7 +116,7 @@ export class ChatController {
         throw new HttpException('Lead not found', HttpStatus.NOT_FOUND);
       }
       
-      if (user.role !== 'admin' && user.role !== 'super_admin' && lead.userId !== user.userId) {
+      if (user.role !== 'admin' && user.role !== 'super_admin' && lead.regularUserId !== user.userId) {
         this.logger.warn(`Unread count failed - access denied for user: ${user.email} on lead: ${leadId}`);
         throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
       }
@@ -147,7 +147,7 @@ export class ChatController {
         throw new HttpException('Lead not found', HttpStatus.NOT_FOUND);
       }
       
-      if (user.role !== 'admin' && user.role !== 'super_admin' && lead.userId !== user.userId) {
+      if (user.role !== 'admin' && user.role !== 'super_admin' && lead.regularUserId !== user.userId) {
         this.logger.warn(`Mark all as read failed - access denied for user: ${user.email} on lead: ${leadId}`);
         throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
       }
@@ -208,7 +208,7 @@ export class ChatController {
         this.logger.warn(`Clear chat history failed - lead not found: ${leadId}`);
         throw new HttpException('Lead not found', HttpStatus.NOT_FOUND);
       }
-      if (user.role !== 'admin' && user.role !== 'super_admin' && lead.userId !== user.userId) {
+      if (user.role !== 'admin' && user.role !== 'super_admin' && lead.regularUserId !== user.userId) {
         this.logger.warn(`Clear chat history failed - access denied for user: ${user.email} on lead: ${leadId}`);
         throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
       }
