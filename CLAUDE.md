@@ -73,3 +73,33 @@ docker-compose down -v
 
 * Admin password: `defaultAdmin123!CANTUNA`
 * Database credentials: `postgres / password / loctelli`
+
+## Project Structure
+
+### Frontend (`my-app/`)
+* **`app/`** - Next.js 15 App Router pages and layouts
+  * **`admin/`** - Admin panel pages (auth & main sections)
+  * **`api/`** - API routes and proxy endpoints
+  * **`auth/`** - Public authentication pages
+* **`components/`** - React components organized by feature
+  * **`admin/`** - Admin-specific components
+  * **`ui/`** - Reusable UI components (shadcn/ui)
+  * **`customUI/`** - Custom data tables and utilities
+* **`lib/`** - Utilities and API client
+  * **`api/`** - API client and endpoint definitions
+* **`contexts/`** - React context providers (auth, theme, filters)
+
+### Backend (`project/`)
+* **`src/main-app/`** - Main application modules
+  * **`modules/`** - Core business modules (leads, chat, bookings, etc.)
+  * **`integrations/`** - External service integrations (GHL, webhooks)
+  * **`infrastructure/`** - Core infrastructure (cache, config, middleware)
+* **`src/shared/`** - Shared services and utilities
+  * **`auth/`** - Authentication services and guards
+  * **`job-queue/`** - Background job processing
+  * **`sms/`** - SMS campaign services
+  * **`storage/`** - File storage (R2/S3)
+* **`prisma/`** - Database schema and migrations
+
+### Helper Scripts (`.helper/`)
+* **`scripts/`** - Docker setup and utility scripts

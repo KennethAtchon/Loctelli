@@ -44,6 +44,7 @@ interface GooglePlaceDetailsResponse {
   status: string;
 }
 
+
 @Injectable()
 export class GooglePlacesService {
   private readonly logger = new Logger(GooglePlacesService.name);

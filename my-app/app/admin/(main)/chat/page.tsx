@@ -611,25 +611,6 @@ export default function ChatPage() {
                   </div>
                 </div>
               )}
-              
-              {leadProfile && chatInterfaceMessages.length === 0 && !isLoading && !isLoadingHistory && (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center py-12">
-                    <div className="mx-auto w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center mb-4">
-                      <Bot className="h-8 w-8 text-white" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Start a conversation</h3>
-                    <p className="text-base text-gray-600 max-w-2xl mx-auto">
-                      You're now chatting as {leadProfile.name}. Send a message to begin your conversation with the AI assistant.
-                    </p>
-                    <div className="mt-4 inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/60 rounded-full shadow-sm">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm font-semibold text-blue-700">Connected as {leadProfile.name}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
               {leadProfile && (
                 <ChatInterface
                   ref={chatInterfaceRef}
