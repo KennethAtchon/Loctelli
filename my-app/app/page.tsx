@@ -1,21 +1,18 @@
-import { HeroSection } from "@/components/version1/hero-section";
-import { HowItWorks } from "@/components/version1/how-it-works";
-import { FeaturesSection } from "@/components/version1/features-section";
-import { ContactSection } from "@/components/version1/contact-section";
-import { Footer } from "@/components/version1/footer";
-import { Navigation } from "@/components/version1/navigation";
+import { HeroSection } from "@/components/version2/hero-section";
+import { ServicesSection } from "@/components/version2/services-section";
+import { ProcessSection } from "@/components/version2/process-section";
+import { ContactSection } from "@/components/version2/contact-section";
+import { Footer } from "@/components/version2/footer";
+import { Navigation } from "@/components/version2/navigation";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <Navigation />
       <main className="flex-1">
         <HeroSection />
-        <HowItWorks />
-        <FeaturesSection />
-        {/* <DemoSection />
-        <Testimonials />
-        <PricingSection /> */}
+        <ServicesSection />
+        <ProcessSection />
         <ContactSection />
       </main>
       <Footer />
