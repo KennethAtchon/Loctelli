@@ -253,4 +253,66 @@ export interface GhlMessage {
     url: string;
     type: string;
   }>;
+}
+
+// Contact System types
+export interface ContactNote {
+  content: string;
+  createdAt: string;
+  authorId: number;
+  authorName: string;
+}
+
+export interface ContactSubmission {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  services: string;
+  message?: string;
+  source: string;
+  status: 'NEW' | 'CONTACTED' | 'QUALIFIED' | 'PROPOSAL_SENT' | 'CLOSED_WON' | 'CLOSED_LOST' | 'UNRESPONSIVE';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  submittedAt: Date;
+  updatedAt: Date;
+  followedUpAt?: Date;
+  closedAt?: Date;
+  assignedToId?: number;
+  assignedTo?: User;
+  notes?: ContactNote[];
+  subAccountId: number;
+  subAccount?: any;
+}
+
+export interface CreateContactSubmissionDto {
+  fullName: string;
+  email: string;
+  phone: string;
+  services: string;
+  message?: string;
+  source?: string;
+}
+
+export interface UpdateContactSubmissionDto {
+  status?: ContactSubmission['status'];
+  priority?: ContactSubmission['priority'];
+  assignedToId?: string;
+  followedUpAt?: string;
+}
+
+export interface CreateContactNoteDto {
+  content: string;
+}
+
+export interface ContactFiltersDto {
+  status?: ContactSubmission['status'];
+  priority?: ContactSubmission['priority'];
+  assignedToId?: string;
+}
+
+export interface ContactStats {
+  total: number;
+  newCount: number;
+  inProgress: number;
+  closed: number;
 } 

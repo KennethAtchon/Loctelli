@@ -17,6 +17,7 @@ import { GhlModule } from './integrations/ghl-integrations/ghl/ghl.module';
 import { GeneralModule } from './general/general.module';
 import { DebugModule } from './debug/debug.module';
 import { FinderModule } from './modules/finder/finder.module';
+import { ContactsModule } from './modules/contacts/contacts.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { FinderModule } from './modules/finder/finder.module';
     GeneralModule,
     DebugModule,
     FinderModule,
+    ContactsModule,
   ],
 })
 export class MainAppModule {} 

@@ -22,10 +22,11 @@ export function ContactSection() {
       email: formData.get("email") as string,
       phone: formData.get("phone") as string,
       services: formData.get("services") as string,
+      source: 'website',
     };
 
     try {
-      const response = await fetch("/api/contact", {
+      const response = await fetch("/api/proxy/contacts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -34,12 +35,19 @@ export function ContactSection() {
       });
 
       if (response.ok) {
-        const result = await response.json();
         setSubmitMessage("Thank you! We'll contact you within 24 hours.");
         (e.target as HTMLFormElement).reset();
+        
+        // Optional: Track conversion
+        if (typeof window !== 'undefined' && (window as any).gtag) {
+          (window as any).gtag('event', 'form_submit', {
+            event_category: 'Contact',
+            event_label: 'Website Contact Form',
+          });
+        }
       } else {
         const error = await response.json();
-        setSubmitMessage(error.error || "Failed to submit form. Please try again.");
+        setSubmitMessage(error.message || "Failed to submit form. Please try again.");
       }
     } catch (error) {
       setSubmitMessage("Failed to submit form. Please try again.");

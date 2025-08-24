@@ -6,7 +6,8 @@
       "Bash(npm run build:*)",
       "Bash(mv:*)",
       "Bash(npm run lint)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(npx prisma generate:*)"
     ],
     "deny": []
   },

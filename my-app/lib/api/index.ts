@@ -13,6 +13,7 @@ import { AdminAuthApi } from './endpoints/admin-auth';
 import { AdminSubAccountsApi } from './endpoints/admin-subaccounts';
 import { GeneralApi } from './endpoints/general';
 import { SmsApi } from './endpoints/sms';
+import { ContactsApi } from './endpoints/contacts';
 
 export class Api extends ApiClient {
   public auth: AuthApi;
@@ -29,6 +30,7 @@ export class Api extends ApiClient {
   public status: StatusApi;
   public general: GeneralApi;
   public sms: SmsApi;
+  public contacts: ContactsApi;
 
   constructor(baseUrl?: string) {
     super(baseUrl);
@@ -48,6 +50,7 @@ export class Api extends ApiClient {
     this.status = new StatusApi(baseUrl);
     this.general = new GeneralApi(baseUrl);
     this.sms = new SmsApi(baseUrl);
+    this.contacts = new ContactsApi(baseUrl);
   }
 }
 
@@ -69,6 +72,7 @@ export { IntegrationsApi } from './endpoints/integrations';
 export { StatusApi } from './endpoints/status';
 export { GeneralApi } from './endpoints/general';
 export { SmsApi } from './endpoints/sms';
+export { ContactsApi } from './endpoints/contacts';
 
 // Export types
 export type { SystemStatus } from './endpoints/status';
