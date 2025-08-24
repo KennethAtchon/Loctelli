@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Calendar, ArrowRight, Sparkles, TrendingUp, Users, Star } from "lucide-react";
+import { Calendar, ArrowRight, Sparkles } from "lucide-react";
 
 export function HeroSection() {
   return (
@@ -36,25 +36,6 @@ export function HeroSection() {
             We help businesses <span className="font-semibold text-gray-800">triple their revenue</span> with free professional websites, automated Google reviews, customer reactivation campaigns, and AI-driven lead generation.
           </p>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8 max-w-2xl mx-auto">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">25+</div>
-              <div className="text-sm text-gray-600">Websites Built</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">500+</div>
-              <div className="text-sm text-gray-600">Reviews Generated</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">100%</div>
-              <div className="text-sm text-gray-600">Client Satisfaction</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">250%</div>
-              <div className="text-sm text-gray-600">Average ROI</div>
-            </div>
-          </div>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
@@ -68,25 +49,6 @@ export function HeroSection() {
             </Button>
           </div>
 
-          {/* Trust Indicators */}
-          <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-6 opacity-80">
-            <div className="flex items-center gap-2">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <span className="text-gray-600 text-sm font-medium">4.9/5 Rating</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-purple-500" />
-              <span className="text-gray-600 text-sm font-medium">3X Revenue Increase</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-blue-500" />
-              <span className="text-gray-600 text-sm font-medium">10+ Clients</span>
-            </div>
-          </div>
         </div>
       </div>
     </section>

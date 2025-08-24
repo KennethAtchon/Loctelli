@@ -27,7 +27,7 @@ services:
     image: redis:7-alpine
     container_name: loctelli_redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru --timeout 0 --tcp-keepalive 60 --tcp-backlog 511 --databases 16
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy noeviction --timeout 0 --tcp-keepalive 60 --tcp-backlog 511 --databases 16
     ports:
       - "6379:6379"
     volumes:
