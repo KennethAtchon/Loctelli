@@ -21,7 +21,6 @@ import { JwtAuthGuard } from './auth.guard';
 
 // Shared modules
 import { PrismaModule } from '../prisma/prisma.module';
-import { CacheModule } from '../cache/cache.module';
 
 @Module({
   imports: [
@@ -37,7 +36,6 @@ import { CacheModule } from '../cache/cache.module';
       inject: [ConfigService],
     }),
     PrismaModule,
-    CacheModule,
     ConfigModule,
   ],
   controllers: [

@@ -1,7 +1,6 @@
 import { Injectable, UnauthorizedException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../prisma/prisma.service';
-import { CacheService } from '../../cache/cache.service';
 import * as bcrypt from 'bcrypt';
 
 export interface LoginDto {
@@ -30,7 +29,6 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-    private cacheService: CacheService,
   ) {}
 
   // Password validation function
@@ -146,9 +144,8 @@ export class AuthService {
     const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
-    this.logger.debug(`Storing refresh token in Redis for user: ${loginDto.email}`);
-    // Store refresh token in Redis with rotation
-    await this.cacheService.setCache(`refresh:${user.id}`, refreshToken, 7 * 24 * 60 * 60);
+    this.logger.debug(`Generated stateless refresh token for user: ${loginDto.email}`);
+    // Refresh token is stateless - no storage needed
 
     this.logger.log(`Login successful for user: ${loginDto.email} (ID: ${user.id})`);
     return {
@@ -236,15 +233,9 @@ export class AuthService {
   async logout(userId: number) {
     this.logger.log(`Processing logout for user ID: ${userId}`);
     
-    try {
-      // Remove refresh token from Redis
-      await this.cacheService.delCache(`refresh:${userId}`);
-      this.logger.log(`Logout successful for user ID: ${userId}`);
-      return { message: 'Logged out successfully' };
-    } catch (error) {
-      this.logger.error(`Error during logout for user ID: ${userId}`, error.stack);
-      throw error;
-    }
+    // Stateless logout - no token storage to clear
+    this.logger.log(`Logout successful for user ID: ${userId}`);
+    return { message: 'Logged out successfully' };
   }
 
   async getProfile(userId: number) {
@@ -324,9 +315,8 @@ export class AuthService {
         data: { password: hashedNewPassword },
       });
 
-      this.logger.debug(`Invalidating refresh tokens for user ID: ${userId}`);
-      // Invalidate all existing refresh tokens for this user
-      await this.cacheService.delCache(`refresh:${userId}`);
+      this.logger.debug(`Password changed - stateless tokens remain valid until expiry for user ID: ${userId}`);
+      // Stateless tokens remain valid until natural expiry
 
       this.logger.log(`Password change successful for user ID: ${userId}`);
       return { message: 'Password changed successfully' };
@@ -345,14 +335,8 @@ export class AuthService {
       const decoded = this.jwtService.verify(refreshToken) as JwtPayload;
       const userId = decoded.sub;
 
-      this.logger.debug(`Verifying refresh token from Redis for user ID: ${userId}`);
-      // Verify refresh token from Redis
-      const storedToken = await this.cacheService.getCache(`refresh:${userId}`);
-      
-      if (!storedToken || storedToken !== refreshToken) {
-        this.logger.warn(`Invalid refresh token for user ID: ${userId}`);
-        throw new UnauthorizedException('Invalid refresh token');
-      }
+      this.logger.debug(`Verifying stateless refresh token for user ID: ${userId}`);
+      // Stateless token verification - JWT signature already validated above
 
       this.logger.debug(`Checking user status for user ID: ${userId}`);
       const user = await this.prisma.user.findUnique({
@@ -375,9 +359,8 @@ export class AuthService {
       const newAccessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
       const newRefreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
-      this.logger.debug(`Updating refresh token in Redis for user ID: ${userId}`);
-      // Update refresh token in Redis (rotation)
-      await this.cacheService.setCache(`refresh:${user.id}`, newRefreshToken, 7 * 24 * 60 * 60);
+      this.logger.debug(`Generated new stateless refresh token for user ID: ${userId}`);
+      // Stateless token generation - no storage needed
 
       this.logger.log(`Token refresh successful for user ID: ${userId}`);
       return {

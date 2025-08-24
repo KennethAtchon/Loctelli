@@ -1,7 +1,6 @@
 import { Injectable, UnauthorizedException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../prisma/prisma.service';
-import { CacheService } from '../../cache/cache.service';
 import * as bcrypt from 'bcrypt';
 
 export interface AdminLoginDto {
@@ -31,7 +30,6 @@ export class AdminAuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-    private cacheService: CacheService,
   ) {}
 
   // Password validation function
@@ -148,29 +146,8 @@ export class AdminAuthService {
     const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
-    this.logger.debug(`Storing admin refresh token in Redis for user: ${loginDto.email}`);
-    // Store refresh token in Redis with rotation
-    const cacheDurationSeconds = 7 * 24 * 60 * 60; // 7 days in seconds
-    const cacheDurationHours = cacheDurationSeconds / 3600;
-    const cacheDurationDays = cacheDurationHours / 24;
-    
-    this.logger.log(`⏰ ADMIN REFRESH TOKEN CACHE DURATION: ${cacheDurationDays} days (${cacheDurationHours} hours, ${cacheDurationSeconds} seconds) for user: ${loginDto.email}`);
-    
-    try {
-      await this.cacheService.setCache(`admin_refresh:${adminUser.id}`, refreshToken, cacheDurationSeconds);
-      this.logger.debug(`✅ Admin refresh token stored successfully in Redis for user: ${loginDto.email}`);
-      
-      // Verify the token was stored correctly
-              const storedToken = await this.cacheService.getCache(`admin_refresh:${adminUser.id}`);
-      if (storedToken === refreshToken) {
-        this.logger.debug(`✅ Admin refresh token verification successful for user: ${loginDto.email}`);
-      } else {
-        this.logger.error(`❌ Admin refresh token verification failed for user: ${loginDto.email}`);
-      }
-    } catch (error) {
-      this.logger.error(`❌ Failed to store admin refresh token in Redis for user: ${loginDto.email}`, error);
-      throw new Error('Failed to store refresh token');
-    }
+    this.logger.debug(`Generated stateless admin refresh token for user: ${loginDto.email}`);
+    // Stateless refresh token - no storage needed
 
     this.logger.log(`✅ Admin login successful for user: ${loginDto.email} (ID: ${adminUser.id})`);
     return {
@@ -282,8 +259,7 @@ export class AdminAuthService {
   }
 
   async adminLogout(adminId: number) {
-    // Remove refresh token from Redis
-    await this.cacheService.delCache(`admin_refresh:${adminId}`);
+    // Stateless logout - no token storage to clear
     return { message: 'Admin logged out successfully' };
   }
 
@@ -503,8 +479,7 @@ export class AdminAuthService {
       data: { password: hashedNewPassword },
     });
 
-    // Invalidate all existing refresh tokens for this admin
-    await this.cacheService.delCache(`admin_refresh:${adminId}`);
+    // Stateless tokens remain valid until natural expiry
 
     return { message: 'Admin password changed successfully' };
   }
@@ -520,23 +495,8 @@ export class AdminAuthService {
       const adminId = decoded.sub;
       this.logger.debug(`✅ Token decoded successfully for admin ID: ${adminId}`);
 
-      // Verify refresh token from Redis
-      this.logger.debug(`🔍 Checking Redis for stored refresh token for admin ID: ${adminId}`);
-      const storedToken = await this.cacheService.getCache(`admin_refresh:${adminId}`);
-      
-      if (!storedToken) {
-        this.logger.warn(`❌ No stored refresh token found in Redis for admin ID: ${adminId}`);
-        throw new UnauthorizedException('Invalid refresh token - not found in Redis');
-      }
-      
-      if (storedToken !== refreshToken) {
-        this.logger.warn(`❌ Stored token mismatch for admin ID: ${adminId}`);
-        this.logger.debug(`Expected: ${storedToken.substring(0, 20)}...`);
-        this.logger.debug(`Received: ${refreshToken.substring(0, 20)}...`);
-        throw new UnauthorizedException('Invalid refresh token - token mismatch');
-      }
-      
-      this.logger.debug(`✅ Refresh token verified in Redis for admin ID: ${adminId}`);
+      // Stateless token verification - JWT signature already validated above
+      this.logger.debug(`✅ Stateless refresh token verified for admin ID: ${adminId}`);
 
       this.logger.debug(`🔍 Fetching admin user from database for ID: ${adminId}`);
       const adminUser = await this.prisma.adminUser.findUnique({
@@ -567,10 +527,8 @@ export class AdminAuthService {
       const newAccessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
       const newRefreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
-      // Update refresh token in Redis (rotation)
-      this.logger.debug(`💾 Storing new refresh token in Redis for admin ID: ${adminUser.id}`);
-      await this.cacheService.setCache(`admin_refresh:${adminUser.id}`, newRefreshToken, 7 * 24 * 60 * 60);
-      this.logger.debug(`✅ New refresh token stored successfully`);
+      // Stateless token generation - no storage needed
+      this.logger.debug(`✅ New stateless refresh token generated for admin ID: ${adminUser.id}`);
 
       this.logger.log(`✅ Admin token refresh successful for user: ${adminUser.email} (ID: ${adminUser.id})`);
       return {
@@ -647,8 +605,7 @@ export class AdminAuthService {
       where: { id: targetAdminId },
     });
 
-    // Invalidate any existing refresh tokens for the deleted admin
-    await this.cacheService.delCache(`admin_refresh:${targetAdminId}`);
+    // Stateless tokens for deleted admin will remain valid until natural expiry
 
     return { 
       message: `Admin account deleted successfully. ${usersCreatedByAdmin} user(s) created by this admin have been updated to remove the admin reference.` 
