@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Calendar, Menu, X } from "lucide-react";
 import { useState } from "react";
+import Image from "next/image";
 
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,11 +14,15 @@ export function Navigation() {
         <div className="flex justify-between items-center py-3">
           {/* Logo */}
           <div className="flex items-center">
+            <Image
+              src="/favicon-white-on-black.png"
+              alt="Loctelli Logo"
+              width={32}
+              height={32}
+              className="mr-2"
+            />
             <div className="text-xl font-bold text-blue-600">
               Loctelli
-            </div>
-            <div className="ml-2 text-xs text-gray-500 font-medium">
-              AI MARKETING
             </div>
           </div>
 
