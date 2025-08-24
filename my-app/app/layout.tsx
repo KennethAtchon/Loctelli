@@ -17,6 +17,40 @@ export const metadata: Metadata = {
     "Automate your sales with AI-powered funnels. Loctelli creates ads, funnels leads into an AI chat system that qualifies and books meetings.",
   keywords:
     "AI infrastructure, lead generation, sales automation, AI chat, lead qualification",
+  
+  // Add missing elements
+  metadataBase: new URL('https://loctelli.com'),
+  alternates: {
+    canonical: '/',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  
+  // Open Graph
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://loctelli.com',
+    title: 'Loctelli - AI-Powered Lead Generation & Qualification',
+    description: 'Automate your sales with AI-powered funnels. Triple your revenue with professional websites, automated reviews, and AI-driven lead generation.',
+    siteName: 'Loctelli',
+    images: [{
+      url: '/og-image.jpg',
+      width: 1200,
+      height: 630,
+      alt: 'Loctelli AI Marketing Platform',
+    }],
+  },
+  
+  // Twitter
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Loctelli - AI-Powered Lead Generation',
+    description: 'Triple your revenue with AI marketing automation',
+    images: ['/twitter-image.jpg'],
+  },
 };
 
 // Validate environment variables on app startup
