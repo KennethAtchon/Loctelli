@@ -2,12 +2,16 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { CreateIntegrationDto } from './dto/create-integration.dto';
 import { UpdateIntegrationDto } from './dto/update-integration.dto';
+import { EncryptionService } from '../../../../shared/encryption/encryption.service';
 
 @Injectable()
 export class IntegrationsService {
   private readonly logger = new Logger(IntegrationsService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private encryptionService: EncryptionService
+  ) {}
 
   async findAll(subAccountId?: number) {
     this.logger.debug(`Finding integrations${subAccountId ? ` for subaccount ${subAccountId}` : ''}`);
@@ -109,9 +113,13 @@ export class IntegrationsService {
         throw new NotFoundException(`SubAccount with ID ${createDto.subAccountId} not found`);
       }
 
+      // Encrypt sensitive config data before saving
+      const encryptedConfig = this.encryptSensitiveConfig(createDto.config);
+
       const result = await this.prisma.integration.create({
         data: {
           ...createDto,
+          config: encryptedConfig,
           createdByAdminId: adminId,
         },
         include: {
@@ -155,9 +163,15 @@ export class IntegrationsService {
       // Check if integration exists
       await this.findOne(id);
 
+      // Encrypt sensitive config data if config is being updated
+      const updateData = { ...updateDto };
+      if (updateData.config) {
+        updateData.config = this.encryptSensitiveConfig(updateData.config);
+      }
+
       const result = await this.prisma.integration.update({
         where: { id },
-        data: updateDto,
+        data: updateData,
         include: {
           subAccount: {
             select: {
@@ -286,5 +300,60 @@ export class IntegrationsService {
       integration: integration.integrationTemplate.displayName,
       lastSyncAt: new Date(),
     };
+  }
+
+  /**
+   * Encrypt sensitive configuration data before storing in database
+   * @param config Integration configuration object
+   * @returns Configuration object with encrypted sensitive fields
+   */
+  private encryptSensitiveConfig(config: any): any {
+    if (!config) return config;
+    
+    const encryptedConfig = { ...config };
+    
+    // Encrypt API key if present
+    if (encryptedConfig.apiKey && typeof encryptedConfig.apiKey === 'string') {
+      encryptedConfig.apiKey = this.encryptionService.safeEncrypt(encryptedConfig.apiKey);
+    }
+    
+    // Add other sensitive fields here as needed
+    // if (encryptedConfig.secretToken) {
+    //   encryptedConfig.secretToken = this.encryptionService.safeEncrypt(encryptedConfig.secretToken);
+    // }
+    
+    return encryptedConfig;
+  }
+
+  /**
+   * Decrypt sensitive configuration data after retrieving from database
+   * @param config Integration configuration object with encrypted fields
+   * @returns Configuration object with decrypted sensitive fields
+   */
+  decryptSensitiveConfig(config: any): any {
+    if (!config) return config;
+    
+    const decryptedConfig = { ...config };
+    
+    // Decrypt API key if present
+    if (decryptedConfig.apiKey && typeof decryptedConfig.apiKey === 'string') {
+      try {
+        decryptedConfig.apiKey = this.encryptionService.safeDecrypt(decryptedConfig.apiKey);
+      } catch (error) {
+        this.logger.warn(`Failed to decrypt API key: ${error.message}`);
+        // Keep the encrypted value if decryption fails
+      }
+    }
+    
+    // Add other sensitive fields here as needed
+    // if (decryptedConfig.secretToken) {
+    //   try {
+    //     decryptedConfig.secretToken = this.encryptionService.safeDecrypt(decryptedConfig.secretToken);
+    //   } catch (error) {
+    //     this.logger.warn(`Failed to decrypt secret token: ${error.message}`);
+    //   }
+    // }
+    
+    return decryptedConfig;
   }
 } 

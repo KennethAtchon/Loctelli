@@ -18,6 +18,18 @@ export class GhlIntegrationConfigDto {
   @IsString()
   @IsOptional()
   webhookUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  apiVersion?: string; // Default: v1
+
+  @IsString()
+  @IsOptional()
+  baseUrl?: string; // Default: https://rest.gohighlevel.com
+
+  @IsString()
+  @IsOptional()
+  webhookId?: string; // GHL webhook ID after setup
 }
 
 /**

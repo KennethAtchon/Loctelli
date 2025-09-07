@@ -5,12 +5,16 @@ import { UpdateIntegrationDto } from './dto/update-integration.dto';
 import { JwtAuthGuard } from '../../../../shared/auth/auth.guard';
 import { RolesGuard } from '../../../../shared/guards/roles.guard';
 import { Roles } from '../../../../shared/decorators/roles.decorator';
+import { GhlService } from '../../ghl-integrations/ghl/ghl.service';
 
 @Controller('admin/integrations')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin', 'super_admin')
 export class IntegrationsController {
-  constructor(private readonly integrationsService: IntegrationsService) {}
+  constructor(
+    private readonly integrationsService: IntegrationsService,
+    private readonly ghlService: GhlService
+  ) {}
 
   @Post()
   create(@Body() createDto: CreateIntegrationDto, @Request() req) {
@@ -67,5 +71,21 @@ export class IntegrationsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.integrationsService.delete(+id);
+  }
+
+  // GHL-specific endpoints
+  @Post(':id/test-ghl-connection')
+  testGhlConnection(@Param('id') id: string) {
+    return this.ghlService.testConnection(+id);
+  }
+
+  @Get(':id/ghl-locations')
+  getGhlLocations(@Param('id') id: string) {
+    return this.ghlService.searchSubaccountsByIntegration(+id);
+  }
+
+  @Post(':id/setup-ghl-webhook')
+  setupGhlWebhook(@Param('id') id: string, @Body() webhookConfig: {events: string[]}) {
+    return this.ghlService.setupWebhook(+id, webhookConfig);
   }
 } 
