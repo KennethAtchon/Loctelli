@@ -20,9 +20,9 @@ import {
   ApiSource,
   UsageStats,
   SearchHistory,
-  JobStatusDto,
-  finderApi 
+  JobStatusDto
 } from '@/lib/api/endpoints/finder';
+import { api } from '@/lib/api';
 
 export function FinderDashboard() {
   const [searchResponse, setSearchResponse] = useState<SearchResponseDto | null>(null);
@@ -45,9 +45,9 @@ export function FinderDashboard() {
       setIsRefreshing(true);
       setError(null);
       const [sourcesRes, statsRes, historyRes] = await Promise.all([
-        finderApi.getAvailableSources(),
-        finderApi.getUsageStats(),
-        finderApi.getSearchHistory(undefined, 10),
+        api.finder.getAvailableSources(),
+        api.finder.getUsageStats(),
+        api.finder.getSearchHistory(undefined, 10),
       ]);
 
       setAvailableSources(sourcesRes.sources);
@@ -85,7 +85,7 @@ export function FinderDashboard() {
       toast.info('Starting search in background. This may take a moment...');
       
       // Start async job
-      const jobResponse = await finderApi.searchBusinessesAsync(searchData);
+      const jobResponse = await api.finder.searchBusinessesAsync(searchData);
       setCurrentJobId(jobResponse.jobId);
       
       // Start polling for job status
@@ -118,7 +118,7 @@ export function FinderDashboard() {
     const poll = async () => {
       try {
         attempts++;
-        const status = await finderApi.getJobStatus(jobId);
+        const status = await api.finder.getJobStatus(jobId);
         setJobStatus(status);
         
         if (status.status === 'completed') {
@@ -167,8 +167,8 @@ export function FinderDashboard() {
   const refreshDashboardData = async () => {
     try {
       const [statsRes, historyRes] = await Promise.all([
-        finderApi.getUsageStats(),
-        finderApi.getSearchHistory(undefined, 10),
+        api.finder.getUsageStats(),
+        api.finder.getSearchHistory(undefined, 10),
       ]);
       setUsageStats(statsRes);
       setSearchHistory(historyRes);
@@ -187,7 +187,7 @@ export function FinderDashboard() {
 
   const handleHistorySearch = async (historyItem: SearchHistory) => {
     try {
-      const response = await finderApi.getSearchResult(historyItem.id);
+      const response = await api.finder.getSearchResult(historyItem.id);
       setModalSearchResponse(response);
       setSearchResultsModalOpen(true);
       toast.success('Previous search results loaded');

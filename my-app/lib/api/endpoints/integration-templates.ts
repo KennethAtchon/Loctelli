@@ -1,5 +1,14 @@
 import { ApiClient } from '../client';
 
+export interface ConfigSchema {
+  properties?: Record<string, {
+    type: string;
+    title?: string;
+    description?: string;
+  }>;
+  required?: string[];
+}
+
 export interface IntegrationTemplate {
   id: number;
   name: string;
@@ -8,7 +17,7 @@ export interface IntegrationTemplate {
   category: string;
   icon?: string;
   isActive: boolean;
-  configSchema: Record<string, unknown>;
+  configSchema: ConfigSchema;
   setupInstructions?: string;
   webhookUrl?: string;
   apiVersion?: string;
@@ -29,7 +38,7 @@ export interface CreateIntegrationTemplateDto {
   category: string;
   icon?: string;
   isActive?: boolean;
-  configSchema: Record<string, unknown>;
+  configSchema: ConfigSchema;
   setupInstructions?: string;
   webhookUrl?: string;
   apiVersion?: string;

@@ -10,7 +10,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { BusinessSearchResultDto, ExportResultsDto, finderApi } from '@/lib/api/endpoints/finder';
+import { BusinessSearchResultDto, ExportResultsDto } from '@/lib/api/endpoints/finder';
+import { api } from '@/lib/api';
 
 interface ExportDialogProps {
   isOpen: boolean;
@@ -62,7 +63,7 @@ export function ExportDialog({ isOpen, onClose, searchId, results }: ExportDialo
   useEffect(() => {
     const loadFields = async () => {
       try {
-        const response = await finderApi.getAvailableFields();
+        const response = await api.finder.getAvailableFields();
         setAvailableFields(response.fields);
         
         // Select common fields by default
@@ -139,7 +140,7 @@ export function ExportDialog({ isOpen, onClose, searchId, results }: ExportDialo
         sources: selectedSources,
       };
 
-      const blob = await finderApi.exportResults(exportData);
+      const blob = await api.finder.exportResults(exportData);
       
       // Create download link
       const url = window.URL.createObjectURL(blob);

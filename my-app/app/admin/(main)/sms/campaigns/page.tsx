@@ -22,7 +22,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { api } from '@/lib/api';
-import { SmsCampaign, CampaignListParams } from '@/types/sms';
+import { SmsCampaign, CampaignListParams, CampaignStatus } from '@/types/sms';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -65,7 +65,7 @@ export default function SmsCampaignsPage() {
     }
   };
 
-  const handleStatusChange = async (campaignId: number, newStatus: string) => {
+  const handleStatusChange = async (campaignId: number, newStatus: CampaignStatus) => {
     try {
       const response = await api.sms.updateCampaign(campaignId, { status: newStatus });
       if (response?.success) {

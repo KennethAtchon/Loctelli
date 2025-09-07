@@ -20,13 +20,15 @@ export interface SmsMessage {
 }
 
 // SMS Campaign Types
+export type CampaignStatus = 'draft' | 'sending' | 'completed' | 'failed';
+
 export interface SmsCampaign {
   id: number;
   userId: number;
   subAccountId: number;
   name: string;
   message: string;
-  status: 'draft' | 'sending' | 'completed' | 'failed';
+  status: CampaignStatus;
   totalRecipients: number;
   sentCount: number;
   deliveredCount: number;
@@ -81,6 +83,7 @@ export interface UpdateCampaignDto {
   name?: string;
   message?: string;
   scheduledAt?: Date;
+  status?: CampaignStatus;
 }
 
 // API Response Types
@@ -107,6 +110,7 @@ export interface MessageHistoryParams {
   phoneNumber?: string;
   startDate?: string;
   endDate?: string;
+  [key: string]: unknown;
 }
 
 export interface CampaignListParams {
@@ -114,6 +118,7 @@ export interface CampaignListParams {
   limit?: number;
   status?: string;
   search?: string;
+  [key: string]: unknown;
 }
 
 // Phone Validation Types

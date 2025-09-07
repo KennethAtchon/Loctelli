@@ -13,7 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { ApiKeyDto, finderApi } from '@/lib/api/endpoints/finder';
+import { ApiKeyDto } from '@/lib/api/endpoints/finder';
+import { api } from '@/lib/api';
 
 interface ApiKeyData extends Omit<ApiKeyDto, 'keyValue'> {
   usageCount: number;
@@ -292,7 +293,7 @@ export function ApiKeyManager() {
   const loadApiKeys = async () => {
     try {
       setLoading(true);
-      const keys = await finderApi.getUserApiKeys();
+      const keys = await api.finder.getUserApiKeys();
       setApiKeys(keys);
     } catch (error) {
       console.error('Failed to load API keys:', error);
@@ -304,7 +305,7 @@ export function ApiKeyManager() {
 
   const handleAddKey = async (apiKeyData: ApiKeyDto) => {
     try {
-      await finderApi.saveApiKey(apiKeyData);
+      await api.finder.saveApiKey(apiKeyData);
       await loadApiKeys();
       toast.success('API key added successfully');
     } catch (error: any) {
@@ -324,7 +325,7 @@ export function ApiKeyManager() {
     }
 
     try {
-      await finderApi.deleteApiKey(service, keyName);
+      await api.finder.deleteApiKey(service, keyName);
       await loadApiKeys();
       toast.success('API key deleted successfully');
     } catch (error: any) {

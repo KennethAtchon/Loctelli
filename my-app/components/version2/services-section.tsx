@@ -13,7 +13,7 @@ export function ServicesSection() {
       gradient: "blue-500",
       bgGradient: "blue-25",
       borderColor: "border-blue-200",
-      features: ["Mobile-responsive design", "SEO optimized", "Lightning fast loading", "Professional templates"],
+      features: ["Mobile-responsive design", "SEO optimized", "Lightning fast loading", "Custom from scratch"],
       value: "$2,500 Value - FREE"
     },
     {

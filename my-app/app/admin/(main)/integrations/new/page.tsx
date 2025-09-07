@@ -173,7 +173,7 @@ export default function NewIntegrationPage() {
   };
 
   const renderConfigField = (key: string, schema: { type: string; title?: string; description?: string }) => {
-    const value = formData.config[key] || '';
+    const value = (formData.config[key] as string) || '';
     const isRequired = selectedTemplate?.configSchema.required?.includes(key);
 
     switch (schema.type) {

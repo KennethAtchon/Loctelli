@@ -40,9 +40,6 @@ export interface ChatInterfaceConfig {
   placeholder?: string
   disabledPlaceholder?: string
   showActionButtons?: boolean
-  showAddButton?: boolean
-  showDeepSearchButton?: boolean
-  showThinkButton?: boolean
   
   // Message configuration
   showMessageActions?: boolean
@@ -109,9 +106,6 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
     placeholder: "Ask Anything",
     disabledPlaceholder: "Waiting for response...",
     showActionButtons: true,
-    showAddButton: true,
-    showDeepSearchButton: true,
-    showThinkButton: true,
     showMessageActions: true,
     showTimestamps: false,
     autoFocus: true,
@@ -181,7 +175,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
   // Public method to start streaming a message
   const startStreamingMessage = async (messageId: string, content: string) => {
     // Add vibration when streaming begins
-    if (navigator.vibrate) {
+    if (typeof window !== 'undefined' && navigator.vibrate) {
       setTimeout(() => {
         navigator.vibrate(50)
       }, 200) // 200ms delay to make it distinct from the first vibration
@@ -191,7 +185,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
     await simulateTextStreaming(content, messageId)
 
     // Add vibration when streaming ends
-    if (navigator.vibrate) {
+    if (typeof window !== 'undefined' && navigator.vibrate) {
       navigator.vibrate(50)
     }
 
@@ -366,7 +360,10 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
     e.preventDefault()
     if (inputValue.trim() && !isStreaming && !disabled && !loading && onSendMessage) {
       // Add vibration when message is submitted
-      navigator.vibrate(50)
+      if (typeof window !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(50)
+      }
+      
 
       const userMessage = inputValue.trim()
 
@@ -571,61 +568,6 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
             {finalConfig.showActionButtons && (
               <div className="absolute bottom-3 left-3 right-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    {finalConfig.showAddButton && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className={cn(
-                          "rounded-full h-8 w-8 flex-shrink-0 border-gray-200 p-0 transition-colors",
-                          activeButton === "add" && "bg-gray-100 border-gray-300",
-                        )}
-                        onClick={() => toggleButton("add")}
-                        disabled={isStreaming || disabled || loading}
-                      >
-                        <Plus className={cn("h-4 w-4 text-gray-500", activeButton === "add" && "text-gray-700")} />
-                        <span className="sr-only">Add</span>
-                      </Button>
-                    )}
-
-                    {finalConfig.showDeepSearchButton && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className={cn(
-                          "rounded-full h-8 px-3 flex items-center border-gray-200 gap-1.5 transition-colors",
-                          activeButton === "deepSearch" && "bg-gray-100 border-gray-300",
-                        )}
-                        onClick={() => toggleButton("deepSearch")}
-                        disabled={isStreaming || disabled || loading}
-                      >
-                        <Search className={cn("h-4 w-4 text-gray-500", activeButton === "deepSearch" && "text-gray-700")} />
-                        <span className={cn("text-gray-900 text-sm", activeButton === "deepSearch" && "font-medium")}>
-                          DeepSearch
-                        </span>
-                      </Button>
-                    )}
-
-                    {finalConfig.showThinkButton && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className={cn(
-                          "rounded-full h-8 px-3 flex items-center border-gray-200 gap-1.5 transition-colors",
-                          activeButton === "think" && "bg-gray-100 border-gray-300",
-                        )}
-                        onClick={() => toggleButton("think")}
-                        disabled={isStreaming || disabled || loading}
-                      >
-                        <Lightbulb className={cn("h-4 w-4 text-gray-500", activeButton === "think" && "text-gray-700")} />
-                        <span className={cn("text-gray-900 text-sm", activeButton === "think" && "font-medium")}>
-                          Think
-                        </span>
-                      </Button>
-                    )}
-                  </div>
-
                   <Button
                     type="submit"
                     variant="outline"

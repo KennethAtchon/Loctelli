@@ -78,6 +78,7 @@ export interface DataTableProps<T extends { id: number | string }> {
   onView?: (item: T) => void;
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
+  hideCreateButton?: boolean;
   
   // Bulk actions
   bulkActions?: {
@@ -116,6 +117,7 @@ export function DataTable<T extends { id: number | string }>({
   onView,
   onEdit,
   onDelete,
+  hideCreateButton = false,
   bulkActions,
   stats,
   headerActions,
@@ -225,7 +227,7 @@ export function DataTable<T extends { id: number | string }>({
               <span className="hidden sm:inline">Refresh</span>
             </Button>
           )}
-          {onCreateClick && (
+          {onCreateClick && !hideCreateButton && (
             <Button 
               onClick={onCreateClick}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-200"

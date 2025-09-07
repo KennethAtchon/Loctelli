@@ -1,4 +1,4 @@
-import { apiClient } from '../client';
+import { ApiClient } from '../client';
 
 export interface SearchBusinessDto {
   query: string;
@@ -110,61 +110,72 @@ export interface JobStatusDto {
   searchResult?: SearchResponseDto;
 }
 
-export const finderApi = {
+export class FinderApi extends ApiClient {
   // Search operations
-  searchBusinesses: (data: SearchBusinessDto): Promise<SearchResponseDto> =>
-    apiClient.post('/admin/finder/search', data),
+  async searchBusinesses(data: SearchBusinessDto): Promise<SearchResponseDto> {
+    return this.post<SearchResponseDto>('/admin/finder/search', data);
+  }
 
-  searchBusinessesAsync: (data: SearchBusinessDto): Promise<{ jobId: string; message: string; status: string }> =>
-    apiClient.post('/admin/finder/search-async', data),
+  async searchBusinessesAsync(data: SearchBusinessDto): Promise<{ jobId: string; message: string; status: string }> {
+    return this.post<{ jobId: string; message: string; status: string }>('/admin/finder/search-async', data);
+  }
 
-  getJobStatus: (jobId: string): Promise<JobStatusDto> =>
-    apiClient.get(`/admin/finder/jobs/${jobId}`),
+  async getJobStatus(jobId: string): Promise<JobStatusDto> {
+    return this.get<JobStatusDto>(`/admin/finder/jobs/${jobId}`);
+  }
 
-  getSearchResult: (searchId: string): Promise<SearchResponseDto> =>
-    apiClient.get(`/admin/finder/results/${searchId}`),
+  async getSearchResult(searchId: string): Promise<SearchResponseDto> {
+    return this.get<SearchResponseDto>(`/admin/finder/results/${searchId}`);
+  }
 
-  getSearchHistory: (subAccountId?: number, limit?: number): Promise<SearchHistory[]> => {
+  async getSearchHistory(subAccountId?: number, limit?: number): Promise<SearchHistory[]> {
     const params = new URLSearchParams();
     if (subAccountId) params.append('subAccountId', subAccountId.toString());
     if (limit) params.append('limit', limit.toString());
-    return apiClient.get(`/admin/finder/history?${params.toString()}`);
-  },
+    return this.get<SearchHistory[]>(`/admin/finder/history?${params.toString()}`);
+  }
 
   // Export operations
-  exportResults: (data: ExportResultsDto): Promise<Blob> =>
-    apiClient.post('/admin/finder/export', data, {
+  async exportResults(data: ExportResultsDto): Promise<Blob> {
+    return this.post<Blob>('/admin/finder/export', data, {
       responseType: 'blob',
-    }) as Promise<Blob>,
+    });
+  }
 
-  getAvailableFields: (): Promise<{ fields: string[] }> =>
-    apiClient.get('/admin/finder/export/fields'),
+  async getAvailableFields(): Promise<{ fields: string[] }> {
+    return this.get<{ fields: string[] }>('/admin/finder/export/fields');
+  }
 
   // API key management
-  getUserApiKeys: (): Promise<Array<Omit<ApiKeyDto, 'keyValue'> & { usageCount: number; lastUsed?: string }>> =>
-    apiClient.get('/admin/finder/api-keys'),
+  async getUserApiKeys(): Promise<Array<Omit<ApiKeyDto, 'keyValue'> & { usageCount: number; lastUsed?: string }>> {
+    return this.get<Array<Omit<ApiKeyDto, 'keyValue'> & { usageCount: number; lastUsed?: string }>>('/admin/finder/api-keys');
+  }
 
-  saveApiKey: (data: ApiKeyDto): Promise<{ message: string }> =>
-    apiClient.put('/admin/finder/api-keys', data),
+  async saveApiKey(data: ApiKeyDto): Promise<{ message: string }> {
+    return this.put<{ message: string }>('/admin/finder/api-keys', data);
+  }
 
-  deleteApiKey: (service: string, keyName: string): Promise<{ message: string }> =>
-    apiClient.delete(`/admin/finder/api-keys/${service}/${keyName}`),
+  async deleteApiKey(service: string, keyName: string): Promise<{ message: string }> {
+    return this.delete<{ message: string }>(`/admin/finder/api-keys/${service}/${keyName}`);
+  }
 
   // Rate limiting
-  getRateLimitStatus: (service?: string): Promise<RateLimitStatus> => {
+  async getRateLimitStatus(service?: string): Promise<RateLimitStatus> {
     const params = service ? `?service=${service}` : '';
-    return apiClient.get(`/admin/finder/rate-limit/status${params}`);
-  },
+    return this.get<RateLimitStatus>(`/admin/finder/rate-limit/status${params}`);
+  }
 
-  resetRateLimit: (service?: string): Promise<{ message: string }> => {
+  async resetRateLimit(service?: string): Promise<{ message: string }> {
     const params = service ? `?service=${service}` : '';
-    return apiClient.post(`/admin/finder/rate-limit/reset${params}`);
-  },
+    return this.post<{ message: string }>(`/admin/finder/rate-limit/reset${params}`);
+  }
 
   // Utility endpoints
-  getAvailableSources: (): Promise<{ sources: ApiSource[] }> =>
-    apiClient.get('/admin/finder/sources'),
+  async getAvailableSources(): Promise<{ sources: ApiSource[] }> {
+    return this.get<{ sources: ApiSource[] }>('/admin/finder/sources');
+  }
 
-  getUsageStats: (): Promise<UsageStats> =>
-    apiClient.get('/admin/finder/stats'),
-};
+  async getUsageStats(): Promise<UsageStats> {
+    return this.get<UsageStats>('/admin/finder/stats');
+  }
+}

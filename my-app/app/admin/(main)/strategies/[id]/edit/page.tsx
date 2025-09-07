@@ -31,6 +31,7 @@ export default function EditStrategyPage() {
   const [promptTemplates, setPromptTemplates] = useState<PromptTemplate[]>([]);
   const [formData, setFormData] = useState<CreateStrategyDto>({
     userId: 0,
+    subAccountId: 1, // Default subaccount
     name: '',
     tag: '',
     tone: 'professional',
@@ -66,6 +67,7 @@ export default function EditStrategyPage() {
         // Populate form with existing data
         setFormData({
           userId: strategyData.userId,
+          subAccountId: strategyData.subAccountId || 1,
           name: strategyData.name,
           tag: strategyData.tag || '',
           tone: strategyData.tone || 'professional',

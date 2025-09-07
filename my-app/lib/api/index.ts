@@ -14,6 +14,7 @@ import { AdminSubAccountsApi } from './endpoints/admin-subaccounts';
 import { GeneralApi } from './endpoints/general';
 import { SmsApi } from './endpoints/sms';
 import { ContactsApi } from './endpoints/contacts';
+import { FinderApi } from './endpoints/finder';
 
 export class Api extends ApiClient {
   public auth: AuthApi;
@@ -31,6 +32,7 @@ export class Api extends ApiClient {
   public general: GeneralApi;
   public sms: SmsApi;
   public contacts: ContactsApi;
+  public finder: FinderApi;
 
   constructor(baseUrl?: string) {
     super(baseUrl);
@@ -51,6 +53,7 @@ export class Api extends ApiClient {
     this.general = new GeneralApi(baseUrl);
     this.sms = new SmsApi(baseUrl);
     this.contacts = new ContactsApi(baseUrl);
+    this.finder = new FinderApi(baseUrl);
   }
 }
 
@@ -73,6 +76,7 @@ export { StatusApi } from './endpoints/status';
 export { GeneralApi } from './endpoints/general';
 export { SmsApi } from './endpoints/sms';
 export { ContactsApi } from './endpoints/contacts';
+export { FinderApi } from './endpoints/finder';
 
 // Export types
 export type { SystemStatus } from './endpoints/status';

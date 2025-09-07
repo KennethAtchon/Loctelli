@@ -98,7 +98,14 @@ export function ProcessSection() {
     }
   ];
 
-  const colorMap = {
+  const colorMap: Record<string, {
+    bg: string;
+    border: string;
+    icon: string;
+    text: string;
+    accent: string;
+    button: string;
+  }> = {
     blue: {
       bg: "bg-blue-50",
       border: "border-blue-200", 
@@ -126,7 +133,7 @@ export function ProcessSection() {
   };
 
   const currentProcess = processes[activeProcess];
-  const colors = colorMap[currentProcess.color];
+  const colors = colorMap[currentProcess.color] || colorMap.blue;
 
   return (
     <>
@@ -177,7 +184,7 @@ export function ProcessSection() {
         <div className="flex flex-col md:flex-row gap-4 mb-12 justify-center">
           {processes.map((process, index) => {
             const isActive = activeProcess === index;
-            const btnColors = colorMap[process.color];
+            const btnColors = colorMap[process.color] || colorMap.blue;
             return (
               <Button
                 key={index}

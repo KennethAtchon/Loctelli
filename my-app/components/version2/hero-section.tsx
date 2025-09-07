@@ -33,7 +33,7 @@ export function HeroSection() {
           </h1>
           
           <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-            We help businesses <span className="font-semibold text-gray-800">triple their revenue</span> with free professional websites, automated Google reviews, customer reactivation campaigns, and AI-driven lead generation.
+            We help businesses <span className="font-semibold text-gray-800">unlock their potential</span> with free professional websites, automated Google reviews, customer reactivation campaigns, and AI-driven lead generation.
           </p>
 
 

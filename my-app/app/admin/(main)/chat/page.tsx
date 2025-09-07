@@ -84,11 +84,15 @@ export default function ChatPage() {
   // Check if device is mobile
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      if (typeof window !== 'undefined') {
+        setIsMobile(window.innerWidth < 768);
+      }
     };
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', checkMobile);
+      return () => window.removeEventListener('resize', checkMobile);
+    }
   }, []);
 
   // Load leads for dropdown
@@ -365,9 +369,6 @@ export default function ChatPage() {
     placeholder: leadProfile ? "Type your message..." : "Select a lead first...",
     disabledPlaceholder: "Waiting for response...",
     showActionButtons: true,
-    showAddButton: true,
-    showDeepSearchButton: true,
-    showThinkButton: true,
     showMessageActions: true,
     autoFocus: !isMobile,
     enableKeyboardShortcuts: true,
