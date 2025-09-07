@@ -66,27 +66,34 @@ export class BookingHelperService {
         return;
       }
 
-      // If user doesn't have a calendarId but has a locationId, try to find a calendar
+      // If user doesn't have a calendarId, try using GHL integration's calendarId
       if (!calendarId) {
         this.logger.log(
-          `calendarId not found for userId=${booking.userId}, attempting to find calendar using locationId`,
+          `calendarId not found for userId=${booking.userId}, trying GHL integration calendarId`,
         );
-        const calendarsResponse = await this.getCalendarsByLocation(locationId);
+        
+        const integrationCalendarId = await this.getGhlIntegrationCalendarId(
+          user.subAccountId,
+        );
 
-        if (calendarsResponse && calendarsResponse.firstCalendar) {
-          calendarId = calendarsResponse.firstCalendar.id;
+        if (integrationCalendarId) {
+          calendarId = integrationCalendarId;
           this.logger.log(
-            `Found calendar with ID ${calendarId} for location ${locationId}`,
+            `Using GHL integration calendarId ${calendarId} for userId=${booking.userId}`,
           );
 
-          // Update the user record with the found calendar_id
+          // Update the user record with the integration's calendar_id
           await this.prisma.user.update({
             where: { id: user.id },
             data: { calendarId },
           });
-          this.logger.log(`Updated user record with calendarId=${calendarId}`);
+          this.logger.log(
+            `Updated user record with integration calendarId=${calendarId}`,
+          );
         } else {
-          this.logger.warn(`No calendars found for locationId=${locationId}`);
+          this.logger.warn(
+            `No calendarId found in GHL integration for userId=${booking.userId}`,
+          );
           return;
         }
       }
@@ -293,6 +300,55 @@ export class BookingHelperService {
     } catch (error) {
       this.logger.error(
         `Error fetching calendars for location ${locationId}: ${error}`,
+      );
+      return null;
+    }
+  }
+
+  /**
+   * Gets the GHL integration's calendar ID as a fallback
+   * @param subAccountId The subaccount ID to find the GHL integration for
+   */
+  private async getGhlIntegrationCalendarId(
+    subAccountId: number,
+  ): Promise<string | null> {
+    try {
+      // Find the GHL integration for this subaccount
+      const ghlIntegration = await this.prisma.integration.findFirst({
+        where: {
+          subAccountId,
+          integrationTemplate: {
+            name: 'gohighlevel',
+          },
+          isActive: true,
+        },
+        include: {
+          integrationTemplate: true,
+        },
+      });
+
+      if (!ghlIntegration) {
+        this.logger.warn(
+          `No active GHL integration found for subAccountId=${subAccountId}`,
+        );
+        return null;
+      }
+
+      const config = ghlIntegration.config as any;
+      if (config.calendarId) {
+        this.logger.log(
+          `Found calendarId ${config.calendarId} from GHL integration for subAccountId=${subAccountId}`,
+        );
+        return config.calendarId;
+      }
+
+      this.logger.warn(
+        `GHL integration found but no calendarId configured for subAccountId=${subAccountId}`,
+      );
+      return null;
+    } catch (error) {
+      this.logger.error(
+        `Error fetching GHL integration calendar ID for subAccountId=${subAccountId}: ${error}`,
       );
       return null;
     }
