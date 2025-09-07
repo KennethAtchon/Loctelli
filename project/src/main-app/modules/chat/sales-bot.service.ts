@@ -6,6 +6,7 @@ import { PromptHelperService } from './prompt-helper.service';
 import { PromptTemplatesService } from '../prompt-templates/prompt-templates.service';
 import { BookingHelperService } from '../bookings/booking-helper.service';
 import { ConversationSummarizerService } from './conversation-summarizer.service';
+import { PromptSecurityService } from '../../../shared/security/prompt-security.service';
 import axios from 'axios';
 
 interface ChatMessage {
@@ -37,7 +38,8 @@ export class SalesBotService implements OnModuleInit {
     private promptHelper: PromptHelperService,
     private promptTemplatesService: PromptTemplatesService,
     private bookingHelper: BookingHelperService,
-    private conversationSummarizer: ConversationSummarizerService
+    private conversationSummarizer: ConversationSummarizerService,
+    private promptSecurity: PromptSecurityService
   ) {
     this.openaiApiKey = this.configService.get<string>('OPENAI_API_KEY') || '';
   }
@@ -65,6 +67,34 @@ export class SalesBotService implements OnModuleInit {
       return 'Invalid message input.';
     }
     this.logger.log(`[generateResponse] message preview: ${message.substring(0, Math.min(50, message.length))}...`);
+    
+    // Security check: Rate limiting
+    if (!this.promptSecurity.checkRateLimit(leadId)) {
+      return "You're sending messages too quickly. Please wait a moment before trying again.";
+    }
+
+    // Security check: Analyze input for jailbreak attempts
+    const securityAnalysis = this.promptSecurity.analyzeInput(message, leadId);
+    
+    if (!securityAnalysis.isSecure) {
+      // Log the security incident
+      this.promptSecurity.logSecurityIncident(
+        leadId,
+        securityAnalysis.riskLevel as 'medium' | 'high',
+        securityAnalysis.detectedPatterns,
+        message
+      );
+      
+      // Return a secure response instead of processing the jailbreak attempt
+      if (securityAnalysis.riskLevel === 'high') {
+        return this.promptSecurity.generateSecurityResponse('high');
+      } else {
+        return this.promptSecurity.generateSecurityResponse('medium');
+      }
+    }
+    
+    // Use sanitized content for processing
+    const sanitizedMessage = securityAnalysis.sanitizedContent;
     
     try {
       // Get lead from database
@@ -96,8 +126,8 @@ export class SalesBotService implements OnModuleInit {
       // Generate prompt with existing history
       const prompt = await this.promptHelper.composePrompt(lead, user, strategy, history);
       
-      // Add the latest user message to the prompt
-      prompt.push({ role: 'user', content: message });
+      // Add the latest user message to the prompt (use sanitized version)
+      prompt.push({ role: 'user', content: sanitizedMessage });
       
       this.logger.log(`[generateResponse] Final messages array length: ${prompt.length}`);
       this.logger.debug(`[generateResponse] Final messages: ${JSON.stringify(prompt.map(m => ({ role: m.role, contentLength: m.content.length, contentPreview: m.content.substring(0, 50) })))}`);
@@ -106,8 +136,9 @@ export class SalesBotService implements OnModuleInit {
       const botResponse = await this.createBotResponse(prompt);
       
       // Append both user message and bot response to history in a single operation
+      // Store the sanitized version in history
       await this.appendMessagesToHistory(lead, [
-        { role: 'user', content: message },
+        { role: 'user', content: sanitizedMessage },
         { role: 'assistant', content: botResponse }
       ]);
       

@@ -9,9 +9,10 @@ import { ConversationSummarizerService } from './conversation-summarizer.service
 import { PromptTemplatesModule } from '../prompt-templates/prompt-templates.module';
 import { BookingsModule } from '../bookings/bookings.module';
 import { ConfigModule } from '@nestjs/config';
+import { SecurityModule } from '../../../shared/security/security.module';
 
 @Module({
-  imports: [PrismaModule, PromptTemplatesModule, BookingsModule, ConfigModule],
+  imports: [PrismaModule, PromptTemplatesModule, BookingsModule, ConfigModule, SecurityModule],
   controllers: [ChatController],
   providers: [ChatService, OpenAIPromptBuilderService, PromptHelperService, SalesBotService, ConversationSummarizerService],
   exports: [ChatService, OpenAIPromptBuilderService, PromptHelperService, SalesBotService, ConversationSummarizerService],

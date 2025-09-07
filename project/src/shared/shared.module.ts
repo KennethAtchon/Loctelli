@@ -5,6 +5,7 @@ import { CacheModule } from './cache/cache.module';
 import { StorageModule } from './storage/storage.module';
 import { SmsModule } from './sms/sms.module';
 import { JobQueueModule } from './job-queue/job-queue.module';
+import { EncryptionModule } from './encryption/encryption.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { JobQueueModule } from './job-queue/job-queue.module';
     StorageModule,
     SmsModule,
     JobQueueModule,
+    EncryptionModule,
   ],
   exports: [
     ConfigModule,
@@ -22,6 +24,7 @@ import { JobQueueModule } from './job-queue/job-queue.module';
     StorageModule,
     SmsModule,
     JobQueueModule,
+    EncryptionModule,
   ],
 })
 export class SharedModule {} 

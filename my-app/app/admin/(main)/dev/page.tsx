@@ -98,11 +98,13 @@ export default function DevPage() {
   };
 
   const copyResponse = () => {
-    navigator.clipboard.writeText(debugResponse);
-    toast({
-      title: 'Copied',
-      description: 'Response copied to clipboard',
-    });
+    if (typeof window !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(debugResponse);
+      toast({
+        title: 'Copied',
+        description: 'Response copied to clipboard',
+      });
+    }
   };
 
   const downloadResponse = () => {
