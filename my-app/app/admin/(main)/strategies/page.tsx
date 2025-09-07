@@ -12,8 +12,10 @@ import { Strategy } from '@/types';
 import logger from '@/lib/logger';
 import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function StrategiesPage() {
+  const router = useRouter();
   const { getCurrentSubaccount } = useSubaccountFilter();
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [filteredStrategies, setFilteredStrategies] = useState<Strategy[]>([]);
@@ -169,13 +171,13 @@ export default function StrategiesPage() {
 
   // Handle actions
   const handleView = (strategy: Strategy) => {
-    // Strategy details are shown in a dialog
-    console.log('View strategy:', strategy);
+    // Navigate to strategy details page
+    router.push(`/admin/strategies/${strategy.id}`);
   };
 
   const handleEdit = (strategy: Strategy) => {
     // Navigate to edit page
-    window.location.href = `/admin/strategies/${strategy.id}/edit`;
+    router.push(`/admin/strategies/${strategy.id}/edit`);
   };
 
   const handleDelete = async (strategy: Strategy) => {
@@ -194,7 +196,7 @@ export default function StrategiesPage() {
   };
 
   const handleCreate = () => {
-    window.location.href = '/admin/strategies/new';
+    router.push('/admin/strategies/new');
   };
 
   useEffect(() => {

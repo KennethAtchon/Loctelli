@@ -48,14 +48,22 @@ export class SmsModuleService {
     ): Promise<SmsMessage> {
         return this.prisma.smsMessage.create({
             data: {
-                regularUserId: userId,
-                subAccountId,
+                regularUser: {
+                    connect: { id: userId }
+                },
+                subAccount: {
+                    connect: { id: subAccountId }
+                },
                 phoneNumber,
                 message,
                 status,
                 twilioSid,
                 errorMessage,
-                campaignId,
+                ...(campaignId && {
+                    campaign: {
+                        connect: { id: campaignId }
+                    }
+                }),
                 sentAt: status === 'sent' ? new Date() : null,
             },
         });

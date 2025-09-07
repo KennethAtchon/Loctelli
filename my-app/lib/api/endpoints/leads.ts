@@ -7,7 +7,7 @@ export class LeadsApi extends ApiClient {
     if (params?.subAccountId) {
       queryParams.append('subAccountId', params.subAccountId.toString());
     }
-    if (params?.userId) {
+    if (params?.userId !== undefined && params?.userId !== null) {
       queryParams.append('userId', params.userId.toString());
     }
     if (params?.strategyId) {

@@ -31,7 +31,7 @@ export default function EditLeadPage() {
   const [lead, setLead] = useState<Lead | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<number>(0);
   const [formData, setFormData] = useState<CreateLeadDto>({
-    userId: 0,
+    regularUserId: 0,
     strategyId: 0,
     name: '',
     email: '',
@@ -55,20 +55,20 @@ export default function EditLeadPage() {
         ]);
         
         setLead(leadData);
-        setSelectedUserId(leadData.userId);
+        setSelectedUserId(leadData.regularUserId);
         
         // Filter out admin users, only show regular users
         const regularUsers = usersData.filter(user => user.role !== 'admin');
         setUsers(regularUsers);
         
         // Load strategies for the selected user
-        const strategiesData = await api.strategies.getStrategiesByUser(leadData.userId);
+        const strategiesData = await api.strategies.getStrategiesByUser(leadData.regularUserId);
         setStrategies(strategiesData);
         
         // Populate form with existing data
         const currentSubaccount = getCurrentSubaccount();
         setFormData({
-          userId: leadData.userId,
+          regularUserId: leadData.regularUserId,
           strategyId: leadData.strategyId,
           name: leadData.name,
           email: leadData.email || '',
@@ -119,7 +119,7 @@ export default function EditLeadPage() {
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'strategyId' || name === 'userId' ? parseInt(value) || 0 : value,
+      [name]: name === 'strategyId' || name === 'regularUserId' ? parseInt(value) || 0 : value,
     }));
   };
 
@@ -185,7 +185,7 @@ export default function EditLeadPage() {
                     onValueChange={(value) => {
                       const userId = parseInt(value);
                       setSelectedUserId(userId);
-                      setFormData(prev => ({ ...prev, userId, strategyId: 0 }));
+                      setFormData(prev => ({ ...prev, regularUserId: userId, strategyId: 0 }));
                       // Reload strategies for the new user
                       api.strategies.getStrategiesByUser(userId).then(strategiesData => {
                         setStrategies(strategiesData);

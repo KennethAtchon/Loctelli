@@ -20,10 +20,13 @@ export class UsersService {
       data.password = await bcrypt.hash(data.password, 12);
     }
     
+    const { subAccountId: _, ...userData } = data;
     return this.prisma.user.create({
       data: {
-        ...data,
-        subAccountId, // New required field
+        ...userData,
+        subAccount: {
+          connect: { id: subAccountId }
+        },
       },
       select: {
         id: true,
@@ -167,7 +170,9 @@ export class UsersService {
           email: loc.email || `user-${Date.now()}@example.com`,
           password: await bcrypt.hash('defaultPassword123', 12), // Default password
           role: 'user',
-          subAccountId: defaultSubAccount.id,
+          subAccount: {
+            connect: { id: defaultSubAccount.id }
+          },
           // Add any other mappings as needed
         };
         

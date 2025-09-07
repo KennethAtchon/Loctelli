@@ -27,7 +27,7 @@ export default function NewStrategyPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [promptTemplates, setPromptTemplates] = useState<PromptTemplate[]>([]);
   const [formData, setFormData] = useState<CreateStrategyDto>({
-    userId: 0, // Will be set when user selects from dropdown
+    regularUserId: 0, // Will be set when user selects from dropdown
     name: '',
     tag: '',
     tone: 'professional',
@@ -76,7 +76,7 @@ export default function NewStrategyPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.userId || formData.userId === 0) {
+    if (!formData.regularUserId || formData.regularUserId === 0) {
       setError('Please select a user for this strategy');
       return;
     }
@@ -101,7 +101,7 @@ export default function NewStrategyPage() {
 
     try {
       // Get the selected user to determine the subaccount
-      const selectedUser = users.find(user => user.id === formData.userId);
+      const selectedUser = users.find(user => user.id === formData.regularUserId);
       if (!selectedUser) {
         setError('Selected user not found');
         return;
@@ -140,7 +140,7 @@ export default function NewStrategyPage() {
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'userId' || name === 'promptTemplateId' ? parseInt(value) || 0 : value,
+      [name]: name === 'regularUserId' || name === 'promptTemplateId' ? parseInt(value) || 0 : value,
     }));
   };
 
@@ -194,10 +194,10 @@ export default function NewStrategyPage() {
               {/* Basic Information */}
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="userId">Assign to User *</Label>
+                  <Label htmlFor="regularUserId">Assign to User *</Label>
                   <Select
-                    value={formData.userId.toString()}
-                    onValueChange={(value) => handleSelectChange('userId', value)}
+                    value={formData.regularUserId?.toString() || ''}
+                    onValueChange={(value) => handleSelectChange('regularUserId', value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a user" />

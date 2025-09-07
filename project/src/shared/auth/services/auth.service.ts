@@ -221,7 +221,9 @@ export class AuthService {
         password: hashedPassword,
         company: registerDto.company,
         budget: registerDto.budget,
-        subAccountId: defaultSubAccount.id,
+        subAccount: {
+          connect: { id: defaultSubAccount.id }
+        },
       },
     });
 

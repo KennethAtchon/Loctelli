@@ -107,13 +107,19 @@ export class WebhooksService {
       
       const lead = await this.prisma.lead.create({
         data: {
-          regularUserId: userId,
-          strategyId,
+          regularUser: {
+            connect: { id: userId }
+          },
+          strategy: {
+            connect: { id: strategyId }
+          },
           name,
           customId: contactData.id,
           messageHistory: [],
           status: 'lead',
-          subAccountId: integration.subAccountId
+          subAccount: {
+            connect: { id: integration.subAccountId }
+          }
         }
       });
       

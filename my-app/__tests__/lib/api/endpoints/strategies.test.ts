@@ -42,7 +42,7 @@ describe('StrategiesApi', () => {
       const mockStrategies: Strategy[] = [
         {
           id: 1,
-          userId: 1,
+          regularUserId: 1,
           name: 'Test Strategy',
           tag: 'test',
           tone: 'professional',
@@ -61,7 +61,7 @@ describe('StrategiesApi', () => {
         },
         {
           id: 2,
-          userId: 1,
+          regularUserId: 1,
           name: 'Another Strategy',
           tag: 'another',
           tone: 'casual',
@@ -101,7 +101,7 @@ describe('StrategiesApi', () => {
     it('should call get strategy by id endpoint', async () => {
       const mockStrategy: Strategy = {
         id: 1,
-        userId: 1,
+        regularUserId: 1,
         name: 'Test Strategy',
         tag: 'test',
         tone: 'professional',
@@ -139,7 +139,7 @@ describe('StrategiesApi', () => {
   describe('createStrategy', () => {
     it('should call create strategy endpoint with correct data', async () => {
       const createStrategyData: CreateStrategyDto = {
-        userId: 1,
+        regularUserId: 1,
         name: 'New Strategy',
         tag: 'new',
         tone: 'professional',
@@ -157,7 +157,7 @@ describe('StrategiesApi', () => {
 
       const mockCreatedStrategy: Strategy = {
         id: 3,
-        userId: 1,
+        regularUserId: 1,
         name: 'New Strategy',
         tag: 'new',
         tone: 'professional',
@@ -185,7 +185,7 @@ describe('StrategiesApi', () => {
 
     it('should handle create strategy error', async () => {
       const createStrategyData: CreateStrategyDto = {
-        userId: 1,
+        regularUserId: 1,
         name: 'Invalid Strategy',
         promptTemplateId: 999, // Invalid template ID
       }
@@ -208,7 +208,7 @@ describe('StrategiesApi', () => {
 
       const mockUpdatedStrategy: Strategy = {
         id: 1,
-        userId: 1,
+        regularUserId: 1,
         name: 'Updated Strategy',
         tag: 'test',
         tone: 'casual',
@@ -270,7 +270,7 @@ describe('StrategiesApi', () => {
       const mockStrategies: Strategy[] = [
         {
           id: 1,
-          userId: 1,
+          regularUserId: 1,
           name: 'User Strategy 1',
           tag: 'user1',
           tone: 'professional',
@@ -293,7 +293,7 @@ describe('StrategiesApi', () => {
 
       const result = await strategiesApi.getStrategiesByUser(1)
 
-      expect(mockGet).toHaveBeenCalledWith('/strategy?userId=1')
+      expect(mockGet).toHaveBeenCalledWith('/strategy?regularUserId=1')
       expect(result).toEqual(mockStrategies)
     })
 
@@ -302,7 +302,7 @@ describe('StrategiesApi', () => {
       mockGet.mockRejectedValue(error)
 
       await expect(strategiesApi.getStrategiesByUser(999)).rejects.toThrow('User not found')
-      expect(mockGet).toHaveBeenCalledWith('/strategy?userId=999')
+      expect(mockGet).toHaveBeenCalledWith('/strategy?regularUserId=999')
     })
   })
 
@@ -310,7 +310,7 @@ describe('StrategiesApi', () => {
     it('should call duplicate strategy endpoint', async () => {
       const mockDuplicatedStrategy: Strategy = {
         id: 4,
-        userId: 1,
+        regularUserId: 1,
         name: 'Test Strategy (Copy)',
         tag: 'test',
         tone: 'professional',
@@ -349,7 +349,7 @@ describe('StrategiesApi', () => {
     it('should enforce correct Strategy structure', () => {
       const validStrategy: Strategy = {
         id: 1,
-        userId: 1,
+        regularUserId: 1,
         name: 'Test Strategy',
         tag: 'test',
         tone: 'professional',
@@ -368,7 +368,7 @@ describe('StrategiesApi', () => {
       }
 
       expect(validStrategy).toHaveProperty('id')
-      expect(validStrategy).toHaveProperty('userId')
+      expect(validStrategy).toHaveProperty('regularUserId')
       expect(validStrategy).toHaveProperty('name')
       expect(validStrategy).toHaveProperty('promptTemplateId')
       expect(validStrategy).toHaveProperty('createdAt')
@@ -377,12 +377,12 @@ describe('StrategiesApi', () => {
 
     it('should enforce correct CreateStrategyDto structure', () => {
       const validCreateStrategyDto: CreateStrategyDto = {
-        userId: 1,
+        regularUserId: 1,
         name: 'Test Strategy',
         promptTemplateId: 1,
       }
 
-      expect(validCreateStrategyDto).toHaveProperty('userId')
+      expect(validCreateStrategyDto).toHaveProperty('regularUserId')
       expect(validCreateStrategyDto).toHaveProperty('name')
       expect(validCreateStrategyDto).toHaveProperty('promptTemplateId')
     })

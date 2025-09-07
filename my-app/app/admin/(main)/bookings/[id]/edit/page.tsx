@@ -31,7 +31,7 @@ export default function EditBookingPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<Partial<CreateBookingDto>>({
-    userId: 0,
+    regularUserId: 0,
     leadId: undefined,
     bookingType: '',
     details: {},
@@ -49,13 +49,13 @@ export default function EditBookingPage() {
         setBooking(bookingData);
         
         // Handle case where booking exists but user doesn't
-        const userId = bookingData.userId || 0;
+        const userId = bookingData.regularUserId || 0;
         if (userId === 0) {
           logger.warn('Booking has no valid user ID:', bookingData);
         }
         
         setFormData({
-          userId: userId,
+          regularUserId: userId,
           leadId: bookingData.leadId || undefined,
           bookingType: bookingData.bookingType,
           details: bookingData.details || {},
@@ -109,7 +109,7 @@ export default function EditBookingPage() {
     e.preventDefault();
     
     // Validate required fields
-    if (!formData.userId || formData.userId === 0 || !formData.bookingType) {
+    if (!formData.regularUserId || formData.regularUserId === 0 || !formData.bookingType) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -119,7 +119,7 @@ export default function EditBookingPage() {
     }
 
     // Validate that the selected user exists
-    const selectedUser = users.find(user => user.id === formData.userId);
+    const selectedUser = users.find(user => user.id === formData.regularUserId);
     if (!selectedUser) {
       toast({
         title: "Validation Error",
@@ -134,7 +134,7 @@ export default function EditBookingPage() {
       
       // Ensure we're sending valid data
       const updateData = {
-        userId: formData.userId,
+        regularUserId: formData.regularUserId,
         leadId: formData.leadId,
         bookingType: formData.bookingType,
         details: formData.details,
@@ -213,8 +213,8 @@ export default function EditBookingPage() {
               <div className="space-y-2">
                 <Label htmlFor="userId">User *</Label>
                 <Select
-                  value={formData.userId?.toString() || ''}
-                  onValueChange={(value) => handleInputChange('userId', Number(value))}
+                  value={formData.regularUserId?.toString() || ''}
+                  onValueChange={(value) => handleInputChange('regularUserId', Number(value))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a user" />

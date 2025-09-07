@@ -27,7 +27,7 @@ export default function NewLeadPage() {
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<number>(0);
   const [formData, setFormData] = useState<CreateLeadDto>({
-    userId: 0, // Will be set when user selects from dropdown
+    regularUserId: 0, // Will be set when user selects from dropdown
     strategyId: 0, // Will be set when strategy selects from dropdown
     name: '',
     email: '',
@@ -77,7 +77,7 @@ export default function NewLeadPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.userId || formData.userId === 0) {
+    if (!formData.regularUserId || formData.regularUserId === 0) {
       setError('Please select a user for this lead');
       return;
     }
@@ -92,7 +92,7 @@ export default function NewLeadPage() {
 
     try {
       // Get the selected user to determine the subaccount
-      const selectedUser = users.find(user => user.id === formData.userId);
+      const selectedUser = users.find(user => user.id === formData.regularUserId);
       if (!selectedUser) {
         setError('Selected user not found');
         return;
@@ -122,7 +122,7 @@ export default function NewLeadPage() {
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'strategyId' || name === 'userId' ? parseInt(value) || 0 : value,
+      [name]: name === 'strategyId' || name === 'regularUserId' ? parseInt(value) || 0 : value,
     }));
   };
 
@@ -167,7 +167,7 @@ export default function NewLeadPage() {
                     onValueChange={(value) => {
                       const userId = parseInt(value);
                       setSelectedUserId(userId);
-                      setFormData(prev => ({ ...prev, userId, strategyId: 0 }));
+                      setFormData(prev => ({ ...prev, regularUserId: userId, strategyId: 0 }));
                     }}
                   >
                     <SelectTrigger>

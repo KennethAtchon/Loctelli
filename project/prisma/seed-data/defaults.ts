@@ -4,12 +4,20 @@ export const DEFAULT_ADMIN_DATA = {
   role: 'super_admin' as const,
 };
 
-export const DEFAULT_USER_DATA = {
-  name: 'Default User',
-  email: 'user@loctelli.com',
-  role: 'user' as const,
-  company: 'Default Company',
-};
+export const DEFAULT_USER_DATA = [
+  {
+    name: 'John Sales',
+    email: 'john.sales@loctelli.com',
+    role: 'user' as const,
+    company: 'Loctelli Sales Team',
+  },
+  {
+    name: 'Sarah Support',
+    email: 'sarah.support@loctelli.com',
+    role: 'user' as const,
+    company: 'Loctelli Support Team',
+  }
+];
 
 export const DEFAULT_SUBACCOUNT_DATA = {
   name: 'Default SubAccount',
@@ -40,19 +48,47 @@ Do not use the [BOOKING_CONFIRMATION] marker unless a booking is truly confirmed
   temperature: 0.7,
 };
 
-export const DEFAULT_STRATEGY_DATA = {
-  name: 'Default Sales Strategy',
-  tag: 'general',
-  tone: 'professional',
-  aiInstructions: 'Engage leads professionally and helpfully. Ask qualifying questions to understand their needs.',
-  objectionHandling: 'Listen to concerns and address them directly. Offer solutions that match their needs.',
-  qualificationPriority: 'budget, timeline, decision_maker',
-  creativity: 7,
-  aiObjective: 'Qualify leads and guide them toward booking a consultation',
-  disqualificationCriteria: 'Not interested, wrong contact, no budget',
-  delayMin: 30,
-  delayMax: 120,
-};
+export const DEFAULT_STRATEGY_DATA = [
+  {
+    name: 'Professional Sales Strategy',
+    tag: 'sales',
+    tone: 'professional',
+    aiInstructions: 'Engage leads professionally and helpfully. Ask qualifying questions to understand their needs and budget.',
+    objectionHandling: 'Listen to concerns and address them directly. Offer solutions that match their needs.',
+    qualificationPriority: 'budget, timeline, decision_maker',
+    creativity: 7,
+    aiObjective: 'Qualify leads and guide them toward booking a consultation',
+    disqualificationCriteria: 'Not interested, wrong contact, no budget',
+    delayMin: 30,
+    delayMax: 120,
+  },
+  {
+    name: 'Friendly Follow-up Strategy',
+    tag: 'follow-up',
+    tone: 'friendly',
+    aiInstructions: 'Follow up with warm leads in a friendly, conversational manner. Build rapport and check on their progress.',
+    objectionHandling: 'Be understanding and offer flexible solutions. Focus on building trust.',
+    qualificationPriority: 'interest_level, timeline, fit',
+    creativity: 8,
+    aiObjective: 'Re-engage previous leads and move them through the sales funnel',
+    disqualificationCriteria: 'Explicitly asked not to contact, competitor, not a fit',
+    delayMin: 60,
+    delayMax: 180,
+  },
+  {
+    name: 'Support & Onboarding Strategy',
+    tag: 'support',
+    tone: 'helpful',
+    aiInstructions: 'Provide excellent customer support and guide new customers through onboarding process.',
+    objectionHandling: 'Address technical concerns with patience. Offer step-by-step guidance.',
+    qualificationPriority: 'support_level, urgency, complexity',
+    creativity: 5,
+    aiObjective: 'Ensure customer success and satisfaction during onboarding',
+    disqualificationCriteria: 'Requires escalation to human support, outside scope',
+    delayMin: 15,
+    delayMax: 60,
+  }
+];
 
 export const DEFAULT_LEAD_DATA = {
   name: 'John Doe',

@@ -100,32 +100,43 @@ async function main() {
     console.log('Default integration templates already exist');
   }
 
-  // Create a default user if none exists
-  let defaultUser = await prisma.user.findFirst();
-  if (!defaultUser) {
-    console.log('Creating default user...');
+  // Create default users if none exist
+  const existingUsers = await prisma.user.findMany();
+  const defaultUsers: any[] = [];
+  
+  if (existingUsers.length === 0) {
+    console.log('Creating default users...');
     const defaultPassword = getDefaultAdminPassword();
     const hashedPassword = await bcrypt.hash(defaultPassword, 12);
     
-    defaultUser = await prisma.user.create({
-      data: {
-        ...DEFAULT_USER_DATA,
-        password: hashedPassword,
-        subAccountId: defaultSubAccount.id,
-        createdByAdminId: adminUser.id,
-      },
-    });
+    for (const userData of DEFAULT_USER_DATA) {
+      const user = await prisma.user.create({
+        data: {
+          ...userData,
+          password: hashedPassword,
+          subAccount: {
+            connect: { id: defaultSubAccount.id }
+          },
+          createdByAdmin: {
+            connect: { id: adminUser.id }
+          },
+        },
+      });
+      defaultUsers.push(user);
+      console.log(`Created user with email: ${userData.email}`);
+    }
     
-    console.log(`Default user created with email: ${DEFAULT_USER_DATA.email}`);
     console.log('Default password: ' + defaultPassword);
   } else {
-    console.log('Default user already exists');
+    console.log('Default users already exist');
+    // Get existing users for strategy assignment
+    defaultUsers.push(...existingUsers.slice(0, 2));
   }
 
-  // Create a default strategy if none exists
-  const existingStrategy = await prisma.strategy.findFirst();
-  if (!existingStrategy) {
-    console.log('Creating default strategy...');
+  // Create default strategies if none exist
+  const existingStrategies = await prisma.strategy.findMany();
+  if (existingStrategies.length === 0) {
+    console.log('Creating default strategies...');
     
     const defaultTemplate = await prisma.promptTemplate.findFirst({
       where: { isActive: true }
@@ -134,19 +145,31 @@ async function main() {
     if (!defaultTemplate) {
       console.log('No active prompt template found, skipping strategy creation');
     } else {
-      await prisma.strategy.create({
-        data: {
-          ...DEFAULT_STRATEGY_DATA,
-          regularUserId: defaultUser.id,
-          subAccountId: defaultSubAccount.id,
-          promptTemplateId: defaultTemplate.id,
-        },
-      });
+      for (let i = 0; i < DEFAULT_STRATEGY_DATA.length; i++) {
+        const strategyData = DEFAULT_STRATEGY_DATA[i];
+        // Assign strategies to different users if available
+        const assignedUser = defaultUsers[i % defaultUsers.length] || defaultUsers[0];
+        
+        await prisma.strategy.create({
+          data: {
+            ...strategyData,
+            regularUser: {
+              connect: { id: assignedUser.id }
+            },
+            subAccount: {
+              connect: { id: defaultSubAccount.id }
+            },
+            promptTemplate: {
+              connect: { id: defaultTemplate.id }
+            },
+          },
+        });
+      }
       
-      console.log('Default strategy created successfully');
+      console.log(`Created ${DEFAULT_STRATEGY_DATA.length} default strategies successfully`);
     }
   } else {
-    console.log('Default strategy already exists');
+    console.log('Default strategies already exist');
   }
 
   // Create a default lead if none exists
@@ -162,9 +185,15 @@ async function main() {
       await prisma.lead.create({
         data: {
           ...DEFAULT_LEAD_DATA,
-          regularUserId: defaultUser.id,
-          strategyId: defaultStrategy.id,
-          subAccountId: defaultSubAccount.id,
+          regularUser: {
+            connect: { id: defaultUsers[0]?.id || defaultUsers[0].id }
+          },
+          strategy: {
+            connect: { id: defaultStrategy.id }
+          },
+          subAccount: {
+            connect: { id: defaultSubAccount.id }
+          },
         },
       });
       

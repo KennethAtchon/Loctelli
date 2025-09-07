@@ -24,7 +24,7 @@ export interface User {
 // Strategy types
 export interface Strategy {
   id: number;
-  userId: number;
+  regularUserId: number;
   subAccountId: number;
   name: string;
   tag?: string;
@@ -48,7 +48,7 @@ export interface Strategy {
 // Lead types (belong to Users)
 export interface Lead {
   id: number;
-  userId: number;
+  regularUserId: number;
   strategyId: number;
   subAccountId: number;
   name: string;
@@ -70,7 +70,7 @@ export interface Lead {
 // Booking types
 export interface Booking {
   id: number;
-  userId: number;
+  regularUserId: number;
   leadId?: number;
   subAccountId: number;
   bookingType: string;
@@ -113,7 +113,7 @@ export interface CreateUserDto {
 }
 
 export interface CreateStrategyDto {
-  userId: number;
+  regularUserId: number;
   subAccountId: number;
   name: string;
   tag?: string;
@@ -131,7 +131,7 @@ export interface CreateStrategyDto {
 }
 
 export interface CreateLeadDto {
-  userId: number;
+  regularUserId: number;
   strategyId: number;
   subAccountId: number;
   name: string;
@@ -148,7 +148,7 @@ export interface CreateLeadDto {
 }
 
 export interface CreateBookingDto {
-  userId: number;
+  regularUserId: number;
   leadId?: number;
   subAccountId: number;
   bookingType: string;

@@ -249,8 +249,12 @@ export class AdminAuthService {
         password: hashedPassword,
         company: userData.company,
         role: userData.role || 'user',
-        createdByAdminId: adminId,
-        subAccountId: subAccountId,
+        createdByAdmin: {
+          connect: { id: adminId }
+        },
+        subAccount: {
+          connect: { id: subAccountId }
+        },
       },
     });
 

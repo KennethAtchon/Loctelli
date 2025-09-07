@@ -2,13 +2,13 @@ import { ApiClient } from '../client';
 import { Strategy, CreateStrategyDto } from '@/types';
 
 export class StrategiesApi extends ApiClient {
-  async getStrategies(params?: { subAccountId?: number; userId?: number }): Promise<Strategy[]> {
+  async getStrategies(params?: { subAccountId?: number; regularUserId?: number }): Promise<Strategy[]> {
     const queryParams = new URLSearchParams();
     if (params?.subAccountId) {
       queryParams.append('subAccountId', params.subAccountId.toString());
     }
-    if (params?.userId) {
-      queryParams.append('userId', params.userId.toString());
+    if (params?.regularUserId !== undefined && params?.regularUserId !== null) {
+      queryParams.append('regularUserId', params.regularUserId.toString());
     }
     const queryString = queryParams.toString();
     return this.get<Strategy[]>(`/strategy${queryString ? `?${queryString}` : ''}`);
@@ -30,8 +30,8 @@ export class StrategiesApi extends ApiClient {
     return this.delete<void>(`/strategy/${id}`);
   }
 
-  async getStrategiesByUser(userId: number): Promise<Strategy[]> {
-    return this.get<Strategy[]>(`/strategy?userId=${userId}`);
+  async getStrategiesByUser(regularUserId: number): Promise<Strategy[]> {
+    return this.get<Strategy[]>(`/strategy?regularUserId=${regularUserId}`);
   }
 
   async duplicateStrategy(id: number): Promise<Strategy> {

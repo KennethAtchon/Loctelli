@@ -8,13 +8,26 @@ export class LeadsService {
   constructor(private prisma: PrismaService) {}
 
   async create(CreateLeadDto: CreateLeadDto, subAccountId: number) {
-    const { userId, ...leadData } = CreateLeadDto;
-    return this.prisma.lead.create({
-      data: {
-        ...leadData,
-        regularUserId: userId,
-        subAccountId, // Add SubAccount context
+    const { userId, strategyId, subAccountId: _, ...leadData } = CreateLeadDto;
+    
+    const createData: any = {
+      ...leadData,
+      regularUser: {
+        connect: { id: userId }
       },
+      subAccount: {
+        connect: { id: subAccountId }
+      },
+    };
+
+    if (strategyId) {
+      createData.strategy = {
+        connect: { id: strategyId }
+      };
+    }
+
+    return this.prisma.lead.create({
+      data: createData,
     });
   }
 

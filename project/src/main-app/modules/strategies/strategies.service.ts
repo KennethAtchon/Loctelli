@@ -29,12 +29,18 @@ export class StrategiesService {
     }
 
     // Ensure promptTemplateId is set before creating
-    const { userId, ...restDto } = createStrategyDto;
+    const { userId, subAccountId: _, promptTemplateId, ...restDto } = createStrategyDto;
     const strategyData = {
       ...restDto,
-      regularUserId: userId,
-      promptTemplateId: createStrategyDto.promptTemplateId!,
-      subAccountId, // Add SubAccount context
+      regularUser: {
+        connect: { id: userId }
+      },
+      promptTemplate: {
+        connect: { id: promptTemplateId! }
+      },
+      subAccount: {
+        connect: { id: subAccountId }
+      },
     };
 
     return this.prisma.strategy.create({
@@ -176,12 +182,18 @@ export class StrategiesService {
     };
 
     // Ensure promptTemplateId is set and include SubAccount context
-    const { userId: duplicateUserId, ...restDuplicateData } = duplicateData;
+    const { userId: duplicateUserId, subAccountId: __, promptTemplateId: duplicateTemplateId, ...restDuplicateData } = duplicateData;
     const strategyData = {
       ...restDuplicateData,
-      regularUserId: duplicateUserId,
-      promptTemplateId: duplicateData.promptTemplateId!,
-      subAccountId: strategy.subAccountId, // Keep the same SubAccount
+      regularUser: {
+        connect: { id: duplicateUserId }
+      },
+      promptTemplate: {
+        connect: { id: duplicateTemplateId! }
+      },
+      subAccount: {
+        connect: { id: strategy.subAccountId }
+      },
     };
 
     return this.prisma.strategy.create({
