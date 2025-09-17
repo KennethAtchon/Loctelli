@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { FormTemplate, FormField } from '@/lib/api';
+import { FormTemplate, FormField, FormsApi } from '@/lib/api';
 import logger from '@/lib/logger';
 
 export default function PublicFormPage() {
@@ -30,33 +30,30 @@ export default function PublicFormPage() {
 
   // Wake-up mechanism
   const [wakeUpInterval, setWakeUpInterval] = useState<NodeJS.Timeout | null>(null);
+  const formsApi = useMemo(() => new FormsApi(), []);
 
   const wakeUpDatabase = useCallback(async () => {
     try {
-      const response = await fetch('/api/proxy/forms/public/wake-up');
-      if (!response.ok) {
-        throw new Error('Failed to wake up database');
-      }
+      await formsApi.wakeUpDatabase();
       logger.debug('Database wake-up successful');
     } catch (error) {
       logger.error('Database wake-up failed:', error);
     }
-  }, []);
+  }, [formsApi]);
 
   const loadForm = useCallback(async () => {
+    // Prevent loading reserved slugs
+    if (slug === 'wake-up' || slug === 'invalid-form') {
+      setError('Invalid form URL');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/proxy/forms/public/${slug}`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error('Form not found');
-        }
-        throw new Error('Failed to load form');
-      }
-
-      const formTemplate = await response.json();
+      const formTemplate = await formsApi.getPublicForm(slug);
       setTemplate(formTemplate);
 
       // Initialize form data with default values
@@ -85,7 +82,7 @@ export default function PublicFormPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [slug, wakeUpDatabase]);
+  }, [slug, wakeUpDatabase, formsApi]);
 
   const handleInputChange = (fieldId: string, value: any) => {
     setFormData(prev => ({
@@ -118,20 +115,11 @@ export default function PublicFormPage() {
       setUploadingFiles(prev => ({ ...prev, [fieldId]: true }));
       setError(null);
 
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('fieldId', fieldId);
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      uploadFormData.append('fieldId', fieldId);
 
-      const response = await fetch(`/api/proxy/forms/public/${slug}/upload`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to upload file');
-      }
-
-      const uploadResult = await response.json();
+      const uploadResult = await formsApi.uploadFormFile(slug, uploadFormData);
 
       // Store uploaded file info
       setUploadedFiles(prev => ({
@@ -176,21 +164,11 @@ export default function PublicFormPage() {
       setIsSubmitting(true);
       setError(null);
 
-      const response = await fetch(`/api/proxy/forms/public/${slug}/submit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          data: formData,
-          files: uploadedFiles,
-          source: 'website'
-        }),
+      await formsApi.submitPublicForm(slug, {
+        data: formData,
+        files: uploadedFiles,
+        source: 'website'
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to submit form');
-      }
 
       setSuccess(true);
     } catch (error) {
@@ -371,7 +349,7 @@ export default function PublicFormPage() {
         clearInterval(wakeUpInterval);
       }
     };
-  }, [loadForm]);
+  }, [slug]);
 
   if (isLoading) {
     return (

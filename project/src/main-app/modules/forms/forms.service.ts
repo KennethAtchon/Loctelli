@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { R2StorageService } from '../../../shared/storage/r2-storage.service';
 import { CreateFormTemplateDto } from './dto/create-form-template.dto';
@@ -8,6 +8,8 @@ import { UpdateFormSubmissionDto } from './dto/update-form-submission.dto';
 
 @Injectable()
 export class FormsService {
+  private readonly logger = new Logger(FormsService.name);
+
   constructor(
     private prisma: PrismaService,
     private r2StorageService: R2StorageService
@@ -15,49 +17,87 @@ export class FormsService {
 
   // Form Templates
   async createFormTemplate(createFormTemplateDto: CreateFormTemplateDto, adminId: number) {
-    const { slug, subAccountId, ...data } = createFormTemplateDto;
+    try {
+      this.logger.debug(`Creating form template with slug: ${createFormTemplateDto.slug}`);
+      const { slug, subAccountId, ...data } = createFormTemplateDto;
 
-    // Check if slug already exists
-    const existingTemplate = await this.prisma.formTemplate.findUnique({
-      where: { slug }
-    });
+      // Check if slug already exists
+      this.logger.debug(`Checking if slug '${slug}' already exists`);
+      const existingTemplate = await this.prisma.formTemplate.findUnique({
+        where: { slug }
+      });
 
-    if (existingTemplate) {
-      throw new ConflictException(`Form template with slug '${slug}' already exists`);
-    }
-
-    return this.prisma.formTemplate.create({
-      data: {
-        ...data,
-        slug,
-        createdByAdminId: adminId,
-        subAccountId: subAccountId || null,
-        schema: JSON.parse(JSON.stringify(data.schema)), // Convert FormFieldDto[] to JSON
+      if (existingTemplate) {
+        throw new ConflictException(`Form template with slug '${slug}' already exists`);
       }
-    });
+
+      // If no subAccountId provided, use the default SubAccount
+      let finalSubAccountId = subAccountId;
+      if (!finalSubAccountId) {
+        this.logger.debug('No subAccountId provided, looking for default SubAccount');
+        const defaultSubAccount = await this.prisma.subAccount.findFirst({
+          where: { name: 'Default SubAccount' }
+        });
+
+        if (!defaultSubAccount) {
+          throw new BadRequestException('No default SubAccount available for form template creation');
+        }
+
+        finalSubAccountId = defaultSubAccount.id;
+        this.logger.debug(`Using default SubAccount ID: ${finalSubAccountId}`);
+      }
+
+      this.logger.debug(`Creating form template with subAccountId: ${finalSubAccountId}`);
+      const result = await this.prisma.formTemplate.create({
+        data: {
+          ...data,
+          slug,
+          createdByAdminId: adminId,
+          subAccountId: finalSubAccountId,
+          schema: JSON.parse(JSON.stringify(data.schema)), // Convert FormFieldDto[] to JSON
+        }
+      });
+
+      this.logger.debug(`Form template created successfully with ID: ${result.id}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Error creating form template: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   async findAllFormTemplates(subAccountId?: number) {
-    return this.prisma.formTemplate.findMany({
-      where: {
-        OR: [
-          { subAccountId: subAccountId },
-          { subAccountId: null } // Global templates
-        ]
-      },
-      include: {
-        createdByAdmin: {
-          select: { id: true, name: true, email: true }
+    try {
+      this.logger.debug(`Finding form templates with subAccountId: ${subAccountId}`);
+
+      // If no subAccountId provided, return all templates
+      const whereClause = subAccountId ? { subAccountId } : {};
+      this.logger.debug(`Where clause: ${JSON.stringify(whereClause)}`);
+
+      const result = await this.prisma.formTemplate.findMany({
+        where: whereClause,
+        include: {
+          createdByAdmin: {
+            select: { id: true, name: true, email: true }
+          },
+          subAccount: {
+            select: { id: true, name: true }
+          },
+          _count: {
+            select: { submissions: true }
+          }
         },
-        subAccount: {
-          select: { id: true, name: true }
-        },
-        _count: {
-          select: { submissions: true }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+        orderBy: { createdAt: 'desc' }
+      });
+
+      this.logger.debug(`Found ${result.length} form templates`);
+      this.logger.debug(`Template details: ${JSON.stringify(result.map(t => ({ id: t.id, name: t.name, slug: t.slug, subAccountId: t.subAccountId })))}`);
+
+      return result;
+    } catch (error) {
+      this.logger.error(`Error finding form templates: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   async findFormTemplateById(id: string) {

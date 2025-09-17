@@ -13,15 +13,24 @@ export class ApiClient {
     retries: 3,
   };
   private authService: AuthService;
+  private failedRequests = new Map<string, number>();
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
     this.authService = new AuthService(baseUrl);
     
-    // Clean up expired blocks every minute
+    // Clean up expired blocks and failed requests every minute
     setInterval(() => {
       rateLimiter.cleanup();
+      this.cleanupFailedRequests();
     }, 60000);
+  }
+
+  private cleanupFailedRequests(): void {
+    // Clear failed requests after 5 minutes to allow retry
+    // This prevents permanent blocking of endpoints
+    this.failedRequests.clear();
+    logger.debug('🧹 Cleaned up failed requests cache');
   }
 
   protected async request<T = unknown>(
@@ -30,13 +39,23 @@ export class ApiClient {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     const isAuthEndpoint = this.authService.isAuthEndpoint(endpoint);
-    
+
     logger.debug('🌐 API Request:', {
       url,
       method: options.method || 'GET',
       endpoint,
       isAuthEndpoint
     });
+
+    // Check for repeated failures to prevent infinite retries
+    const requestKey = `${options.method || 'GET'}:${endpoint}`;
+    const failureCount = this.failedRequests.get(requestKey) || 0;
+    const maxFailures = options.retries || this.defaultOptions.retries || 3;
+
+    if (failureCount >= maxFailures) {
+      logger.warn(`🚫 Request blocked due to repeated failures: ${requestKey}`);
+      throw new Error(`Request failed too many times. Please try again later.`);
+    }
 
     // Check if endpoint is currently rate limited
     rateLimiter.checkRateLimit(endpoint);
@@ -124,13 +143,16 @@ export class ApiClient {
       }
       
       if (!response.ok) {
+        // Track failure for this request
+        this.failedRequests.set(requestKey, failureCount + 1);
+
         const errorData = await response.json().catch(() => ({}));
-        
+
         // Handle rate limiting specifically
         if (response.status === 429) {
           rateLimiter.handleRateLimitError(endpoint, response, errorData);
         }
-        
+
         // For auth endpoints, use simpler error logging to avoid noise
         if (isAuthEndpoint) {
           logger.debug('❌ Auth endpoint failed:', {
@@ -144,7 +166,7 @@ export class ApiClient {
             errorData
           });
         }
-        
+
         // Extract error message from different possible formats
         let errorMessage = response.statusText;
         if (errorData.message) {
@@ -154,9 +176,12 @@ export class ApiClient {
         } else if (typeof errorData === 'string') {
           errorMessage = errorData;
         }
-        
+
         throw new Error(errorMessage);
       }
+
+      // Clear failure count on successful request
+      this.failedRequests.delete(requestKey);
       
       // Handle blob responses (for file downloads)
       if (options.responseType === 'blob') {
@@ -165,13 +190,16 @@ export class ApiClient {
       
       return await response.json();
     } catch (error) {
+      // Track failure for this request
+      this.failedRequests.set(requestKey, failureCount + 1);
+
       // For auth endpoints, use simpler error logging to avoid noise
       if (isAuthEndpoint) {
         logger.debug('❌ Auth request failed:', error);
       } else {
         logger.error('❌ API request failed:', error);
       }
-      
+
       // Handle specific error types
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
@@ -181,7 +209,7 @@ export class ApiClient {
           throw new Error('Network error. Please check your connection and try again.');
         }
       }
-      
+
       throw error;
     }
   }

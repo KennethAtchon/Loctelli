@@ -284,15 +284,16 @@ export default function FormSubmissionsPage() {
         <h1 className="text-2xl font-bold">Form Submissions</h1>
       </div>
 
-      <DataTable
+      <DataTable<FormSubmission>
+        title="Form Submissions"
         data={paginatedSubmissions}
         columns={submissionColumns}
         isLoading={isLoading}
         isRefreshing={isRefreshing}
         error={error}
         success={success}
-        onSearch={handleSubmissionSearch}
-        onFilter={handleSubmissionFilter}
+        onSearchChange={handleSubmissionSearch}
+        onFilterChange={handleSubmissionFilter}
         filters={submissionFilters}
         onView={handleView}
         pagination={{
@@ -302,8 +303,6 @@ export default function FormSubmissionsPage() {
         onRefresh={loadData}
         stats={statsCards}
         searchPlaceholder="Search submissions..."
-        noDataMessage="No form submissions found"
-        createButtonText="View Forms"
         onCreateClick={() => router.push('/admin/forms')}
       />
     </div>

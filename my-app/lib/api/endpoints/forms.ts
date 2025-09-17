@@ -172,6 +172,14 @@ export class FormsApi extends ApiClient {
     return this.get<{ status: string; timestamp: string }>('/forms/public/wake-up');
   }
 
+  async uploadFormFile(slug: string, formData: FormData): Promise<any> {
+    return this.request<any>(`/forms/public/${slug}/upload`, {
+      method: 'POST',
+      body: formData,
+      headers: {} // Don't set Content-Type for FormData, let browser handle it
+    });
+  }
+
   // Form Submissions
   async getFormSubmissions(
     subAccountId?: number,

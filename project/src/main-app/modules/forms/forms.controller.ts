@@ -14,7 +14,8 @@ import {
   BadRequestException,
   UseInterceptors,
   UploadedFile,
-  UploadedFiles
+  UploadedFiles,
+  Logger
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { FormsService } from './forms.service';
@@ -29,23 +30,47 @@ import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 
 @Controller('forms')
 export class FormsController {
+  private readonly logger = new Logger(FormsController.name);
+
   constructor(private readonly formsService: FormsService) {}
 
   // Form Templates (Admin only)
   @Post('templates')
   @UseGuards(JwtAuthGuard, AdminGuard)
-  createFormTemplate(
+  async createFormTemplate(
     @Body() createFormTemplateDto: CreateFormTemplateDto,
     @CurrentUser() user: any
   ) {
-    return this.formsService.createFormTemplate(createFormTemplateDto, user.userId);
+    try {
+      this.logger.debug(`Creating form template for user: ${user.userId}`);
+      this.logger.debug(`Form template data: ${JSON.stringify(createFormTemplateDto)}`);
+
+      const result = await this.formsService.createFormTemplate(createFormTemplateDto, user.userId);
+
+      this.logger.debug(`Form template created successfully`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Error in createFormTemplate controller: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   @Get('templates')
   @UseGuards(JwtAuthGuard, AdminGuard)
-  findAllFormTemplates(@Query('subAccountId') subAccountId?: string) {
-    const subAccountIdNum = subAccountId ? parseInt(subAccountId, 10) : undefined;
-    return this.formsService.findAllFormTemplates(subAccountIdNum);
+  async findAllFormTemplates(@Query('subAccountId') subAccountId?: string) {
+    try {
+      this.logger.debug(`Getting form templates with subAccountId: ${subAccountId}`);
+      const subAccountIdNum = subAccountId ? parseInt(subAccountId, 10) : undefined;
+      this.logger.debug(`Parsed subAccountId: ${subAccountIdNum}`);
+
+      const result = await this.formsService.findAllFormTemplates(subAccountIdNum);
+      this.logger.debug(`Found ${result.length} form templates`);
+
+      return result;
+    } catch (error) {
+      this.logger.error(`Error getting form templates: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   @Get('templates/:id')
@@ -69,14 +94,36 @@ export class FormsController {
     return this.formsService.removeFormTemplate(id);
   }
 
-  // Public form access (by slug)
-  @Get('public/:slug')
+  // Public endpoints - ordered by specificity (most specific first)
+
+  // Database wake-up endpoint (public)
+  @Get('public/wake-up')
   @Public()
-  findFormTemplateBySlug(@Param('slug') slug: string) {
-    return this.formsService.findFormTemplateBySlug(slug);
+  wakeUpDatabase() {
+    return this.formsService.wakeUpDatabase();
   }
 
-  // Public form submission
+  // File upload endpoint for forms (specific path before parameterized)
+  @Post('public/:slug/upload')
+  @Public()
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @Param('slug') slug: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Body('fieldId') fieldId: string
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+
+    if (!fieldId) {
+      throw new BadRequestException('Field ID is required');
+    }
+
+    return this.formsService.uploadFormFile(slug, fieldId, file);
+  }
+
+  // Public form submission (specific path before parameterized)
   @Post('public/:slug/submit')
   @Public()
   @HttpCode(HttpStatus.CREATED)
@@ -104,11 +151,11 @@ export class FormsController {
     return this.formsService.createFormSubmission(createFormSubmissionDto, template.subAccountId);
   }
 
-  // Database wake-up endpoint (public)
-  @Get('public/wake-up')
+  // Public form access (by slug) - parameterized route last
+  @Get('public/:slug')
   @Public()
-  wakeUpDatabase() {
-    return this.formsService.wakeUpDatabase();
+  findFormTemplateBySlug(@Param('slug') slug: string) {
+    return this.formsService.findFormTemplateBySlug(slug);
   }
 
   // Form Submissions (Admin/User access)
@@ -156,23 +203,4 @@ export class FormsController {
     return this.formsService.removeFormSubmission(id);
   }
 
-  // File upload endpoint for forms
-  @Post('public/:slug/upload')
-  @Public()
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadFile(
-    @Param('slug') slug: string,
-    @UploadedFile() file: Express.Multer.File,
-    @Body('fieldId') fieldId: string
-  ) {
-    if (!file) {
-      throw new BadRequestException('No file provided');
-    }
-
-    if (!fieldId) {
-      throw new BadRequestException('Field ID is required');
-    }
-
-    return this.formsService.uploadFormFile(slug, fieldId, file);
-  }
 }
