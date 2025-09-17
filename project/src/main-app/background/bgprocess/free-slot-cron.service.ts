@@ -149,7 +149,7 @@ export class FreeSlotCronService {
   }
 
   /**
-   * Fetch free slots from GoHighLevel for each user with a calendarId
+   * Fetch free slots from GoHighLevel for each user with a calendarId, Availability slots, The AI tool will call this function realistically. 
    */
   async fetchFreeSlots(): Promise<void> {
     const headers = {

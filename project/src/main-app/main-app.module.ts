@@ -18,6 +18,7 @@ import { GeneralModule } from './general/general.module';
 import { DebugModule } from './debug/debug.module';
 import { FinderModule } from './modules/finder/finder.module';
 import { ContactsModule } from './modules/contacts/contacts.module';
+import { FormsModule } from './modules/forms/forms.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { ContactsModule } from './modules/contacts/contacts.module';
     DebugModule,
     FinderModule,
     ContactsModule,
+    FormsModule,
   ],
 })
 export class MainAppModule {} 

@@ -1,0 +1,319 @@
+{
+  "name": "GHL + Facebook Ads Onboarding",
+  "slug": "ghl-facebook-onboarding",
+  "description": "Comprehensive onboarding form to collect all necessary information for setting up GHL (GoHighLevel) system and Facebook Ads campaigns for new clients.",
+  "title": "Business Setup - GHL & Facebook Ads Onboarding",
+  "subtitle": "Help us set up your complete marketing automation system. This will take about 10-15 minutes to complete.",
+  "submitButtonText": "Submit Onboarding Information",
+  "successMessage": "Thank you! We've received your information and will begin setting up your GHL system and Facebook Ads campaigns. Our team will contact you within 24 hours to confirm the setup.",
+  "requiresWakeUp": true,
+  "wakeUpInterval": 30,
+  "schema": [
+    {
+      "id": "business_info",
+      "type": "text",
+      "label": "Business Name",
+      "placeholder": "Enter your business name",
+      "required": true
+    },
+    {
+      "id": "contact_person",
+      "type": "text",
+      "label": "Primary Contact Person",
+      "placeholder": "Full name of the main contact",
+      "required": true
+    },
+    {
+      "id": "email",
+      "type": "email",
+      "label": "Business Email",
+      "placeholder": "your@business.com",
+      "required": true
+    },
+    {
+      "id": "phone",
+      "type": "phone",
+      "label": "Business Phone Number",
+      "placeholder": "+1 (555) 123-4567",
+      "required": true
+    },
+    {
+      "id": "website",
+      "type": "text",
+      "label": "Current Website URL",
+      "placeholder": "https://www.yourbusiness.com",
+      "required": false
+    },
+    {
+      "id": "business_type",
+      "type": "select",
+      "label": "Business Type/Industry",
+      "required": true,
+      "options": [
+        "Restaurant/Food Service",
+        "Healthcare/Medical",
+        "Real Estate",
+        "Professional Services",
+        "Retail/E-commerce",
+        "Fitness/Wellness",
+        "Beauty/Salon",
+        "Home Services",
+        "Legal Services",
+        "Financial Services",
+        "Education/Training",
+        "Construction/Contractor",
+        "Automotive",
+        "Technology/Software",
+        "Other"
+      ]
+    },
+    {
+      "id": "business_description",
+      "type": "textarea",
+      "label": "Describe Your Business",
+      "placeholder": "Brief description of what your business does, target audience, and main services/products",
+      "required": true
+    },
+    {
+      "id": "target_audience",
+      "type": "textarea",
+      "label": "Target Audience",
+      "placeholder": "Describe your ideal customers (age, location, interests, etc.)",
+      "required": true
+    },
+    {
+      "id": "business_goals",
+      "type": "textarea",
+      "label": "Business Goals",
+      "placeholder": "What are your main business objectives? (e.g., increase leads, boost sales, improve customer retention)",
+      "required": true
+    },
+    {
+      "id": "monthly_budget",
+      "type": "select",
+      "label": "Monthly Marketing Budget",
+      "required": true,
+      "options": [
+        "$500 - $1,000",
+        "$1,000 - $2,500",
+        "$2,500 - $5,000",
+        "$5,000 - $10,000",
+        "$10,000 - $25,000",
+        "$25,000+"
+      ]
+    },
+    {
+      "id": "facebook_page_url",
+      "type": "text",
+      "label": "Facebook Business Page URL",
+      "placeholder": "https://www.facebook.com/yourbusiness",
+      "required": false
+    },
+    {
+      "id": "facebook_ad_account",
+      "type": "radio",
+      "label": "Do you have an existing Facebook Ad Account?",
+      "required": true,
+      "options": [
+        "Yes, I have an active Facebook Ad Account",
+        "Yes, but it's not active/I don't use it",
+        "No, I need one created"
+      ]
+    },
+    {
+      "id": "facebook_pixel",
+      "type": "radio",
+      "label": "Do you have Facebook Pixel installed on your website?",
+      "required": true,
+      "options": [
+        "Yes, it's installed and tracking",
+        "Yes, but I'm not sure if it's working",
+        "No, I need it installed"
+      ]
+    },
+    {
+      "id": "previous_marketing",
+      "type": "checkbox",
+      "label": "What marketing methods have you used before? (Check all that apply)",
+      "required": false,
+      "options": [
+        "Facebook Ads",
+        "Google Ads",
+        "Email Marketing",
+        "SMS Marketing",
+        "Social Media Organic",
+        "Print Advertising",
+        "Radio/TV",
+        "Direct Mail",
+        "Referral Programs",
+        "None of the above"
+      ]
+    },
+    {
+      "id": "current_crm",
+      "type": "select",
+      "label": "Current CRM/Lead Management System",
+      "required": true,
+      "options": [
+        "None - We track leads manually",
+        "Excel/Google Sheets",
+        "HubSpot",
+        "Salesforce",
+        "Pipedrive",
+        "Zoho",
+        "ActiveCampaign",
+        "Mailchimp",
+        "Other CRM"
+      ]
+    },
+    {
+      "id": "lead_volume",
+      "type": "select",
+      "label": "How many leads do you currently get per month?",
+      "required": true,
+      "options": [
+        "0-10 leads",
+        "10-25 leads",
+        "25-50 leads",
+        "50-100 leads",
+        "100-250 leads",
+        "250+ leads"
+      ]
+    },
+    {
+      "id": "conversion_rate",
+      "type": "select",
+      "label": "What percentage of leads typically become customers?",
+      "required": true,
+      "options": [
+        "I don't track this",
+        "Less than 5%",
+        "5-10%",
+        "10-20%",
+        "20-30%",
+        "30%+"
+      ]
+    },
+    {
+      "id": "average_sale_value",
+      "type": "select",
+      "label": "Average Sale/Service Value",
+      "required": true,
+      "options": [
+        "Under $100",
+        "$100 - $500",
+        "$500 - $1,000",
+        "$1,000 - $2,500",
+        "$2,500 - $5,000",
+        "$5,000 - $10,000",
+        "$10,000+"
+      ]
+    },
+    {
+      "id": "ghl_experience",
+      "type": "radio",
+      "label": "Experience with GoHighLevel (GHL)",
+      "required": true,
+      "options": [
+        "Never used it",
+        "I've heard of it but never used it",
+        "I have an account but barely use it",
+        "I use it regularly"
+      ]
+    },
+    {
+      "id": "team_size",
+      "type": "select",
+      "label": "Team Size",
+      "required": true,
+      "options": [
+        "Just me (solo entrepreneur)",
+        "2-5 people",
+        "6-10 people",
+        "11-25 people",
+        "26-50 people",
+        "50+ people"
+      ]
+    },
+    {
+      "id": "technical_comfort",
+      "type": "select",
+      "label": "Technical Comfort Level",
+      "required": true,
+      "options": [
+        "Not technical at all",
+        "Basic computer skills",
+        "Comfortable with most software",
+        "Very technical/tech-savvy"
+      ]
+    },
+    {
+      "id": "business_hours",
+      "type": "textarea",
+      "label": "Business Hours & Time Zone",
+      "placeholder": "e.g., Monday-Friday 9AM-6PM EST",
+      "required": true
+    },
+    {
+      "id": "preferred_contact_time",
+      "type": "select",
+      "label": "Best Time to Contact You",
+      "required": true,
+      "options": [
+        "Morning (9AM-12PM)",
+        "Afternoon (12PM-5PM)",
+        "Evening (5PM-8PM)",
+        "Weekends",
+        "Anytime"
+      ]
+    },
+    {
+      "id": "urgent_timeline",
+      "type": "radio",
+      "label": "How quickly do you need this set up?",
+      "required": true,
+      "options": [
+        "ASAP - This is urgent",
+        "Within 1 week",
+        "Within 2 weeks",
+        "Within 1 month",
+        "No rush - when convenient"
+      ]
+    },
+    {
+      "id": "competitors",
+      "type": "textarea",
+      "label": "Main Competitors",
+      "placeholder": "List 2-3 of your main competitors (websites/business names)",
+      "required": false
+    },
+    {
+      "id": "unique_selling_proposition",
+      "type": "textarea",
+      "label": "What makes your business unique?",
+      "placeholder": "What sets you apart from competitors? Why should customers choose you?",
+      "required": true
+    },
+    {
+      "id": "pain_points",
+      "type": "textarea",
+      "label": "Current Marketing Challenges",
+      "placeholder": "What are your biggest challenges with getting new customers?",
+      "required": true
+    },
+    {
+      "id": "success_metrics",
+      "type": "textarea",
+      "label": "How do you measure success?",
+      "placeholder": "What metrics are most important to your business? (e.g., number of new customers, revenue, etc.)",
+      "required": true
+    },
+    {
+      "id": "additional_info",
+      "type": "textarea",
+      "label": "Additional Information",
+      "placeholder": "Anything else you'd like us to know about your business or specific requirements?",
+      "required": false
+    }
+  ]
+}

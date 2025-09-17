@@ -17,7 +17,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <div className="min-h-screen transition-colors duration-300 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-slate-800/50 dark:to-slate-900/80">
             <div className="flex h-screen">
               <Sidebar />
-              <div className="flex-1 flex flex-col lg:ml-0 overflow-auto w-full">
+              <div className="flex-1 flex flex-col lg:ml-0 w-full">
                 <Header />
                 <main className="flex-1 p-6 lg:p-8 pt-20 lg:pt-8 overflow-auto">
                   <div className="max-w-7xl mx-auto">

@@ -28,6 +28,9 @@ model AdminUser {
   subAccounts     SubAccount[] // SubAccounts created by this admin
   integrationTemplates IntegrationTemplate[] // Integration templates created by this admin
   integrations    Integration[] // Integrations created by this admin
+
+  // Dynamic forms
+  formTemplates   FormTemplate[] // Form templates created by this admin
 }
 
 model SubAccount {
@@ -53,6 +56,10 @@ model SubAccount {
   
   // Contact management
   contactSubmissions ContactSubmission[]
+
+  // Dynamic forms
+  formTemplates FormTemplate[]
+  formSubmissions FormSubmission[]
 }
 
 model User {
@@ -87,6 +94,9 @@ model User {
   
   // Contact management
   assignedContacts ContactSubmission[]
+
+  // Dynamic forms
+  assignedFormSubmissions FormSubmission[]
 }
 
 model Strategy {
@@ -391,6 +401,84 @@ enum Priority {
   MEDIUM
   HIGH
   URGENT
+}
+
+// Dynamic Forms System Models
+
+model FormTemplate {
+  id           String   @id @default(cuid())
+  name         String   // e.g., "GHL Onboarding Form", "Facebook Ads Setup"
+  slug         String   @unique // URL-friendly identifier, e.g., "ghl-onboarding"
+  description  String?  @db.Text
+  isActive     Boolean  @default(true)
+
+  // Form configuration - array of field definitions
+  schema       Json     // [{ id: string, type: "text|email|phone|textarea|select|checkbox|radio|file|image", label: string, placeholder?: string, options?: string[], required?: boolean }]
+
+  // Styling and presentation
+  title        String   // Display title on the form page
+  subtitle     String?  @db.Text // Optional subtitle/description
+  submitButtonText String @default("Submit")
+  successMessage String @default("Thank you for your submission!")
+
+  // Wake-up mechanism for public forms
+  requiresWakeUp Boolean @default(true) // Whether to wake up the database
+  wakeUpInterval Int     @default(30) // Wake up every N seconds while user is on page
+
+  // Multi-tenant support
+  subAccountId Int?     // If null, available to all subaccounts
+  subAccount   SubAccount? @relation(fields: [subAccountId], references: [id])
+
+  // Audit fields
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  createdByAdminId Int
+  createdByAdmin AdminUser @relation(fields: [createdByAdminId], references: [id])
+
+  // Relations
+  submissions  FormSubmission[]
+
+  @@map("form_templates")
+}
+
+model FormSubmission {
+  id           String   @id @default(cuid())
+
+  // Form template reference
+  formTemplateId String
+  formTemplate FormTemplate @relation(fields: [formTemplateId], references: [id])
+
+  // Submission data
+  data         Json     // All form field values stored as JSON
+  files        Json?    // File upload information (R2 URLs, metadata)
+
+  // Metadata
+  ipAddress    String?
+  userAgent    String?  @db.Text
+  source       String   @default("website") // website, landing_page, etc.
+
+  // Status tracking
+  status       String   @default("new") // new, reviewed, contacted, processed, archived
+  priority     Priority @default(MEDIUM)
+
+  // Assignment
+  assignedToId Int?
+  assignedTo   User?    @relation(fields: [assignedToId], references: [id])
+
+  // Notes and follow-up - JSON array of note objects
+  notes        Json?    // [{ content: string, createdAt: string, authorId: number, authorName: string }]
+
+  // Timestamps
+  submittedAt  DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  reviewedAt   DateTime?
+  contactedAt  DateTime?
+
+  // Multi-tenant support
+  subAccountId Int
+  subAccount   SubAccount @relation(fields: [subAccountId], references: [id])
+
+  @@map("form_submissions")
 }
 
 

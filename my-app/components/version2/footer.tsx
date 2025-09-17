@@ -38,7 +38,7 @@ export function Footer() {
               </div>
               <div className="flex items-center text-gray-600 text-sm">
                 <Mail className="w-4 h-4 mr-2" />
-                <span>hello@loctelli.com</span>
+                <span>info@loctelli.com</span>
               </div>
               <div className="flex items-center text-gray-600 text-sm">
                 <MapPin className="w-4 h-4 mr-2" />

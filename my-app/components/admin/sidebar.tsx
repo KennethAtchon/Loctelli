@@ -21,6 +21,7 @@ import {
   Send,
   Search,
   Mail,
+  ClipboardList,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -30,6 +31,7 @@ const navigation = [
   { name: 'SubAccounts', href: '/admin/subaccounts', icon: Building2 },
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Contacts', href: '/admin/contacts', icon: Mail },
+  { name: 'Forms', href: '/admin/forms', icon: ClipboardList },
   { name: 'Strategies', href: '/admin/strategies', icon: Target },
   { name: 'Leads', href: '/admin/leads', icon: Users },
   { name: 'Bookings', href: '/admin/bookings', icon: Calendar },
@@ -39,7 +41,7 @@ const navigation = [
   { name: 'Prompt Builder', href: '/admin/prompt-templates', icon: FileText },
   { name: 'Integrations', href: '/admin/integrations', icon: Link2 },
   { name: 'Dev', href: '/admin/dev', icon: Database },
-  { name: 'Settings', href: '/admin/settings', icon: Settings },  
+  { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 
 export function Sidebar() {

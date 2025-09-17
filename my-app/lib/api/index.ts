@@ -15,6 +15,7 @@ import { GeneralApi } from './endpoints/general';
 import { SmsApi } from './endpoints/sms';
 import { ContactsApi } from './endpoints/contacts';
 import { FinderApi } from './endpoints/finder';
+import { FormsApi } from './endpoints/forms';
 
 export class Api extends ApiClient {
   public auth: AuthApi;
@@ -33,6 +34,7 @@ export class Api extends ApiClient {
   public sms: SmsApi;
   public contacts: ContactsApi;
   public finder: FinderApi;
+  public forms: FormsApi;
 
   constructor(baseUrl?: string) {
     super(baseUrl);
@@ -54,6 +56,7 @@ export class Api extends ApiClient {
     this.sms = new SmsApi(baseUrl);
     this.contacts = new ContactsApi(baseUrl);
     this.finder = new FinderApi(baseUrl);
+    this.forms = new FormsApi(baseUrl);
   }
 }
 
@@ -77,6 +80,7 @@ export { GeneralApi } from './endpoints/general';
 export { SmsApi } from './endpoints/sms';
 export { ContactsApi } from './endpoints/contacts';
 export { FinderApi } from './endpoints/finder';
+export { FormsApi } from './endpoints/forms';
 
 // Export types
 export type { SystemStatus } from './endpoints/status';
@@ -104,6 +108,16 @@ export type {
   Integration, 
   CreateIntegrationDto, 
   UpdateIntegrationDto, 
-  TestConnectionResponse, 
-  SyncDataResponse 
-} from './endpoints/integrations'; 
+  TestConnectionResponse,
+  SyncDataResponse
+} from './endpoints/integrations';
+export type {
+  FormTemplate,
+  FormSubmission,
+  FormField,
+  CreateFormTemplateDto,
+  UpdateFormTemplateDto,
+  CreateFormSubmissionDto,
+  UpdateFormSubmissionDto,
+  FormStats
+} from './endpoints/forms'; 
