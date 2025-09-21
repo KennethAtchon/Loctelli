@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { DataTable, Column, Filter, StatCard } from '@/components/customUI';
 import { usePagination } from '@/components/customUI';
@@ -13,6 +14,7 @@ import logger from '@/lib/logger';
 import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
 
 export default function FormsPage() {
+  const router = useRouter();
   const { getCurrentSubaccount } = useSubaccountFilter();
   const [templates, setTemplates] = useState<FormTemplate[]>([]);
   const [submissions, setSubmissions] = useState<FormSubmission[]>([]);
@@ -69,7 +71,12 @@ export default function FormsPage() {
       render: (template) => (
         <div>
           <div className="font-medium">{template.name}</div>
-          <div className="text-xs text-gray-500">/{template.slug}</div>
+          <div
+            className="text-xs text-gray-500 cursor-pointer hover:text-blue-600"
+            onClick={() => router.push(`/forms/${template.slug}`)}
+          >
+            /{template.slug}
+          </div>
         </div>
       ),
     },
