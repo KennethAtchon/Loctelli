@@ -21,6 +21,8 @@ export default function BookingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<number | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
 
   // Use the pagination hook
   const {
@@ -188,8 +190,8 @@ export default function BookingsPage() {
 
   // Handle actions
   const handleView = (booking: Booking) => {
-    // Booking details are shown in a dialog
-    console.log('View booking:', booking);
+    setSelectedBooking(booking);
+    setViewDialogOpen(true);
   };
 
   const handleEdit = (booking: Booking) => {
@@ -287,30 +289,194 @@ export default function BookingsPage() {
   };
 
   return (
-    <DataTable
-      data={paginatedData}
-      isLoading={isLoading}
-      isRefreshing={isRefreshing}
-      columns={columns}
-      title="Booking Management"
-      description="A list of all lead bookings and appointments"
-      searchPlaceholder="Search bookings..."
-      filters={filters}
-      onSearchChange={handleSearch}
-      onFilterChange={handleFilter}
-      pagination={{
-        currentPage: pagination.currentPage,
-        totalPages: pagination.totalPages,
-        pageSize: pagination.pageSize,
-        totalItems: pagination.totalItems,
-        onPageChange: setCurrentPage,
-      }}
-      onRefresh={loadBookings}
-      onView={handleView}
-      onEdit={handleEdit}
-      stats={stats}
-      error={error}
-      success={success}
-    />
+    <>
+      <DataTable
+        data={paginatedData}
+        isLoading={isLoading}
+        isRefreshing={isRefreshing}
+        columns={columns}
+        title="Booking Management"
+        description="A list of all lead bookings and appointments"
+        searchPlaceholder="Search bookings..."
+        filters={filters}
+        onSearchChange={handleSearch}
+        onFilterChange={handleFilter}
+        pagination={{
+          currentPage: pagination.currentPage,
+          totalPages: pagination.totalPages,
+          pageSize: pagination.pageSize,
+          totalItems: pagination.totalItems,
+          onPageChange: setCurrentPage,
+        }}
+        onRefresh={loadBookings}
+        onView={handleView}
+        onEdit={handleEdit}
+        stats={stats}
+        error={error}
+        success={success}
+      />
+
+      {/* Booking Details Dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Booking Details
+            </DialogTitle>
+            <DialogDescription>
+              View detailed information about this booking
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedBooking && (
+            <div className="space-y-6">
+              {/* Booking Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Booking ID</label>
+                    <p className="text-sm">{selectedBooking.id}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Type</label>
+                    <p className="text-sm">
+                      <Badge variant={getTypeBadgeVariant(selectedBooking.bookingType)}>
+                        {selectedBooking.bookingType}
+                      </Badge>
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Status</label>
+                    <p className="text-sm">
+                      <Badge variant={getStatusBadgeVariant(selectedBooking.status)}>
+                        {selectedBooking.status}
+                      </Badge>
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Created</label>
+                    <p className="text-sm">{formatDate(selectedBooking.createdAt)}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Last Updated</label>
+                    <p className="text-sm">{formatDate(selectedBooking.updatedAt)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Lead Information */}
+              {selectedBooking.lead && (
+                <div className="border-t pt-4">
+                  <h4 className="text-lg font-medium mb-3 flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Lead Information
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Name</label>
+                        <p className="text-sm">{selectedBooking.lead.name}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Email</label>
+                        <p className="text-sm">{selectedBooking.lead.email || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Phone</label>
+                        <p className="text-sm">{selectedBooking.lead.phone || 'N/A'}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Company</label>
+                        <p className="text-sm">{selectedBooking.lead.company || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Position</label>
+                        <p className="text-sm">{selectedBooking.lead.position || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Status</label>
+                        <p className="text-sm">{selectedBooking.lead.status}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* User Information */}
+              {selectedBooking.user && (
+                <div className="border-t pt-4">
+                  <h4 className="text-lg font-medium mb-3 flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Assigned User
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Name</label>
+                        <p className="text-sm">{selectedBooking.user.name}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Email</label>
+                        <p className="text-sm">{selectedBooking.user.email}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Company</label>
+                        <p className="text-sm">{selectedBooking.user.company || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Role</label>
+                        <p className="text-sm">{selectedBooking.user.role}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Booking Details */}
+              {selectedBooking.details && (
+                <div className="border-t pt-4">
+                  <h4 className="text-lg font-medium mb-3 flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Booking Details
+                  </h4>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <pre className="text-sm whitespace-pre-wrap text-gray-700">
+                      {formatBookingDetails(selectedBooking.details)}
+                    </pre>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="border-t pt-4 flex gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setViewDialogOpen(false)}
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={() => {
+                    setViewDialogOpen(false);
+                    handleEdit(selectedBooking);
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Edit className="h-4 w-4" />
+                  Edit Booking
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 } 

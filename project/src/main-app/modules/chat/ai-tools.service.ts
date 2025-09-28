@@ -231,6 +231,7 @@ export class AiToolsService {
 
   /**
    * Check calendar availability for a given date and time range
+   * Uses bookingsTime JSON field as primary source, cross-referenced with database bookings
    */
   private async checkAvailability(
     args: AvailabilityToolArgs,
@@ -246,11 +247,31 @@ export class AiToolsService {
       };
     }
 
-    const startTime = args.startTime || '09:00';
-    const endTime = args.endTime || '17:00';
-
     try {
-      // Get user's bookings for the specified date
+      // Get user with bookingsTime data
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          bookingsTime: true,
+          bookingEnabled: true
+        }
+      });
+
+      if (!user) {
+        return {
+          success: false,
+          message: 'User not found.'
+        };
+      }
+
+      if (!user.bookingEnabled) {
+        return {
+          success: false,
+          message: 'Booking is not enabled for this user.'
+        };
+      }
+
+      // Get existing bookings from database to cross-reference
       const existingBookings = await this.prisma.booking.findMany({
         where: {
           regularUserId: userId,
@@ -263,15 +284,16 @@ export class AiToolsService {
       // Filter bookings for the specified date
       const dateBookings = existingBookings.filter(booking => {
         const details = booking.details as any;
-        return details.date === args.date;
+        return details && details.date === args.date;
       });
 
-      // Generate available time slots (30-minute intervals)
-      const availableSlots = this.generateAvailableSlots(
+      // Get available slots using bookingsTime field + database cross-reference
+      const availableSlots = await this.getAvailableSlotsFromBookingsTime(
+        user.bookingsTime,
         args.date,
-        startTime,
-        endTime,
-        dateBookings
+        dateBookings,
+        args.startTime,
+        args.endTime
       );
 
       return {
@@ -280,7 +302,8 @@ export class AiToolsService {
         data: {
           date: args.date,
           availableSlots,
-          existingBookings: dateBookings.length
+          existingBookings: dateBookings.length,
+          source: user.bookingsTime ? 'bookingsTime' : 'fallback'
         }
       };
     } catch (error) {
@@ -293,7 +316,159 @@ export class AiToolsService {
   }
 
   /**
-   * Generate available time slots for a given date and time range
+   * Get available slots from user's bookingsTime JSON field, cross-referenced with database bookings
+   */
+  private async getAvailableSlotsFromBookingsTime(
+    bookingsTime: any,
+    date: string,
+    existingBookings: any[],
+    startTime?: string,
+    endTime?: string
+  ): Promise<string[]> {
+    this.logger.log(`Getting available slots for date ${date} from bookingsTime data`);
+
+    try {
+      // If bookingsTime exists, parse and use it
+      if (bookingsTime) {
+        const availableSlots = this.parseBookingsTimeForDate(bookingsTime, date);
+        this.logger.log(`Found ${availableSlots.length} slots from bookingsTime for ${date}`);
+
+        // Cross-reference with existing database bookings
+        const filteredSlots = this.filterSlotsAgainstBookings(availableSlots, existingBookings);
+        this.logger.log(`After filtering against DB bookings: ${filteredSlots.length} slots available`);
+
+        return filteredSlots;
+      } else {
+        // Fallback: Generate slots using traditional method
+        this.logger.log(`No bookingsTime data found, using fallback slot generation`);
+        const fallbackStartTime = startTime || '09:00';
+        const fallbackEndTime = endTime || '17:00';
+
+        return this.generateAvailableSlots(
+          date,
+          fallbackStartTime,
+          fallbackEndTime,
+          existingBookings
+        );
+      }
+    } catch (error) {
+      this.logger.error(`Error processing bookingsTime data: ${error}`);
+      // Fallback to traditional method on error
+      const fallbackStartTime = startTime || '09:00';
+      const fallbackEndTime = endTime || '17:00';
+
+      return this.generateAvailableSlots(
+        date,
+        fallbackStartTime,
+        fallbackEndTime,
+        existingBookings
+      );
+    }
+  }
+
+  /**
+   * Parse bookingsTime JSON field to extract available slots for a specific date
+   */
+  private parseBookingsTimeForDate(bookingsTime: any, targetDate: string): string[] {
+    try {
+      // Handle different possible formats of bookingsTime
+      let bookingsData = bookingsTime;
+
+      if (typeof bookingsTime === 'string') {
+        bookingsData = JSON.parse(bookingsTime);
+      }
+
+      const slots: string[] = [];
+
+      // Expected format could be:
+      // 1. Array of slot objects: [{date: "2025-09-28", slots: ["09:00", "10:00"]}]
+      // 2. Object with dates as keys: {"2025-09-28": ["09:00", "10:00"]}
+      // 3. GHL format: {dates: [{date: "2025-09-28", slots: [...]}]}
+
+      if (Array.isArray(bookingsData)) {
+        // Format 1: Array of date objects
+        const dateEntry = bookingsData.find(entry => entry.date === targetDate);
+        if (dateEntry && dateEntry.slots) {
+          slots.push(...dateEntry.slots);
+        }
+      } else if (bookingsData && typeof bookingsData === 'object') {
+        // Format 2: Direct date key lookup
+        if (bookingsData[targetDate]) {
+          const dateSlots = bookingsData[targetDate];
+          if (Array.isArray(dateSlots)) {
+            slots.push(...dateSlots);
+          }
+        }
+
+        // Format 3: GHL-style nested structure
+        if (bookingsData.dates && Array.isArray(bookingsData.dates)) {
+          const dateEntry = bookingsData.dates.find((entry: any) => entry.date === targetDate);
+          if (dateEntry && dateEntry.slots) {
+            slots.push(...dateEntry.slots);
+          }
+        }
+
+        // Handle other possible nested structures
+        if (bookingsData.availableSlots && Array.isArray(bookingsData.availableSlots)) {
+          const dateEntry = bookingsData.availableSlots.find((entry: any) => entry.date === targetDate);
+          if (dateEntry && dateEntry.times) {
+            slots.push(...dateEntry.times);
+          }
+        }
+      }
+
+      // Validate and format time slots
+      const validSlots = slots
+        .filter(slot => this.validateTimeFormat(slot))
+        .sort(); // Sort chronologically
+
+      this.logger.debug(`Parsed ${validSlots.length} valid slots for ${targetDate}: ${validSlots.join(', ')}`);
+      return validSlots;
+
+    } catch (error) {
+      this.logger.error(`Error parsing bookingsTime for date ${targetDate}: ${error}`);
+      return [];
+    }
+  }
+
+  /**
+   * Filter available slots against existing database bookings
+   */
+  private filterSlotsAgainstBookings(availableSlots: string[], existingBookings: any[]): string[] {
+    return availableSlots.filter(slot => {
+      // Check if this slot conflicts with any existing booking
+      const hasConflict = existingBookings.some(booking => {
+        const bookingDetails = booking.details as any;
+        if (!bookingDetails || !bookingDetails.time) return false;
+
+        const bookingTime = bookingDetails.time;
+
+        // Calculate booking end time (assume 30-minute meetings)
+        const bookingEndTime = format(
+          addMinutes(parseISO(`2000-01-01T${bookingTime}`), 30),
+          'HH:mm'
+        );
+
+        // Calculate slot end time
+        const slotEndTime = format(
+          addMinutes(parseISO(`2000-01-01T${slot}`), 30),
+          'HH:mm'
+        );
+
+        // Check for time overlap
+        return (
+          (slot >= bookingTime && slot < bookingEndTime) ||
+          (slotEndTime > bookingTime && slotEndTime <= bookingEndTime) ||
+          (slot <= bookingTime && slotEndTime >= bookingEndTime)
+        );
+      });
+
+      return !hasConflict;
+    });
+  }
+
+  /**
+   * Generate available time slots for a given date and time range (fallback method)
    */
   private generateAvailableSlots(
     date: string,

@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BookingsTimeEditor } from '@/components/admin/bookings-time-editor';
 import { toast } from 'sonner';
 import type { UpdateUserDto } from '@/lib/api';
 import type { UserProfile } from '@/lib/api/endpoints/admin-auth';
@@ -26,6 +28,7 @@ export function EditUserDialog({ open, onOpenChange, user, onSubmit }: EditUserD
     company: '',
     isActive: true,
     bookingEnabled: 1,
+    bookingsTime: null,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -38,6 +41,7 @@ export function EditUserDialog({ open, onOpenChange, user, onSubmit }: EditUserD
         company: user.company || '',
         isActive: user.isActive,
         bookingEnabled: user.bookingEnabled || 1,
+        bookingsTime: (user as any).bookingsTime || null,
       });
     }
   }, [user]);
@@ -78,14 +82,21 @@ export function EditUserDialog({ open, onOpenChange, user, onSubmit }: EditUserD
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit User</DialogTitle>
           <DialogDescription>
-            Update user information
+            Update user information and booking availability
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <Tabs defaultValue="profile" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="profile">Profile</TabsTrigger>
+              <TabsTrigger value="availability">Booking Availability</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="profile" className="space-y-4 mt-4">
           <div className="space-y-2">
             <Label htmlFor="edit-name">Name *</Label>
             <Input
@@ -145,7 +156,23 @@ export function EditUserDialog({ open, onOpenChange, user, onSubmit }: EditUserD
             />
             <Label htmlFor="edit-booking-enabled">Enable Booking Functionality</Label>
           </div>
-          <div className="flex justify-end space-x-2 pt-4">
+            </TabsContent>
+
+            <TabsContent value="availability" className="space-y-4 mt-4">
+              {formData.bookingEnabled === 1 ? (
+                <BookingsTimeEditor
+                  value={formData.bookingsTime}
+                  onChange={(value) => handleInputChange('bookingsTime', value)}
+                />
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <p>Enable booking functionality to manage availability</p>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+
+          <div className="flex justify-end space-x-2 pt-4 border-t">
             <Button
               type="button"
               variant="outline"
@@ -154,7 +181,7 @@ export function EditUserDialog({ open, onOpenChange, user, onSubmit }: EditUserD
             >
               Cancel
             </Button>
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Updating...' : 'Update User'}
             </Button>
           </div>

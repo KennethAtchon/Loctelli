@@ -206,4 +206,102 @@ export class UsersService {
       );
     }
   }
+
+  /**
+   * Update user's booking availability
+   */
+  async updateUserBookingsTime(userId: number, bookingsTime: any, currentUserId: number, currentUserRole: string) {
+    try {
+      // Verify the user exists and current user has permission
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, subAccountId: true }
+      });
+
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Admin permission check (simplified - can be enhanced based on your auth requirements)
+      if (currentUserRole !== 'admin' && currentUserRole !== 'super_admin') {
+        throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
+      }
+
+      // Update the bookingsTime field
+      const updatedUser = await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          bookingsTime: bookingsTime
+        },
+        select: {
+          id: true,
+          name: true,
+          bookingsTime: true,
+          bookingEnabled: true
+        }
+      });
+
+      return {
+        success: true,
+        message: 'Booking availability updated successfully',
+        data: updatedUser
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        `Error updating booking availability: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  /**
+   * Get user's booking availability
+   */
+  async getUserBookingsTime(userId: number, currentUserId: number, currentUserRole: string) {
+    try {
+      // Verify the user exists and current user has permission
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          bookingsTime: true,
+          bookingEnabled: true,
+          subAccountId: true
+        }
+      });
+
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Admin permission check (simplified - can be enhanced based on your auth requirements)
+      if (currentUserRole !== 'admin' && currentUserRole !== 'super_admin') {
+        throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
+      }
+
+      return {
+        success: true,
+        data: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          bookingsTime: user.bookingsTime,
+          bookingEnabled: user.bookingEnabled
+        }
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        `Error retrieving booking availability: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
 }

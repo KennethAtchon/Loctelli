@@ -4,18 +4,48 @@ export const DEFAULT_ADMIN_DATA = {
   role: 'super_admin' as const,
 };
 
+// Generate default booking availability for the next 7 days
+const generateDefaultBookingsTime = () => {
+  const bookingsTime: Array<{ date: string; slots: string[] }> = [];
+  const today = new Date();
+
+  for (let i = 1; i <= 7; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
+    const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+    // Generate business hours (9 AM to 5 PM, 30-minute intervals)
+    const slots: string[] = [];
+    for (let hour = 9; hour < 17; hour++) {
+      slots.push(`${hour.toString().padStart(2, '0')}:00`);
+      slots.push(`${hour.toString().padStart(2, '0')}:30`);
+    }
+
+    bookingsTime.push({
+      date: dateStr,
+      slots: slots
+    });
+  }
+
+  return bookingsTime;
+};
+
 export const DEFAULT_USER_DATA = [
   {
     name: 'John Sales',
     email: 'john.sales@loctelli.com',
     role: 'user' as const,
     company: 'Loctelli Sales Team',
+    bookingEnabled: 1,
+    bookingsTime: generateDefaultBookingsTime(),
   },
   {
     name: 'Sarah Support',
     email: 'sarah.support@loctelli.com',
     role: 'user' as const,
     company: 'Loctelli Support Team',
+    bookingEnabled: 1,
+    bookingsTime: generateDefaultBookingsTime(),
   }
 ];
 
@@ -55,7 +85,7 @@ export const DEFAULT_STRATEGY_DATA = [
     name: 'Professional Sales Strategy',
     tag: 'sales',
     tone: 'professional',
-    aiInstructions: 'Engage leads professionally and helpfully. Ask qualifying questions to understand their needs and budget.',
+    aiInstructions: 'Your name is Lisa. Engage leads professionally and helpfully. Ask qualifying questions to understand their needs and budget.',
     objectionHandling: 'Listen to concerns and address them directly. Offer solutions that match their needs.',
     qualificationPriority: 'budget, timeline, decision_maker',
     creativity: 7,

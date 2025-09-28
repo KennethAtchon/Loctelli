@@ -418,6 +418,42 @@ export default function UsersPage() {
                 </div>
               )}
 
+              {/* Booking Availability */}
+              {selectedUser.bookingEnabled && selectedUser.bookingsTime && (
+                <div>
+                  <h3 className="font-semibold mb-3">Booking Availability</h3>
+                  <div className="space-y-3">
+                    {Array.isArray(selectedUser.bookingsTime) ? (
+                      selectedUser.bookingsTime.map((timeSlot: any, index: number) => (
+                        <div key={index} className="p-3 border rounded-lg">
+                          <div className="font-medium text-sm mb-2">
+                            {new Date(timeSlot.date).toLocaleDateString('en-US', {
+                              weekday: 'long',
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {timeSlot.slots && timeSlot.slots.length > 0 ? (
+                              timeSlot.slots.map((slot: string, slotIndex: number) => (
+                                <Badge key={slotIndex} variant="outline" className="text-xs">
+                                  {slot}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-sm text-gray-500 italic">No slots available</span>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-sm text-gray-500 italic">No booking availability data</div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Bookings */}
               {selectedUser.bookings && selectedUser.bookings.length > 0 && (
                 <div>

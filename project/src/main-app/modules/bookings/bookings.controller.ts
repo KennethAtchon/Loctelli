@@ -5,11 +5,15 @@ import { UpdateBookingDto } from './dto/update-booking.dto';
 import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { Admin } from '../../../shared/decorators/admin.decorator';
 import { AdminGuard } from '../../../shared/guards/admin.guard';
+import { FreeSlotCronService } from '../../background/bgprocess/free-slot-cron.service';
 
 @Controller('booking')
 @UseGuards(AdminGuard)
 export class BookingsController {
-  constructor(private readonly bookingsService: BookingsService) {}
+  constructor(
+    private readonly bookingsService: BookingsService,
+    private readonly freeSlotCronService: FreeSlotCronService
+  ) {}
 
   @Post()
   @Admin()
@@ -92,5 +96,46 @@ export class BookingsController {
   @Admin()
   remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user) {
     return this.bookingsService.remove(id, user.userId, user.role);
+  }
+
+  /**
+   * Populate test bookingsTime data for users with booking enabled
+   * This is a fallback/testing endpoint until GHL integration is ready
+   */
+  @Post('populate-test-availability')
+  @Admin()
+  async populateTestAvailability(@CurrentUser() user) {
+    try {
+      await this.freeSlotCronService.populateTestBookingsTime();
+      return {
+        success: true,
+        message: 'Test availability data populated successfully'
+      };
+    } catch (error) {
+      throw new HttpException(
+        `Failed to populate test availability data: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  /**
+   * Manual trigger for GHL free slots fetch (currently blocked)
+   */
+  @Post('sync-ghl-availability')
+  @Admin()
+  async syncGhlAvailability(@CurrentUser() user) {
+    try {
+      await this.freeSlotCronService.fetchFreeSlots();
+      return {
+        success: true,
+        message: 'GHL availability sync triggered (currently blocked)'
+      };
+    } catch (error) {
+      throw new HttpException(
+        `Failed to sync GHL availability: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
   }
 }

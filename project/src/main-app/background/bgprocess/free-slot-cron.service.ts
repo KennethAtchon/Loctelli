@@ -149,9 +149,15 @@ export class FreeSlotCronService {
   }
 
   /**
-   * Fetch free slots from GoHighLevel for each user with a calendarId, Availability slots, The AI tool will call this function realistically. 
+   * Fetch free slots from GoHighLevel for each user with a calendarId, Availability slots, The AI tool will call this function realistically.
+   * CURRENTLY BLOCKED: Set up but disabled until GHL integration is ready
    */
   async fetchFreeSlots(): Promise<void> {
+    // BLOCKED: GHL integration not ready yet
+    this.logger.log('GHL fetchFreeSlots called but currently blocked');
+    return;
+
+    // TODO: Uncomment when GHL is ready
     const headers = {
       Accept: 'application/json',
       Authorization: `Bearer ${this.ghlApiKey}`,
@@ -212,12 +218,67 @@ export class FreeSlotCronService {
 
   /**
    * Run background processes on schedule
-   * DISABLED: Cron jobs temporarily disabled
+   * ENABLED but BLOCKED: Ready for when GHL integration is unblocked
    */
-  // @Cron(CronExpression.EVERY_HOUR)
-  // async handleCronTasks() {
-  //   this.logger.log('Running scheduled background tasks');
-  //   await this.importGhlUsersBg();
-  //   await this.fetchFreeSlots();
-  // }
+  @Cron(CronExpression.EVERY_30_MINUTES)
+  async handleCronTasks() {
+    this.logger.log('Running scheduled background tasks');
+    // Note: fetchFreeSlots is currently blocked internally
+    await this.fetchFreeSlots();
+  }
+
+  /**
+   * Manual method to populate bookingsTime field with sample data for testing
+   * This should be replaced with actual calendar integration data
+   */
+  async populateTestBookingsTime(): Promise<void> {
+    this.logger.log('Populating test bookingsTime data for users with booking enabled');
+
+    try {
+      const users = await this.prisma.user.findMany({
+        where: {
+          bookingEnabled: {
+            not: 0
+          }
+        }
+      });
+
+      const now = new Date();
+      const testData: Array<{ date: string; slots: string[] }> = [];
+
+      // Generate test availability for next 7 days
+      for (let i = 1; i <= 7; i++) {
+        const date = addDays(now, i);
+        const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+        // Generate sample time slots (9 AM to 5 PM, 30-min intervals)
+        const slots: string[] = [];
+        for (let hour = 9; hour < 17; hour++) {
+          slots.push(`${hour.toString().padStart(2, '0')}:00`);
+          slots.push(`${hour.toString().padStart(2, '0')}:30`);
+        }
+
+        testData.push({
+          date: dateStr,
+          slots: slots
+        });
+      }
+
+      // Update each user with test booking data
+      for (const user of users) {
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            bookingsTime: testData
+          }
+        });
+
+        this.logger.log(`Updated test bookingsTime for userId=${user.id}`);
+      }
+
+      this.logger.log(`Populated test bookingsTime data for ${users.length} users`);
+    } catch (error) {
+      this.logger.error(`Error populating test bookingsTime: ${error}`);
+    }
+  }
 }

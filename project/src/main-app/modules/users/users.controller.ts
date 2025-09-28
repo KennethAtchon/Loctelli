@@ -97,4 +97,31 @@ export class UsersController {
   importGhlUsers(@CurrentUser() user) {
     return this.usersService.importGhlUsers();
   }
+
+  /**
+   * Update user's booking availability
+   */
+  @Patch(':id/bookings-time')
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'super_admin')
+  async updateUserBookingsTime(
+    @Param('id', ParseIntPipe) userId: number,
+    @Body() updateData: { bookingsTime: any },
+    @CurrentUser() currentUser: any
+  ) {
+    return this.usersService.updateUserBookingsTime(userId, updateData.bookingsTime, currentUser.userId, currentUser.role);
+  }
+
+  /**
+   * Get user's booking availability
+   */
+  @Get(':id/bookings-time')
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'super_admin')
+  async getUserBookingsTime(
+    @Param('id', ParseIntPipe) userId: number,
+    @CurrentUser() currentUser: any
+  ) {
+    return this.usersService.getUserBookingsTime(userId, currentUser.userId, currentUser.role);
+  }
 }

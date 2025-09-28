@@ -68,6 +68,7 @@ export interface UpdateUserDto {
   company?: string;
   isActive?: boolean;
   bookingEnabled?: number;
+  bookingsTime?: any;
 }
 
 export interface DashboardStats {
