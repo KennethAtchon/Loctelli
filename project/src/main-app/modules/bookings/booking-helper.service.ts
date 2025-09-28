@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
-import { GhlSimpleClientService } from '../../integrations/ghl-integrations/ghl/ghl-simple-client.service';
+import { GhlApiClientService } from '../../integrations/ghl-integrations/ghl/ghl-api-client.service';
 import { addMinutes, format, parseISO } from 'date-fns';
 
 interface BookingDetails {
@@ -28,7 +28,7 @@ export class BookingHelperService {
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
-    private ghlApiClient: GhlSimpleClientService,
+    private ghlApiClient: GhlApiClientService,
   ) {}
 
   /**

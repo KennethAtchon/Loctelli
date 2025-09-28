@@ -30,6 +30,14 @@ export class GhlIntegrationConfigDto {
   @IsString()
   @IsOptional()
   webhookId?: string; // GHL webhook ID after setup
+
+  @IsString()
+  @IsOptional()
+  clientId?: string; // OAuth client ID (encrypted)
+
+  @IsString()
+  @IsOptional()
+  clientSecret?: string; // OAuth client secret (encrypted)
 }
 
 /**
