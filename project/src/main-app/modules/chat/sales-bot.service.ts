@@ -7,6 +7,7 @@ import { PromptTemplatesService } from '../prompt-templates/prompt-templates.ser
 import { BookingHelperService } from '../bookings/booking-helper.service';
 import { ConversationSummarizerService } from './conversation-summarizer.service';
 import { PromptSecurityService } from '../../../shared/security/prompt-security.service';
+import { AiToolsService } from './ai-tools.service';
 import axios from 'axios';
 
 interface ChatMessage {
@@ -39,7 +40,8 @@ export class SalesBotService implements OnModuleInit {
     private promptTemplatesService: PromptTemplatesService,
     private bookingHelper: BookingHelperService,
     private conversationSummarizer: ConversationSummarizerService,
-    private promptSecurity: PromptSecurityService
+    private promptSecurity: PromptSecurityService,
+    private aiToolsService: AiToolsService
   ) {
     this.openaiApiKey = this.configService.get<string>('OPENAI_API_KEY') || '';
   }
@@ -132,8 +134,8 @@ export class SalesBotService implements OnModuleInit {
       this.logger.log(`[generateResponse] Final messages array length: ${prompt.length}`);
       this.logger.debug(`[generateResponse] Final messages: ${JSON.stringify(prompt.map(m => ({ role: m.role, contentLength: m.content.length, contentPreview: m.content.substring(0, 50) })))}`);
       
-      // Create bot response
-      const botResponse = await this.createBotResponse(prompt);
+      // Create bot response with tool support
+      const botResponse = await this.createBotResponse(prompt, user, leadId);
       
       // Append both user message and bot response to history in a single operation
       // Store the sanitized version in history
@@ -142,13 +144,7 @@ export class SalesBotService implements OnModuleInit {
         { role: 'assistant', content: botResponse }
       ]);
       
-      // Check for booking confirmation
-      if (user && user.bookingEnabled) {
-        const booking = await this.bookingHelper.parseAndCreateBooking(botResponse, user.id, leadId);
-        if (booking) {
-          this.logger.log(`Booking created for userId=${user.id}, leadId=${leadId}: bookingId=${booking.id}`);
-        }
-      }
+      // Note: Booking is now handled via function calls in createBotResponse method
       
       this.logger.log(`Response generated for leadId=${leadId}: ${botResponse ? botResponse.substring(0, 50) + '...' : 'undefined'}`);
       return botResponse;
@@ -344,31 +340,43 @@ export class SalesBotService implements OnModuleInit {
   }
   
   /**
-   * Create a bot response using the OpenAI API
+   * Create a bot response using the OpenAI API with function calling support
    * @param messages The messages to send to OpenAI
+   * @param user The user object for context
+   * @param leadId The lead ID for tool execution
    * @returns The bot's response
    */
-  private async createBotResponse(messages: ChatMessage[]): Promise<string> {
-    this.logger.log('[createBotResponse] Creating bot response via OpenAI API');
+  private async createBotResponse(messages: ChatMessage[], user: any, leadId: number): Promise<string> {
+    this.logger.log('[createBotResponse] Creating bot response via OpenAI API with function calling');
     this.logger.debug(`[createBotResponse] Input messages: ${JSON.stringify(messages.map(m => ({
       role: m.role,
       typeofContent: typeof m.content,
       content: m.content ? m.content.substring(0, Math.min(50, m.content.length)) + '...' : 'undefined',
       rawContent: m.content
     })))}`);
-    
+
     try {
       // Get active template for parameters
       const activeTemplate = await this.promptTemplatesService.getActive();
-      
+
+      // Prepare OpenAI request payload
+      const requestPayload: any = {
+        model: this.openaiModel,
+        messages,
+        temperature: activeTemplate.temperature,
+        max_tokens: activeTemplate.maxTokens,
+      };
+
+      // Add tools if booking is enabled for the user
+      if (user && user.bookingEnabled) {
+        requestPayload.tools = this.aiToolsService.getBookingTools();
+        requestPayload.tool_choice = 'auto'; // Let the model decide when to use tools
+        this.logger.debug('[createBotResponse] Added booking tools to request');
+      }
+
       const response = await axios.post(
         'https://api.openai.com/v1/chat/completions',
-        {
-          model: this.openaiModel,
-          messages,
-          temperature: activeTemplate.temperature,
-          max_tokens: activeTemplate.maxTokens,
-        },
+        requestPayload,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -376,13 +384,86 @@ export class SalesBotService implements OnModuleInit {
           },
         }
       );
-      
-      const botResponse = response.data.choices[0].message.content;
-      this.logger.log('Bot response generated successfully');
+
+      const choice = response.data.choices[0];
+      const message = choice.message;
+
+      // Handle tool calls if present
+      if (message.tool_calls && message.tool_calls.length > 0) {
+        this.logger.log(`[createBotResponse] Processing ${message.tool_calls.length} tool calls`);
+
+        const toolResults: any[] = [];
+
+        for (const toolCall of message.tool_calls) {
+          const functionName = toolCall.function.name;
+          let functionArgs;
+
+          try {
+            functionArgs = JSON.parse(toolCall.function.arguments);
+          } catch (error) {
+            this.logger.error(`[createBotResponse] Error parsing tool arguments:`, error);
+            toolResults.push({
+              tool_call_id: toolCall.id,
+              role: 'tool',
+              content: JSON.stringify({
+                success: false,
+                message: 'Invalid tool arguments format'
+              })
+            });
+            continue;
+          }
+
+          // Execute the tool call
+          const result = await this.aiToolsService.executeToolCall(
+            functionName,
+            functionArgs,
+            user.id,
+            leadId
+          );
+
+          toolResults.push({
+            tool_call_id: toolCall.id,
+            role: 'tool',
+            content: JSON.stringify(result)
+          });
+        }
+
+        // Send the tool results back to OpenAI for final response
+        const followUpMessages = [
+          ...messages,
+          message, // The assistant message with tool calls
+          ...toolResults
+        ];
+
+        const followUpResponse = await axios.post(
+          'https://api.openai.com/v1/chat/completions',
+          {
+            model: this.openaiModel,
+            messages: followUpMessages,
+            temperature: activeTemplate.temperature,
+            max_tokens: activeTemplate.maxTokens,
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${this.openaiApiKey}`,
+            },
+          }
+        );
+
+        const finalResponse = followUpResponse.data.choices[0].message.content;
+        this.logger.log('[createBotResponse] Bot response with tool execution generated successfully');
+        this.logger.debug(`Final response: ${finalResponse ? finalResponse.substring(0, 100) + '...' : 'undefined'}`);
+        return finalResponse;
+      }
+
+      // No tool calls, return regular response
+      const botResponse = message.content;
+      this.logger.log('[createBotResponse] Bot response generated successfully (no tools)');
       this.logger.debug(`Bot response: ${botResponse ? botResponse.substring(0, 100) + '...' : 'undefined'}`);
       return botResponse;
     } catch (error) {
-      this.logger.error(`OpenAI API error: ${error}`);
+      this.logger.error(`[createBotResponse] OpenAI API error:`, error);
       return "Sorry, I'm having trouble responding right now. Please try again later.";
     }
   }

@@ -140,17 +140,17 @@ export class PromptHelperService {
     let bookingInstruction = activeTemplate.bookingInstruction || '';
     if (user && user.bookingEnabled && !bookingInstruction) {
       bookingInstruction = (
-        "If the user agrees to a booking, confirm with a message in the following exact format and always end with the unique marker [BOOKING_CONFIRMATION]:\n" +
-        "Great news! Your booking is confirmed. Here are the details:\n" +
-        "- Date: {date} (must be in YYYY-MM-DD format, e.g., 2025-05-20)\n" +
-        "- Time: {time} (must be in 24-hour format, e.g., 14:30 for 2:30 PM or 09:00 for 9:00 AM)\n" +
-        "- Location: {location}\n" +
-        "- Subject: {subject}\n" +
-        "Thank you for choosing us! [BOOKING_CONFIRMATION]\n" +
-        "Replace the placeholders with the actual booking details. " +
-        "IMPORTANT: The date must be in YYYY-MM-DD format and time must be in 24-hour format (e.g., 14:30, 09:00). " +
-        "Do not include AM/PM, seconds, or timezone information. " +
-        "Do not use the [BOOKING_CONFIRMATION] marker unless a booking is truly confirmed."
+        "BOOKING CAPABILITIES: You have access to booking tools that allow you to:\n" +
+        "1. Check calendar availability for specific dates and times\n" +
+        "2. Book meetings directly when a user confirms their preference\n" +
+        "\n" +
+        "When a user wants to schedule a meeting:\n" +
+        "1. First, use the check_availability tool to find available time slots\n" +
+        "2. Present the available options to the user\n" +
+        "3. Once they confirm their preference, use the book_meeting tool to create the booking\n" +
+        "\n" +
+        "The booking tools handle all the details automatically - you just need to collect the information and use the appropriate tools. " +
+        "Always confirm booking details with the user before creating the actual booking."
       );
     }
 

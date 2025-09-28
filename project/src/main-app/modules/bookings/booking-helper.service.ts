@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
+import { GhlSimpleClientService } from '../../integrations/ghl-integrations/ghl/ghl-simple-client.service';
 import { addMinutes, format, parseISO } from 'date-fns';
 
 interface BookingDetails {
@@ -24,23 +24,12 @@ interface GhlCalendarsResponse {
 @Injectable()
 export class BookingHelperService {
   private readonly logger = new Logger(BookingHelperService.name);
-  private readonly ghlApiKey: string;
-  private readonly ghlApiVersion: string;
 
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
-  ) {
-    const ghlApiKey = this.configService.get<string>('GHL_API_KEY');
-    if (!ghlApiKey) {
-      throw new Error('GHL_API_KEY is not defined');
-    }
-    this.ghlApiKey = ghlApiKey;
-    this.ghlApiVersion = this.configService.get<string>(
-      'GHL_API_VERSION',
-      '2021-04-15',
-    );
-  }
+    private ghlApiClient: GhlSimpleClientService,
+  ) {}
 
   /**
    * Calls the GoHighLevel API to create a block slot for the new booking.
@@ -66,12 +55,28 @@ export class BookingHelperService {
         return;
       }
 
+      // Find the GHL integration for this subaccount
+      const ghlIntegration = await this.prisma.integration.findFirst({
+        where: {
+          subAccountId: user.subAccountId,
+          integrationTemplate: {
+            name: 'gohighlevel',
+          },
+          isActive: true,
+        },
+      });
+
+      if (!ghlIntegration) {
+        this.logger.warn(`No active GHL integration found for subAccountId=${user.subAccountId}`);
+        return;
+      }
+
       // If user doesn't have a calendarId, try using GHL integration's calendarId
       if (!calendarId) {
         this.logger.log(
           `calendarId not found for userId=${booking.userId}, trying GHL integration calendarId`,
         );
-        
+
         const integrationCalendarId = await this.getGhlIntegrationCalendarId(
           user.subAccountId,
         );
@@ -120,7 +125,7 @@ export class BookingHelperService {
         const startTimeIso = format(startDt, "yyyy-MM-dd'T'HH:mm:ss");
         const endTimeIso = format(endDt, "yyyy-MM-dd'T'HH:mm:ss");
 
-        const payload = {
+        const blockSlotData = {
           calendarId,
           locationId,
           startTime: startTimeIso,
@@ -128,22 +133,15 @@ export class BookingHelperService {
           title: details.subject || 'Block Slot',
         };
 
-        const headers = {
-          Accept: 'application/json',
-          Authorization: `Bearer ${this.ghlApiKey}`,
-          'Content-Type': 'application/json',
-          Version: this.ghlApiVersion,
-        };
-
-        const url =
-          'https://services.leadconnectorhq.com/calendars/events/block-slots';
         this.logger.log(
-          `Posting block slot to GoHighLevel: ${JSON.stringify(payload)}`,
+          `Creating GHL block slot using API client: ${JSON.stringify(blockSlotData)}`,
         );
 
-        const resp = await axios.post(url, payload, { headers });
+        // Use the new API client to create the block slot
+        const response = await this.ghlApiClient.createBlockSlot(ghlIntegration.id, blockSlotData);
+
         this.logger.log(
-          `GHL block slot response: ${resp.status} ${JSON.stringify(resp.data)}`,
+          `GHL block slot created successfully: ${JSON.stringify(response)}`,
         );
       } catch (error) {
         this.logger.error(
@@ -278,26 +276,17 @@ export class BookingHelperService {
   /**
    * Gets calendars for a specific location from GoHighLevel API
    * @param locationId GoHighLevel location ID
+   * @param integrationId GHL integration ID for authentication
    */
   private async getCalendarsByLocation(
     locationId: string,
+    integrationId: number,
   ): Promise<GhlCalendarsResponse | null> {
     try {
-      const headers = {
-        Accept: 'application/json',
-        Authorization: `Bearer ${this.ghlApiKey}`,
-        Version: this.ghlApiVersion,
-      };
+      const response = await this.ghlApiClient.getCalendars(integrationId, locationId);
 
-      const url = `https://services.leadconnectorhq.com/locations/${locationId}/calendars`;
-      const response = await axios.get(url, { headers });
-
-      if (
-        response.status === 200 &&
-        response.data &&
-        Array.isArray(response.data.calendars)
-      ) {
-        const calendars = response.data.calendars as GhlCalendar[];
+      if (response && Array.isArray(response.calendars)) {
+        const calendars = response.calendars as GhlCalendar[];
         return {
           calendars,
           firstCalendar: calendars.length > 0 ? calendars[0] : undefined,
