@@ -219,4 +219,16 @@ export const expectNotFoundError = (response: request.Response) => {
 
 export const expectConflictError = (response: request.Response) => {
   expect(response.status).toBe(409);
+};
+
+export const getApiKey = (): string => {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    throw new Error('API_KEY environment variable is not set');
+  }
+  return apiKey;
+};
+
+export const getApiHeaders = (): { 'x-api-key': string } => {
+  return { 'x-api-key': getApiKey() };
 }; 

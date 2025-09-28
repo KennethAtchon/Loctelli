@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { PrismaService } from '../../main-app/infrastructure/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { SemanticSecurityService } from './semantic-security.service';
 import { ValidationPipelineService } from './validation-pipeline.service';
 import { SecureConversationService } from './secure-conversation.service';
@@ -12,7 +12,7 @@ interface SecurityEvent {
   leadId?: number;
   messageId?: string;
   userId?: number;
-  metadata: any;
+  metadata?: any;
   timestamp: Date;
 }
 

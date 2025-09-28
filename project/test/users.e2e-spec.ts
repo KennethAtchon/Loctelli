@@ -1,8 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { PrismaService } from '../src/prisma/prisma.service';
+import { AppModule } from '../src/core/app.module';
+import { PrismaService } from '../src/shared/prisma/prisma.service';
+import { getApiKey } from './test-utils';
 
 describe('UsersController (e2e)', () => {
   let app: INestApplication;
@@ -42,7 +43,7 @@ describe('UsersController (e2e)', () => {
     it('should create a new user', () => {
       return request(app.getHttpServer())
         .post('/users')
-        .set('x-api-key', process.env.API_KEY)
+        .set('x-api-key', getApiKey())
         .send(testUser)
         .expect(201)
         .then(response => {
@@ -58,7 +59,7 @@ describe('UsersController (e2e)', () => {
     it('should not create a user with invalid data', () => {
       return request(app.getHttpServer())
         .post('/users')
-        .set('x-api-key', process.env.API_KEY)
+        .set('x-api-key', getApiKey())
         .send({
           name: 'Invalid User',
           // Missing email
@@ -72,7 +73,7 @@ describe('UsersController (e2e)', () => {
     it('should return all users', () => {
       return request(app.getHttpServer())
         .get('/users')
-        .set('x-api-key', process.env.API_KEY)
+        .set('x-api-key', getApiKey())
         .expect(200)
         .then(response => {
           expect(Array.isArray(response.body)).toBe(true);
@@ -88,7 +89,7 @@ describe('UsersController (e2e)', () => {
     it('should return a user by id', () => {
       return request(app.getHttpServer())
         .get(`/users/${userId}`)
-        .set('x-api-key', process.env.API_KEY)
+        .set('x-api-key', getApiKey())
         .expect(200)
         .then(response => {
           expect(response.body).toHaveProperty('id', userId);
@@ -100,7 +101,7 @@ describe('UsersController (e2e)', () => {
     it('should return 404 for non-existent user', () => {
       return request(app.getHttpServer())
         .get('/users/9999')
-        .set('x-api-key', process.env.API_KEY)
+        .set('x-api-key', getApiKey())
         .expect(404);
     });
   });
@@ -111,7 +112,7 @@ describe('UsersController (e2e)', () => {
       
       return request(app.getHttpServer())
         .patch(`/users/${userId}`)
-        .set('x-api-key', process.env.API_KEY)
+        .set('x-api-key', getApiKey())
         .send({ name: updatedName })
         .expect(200)
         .then(response => {
@@ -126,7 +127,7 @@ describe('UsersController (e2e)', () => {
     it('should delete a user', () => {
       return request(app.getHttpServer())
         .delete(`/users/${userId}`)
-        .set('x-api-key', process.env.API_KEY)
+        .set('x-api-key', getApiKey())
         .expect(200)
         .then(response => {
           expect(response.body).toHaveProperty('id', userId);
@@ -136,7 +137,7 @@ describe('UsersController (e2e)', () => {
     it('should return 404 after user is deleted', () => {
       return request(app.getHttpServer())
         .get(`/users/${userId}`)
-        .set('x-api-key', process.env.API_KEY)
+        .set('x-api-key', getApiKey())
         .expect(404);
     });
   });

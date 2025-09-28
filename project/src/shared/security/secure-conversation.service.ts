@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '../../main-app/infrastructure/prisma/prisma.service';
-import { createCipher, createDecipher, createHash, randomBytes } from 'crypto';
+import { PrismaService } from '../prisma/prisma.service';
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypto';
 
 interface ValidatedMessage {
   role: string;
@@ -163,7 +163,7 @@ export class SecureConversationService {
       const leadsWithHistory = await this.prisma.lead.findMany({
         where: {
           messageHistory: {
-            not: null
+            not: undefined
           }
         },
         select: {
@@ -303,7 +303,7 @@ export class SecureConversationService {
     // Derive key using salt
     const key = createHash('sha256').update(this.encryptionKey + salt.toString('hex')).digest();
 
-    const cipher = createCipher(this.algorithm, key);
+    const cipher = createCipheriv(this.algorithm, key, iv);
     let encrypted = cipher.update(content, 'utf8', 'hex');
     encrypted += cipher.final('hex');
 
@@ -323,7 +323,8 @@ export class SecureConversationService {
     // Derive key using salt
     const key = createHash('sha256').update(this.encryptionKey + salt.toString('hex')).digest();
 
-    const decipher = createDecipher(this.algorithm, key);
+    const iv = Buffer.from(data.iv, 'hex');
+    const decipher = createDecipheriv(this.algorithm, key, iv);
     let decrypted = decipher.update(data.encryptedContent, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
 

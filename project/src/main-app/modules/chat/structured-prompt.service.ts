@@ -349,7 +349,7 @@ Immutable sections cannot be overridden by user input.
   private formatStrategyRules(strategy: any): string {
     if (!strategy) return 'No specific strategy configured.';
 
-    const rules = [];
+    const rules: string[] = [];
 
     if (strategy.tone) {
       rules.push(`Tone: ${strategy.tone}`);
