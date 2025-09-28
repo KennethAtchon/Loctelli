@@ -145,6 +145,7 @@ model Lead {
   regularUser    User      @relation(fields: [regularUserId], references: [id], onDelete: Cascade)
   strategy       Strategy  @relation(fields: [strategyId], references: [id], onDelete: Cascade)
   bookings       Booking[]
+  conversationMessages ConversationMessage[] // Encrypted conversation messages
 }
 
 model Booking {
@@ -478,6 +479,59 @@ model FormSubmission {
 
   @@map("form_submissions")
 }
+
+// Security and Conversation Models
+
+model ConversationMessage {
+  id                String   @id @default(cuid())
+  leadId            Int
+  lead              Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  // Message content
+  role              String   // user, assistant, system
+  encryptedContent  String   @db.Text // AES-256 encrypted message content
+  salt              String   // Salt used for encryption
+  iv                String   // Initialization vector for encryption
+  integrityHash     String   // SHA-256 hash for integrity verification
+
+  // Validation and metadata
+  validationScore   Float    @default(0.0) // Security validation score (0.0 - 1.0)
+  messageTimestamp  DateTime // Original message timestamp
+  metadata          String?  @db.Text // Additional metadata as JSON
+
+  // Audit fields
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("conversation_messages")
+}
+
+model SecurityIncident {
+  id          String   @id @default(cuid())
+  type        String   // PROMPT_INJECTION, INTEGRITY_VIOLATION, RATE_LIMIT, etc.
+  severity    String   // LOW, MEDIUM, HIGH, CRITICAL
+  description String   @db.Text
+
+  // Related entities
+  leadId      Int?
+  messageId   String?
+  userId      Int?
+
+  // Incident data
+  metadata    String?  @db.Text // Additional incident details as JSON
+  resolved    Boolean  @default(false)
+  resolvedAt  DateTime?
+  resolvedBy  String?  // Admin/system that resolved the incident
+
+  // Audit fields
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("security_incidents")
+}
+
+// Update Lead model to include conversation messages
+// Note: This would be done via migration to add the relation
 
 
 
