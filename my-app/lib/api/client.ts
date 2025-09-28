@@ -66,7 +66,8 @@ export class ApiClient {
     
     const config: RequestInit = {
       headers: {
-        'Content-Type': 'application/json',
+        // Only set Content-Type if body is not FormData
+        ...(!(options.body instanceof FormData) && { 'Content-Type': 'application/json' }),
         ...authHeaders,
         ...options.headers,
       },
@@ -248,6 +249,20 @@ export class ApiClient {
     return this.request<T>(endpoint, {
       method: 'PUT',
       body: data ? JSON.stringify(data) : undefined,
+      ...options,
+    });
+  }
+
+  protected async uploadFile<T>(endpoint: string, formData: FormData, options?: ApiRequestOptions): Promise<T> {
+    // Use the main request method but with special handling for FormData
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        // Don't set Content-Type - let browser handle FormData boundary
+        // This will override the default 'application/json' in the main request method
+        ...options?.headers,
+      },
       ...options,
     });
   }

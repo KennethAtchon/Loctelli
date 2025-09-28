@@ -28,19 +28,19 @@ export function Navigation() {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
-            <a href="#home" className="text-gray-700 hover:text-purple-600 transition-colors font-medium relative group">
+            <a href="/#home" className="text-gray-700 hover:text-purple-600 transition-colors font-medium relative group">
               Home
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full"></span>
             </a>
-            <a href="#services" className="text-gray-700 hover:text-purple-600 transition-colors font-medium relative group">
+            <a href="/#services" className="text-gray-700 hover:text-purple-600 transition-colors font-medium relative group">
               Services
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full"></span>
             </a>
-            <a href="#process" className="text-gray-700 hover:text-purple-600 transition-colors font-medium relative group">
+            <a href="/#process" className="text-gray-700 hover:text-purple-600 transition-colors font-medium relative group">
               Process
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full"></span>
             </a>
-            <a href="#contact" className="text-gray-700 hover:text-purple-600 transition-colors font-medium relative group">
+            <a href="/#contact" className="text-gray-700 hover:text-purple-600 transition-colors font-medium relative group">
               Contact
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full"></span>
             </a>

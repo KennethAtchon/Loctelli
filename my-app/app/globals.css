@@ -70,8 +70,14 @@
       opacity: 1;
     }
   }
-  
+
   .animate-fade-in {
     animation: fade-in 0.3s ease-in;
+  }
+
+  /* Admin layout overflow control */
+  html:has(.admin-layout),
+  html:has(.admin-layout) body {
+    overflow: hidden !important;
   }
 }

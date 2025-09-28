@@ -173,11 +173,7 @@ export class FormsApi extends ApiClient {
   }
 
   async uploadFormFile(slug: string, formData: FormData): Promise<any> {
-    return this.request<any>(`/forms/public/${slug}/upload`, {
-      method: 'POST',
-      body: formData,
-      headers: {} // Don't set Content-Type for FormData, let browser handle it
-    });
+    return this.uploadFile<any>(`/forms/public/${slug}/upload`, formData);
   }
 
   // Form Submissions

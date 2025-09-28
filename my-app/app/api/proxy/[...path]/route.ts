@@ -53,16 +53,13 @@ async function handleRequest(
     // Construct the backend URL
     const path = pathSegments.join('/');
     const url = `${BACKEND_URL}/${path}`;
-    
+
     // Get the search params from the original request
     const searchParams = request.nextUrl.searchParams.toString();
     const fullUrl = searchParams ? `${url}?${searchParams}` : url;
 
-    // Prepare headers
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-
+    // Prepare headers - don't set Content-Type by default
+    const headers: Record<string, string> = {};
 
     // Add API key to backend request
     if (API_KEY) {
@@ -81,11 +78,23 @@ async function handleRequest(
       headers['x-user-token'] = userToken;
     }
 
+    // Get the content type from the original request
+    const contentType = request.headers.get('content-type');
+
     // Get request body if it exists
-    let body: string | undefined;
+    let body: string | FormData | undefined;
     if (method !== 'GET' && method !== 'DELETE') {
       try {
-        body = await request.text();
+        // Check if it's a FormData request (file upload)
+        if (contentType?.includes('multipart/form-data')) {
+          // For FormData, get it as FormData and let fetch handle the boundary
+          body = await request.formData();
+          // Don't set Content-Type header - let fetch set it with proper boundary
+        } else {
+          // For JSON and other requests, get as text and set appropriate content type
+          body = await request.text();
+          headers['Content-Type'] = contentType || 'application/json';
+        }
       } catch {
         // No body to forward
       }
@@ -95,7 +104,7 @@ async function handleRequest(
     const response = await fetch(fullUrl, {
       method,
       headers,
-      body,
+      body: body as BodyInit,
     });
 
     // Get response data

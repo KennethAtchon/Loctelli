@@ -14,6 +14,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { FormTemplate, FormField, FormsApi } from '@/lib/api';
 import logger from '@/lib/logger';
+import { Navigation } from '@/components/version2/navigation';
+import { Footer } from '@/components/version2/footer';
 
 export default function PublicFormPage() {
   const params = useParams();
@@ -353,36 +355,48 @@ export default function PublicFormPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p>Loading form...</p>
+      <div className="min-h-screen flex flex-col">
+        <Navigation />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p>Loading form...</p>
+          </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   if (error && !template) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Alert className="max-w-md">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+      <div className="min-h-screen flex flex-col">
+        <Navigation />
+        <div className="flex-1 flex items-center justify-center">
+          <Alert className="max-w-md">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </div>
+        <Footer />
       </div>
     );
   }
 
   if (success && template) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Card className="max-w-md w-full mx-4">
-          <CardContent className="pt-6 text-center">
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Thank You!</h2>
-            <p className="text-gray-600">{template.successMessage}</p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Navigation />
+        <div className="flex-1 flex items-center justify-center">
+          <Card className="max-w-md w-full mx-4">
+            <CardContent className="pt-6 text-center">
+              <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold mb-2">Thank You!</h2>
+              <p className="text-gray-600">{template.successMessage}</p>
+            </CardContent>
+          </Card>
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -390,44 +404,48 @@ export default function PublicFormPage() {
   if (!template) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-2xl mx-auto px-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>{template.title}</CardTitle>
-            {template.subtitle && (
-              <CardDescription>{template.subtitle}</CardDescription>
-            )}
-          </CardHeader>
-          <CardContent>
-            {error && (
-              <Alert className="mb-6">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Navigation />
+      <div className="flex-1 py-8">
+        <div className="max-w-2xl mx-auto px-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>{template.title}</CardTitle>
+              {template.subtitle && (
+                <CardDescription>{template.subtitle}</CardDescription>
+              )}
+            </CardHeader>
+            <CardContent>
+              {error && (
+                <Alert className="mb-6">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {template.schema.map(renderField)}
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {template.schema.map(renderField)}
 
-              <Button
-                type="submit"
-                disabled={isSubmitting || !validateForm()}
-                className="w-full"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Submitting...
-                  </>
-                ) : (
-                  template.submitButtonText
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || !validateForm()}
+                  className="w-full"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Submitting...
+                    </>
+                  ) : (
+                    template.submitButtonText
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
+      <Footer />
     </div>
   );
 }
