@@ -38,7 +38,6 @@ export default function EditStrategyPage() {
     aiInstructions: '',
     objectionHandling: '',
     qualificationPriority: 'high',
-    creativity: 5,
     aiObjective: 'active',
     disqualificationCriteria: '',
     exampleConversation: '',
@@ -74,7 +73,6 @@ export default function EditStrategyPage() {
           aiInstructions: strategyData.aiInstructions || '',
           objectionHandling: strategyData.objectionHandling || '',
           qualificationPriority: strategyData.qualificationPriority || 'high',
-          creativity: strategyData.creativity || 5,
           aiObjective: strategyData.aiObjective || 'active',
           disqualificationCriteria: strategyData.disqualificationCriteria || '',
           exampleConversation: strategyData.exampleConversation || '',
@@ -323,21 +321,6 @@ export default function EditStrategyPage() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="creativity">Creativity Level: {formData.creativity || 5}</Label>
-                  <Slider
-                    value={[formData.creativity || 5]}
-                    onValueChange={(value) => handleSliderChange('creativity', value)}
-                    max={10}
-                    min={1}
-                    step={1}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>Conservative</span>
-                    <span>Creative</span>
-                  </div>
-                </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="delayMin">Min Delay (seconds)</Label>

@@ -76,7 +76,6 @@ BOOKING PROCESS:
 4. Confirm the booking: "Perfect! I've got you scheduled for [day] at [time]. You'll receive a confirmation shortly."
 
 Be assumptive - don't ask IF they want to meet, ask WHEN they can meet. Strike while the iron is hot!`,
-  creativity: 7,
   temperature: 0.7,
 };
 
@@ -88,7 +87,6 @@ export const DEFAULT_STRATEGY_DATA = [
     aiInstructions: 'Your name is Lisa. Engage leads professionally and helpfully. Ask qualifying questions to understand their needs and budget.',
     objectionHandling: 'Listen to concerns and address them directly. Offer solutions that match their needs.',
     qualificationPriority: 'budget, timeline, decision_maker',
-    creativity: 7,
     aiObjective: 'Qualify leads and guide them toward booking a consultation',
     disqualificationCriteria: 'Not interested, wrong contact, no budget',
     delayMin: 30,
@@ -101,7 +99,6 @@ export const DEFAULT_STRATEGY_DATA = [
     aiInstructions: 'Follow up with warm leads in a friendly, conversational manner. Build rapport and check on their progress.',
     objectionHandling: 'Be understanding and offer flexible solutions. Focus on building trust.',
     qualificationPriority: 'interest_level, timeline, fit',
-    creativity: 8,
     aiObjective: 'Re-engage previous leads and move them through the sales funnel',
     disqualificationCriteria: 'Explicitly asked not to contact, competitor, not a fit',
     delayMin: 60,
@@ -114,7 +111,6 @@ export const DEFAULT_STRATEGY_DATA = [
     aiInstructions: 'Provide excellent customer support and guide new customers through onboarding process.',
     objectionHandling: 'Address technical concerns with patience. Offer step-by-step guidance.',
     qualificationPriority: 'support_level, urgency, complexity',
-    creativity: 5,
     aiObjective: 'Ensure customer success and satisfaction during onboarding',
     disqualificationCriteria: 'Requires escalation to human support, outside scope',
     delayMin: 15,

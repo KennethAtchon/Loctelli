@@ -78,12 +78,6 @@ export default function StrategyDetailsPage() {
     }
   };
 
-  const getCreativityBadgeVariant = (creativity?: number) => {
-    if (!creativity && creativity !== 0) return 'outline';
-    if (creativity >= 8) return 'default';
-    if (creativity >= 5) return 'secondary';
-    return 'outline';
-  };
 
   const getToneBadgeVariant = (tone?: string) => {
     if (!tone) return 'secondary';
@@ -221,9 +215,6 @@ export default function StrategyDetailsPage() {
               <Badge variant="outline">{strategy.tag || 'No tag'}</Badge>
               <Badge variant={getToneBadgeVariant(strategy.tone)}>
                 {strategy.tone || 'No tone'}
-              </Badge>
-              <Badge variant={getCreativityBadgeVariant(strategy.creativity)}>
-                Creativity: {strategy.creativity ?? 0}/10
               </Badge>
             </div>
           </div>

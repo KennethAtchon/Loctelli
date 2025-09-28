@@ -103,12 +103,12 @@ export class PromptHelperService {
     }
     
     const fields = {
+      'Strategy': "This the strategy you will follow, this will guide you with the system prompt.",
       'Tag': strategy.tag || 'N/A',
       'Tone': strategy.tone || 'N/A',
       'AI Instructions': strategy.aiInstructions || 'N/A',
       'Objection Handling': strategy.objectionHandling || 'N/A',
       'Qualification Priority': strategy.qualificationPriority || 'N/A',
-      'Creativity': strategy.creativity || 'N/A',
       'AI Objective': strategy.aiObjective || 'N/A',
       'Disqualification Criteria': strategy.disqualificationCriteria || 'N/A',
       'Example Conversation': strategy.exampleConversation || 'N/A'

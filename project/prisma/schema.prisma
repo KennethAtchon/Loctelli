@@ -110,7 +110,6 @@ model Strategy {
   aiInstructions          String?    @db.Text
   objectionHandling       String?    @db.Text
   qualificationPriority   String?
-  creativity              Int?
   aiObjective             String?    @db.Text
   disqualificationCriteria String?   @db.Text
   exampleConversation     Json?
@@ -173,7 +172,6 @@ model PromptTemplate {
   instructions        String?   @db.Text // Additional instructions
   context             String?   @db.Text // Context information
   bookingInstruction  String?   @db.Text // Booking-specific instructions
-  creativity          Int       @default(7) // 1-10 scale
   temperature         Float     @default(0.7) // OpenAI temperature
   maxTokens           Int?      // Optional token limit
   createdAt           DateTime  @default(now())

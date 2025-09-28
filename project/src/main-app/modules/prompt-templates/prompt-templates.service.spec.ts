@@ -425,7 +425,6 @@ describe('PromptTemplatesService', () => {
         role: 'conversational AI assistant and customer service representative',
         instructions: `Be conversational and responsive to the lead's messages. Answer their questions directly and helpfully. If they ask about your role or capabilities, explain them honestly. If they show interest in services, ask about their specific needs and offer relevant information. Be natural and engaging, not pushy or robotic. Always address the lead by their name when provided.`,
         bookingInstruction: `If the user agrees to a booking, confirm with a message in the following exact format and always end with the unique marker [BOOKING_CONFIRMATION]:\nGreat news! Your booking is confirmed. Here are the details:\n- Date: {date} (must be in YYYY-MM-DD format, e.g., 2025-05-20)\n- Time: {time} (must be in 24-hour format, e.g., 14:30 for 2:30 PM or 09:00 for 9:00 AM)\n- Location: {location}\n- Subject: {subject}\nThank you for choosing us! [BOOKING_CONFIRMATION]\n\nReplace the placeholders with the actual booking details. \nIMPORTANT: The date must be in YYYY-MM-DD format and time must be in 24-hour format (e.g., 14:30, 09:00). \nDo not include AM/PM, seconds, or timezone information. \nDo not use the [BOOKING_CONFIRMATION] marker unless a booking is truly confirmed.`,
-        creativity: 7,
         temperature: 0.7,
         createdByAdminId: 1,
       };
@@ -446,7 +445,6 @@ describe('PromptTemplatesService', () => {
           role: 'conversational AI assistant and customer service representative',
           instructions: `Be conversational and responsive to the lead's messages. Answer their questions directly and helpfully. If they ask about your role or capabilities, explain them honestly. If they show interest in services, ask about their specific needs and offer relevant information. Be natural and engaging, not pushy or robotic. Always address the lead by their name when provided.`,
           bookingInstruction: `If the user agrees to a booking, confirm with a message in the following exact format and always end with the unique marker [BOOKING_CONFIRMATION]:\nGreat news! Your booking is confirmed. Here are the details:\n- Date: {date} (must be in YYYY-MM-DD format, e.g., 2025-05-20)\n- Time: {time} (must be in 24-hour format, e.g., 14:30 for 2:30 PM or 09:00 for 9:00 AM)\n- Location: {location}\n- Subject: {subject}\nThank you for choosing us! [BOOKING_CONFIRMATION]\n\nReplace the placeholders with the actual booking details. \nIMPORTANT: The date must be in YYYY-MM-DD format and time must be in 24-hour format (e.g., 14:30, 09:00). \nDo not include AM/PM, seconds, or timezone information. \nDo not use the [BOOKING_CONFIRMATION] marker unless a booking is truly confirmed.`,
-          creativity: 7,
           temperature: 0.7,
           createdByAdminId: 1,
         },

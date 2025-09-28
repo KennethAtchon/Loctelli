@@ -43,7 +43,6 @@ export default function EditPromptTemplatePage() {
         instructions: data.instructions,
         context: data.context,
         bookingInstruction: data.bookingInstruction,
-        creativity: data.creativity,
         temperature: data.temperature,
         maxTokens: data.maxTokens,
         isActive: data.isActive,
@@ -92,7 +91,6 @@ export default function EditPromptTemplatePage() {
         instructions: formData.instructions?.trim() || undefined,
         context: formData.context?.trim() || undefined,
         bookingInstruction: formData.bookingInstruction?.trim() || undefined,
-        creativity: formData.creativity || 7,
         temperature: formData.temperature || 0.7,
         maxTokens: formData.maxTokens || undefined,
         isActive: formData.isActive || false,
@@ -285,19 +283,6 @@ export default function EditPromptTemplatePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div>
-                  <Label className="flex items-center justify-between">
-                    Creativity: {formData.creativity || 7}/10
-                  </Label>
-                  <Slider
-                    value={[formData.creativity || 7]}
-                    onValueChange={(value) => handleInputChange('creativity', value[0])}
-                    max={10}
-                    min={1}
-                    step={1}
-                    className="mt-2"
-                  />
-                </div>
 
                 <div>
                   <Label className="flex items-center justify-between">

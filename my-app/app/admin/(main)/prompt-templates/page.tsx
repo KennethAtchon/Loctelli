@@ -159,9 +159,6 @@ export default function PromptTemplatesPage() {
                       <span className="font-medium">Role:</span> {template.role}
                     </div>
                     <div>
-                      <span className="font-medium">Creativity:</span> {template.creativity}/10
-                    </div>
-                    <div>
                       <span className="font-medium">Temperature:</span> {template.temperature}
                     </div>
                     {template.maxTokens && (

@@ -49,7 +49,7 @@ describe('PromptTemplatesApi', () => {
           instructions: 'Focus on understanding customer needs',
           context: 'B2B sales environment',
           bookingInstruction: 'Schedule a demo if interested',
-          creativity: 0.7,
+
           temperature: 0.8,
           maxTokens: 1000,
           createdAt: '2024-01-01T00:00:00Z',
@@ -70,7 +70,7 @@ describe('PromptTemplatesApi', () => {
           instructions: 'Be patient and helpful',
           context: 'Customer service environment',
           bookingInstruction: 'Escalate if needed',
-          creativity: 0.5,
+
           temperature: 0.6,
           maxTokens: 800,
           createdAt: '2024-01-02T00:00:00Z',
@@ -112,7 +112,7 @@ describe('PromptTemplatesApi', () => {
         instructions: 'Focus on understanding customer needs',
         context: 'B2B sales environment',
         bookingInstruction: 'Schedule a demo if interested',
-        creativity: 0.7,
+
         temperature: 0.8,
         maxTokens: 1000,
         createdAt: '2024-01-01T00:00:00Z',
@@ -153,7 +153,7 @@ describe('PromptTemplatesApi', () => {
         instructions: 'Focus on understanding customer needs',
         context: 'B2B sales environment',
         bookingInstruction: 'Schedule a demo if interested',
-        creativity: 0.7,
+
         temperature: 0.8,
         maxTokens: 1000,
         createdAt: '2024-01-01T00:00:00Z',
@@ -193,7 +193,7 @@ describe('PromptTemplatesApi', () => {
         instructions: 'Be helpful and concise',
         context: 'General assistance',
         bookingInstruction: 'Offer to help with scheduling',
-        creativity: 0.6,
+
         temperature: 0.7,
         maxTokens: 500,
       }
@@ -208,7 +208,7 @@ describe('PromptTemplatesApi', () => {
         instructions: 'Be helpful and concise',
         context: 'General assistance',
         bookingInstruction: 'Offer to help with scheduling',
-        creativity: 0.6,
+
         temperature: 0.7,
         maxTokens: 500,
         createdAt: '2024-01-03T00:00:00Z',
@@ -253,7 +253,7 @@ describe('PromptTemplatesApi', () => {
         systemPrompt: 'You are a helpful assistant.',
         isActive: false,
         role: 'assistant',
-        creativity: 0.5,
+
         temperature: 0.7,
         createdAt: '2024-01-04T00:00:00Z',
         updatedAt: '2024-01-04T00:00:00Z',
@@ -279,7 +279,7 @@ describe('PromptTemplatesApi', () => {
         name: 'Updated Template',
         description: 'Updated description',
         isActive: true,
-        creativity: 0.8,
+
       }
 
       const mockUpdatedTemplate: PromptTemplate = {
@@ -292,7 +292,7 @@ describe('PromptTemplatesApi', () => {
         instructions: 'Focus on understanding customer needs',
         context: 'B2B sales environment',
         bookingInstruction: 'Schedule a demo if interested',
-        creativity: 0.8,
+
         temperature: 0.8,
         maxTokens: 1000,
         createdAt: '2024-01-01T00:00:00Z',
@@ -314,13 +314,13 @@ describe('PromptTemplatesApi', () => {
 
     it('should handle update prompt template error', async () => {
       const updateData: UpdatePromptTemplateDto = {
-        creativity: 2.0, // Invalid creativity value
+        temperature: 5.0, // Invalid temperature value
       }
 
-      const error = new Error('Creativity must be between 0 and 1')
+      const error = new Error('Temperature must be between 0 and 2')
       mockPatch.mockRejectedValue(error)
 
-      await expect(promptTemplatesApi.update(1, updateData)).rejects.toThrow('Creativity must be between 0 and 1')
+      await expect(promptTemplatesApi.update(1, updateData)).rejects.toThrow('Temperature must be between 0 and 2')
       expect(mockPatch).toHaveBeenCalledWith('/admin/prompt-templates/1', updateData)
     })
   })
@@ -337,7 +337,7 @@ describe('PromptTemplatesApi', () => {
         instructions: 'Focus on understanding customer needs',
         context: 'B2B sales environment',
         bookingInstruction: 'Schedule a demo if interested',
-        creativity: 0.7,
+
         temperature: 0.8,
         maxTokens: 1000,
         createdAt: '2024-01-01T00:00:00Z',
@@ -400,7 +400,7 @@ describe('PromptTemplatesApi', () => {
         isActive: true,
         systemPrompt: 'You are a helpful assistant.',
         role: 'assistant',
-        creativity: 0.7,
+
         temperature: 0.8,
         createdAt: '2024-01-01T00:00:00Z',
         updatedAt: '2024-01-01T00:00:00Z',
@@ -416,7 +416,6 @@ describe('PromptTemplatesApi', () => {
       expect(validTemplate).toHaveProperty('isActive')
       expect(validTemplate).toHaveProperty('systemPrompt')
       expect(validTemplate).toHaveProperty('role')
-      expect(validTemplate).toHaveProperty('creativity')
       expect(validTemplate).toHaveProperty('temperature')
       expect(validTemplate).toHaveProperty('createdAt')
       expect(validTemplate).toHaveProperty('updatedAt')
@@ -450,7 +449,7 @@ describe('PromptTemplatesApi', () => {
         isActive: true,
         systemPrompt: 'You are a helpful assistant.',
         role: 'assistant',
-        creativity: 0.7,
+
         temperature: 0.8,
         createdAt: '2024-01-01T00:00:00Z',
         updatedAt: '2024-01-01T00:00:00Z',
@@ -467,7 +466,7 @@ describe('PromptTemplatesApi', () => {
         isActive: false,
         systemPrompt: 'You are a helpful assistant.',
         role: 'assistant',
-        creativity: 0.7,
+
         temperature: 0.8,
         createdAt: '2024-01-01T00:00:00Z',
         updatedAt: '2024-01-01T00:00:00Z',

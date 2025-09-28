@@ -198,7 +198,6 @@ function generateFallbackERD(): string {
         string nullable aiInstructions
         string nullable objectionHandling
         string nullable qualificationPriority
-        int nullable creativity
         string nullable aiObjective
         string nullable disqualificationCriteria
         json nullable exampleConversation

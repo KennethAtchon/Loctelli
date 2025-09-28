@@ -27,9 +27,6 @@ export class CreateStrategyDto {
   @IsOptional()
   qualificationPriority?: string;
 
-  @IsInt()
-  @IsOptional()
-  creativity?: number;
 
   @IsString()
   @IsOptional()

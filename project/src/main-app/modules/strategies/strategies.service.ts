@@ -172,7 +172,6 @@ export class StrategiesService {
       aiInstructions: strategy.aiInstructions || undefined,
       objectionHandling: strategy.objectionHandling || undefined,
       qualificationPriority: strategy.qualificationPriority || undefined,
-      creativity: strategy.creativity || undefined,
       aiObjective: strategy.aiObjective || undefined,
       disqualificationCriteria: strategy.disqualificationCriteria || undefined,
       exampleConversation: strategy.exampleConversation || undefined,

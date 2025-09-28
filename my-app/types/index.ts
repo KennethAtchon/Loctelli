@@ -32,7 +32,6 @@ export interface Strategy {
   aiInstructions?: string;
   objectionHandling?: string;
   qualificationPriority?: string;
-  creativity?: number;
   aiObjective?: string;
   disqualificationCriteria?: string;
   exampleConversation?: any;
@@ -121,7 +120,6 @@ export interface CreateStrategyDto {
   aiInstructions?: string;
   objectionHandling?: string;
   qualificationPriority?: string;
-  creativity?: number;
   aiObjective?: string;
   disqualificationCriteria?: string;
   exampleConversation?: any;

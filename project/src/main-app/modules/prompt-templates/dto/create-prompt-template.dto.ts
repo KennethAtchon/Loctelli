@@ -33,11 +33,6 @@ export class CreatePromptTemplateDto {
   @IsOptional()
   bookingInstruction?: string;
 
-  @IsNumber()
-  @Min(1)
-  @Max(10)
-  @IsOptional()
-  creativity?: number;
 
   @IsNumber()
   @Min(0)

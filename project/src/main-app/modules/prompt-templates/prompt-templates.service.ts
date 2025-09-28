@@ -223,7 +223,6 @@ BOOKING PROCESS:
 4. Confirm the booking: "Perfect! I've got you scheduled for [day] at [time]. You'll receive a confirmation shortly."
 
 Be assumptive - don't ask IF they want to meet, ask WHEN they can meet. Strike while the iron is hot!`,
-        creativity: 7,
         temperature: 0.7,
       }, adminId);
     }

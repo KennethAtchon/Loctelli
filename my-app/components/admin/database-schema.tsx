@@ -129,7 +129,6 @@ export default function DatabaseSchema({ className }: DatabaseSchemaProps) {
         string aiInstructions
         string objectionHandling
         string qualificationPriority
-        int creativity
         string aiObjective
         string disqualificationCriteria
         json exampleConversation

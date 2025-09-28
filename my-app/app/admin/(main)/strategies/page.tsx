@@ -46,18 +46,6 @@ export default function StrategiesPage() {
       icon: <Target className="h-8 w-8" />,
       color: 'text-green-600',
     },
-    {
-      title: 'High Creativity',
-      value: strategies.filter(s => (s.creativity ?? 0) >= 7).length,
-      icon: <Target className="h-8 w-8" />,
-      color: 'text-purple-600',
-    },
-    {
-      title: 'Low Creativity',
-      value: strategies.filter(s => (s.creativity ?? 0) <= 3).length,
-      icon: <Target className="h-8 w-8" />,
-      color: 'text-orange-600',
-    },
   ];
 
   // Define columns
@@ -80,15 +68,6 @@ export default function StrategiesPage() {
       render: (strategy) => (
         <Badge variant={getToneBadgeVariant(strategy.tone ?? '')}>
           {strategy.tone}
-        </Badge>
-      ),
-    },
-    {
-      key: 'creativity',
-      header: 'Creativity',
-      render: (strategy) => (
-        <Badge variant={getCreativityBadgeVariant(strategy.creativity ?? 0)}>
-          {strategy.creativity}/10
         </Badge>
       ),
     },
@@ -203,11 +182,6 @@ export default function StrategiesPage() {
     loadStrategies();
   }, [loadStrategies]);
 
-  const getCreativityBadgeVariant = (creativity: number) => {
-    if (creativity >= 8) return 'default';
-    if (creativity >= 5) return 'secondary';
-    return 'outline';
-  };
 
   const getToneBadgeVariant = (tone: string) => {
     switch (tone?.toLowerCase()) {

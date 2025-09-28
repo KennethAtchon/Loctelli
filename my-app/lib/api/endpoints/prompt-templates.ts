@@ -10,7 +10,6 @@ export interface PromptTemplate {
   instructions?: string;
   context?: string;
   bookingInstruction?: string;
-  creativity: number;
   temperature: number;
   maxTokens?: number;
   createdAt: string;
@@ -31,7 +30,6 @@ export interface CreatePromptTemplateDto {
   instructions?: string;
   context?: string;
   bookingInstruction?: string;
-  creativity?: number;
   temperature?: number;
   maxTokens?: number;
 }

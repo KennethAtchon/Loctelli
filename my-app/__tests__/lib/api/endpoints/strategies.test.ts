@@ -49,7 +49,7 @@ describe('StrategiesApi', () => {
           aiInstructions: 'Test instructions',
           objectionHandling: 'Handle objections',
           qualificationPriority: 'high',
-          creativity: 0.7,
+
           aiObjective: 'Convert leads',
           disqualificationCriteria: 'Not interested',
           exampleConversation: {},
@@ -68,7 +68,7 @@ describe('StrategiesApi', () => {
           aiInstructions: 'Another instructions',
           objectionHandling: 'Another handling',
           qualificationPriority: 'medium',
-          creativity: 0.5,
+
           aiObjective: 'Another objective',
           disqualificationCriteria: 'Another criteria',
           exampleConversation: {},
@@ -108,7 +108,7 @@ describe('StrategiesApi', () => {
         aiInstructions: 'Test instructions',
         objectionHandling: 'Handle objections',
         qualificationPriority: 'high',
-        creativity: 0.7,
+
         aiObjective: 'Convert leads',
         disqualificationCriteria: 'Not interested',
         exampleConversation: {},
@@ -146,7 +146,7 @@ describe('StrategiesApi', () => {
         aiInstructions: 'New instructions',
         objectionHandling: 'New handling',
         qualificationPriority: 'high',
-        creativity: 0.8,
+
         aiObjective: 'New objective',
         disqualificationCriteria: 'New criteria',
         exampleConversation: {},
@@ -164,7 +164,7 @@ describe('StrategiesApi', () => {
         aiInstructions: 'New instructions',
         objectionHandling: 'New handling',
         qualificationPriority: 'high',
-        creativity: 0.8,
+
         aiObjective: 'New objective',
         disqualificationCriteria: 'New criteria',
         exampleConversation: {},
@@ -203,7 +203,6 @@ describe('StrategiesApi', () => {
       const updateData = {
         name: 'Updated Strategy',
         tone: 'casual',
-        creativity: 0.9,
       }
 
       const mockUpdatedStrategy: Strategy = {
@@ -215,7 +214,7 @@ describe('StrategiesApi', () => {
         aiInstructions: 'Test instructions',
         objectionHandling: 'Handle objections',
         qualificationPriority: 'high',
-        creativity: 0.9,
+
         aiObjective: 'Convert leads',
         disqualificationCriteria: 'Not interested',
         exampleConversation: {},
@@ -236,13 +235,13 @@ describe('StrategiesApi', () => {
 
     it('should handle update strategy error', async () => {
       const updateData = {
-        creativity: 2.0, // Invalid creativity value
+        tone: 'invalid', // Invalid tone value
       }
 
-      const error = new Error('Creativity must be between 0 and 1')
+      const error = new Error('Invalid tone value')
       mockPatch.mockRejectedValue(error)
 
-      await expect(strategiesApi.updateStrategy(1, updateData)).rejects.toThrow('Creativity must be between 0 and 1')
+      await expect(strategiesApi.updateStrategy(1, updateData)).rejects.toThrow('Invalid tone value')
       expect(mockPatch).toHaveBeenCalledWith('/strategy/1', updateData)
     })
   })
@@ -277,7 +276,7 @@ describe('StrategiesApi', () => {
           aiInstructions: 'User instructions',
           objectionHandling: 'User handling',
           qualificationPriority: 'high',
-          creativity: 0.7,
+
           aiObjective: 'User objective',
           disqualificationCriteria: 'User criteria',
           exampleConversation: {},
@@ -317,7 +316,7 @@ describe('StrategiesApi', () => {
         aiInstructions: 'Test instructions',
         objectionHandling: 'Handle objections',
         qualificationPriority: 'high',
-        creativity: 0.7,
+
         aiObjective: 'Convert leads',
         disqualificationCriteria: 'Not interested',
         exampleConversation: {},
@@ -356,7 +355,7 @@ describe('StrategiesApi', () => {
         aiInstructions: 'Test instructions',
         objectionHandling: 'Handle objections',
         qualificationPriority: 'high',
-        creativity: 0.7,
+
         aiObjective: 'Convert leads',
         disqualificationCriteria: 'Not interested',
         exampleConversation: {},
