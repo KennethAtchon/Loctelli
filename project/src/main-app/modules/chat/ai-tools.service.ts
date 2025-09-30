@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { BookingHelperService } from '../bookings/booking-helper.service';
-import { addMinutes, format, parseISO, isBefore, isAfter } from 'date-fns';
+import { addDays, addMinutes, format, parseISO, isBefore, isAfter } from 'date-fns';
 
 export interface BookingToolArgs {
   date: string; // YYYY-MM-DD format
@@ -159,7 +159,18 @@ export class AiToolsService {
     if (!this.validateBookingArgs(args)) {
       return {
         success: false,
-        message: 'Invalid booking arguments. Please provide valid date (YYYY-MM-DD) and time (HH:mm) formats.'
+        message: 'Invalid booking arguments. Please provide valid date (YYYY-MM-DD) and time (HH:mm) formats.',
+        data: { errorType: 'INVALID_BOOKING_ARGS' }
+      };
+    }
+
+    // Add date validation for booking
+    const dateValidation = this.validateDateRequest(args.date);
+    if (!dateValidation.isValid) {
+      return {
+        success: false,
+        message: dateValidation.message || 'Invalid date',
+        data: { errorType: 'INVALID_BOOKING_DATE' }
       };
     }
 
@@ -172,7 +183,21 @@ export class AiToolsService {
     if (!user || !user.bookingEnabled) {
       return {
         success: false,
-        message: 'Booking is not enabled for this user.'
+        message: 'Booking is not enabled for this user.',
+        data: { errorType: 'BOOKING_DISABLED' }
+      };
+    }
+
+    // Check for booking conflicts before creating
+    const conflictCheck = await this.checkBookingConflicts(args.date, args.time, userId);
+    if (conflictCheck.hasConflict) {
+      return {
+        success: false,
+        message: `Time slot ${args.time} on ${args.date} is already booked. Please choose a different time.`,
+        data: {
+          errorType: 'TIME_CONFLICT',
+          conflictDetails: conflictCheck.conflictDetails
+        }
       };
     }
 
@@ -243,7 +268,18 @@ export class AiToolsService {
     if (!this.validateDateFormat(args.date)) {
       return {
         success: false,
-        message: 'Invalid date format. Please use YYYY-MM-DD format.'
+        message: 'Invalid date format. Please use YYYY-MM-DD format.',
+        data: { errorType: 'INVALID_DATE_FORMAT' }
+      };
+    }
+
+    // Add date validation (no past dates, max 30 days ahead)
+    const dateValidation = this.validateDateRequest(args.date);
+    if (!dateValidation.isValid) {
+      return {
+        success: false,
+        message: dateValidation.message || 'Invalid date',
+        data: { errorType: 'INVALID_DATE_RANGE' }
       };
     }
 
@@ -267,7 +303,21 @@ export class AiToolsService {
       if (!user.bookingEnabled) {
         return {
           success: false,
-          message: 'Booking is not enabled for this user.'
+          message: 'Booking is not enabled for this user.',
+          data: { errorType: 'BOOKING_DISABLED' }
+        };
+      }
+
+      // Add data validation
+      const dataValidation = await this.validateBookingsTimeData(userId);
+      if (!dataValidation.isValid) {
+        return {
+          success: false,
+          message: `Unable to check availability: ${dataValidation.issues.join(', ')}`,
+          data: {
+            errorType: 'DATA_ISSUES',
+            issues: dataValidation.issues
+          }
         };
       }
 
@@ -568,5 +618,130 @@ export class AiToolsService {
 
     const [hours, minutes] = time.split(':').map(Number);
     return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59;
+  }
+
+  /**
+   * Validate date request (no past dates, max 30 days ahead)
+   */
+  private validateDateRequest(requestedDate: string): { isValid: boolean; message?: string } {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of today
+    const requested = parseISO(requestedDate);
+
+    if (isBefore(requested, today)) {
+      return {
+        isValid: false,
+        message: `Cannot check availability for past dates. Today is ${format(today, 'yyyy-MM-dd')}.`
+      };
+    }
+
+    // Only allow booking up to 30 days in advance
+    const maxDate = addDays(today, 30);
+    if (isAfter(requested, maxDate)) {
+      return {
+        isValid: false,
+        message: `Can only book up to 30 days in advance. Latest available date is ${format(maxDate, 'yyyy-MM-dd')}.`
+      };
+    }
+
+    return { isValid: true };
+  }
+
+  /**
+   * Validate bookingsTime data quality
+   */
+  private async validateBookingsTimeData(userId: number): Promise<{ isValid: boolean; issues: string[] }> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { bookingsTime: true, bookingEnabled: true }
+    });
+
+    const issues: string[] = [];
+
+    if (!user) {
+      issues.push('User not found');
+      return { isValid: false, issues };
+    }
+
+    if (!user.bookingEnabled) {
+      issues.push('Booking is disabled for this user');
+    }
+
+    if (!user.bookingsTime) {
+      issues.push('No availability data configured');
+    } else {
+      try {
+        const slots = this.parseBookingsTimeForDate(user.bookingsTime, format(new Date(), 'yyyy-MM-dd'));
+        if (slots.length === 0) {
+          // Check if there are any slots for the next 7 days
+          let hasAnySlots = false;
+          for (let i = 1; i < 7; i++) {
+            const checkDate = addDays(new Date(), i);
+            const dateStr = format(checkDate, 'yyyy-MM-dd');
+            const daySlots = this.parseBookingsTimeForDate(user.bookingsTime, dateStr);
+            if (daySlots.length > 0) {
+              hasAnySlots = true;
+              break;
+            }
+          }
+          if (!hasAnySlots) {
+            issues.push('No availability slots found for current timeframe');
+          }
+        }
+      } catch (error) {
+        issues.push('Invalid availability data format');
+      }
+    }
+
+    return {
+      isValid: issues.length === 0,
+      issues
+    };
+  }
+
+  /**
+   * Check for booking conflicts before creating a new booking
+   */
+  private async checkBookingConflicts(
+    date: string,
+    time: string,
+    userId: number
+  ): Promise<{ hasConflict: boolean; conflictDetails?: any }> {
+    const proposedStart = parseISO(`${date}T${time}`);
+    const proposedEnd = addMinutes(proposedStart, 30);
+
+    // Check database for existing bookings
+    const existingBookings = await this.prisma.booking.findMany({
+      where: {
+        regularUserId: userId,
+        status: { in: ['pending', 'confirmed'] }
+      }
+    });
+
+    for (const booking of existingBookings) {
+      const bookingDetails = booking.details as any;
+      if (bookingDetails?.date === date) {
+        const existingStart = parseISO(`${date}T${bookingDetails.time}`);
+        const existingEnd = addMinutes(existingStart, 30);
+
+        // Check for overlap
+        if (
+          (proposedStart >= existingStart && proposedStart < existingEnd) ||
+          (proposedEnd > existingStart && proposedEnd <= existingEnd) ||
+          (proposedStart <= existingStart && proposedEnd >= existingEnd)
+        ) {
+          return {
+            hasConflict: true,
+            conflictDetails: {
+              existingBookingId: booking.id,
+              existingTime: bookingDetails.time,
+              existingSubject: bookingDetails.subject
+            }
+          };
+        }
+      }
+    }
+
+    return { hasConflict: false };
   }
 }

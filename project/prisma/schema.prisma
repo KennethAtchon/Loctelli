@@ -53,12 +53,15 @@ model SubAccount {
   smsMessages     SmsMessage[] // SMS messages sent within this SubAccount
   smsCampaigns    SmsCampaign[] // SMS campaigns created within this SubAccount
   businessSearches BusinessSearch[] // Business searches performed within this SubAccount
-  
+
   // Contact management
   contactSubmissions ContactSubmission[]
 
   // Dynamic forms
   formTemplates FormTemplate[]
+
+  // Prompt template selections
+  promptTemplates SubAccountPromptTemplate[]
   formSubmissions FormSubmission[]
 }
 
@@ -167,7 +170,7 @@ model PromptTemplate {
   id                  Int       @id @default(autoincrement())
   name                String
   description         String?   @db.Text
-  isActive            Boolean   @default(false) // Only one can be active globally
+  isActive            Boolean   @default(false) // Deprecated: use SubAccountPromptTemplate instead
   systemPrompt        String    @db.Text // The main system prompt
   role                String    @default("conversational AI and sales representative")
   instructions        String?   @db.Text // Additional instructions
@@ -180,6 +183,21 @@ model PromptTemplate {
   createdByAdminId    Int
   createdByAdmin      AdminUser @relation(fields: [createdByAdminId], references: [id])
   strategies          Strategy[]
+  subAccountTemplates SubAccountPromptTemplate[]
+}
+
+model SubAccountPromptTemplate {
+  id               Int            @id @default(autoincrement())
+  subAccountId     Int
+  promptTemplateId Int
+  isActive         Boolean        @default(false) // Only one can be active per subaccount
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  subAccount       SubAccount     @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
+  promptTemplate   PromptTemplate @relation(fields: [promptTemplateId], references: [id], onDelete: Cascade)
+
+  @@unique([subAccountId, promptTemplateId])
+  @@index([subAccountId, isActive])
 }
 
 model IntegrationTemplate {

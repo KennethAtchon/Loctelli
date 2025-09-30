@@ -5,6 +5,7 @@ import {
   DEFAULT_USER_DATA,
   DEFAULT_SUBACCOUNT_DATA,
   DEFAULT_PROMPT_TEMPLATE_DATA,
+  HOME_REMODELING_PROMPT_TEMPLATE,
   DEFAULT_STRATEGY_DATA,
   DEFAULT_LEAD_DATA,
   DEFAULT_INTEGRATION_TEMPLATES,
@@ -66,18 +67,27 @@ async function main() {
   const existingTemplate = await prisma.promptTemplate.findFirst();
 
   if (!existingTemplate) {
-    console.log('Creating default prompt template...');
-    
-    await prisma.promptTemplate.create({
+    console.log('Creating default prompt templates...');
+
+    // Create the default general sales template (active)
+    const defaultTemplate = await prisma.promptTemplate.create({
       data: {
         ...DEFAULT_PROMPT_TEMPLATE_DATA,
         createdByAdminId: adminUser.id,
       },
     });
-    
-    console.log('Default prompt template created successfully');
+
+    // Create the home remodeling template (inactive)
+    await prisma.promptTemplate.create({
+      data: {
+        ...HOME_REMODELING_PROMPT_TEMPLATE,
+        createdByAdminId: adminUser.id,
+      },
+    });
+
+    console.log('Default prompt templates created successfully');
   } else {
-    console.log('Default prompt template already exists');
+    console.log('Default prompt templates already exist');
   }
 
   // Check if any integration templates exist
@@ -137,11 +147,16 @@ async function main() {
   const existingStrategies = await prisma.strategy.findMany();
   if (existingStrategies.length === 0) {
     console.log('Creating default strategies...');
-    
+
+    // Get the templates to assign to strategies
     const defaultTemplate = await prisma.promptTemplate.findFirst({
       where: { isActive: true }
     });
-    
+
+    const remodelingTemplate = await prisma.promptTemplate.findFirst({
+      where: { name: 'Home Remodeling Sales Prompt' }
+    });
+
     if (!defaultTemplate) {
       console.log('No active prompt template found, skipping strategy creation');
     } else {
@@ -149,7 +164,13 @@ async function main() {
         const strategyData = DEFAULT_STRATEGY_DATA[i];
         // Assign strategies to different users if available
         const assignedUser = defaultUsers[i % defaultUsers.length] || defaultUsers[0];
-        
+
+        // Choose the appropriate template
+        let templateToUse = defaultTemplate;
+        if (strategyData.tag === 'remodeling' && remodelingTemplate) {
+          templateToUse = remodelingTemplate;
+        }
+
         await prisma.strategy.create({
           data: {
             ...strategyData,
@@ -160,7 +181,7 @@ async function main() {
               connect: { id: defaultSubAccount.id }
             },
             promptTemplate: {
-              connect: { id: defaultTemplate.id }
+              connect: { id: templateToUse.id }
             },
           },
         });
@@ -172,35 +193,50 @@ async function main() {
     console.log('Default strategies already exist');
   }
 
-  // Create a default lead if none exists
+  // Create default leads if none exist
   const existingLead = await prisma.lead.findFirst();
   if (!existingLead) {
-    console.log('Creating default lead...');
-    
-    const defaultStrategy = await prisma.strategy.findFirst();
-    
-    if (!defaultStrategy) {
-      console.log('No strategy found, skipping lead creation');
+    console.log('Creating default leads...');
+
+    const strategies = await prisma.strategy.findMany();
+
+    if (strategies.length === 0) {
+      console.log('No strategies found, skipping lead creation');
     } else {
-      await prisma.lead.create({
-        data: {
-          ...DEFAULT_LEAD_DATA,
-          regularUser: {
-            connect: { id: defaultUsers[0]?.id || defaultUsers[0].id }
+      // Create each lead with appropriate strategy
+      for (let i = 0; i < DEFAULT_LEAD_DATA.length; i++) {
+        const leadData = DEFAULT_LEAD_DATA[i];
+
+        // Assign the home remodeling strategy to Sarah Johnson (second lead)
+        // and the general strategy to John Doe (first lead)
+        let assignedStrategy = strategies[0]; // Default to first strategy
+        if (i === 1) { // Sarah Johnson - home remodeling lead
+          const remodelingStrategy = strategies.find(s => s.tag === 'remodeling');
+          if (remodelingStrategy) {
+            assignedStrategy = remodelingStrategy;
+          }
+        }
+
+        await prisma.lead.create({
+          data: {
+            ...leadData,
+            regularUser: {
+              connect: { id: defaultUsers[0]?.id || defaultUsers[0].id }
+            },
+            strategy: {
+              connect: { id: assignedStrategy.id }
+            },
+            subAccount: {
+              connect: { id: defaultSubAccount.id }
+            },
           },
-          strategy: {
-            connect: { id: defaultStrategy.id }
-          },
-          subAccount: {
-            connect: { id: defaultSubAccount.id }
-          },
-        },
-      });
-      
-      console.log('Default lead created successfully');
+        });
+      }
+
+      console.log(`Created ${DEFAULT_LEAD_DATA.length} default leads successfully`);
     }
   } else {
-    console.log('Default lead already exists');
+    console.log('Default leads already exist');
   }
 
   console.log('Database seed completed');
