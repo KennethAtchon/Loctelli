@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, BadRequestException } from '@nestjs/common';
 import { PromptTemplatesService } from './prompt-templates.service';
 import { CreatePromptTemplateDto } from './dto/create-prompt-template.dto';
 import { UpdatePromptTemplateDto } from './dto/update-prompt-template.dto';
@@ -28,6 +28,11 @@ export class PromptTemplatesController {
     return this.promptTemplatesService.getActive();
   }
 
+  @Get('subaccount/:subAccountId')
+  findAllForSubAccount(@Param('subAccountId') subAccountId: string) {
+    return this.promptTemplatesService.findAllForSubAccount(+subAccountId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.promptTemplatesService.findOne(+id);
@@ -40,7 +45,10 @@ export class PromptTemplatesController {
   }
 
   @Patch(':id/activate')
-  activate(@Param('id') id: string, @Body() body: { subAccountId: number }) {
+  activate(@Param('id') id: string, @Body() body: { subAccountId?: number }) {
+    if (!body.subAccountId) {
+      throw new BadRequestException('subAccountId is required to activate a template');
+    }
     return this.promptTemplatesService.activate(+id, body.subAccountId);
   }
 

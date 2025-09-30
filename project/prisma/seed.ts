@@ -112,8 +112,17 @@ async function main() {
       // Get first available template and assign it
       const firstTemplate = await prisma.promptTemplate.findFirst();
       if (firstTemplate) {
-        await prisma.subAccountPromptTemplate.create({
-          data: {
+        await prisma.subAccountPromptTemplate.upsert({
+          where: {
+            subAccountId_promptTemplateId: {
+              subAccountId: defaultSubAccount.id,
+              promptTemplateId: firstTemplate.id,
+            },
+          },
+          update: {
+            isActive: true,
+          },
+          create: {
             subAccountId: defaultSubAccount.id,
             promptTemplateId: firstTemplate.id,
             isActive: true,

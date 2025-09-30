@@ -9,6 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import type { PromptTemplate } from '@/lib/api/endpoints/prompt-templates';
+import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
 
 export default function PromptTemplatesPage() {
   const [templates, setTemplates] = useState<PromptTemplate[]>([]);
@@ -17,15 +18,26 @@ export default function PromptTemplatesPage() {
   const [deleting, setDeleting] = useState<number | null>(null);
   const router = useRouter();
   const { toast } = useToast();
+  const { getCurrentSubaccount, isGlobalView } = useSubaccountFilter();
 
   useEffect(() => {
     loadTemplates();
-  }, []);
+  }, [getCurrentSubaccount]);
 
   const loadTemplates = async () => {
     try {
       setLoading(true);
-      const data = await api.promptTemplates.getAll();
+      const currentSubaccount = getCurrentSubaccount();
+
+      let data: PromptTemplate[];
+      if (currentSubaccount) {
+        // Load templates for specific subaccount with activation status
+        data = await api.promptTemplates.getAllForSubAccount(currentSubaccount.id);
+      } else {
+        // Load all templates (global view)
+        data = await api.promptTemplates.getAll();
+      }
+
       setTemplates(data);
     } catch (error) {
       console.error('Failed to load templates:', error);
@@ -40,13 +52,33 @@ export default function PromptTemplatesPage() {
   };
 
   const handleActivate = async (id: number) => {
+    const currentSubaccount = getCurrentSubaccount();
+
+    if (isGlobalView()) {
+      toast({
+        title: 'Error',
+        description: 'Please select a specific subaccount to activate templates. Templates cannot be activated globally.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!currentSubaccount) {
+      toast({
+        title: 'Error',
+        description: 'No subaccount selected. Please select a subaccount first.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       setActivating(id);
-      await api.promptTemplates.activate(id);
+      await api.promptTemplates.activate(id, currentSubaccount.id);
       await loadTemplates(); // Reload to get updated status
       toast({
         title: 'Success',
-        description: 'Template activated successfully',
+        description: `Template activated successfully for ${currentSubaccount.name}`,
       });
     } catch (error) {
       console.error('Failed to activate template:', error);
@@ -118,6 +150,16 @@ export default function PromptTemplatesPage() {
           <h1 className="text-3xl font-bold text-gray-900">Prompt Templates</h1>
           <p className="text-gray-600 mt-2">
             Manage AI prompt templates for your sales conversations
+            {getCurrentSubaccount() && (
+              <span className="ml-2 text-blue-600 font-medium">
+                (for {getCurrentSubaccount()?.name})
+              </span>
+            )}
+            {isGlobalView() && (
+              <span className="ml-2 text-amber-600 font-medium">
+                (Global View - Select a subaccount to activate templates)
+              </span>
+            )}
           </p>
         </div>
         <Button onClick={() => router.push('/admin/prompt-templates/new')}>
@@ -141,7 +183,7 @@ export default function PromptTemplatesPage() {
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                  {template.isActive ? (
+                  {(getCurrentSubaccount() ? template.isActiveForSubAccount : template.isActive) ? (
                     <CheckCircle className="h-5 w-5 text-green-600" />
                   ) : (
                     <Circle className="h-5 w-5 text-gray-400" />
@@ -196,7 +238,7 @@ export default function PromptTemplatesPage() {
                     Edit
                   </Button>
                   
-                  {!template.isActive && (
+                  {!(getCurrentSubaccount() ? template.isActiveForSubAccount : template.isActive) && (
                     <Button
                       variant="outline"
                       size="sm"

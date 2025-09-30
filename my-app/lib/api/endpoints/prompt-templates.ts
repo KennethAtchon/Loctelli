@@ -19,6 +19,8 @@ export interface PromptTemplate {
     name: string;
     email: string;
   };
+  strategyCount?: number;
+  isActiveForSubAccount?: boolean;
 }
 
 export interface CreatePromptTemplateDto {
@@ -39,6 +41,10 @@ export type UpdatePromptTemplateDto = Partial<CreatePromptTemplateDto>;
 export class PromptTemplatesApi extends ApiClient {
   async getAll(): Promise<PromptTemplate[]> {
     return this.get<PromptTemplate[]>('/admin/prompt-templates');
+  }
+
+  async getAllForSubAccount(subAccountId: number): Promise<PromptTemplate[]> {
+    return this.get<PromptTemplate[]>(`/admin/prompt-templates/subaccount/${subAccountId}`);
   }
 
   async getById(id: number): Promise<PromptTemplate> {
@@ -63,8 +69,8 @@ export class PromptTemplatesApi extends ApiClient {
     return result;
   }
 
-  async activate(id: number): Promise<PromptTemplate> {
-    return this.patch<PromptTemplate>(`/admin/prompt-templates/${id}/activate`);
+  async activate(id: number, subAccountId: number): Promise<PromptTemplate> {
+    return this.patch<PromptTemplate>(`/admin/prompt-templates/${id}/activate`, { subAccountId });
   }
 
   async deleteTemplate(id: number): Promise<void> {
