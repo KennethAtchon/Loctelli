@@ -458,27 +458,6 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
             </span>
           )}
         </div>
-
-        {/* Message actions */}
-        {finalConfig.showMessageActions && message.type === "system" && message.completed && (
-          <div className="flex items-center gap-2 px-4 mt-1 mb-2">
-            <button className="text-gray-400 hover:text-gray-600 transition-colors">
-              <RefreshCcw className="h-4 w-4" />
-            </button>
-            <button className="text-gray-400 hover:text-gray-600 transition-colors">
-              <Copy className="h-4 w-4" />
-            </button>
-            <button className="text-gray-400 hover:text-gray-600 transition-colors">
-              <Share2 className="h-4 w-4" />
-            </button>
-            <button className="text-gray-400 hover:text-gray-600 transition-colors">
-              <ThumbsUp className="h-4 w-4" />
-            </button>
-            <button className="text-gray-400 hover:text-gray-600 transition-colors">
-              <ThumbsDown className="h-4 w-4" />
-            </button>
-          </div>
-        )}
       </div>
     )
   }

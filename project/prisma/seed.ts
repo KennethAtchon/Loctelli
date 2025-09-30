@@ -86,8 +86,42 @@ async function main() {
     });
 
     console.log('Default prompt templates created successfully');
+
+    // Assign the default template as active for the default subaccount
+    await prisma.subAccountPromptTemplate.create({
+      data: {
+        subAccountId: defaultSubAccount.id,
+        promptTemplateId: defaultTemplate.id,
+        isActive: true,
+      },
+    });
+
+    console.log('Assigned default template as active for default subaccount');
   } else {
     console.log('Default prompt templates already exist');
+
+    // Ensure default subaccount has an active template
+    const existingActiveTemplate = await prisma.subAccountPromptTemplate.findFirst({
+      where: {
+        subAccountId: defaultSubAccount.id,
+        isActive: true,
+      },
+    });
+
+    if (!existingActiveTemplate) {
+      // Get first available template and assign it
+      const firstTemplate = await prisma.promptTemplate.findFirst();
+      if (firstTemplate) {
+        await prisma.subAccountPromptTemplate.create({
+          data: {
+            subAccountId: defaultSubAccount.id,
+            promptTemplateId: firstTemplate.id,
+            isActive: true,
+          },
+        });
+        console.log('Assigned first available template as active for default subaccount');
+      }
+    }
   }
 
   // Check if any integration templates exist

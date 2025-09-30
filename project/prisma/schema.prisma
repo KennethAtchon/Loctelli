@@ -173,6 +173,7 @@ model PromptTemplate {
   isActive            Boolean   @default(false) // Deprecated: use SubAccountPromptTemplate instead
   systemPrompt        String    @db.Text // The main system prompt
   role                String    @default("conversational AI and sales representative")
+  aiName              String    @default("Lisa") // AI assistant's human name
   instructions        String?   @db.Text // Additional instructions
   context             String?   @db.Text // Context information
   bookingInstruction  String?   @db.Text // Booking-specific instructions

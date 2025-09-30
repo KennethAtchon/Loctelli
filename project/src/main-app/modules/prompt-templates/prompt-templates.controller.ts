@@ -40,8 +40,8 @@ export class PromptTemplatesController {
   }
 
   @Patch(':id/activate')
-  activate(@Param('id') id: string) {
-    return this.promptTemplatesService.activate(+id);
+  activate(@Param('id') id: string, @Body() body: { subAccountId: number }) {
+    return this.promptTemplatesService.activate(+id, body.subAccountId);
   }
 
   @Delete(':id')

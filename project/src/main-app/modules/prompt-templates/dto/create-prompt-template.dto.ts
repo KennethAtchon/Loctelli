@@ -23,6 +23,10 @@ export class CreatePromptTemplateDto {
 
   @IsString()
   @IsOptional()
+  aiName?: string;
+
+  @IsString()
+  @IsOptional()
   instructions?: string;
 
   @IsString()

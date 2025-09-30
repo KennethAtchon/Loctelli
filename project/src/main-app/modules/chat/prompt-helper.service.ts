@@ -115,8 +115,8 @@ export class PromptHelperService {
   async composePrompt(lead: any, user: any, strategy: any, history: MessageHistoryItem[]): Promise<ChatMessage[]> {
     this.logger.debug(`[composePrompt] leadId=${lead.id}, history_length=${history.length}`);
 
-    // Get active template and build context
-    const activeTemplate = await this.promptTemplatesService.getActive();
+    // Get active template for this subaccount and build context
+    const activeTemplate = await this.promptTemplatesService.getActive(user?.subAccountId);
     const context = {
       lead,
       user,

@@ -356,8 +356,8 @@ export class SalesBotService implements OnModuleInit {
     })))}`);
 
     try {
-      // Get active template for parameters
-      const activeTemplate = await this.promptTemplatesService.getActive();
+      // Get active template for parameters (per-subaccount)
+      const activeTemplate = await this.promptTemplatesService.getActive(user?.subAccountId);
 
       // Prepare OpenAI request payload
       const requestPayload: any = {
