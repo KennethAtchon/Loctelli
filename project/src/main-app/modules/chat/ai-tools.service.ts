@@ -7,6 +7,7 @@ import { addDays, addMinutes, format, parseISO, isBefore, isAfter } from 'date-f
 export interface BookingToolArgs {
   date: string; // YYYY-MM-DD format
   time: string; // HH:mm format (24-hour)
+  timezone?: string; // IANA timezone (e.g., "America/New_York"), defaults to user's timezone
   location: string;
   subject: string;
   participants?: string[];
@@ -16,6 +17,15 @@ export interface AvailabilityToolArgs {
   date: string; // YYYY-MM-DD format
   startTime?: string; // HH:mm format (optional, defaults to 09:00)
   endTime?: string; // HH:mm format (optional, defaults to 17:00)
+}
+
+export interface UpdateLeadToolArgs {
+  email?: string;
+  phone?: string;
+  company?: string;
+  position?: string;
+  timezone?: string; // IANA timezone format
+  notes?: string;
 }
 
 export interface ToolCallResult {
@@ -37,25 +47,36 @@ export class AiToolsService {
   /**
    * Get the OpenAI tool definitions for booking functionality
    */
-  getBookingTools(): any[] {
+  getBookingTools(leadTimezone?: string): any[] {
+    const timezoneDescription = leadTimezone
+      ? `IANA timezone identifier (e.g., "America/New_York", "America/Los_Angeles", "Europe/London"). OPTIONAL - Lead timezone (${leadTimezone}) will be used if not provided.`
+      : 'IANA timezone identifier (e.g., "America/New_York", "America/Los_Angeles", "Europe/London"). REQUIRED - must be confirmed with lead before booking.';
+
     return [
       {
         type: 'function',
         function: {
           name: 'book_meeting',
-          description: 'Book a calendar meeting/appointment with specified details',
+          description: leadTimezone
+            ? `Book a calendar meeting/appointment with specified details. Lead's timezone is ${leadTimezone}, so you can proceed without asking for timezone.`
+            : 'Book a calendar meeting/appointment with specified details. ALWAYS confirm timezone with the lead before booking.',
           parameters: {
             type: 'object',
             properties: {
               date: {
                 type: 'string',
-                description: 'Meeting date in YYYY-MM-DD format (e.g., 2025-09-28)',
+                description: 'Meeting date in YYYY-MM-DD format (e.g., 2025-10-10)',
                 pattern: '^\\d{4}-\\d{2}-\\d{2}$'
               },
               time: {
                 type: 'string',
-                description: 'Meeting time in 24-hour HH:mm format (e.g., 14:30 for 2:30 PM)',
+                description: 'Meeting time in 24-hour HH:mm format (e.g., 14:00 for 2:00 PM)',
                 pattern: '^\\d{2}:\\d{2}$'
+              },
+              timezone: {
+                type: 'string',
+                description: timezoneDescription,
+                pattern: '^[A-Za-z_]+/[A-Za-z_]+$'
               },
               location: {
                 type: 'string',
@@ -110,6 +131,52 @@ export class AiToolsService {
   }
 
   /**
+   * Get the OpenAI tool definitions for lead management functionality
+   */
+  getLeadManagementTools(): any[] {
+    return [
+      {
+        type: 'function',
+        function: {
+          name: 'update_lead_details',
+          description: 'Update lead information in the database. Use when lead provides or corrects their contact details, timezone, company info, or when you learn new information about them.',
+          parameters: {
+            type: 'object',
+            properties: {
+              email: {
+                type: 'string',
+                description: 'Lead email address',
+                format: 'email'
+              },
+              phone: {
+                type: 'string',
+                description: 'Lead phone number'
+              },
+              company: {
+                type: 'string',
+                description: 'Lead company name'
+              },
+              position: {
+                type: 'string',
+                description: 'Lead job title/position'
+              },
+              timezone: {
+                type: 'string',
+                description: 'Lead timezone in IANA format (e.g., "America/New_York", "America/Chicago"). Use when lead corrects their timezone.',
+                pattern: '^[A-Za-z_]+/[A-Za-z_]+$'
+              },
+              notes: {
+                type: 'string',
+                description: 'Additional notes about the lead (append to existing notes, do not replace)'
+              }
+            }
+          }
+        }
+      }
+    ];
+  }
+
+  /**
    * Execute a tool call based on the function name and arguments
    */
   async executeToolCall(
@@ -128,6 +195,9 @@ export class AiToolsService {
 
         case 'check_availability':
           return await this.checkAvailability(args as AvailabilityToolArgs, userId);
+
+        case 'update_lead_details':
+          return await this.updateLeadDetails(args as UpdateLeadToolArgs, leadId);
 
         default:
           this.logger.warn(`Unknown tool function: ${functionName}`);
@@ -174,10 +244,10 @@ export class AiToolsService {
       };
     }
 
-    // Check if user has booking enabled
+    // Check if user has booking enabled and get timezone
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { bookingEnabled: true, subAccountId: true }
+      select: { bookingEnabled: true, subAccountId: true, timezone: true }
     });
 
     if (!user || !user.bookingEnabled) {
@@ -187,6 +257,29 @@ export class AiToolsService {
         data: { errorType: 'BOOKING_DISABLED' }
       };
     }
+
+    // Get lead's timezone if available
+    const lead = await this.prisma.lead.findUnique({
+      where: { id: leadId },
+      select: { timezone: true }
+    });
+
+    // Get timezone priority: lead timezone > provided timezone > user timezone > default
+    const timezone = lead?.timezone || args.timezone || user.timezone || 'America/New_York';
+
+    this.logger.log(`Using timezone for booking: ${timezone} (lead: ${lead?.timezone || 'none'}, provided: ${args.timezone || 'none'}, user: ${user.timezone})`);
+
+    // Validate timezone
+    if (!this.validateTimezone(timezone)) {
+      return {
+        success: false,
+        message: `Invalid timezone: ${timezone}. Please use IANA timezone format (e.g., "America/New_York").`,
+        data: { errorType: 'INVALID_TIMEZONE' }
+      };
+    }
+
+    // Get timezone info
+    const timezoneInfo = this.getTimezoneInfo(args.date, args.time, timezone);
 
     // Check for booking conflicts before creating
     const conflictCheck = await this.checkBookingConflicts(args.date, args.time, userId);
@@ -202,10 +295,13 @@ export class AiToolsService {
     }
 
     try {
-      // Create booking details object
+      // Create booking details object with timezone
       const details = {
         date: args.date,
         time: args.time,
+        timezone: timezone,
+        timezoneOffset: timezoneInfo.offset,
+        timezoneAbbr: timezoneInfo.abbreviation,
         location: args.location,
         subject: args.subject,
         participants: args.participants || []
@@ -236,11 +332,14 @@ export class AiToolsService {
 
       return {
         success: true,
-        message: `Meeting booked successfully for ${args.date} at ${args.time}. Booking ID: ${booking.id}`,
+        message: `Meeting booked successfully for ${args.date} at ${args.time} ${timezoneInfo.abbreviation}. Booking ID: ${booking.id}`,
         data: {
           bookingId: booking.id,
           date: args.date,
           time: args.time,
+          timezone: timezone,
+          timezoneOffset: timezoneInfo.offset,
+          timezoneAbbr: timezoneInfo.abbreviation,
           location: args.location,
           subject: args.subject
         }
@@ -361,6 +460,95 @@ export class AiToolsService {
       return {
         success: false,
         message: 'Failed to check availability. Please try again.'
+      };
+    }
+  }
+
+  /**
+   * Update lead details in the database
+   */
+  private async updateLeadDetails(
+    args: UpdateLeadToolArgs,
+    leadId: number
+  ): Promise<ToolCallResult> {
+    this.logger.log(`Updating lead details for leadId=${leadId}`, args);
+
+    // Validate that at least one field is being updated
+    if (!args.email && !args.phone && !args.company && !args.position && !args.timezone && !args.notes) {
+      return {
+        success: false,
+        message: 'No fields provided to update.',
+        data: { errorType: 'NO_FIELDS' }
+      };
+    }
+
+    // Validate timezone if provided
+    if (args.timezone && !this.validateTimezone(args.timezone)) {
+      return {
+        success: false,
+        message: `Invalid timezone: ${args.timezone}. Please use IANA timezone format (e.g., "America/New_York").`,
+        data: { errorType: 'INVALID_TIMEZONE' }
+      };
+    }
+
+    try {
+      // Get current lead data
+      const currentLead = await this.prisma.lead.findUnique({
+        where: { id: leadId },
+        select: { notes: true }
+      });
+
+      if (!currentLead) {
+        return {
+          success: false,
+          message: 'Lead not found.',
+          data: { errorType: 'LEAD_NOT_FOUND' }
+        };
+      }
+
+      // Prepare update data
+      const updateData: any = {};
+
+      if (args.email) updateData.email = args.email;
+      if (args.phone) updateData.phone = args.phone;
+      if (args.company) updateData.company = args.company;
+      if (args.position) updateData.position = args.position;
+      if (args.timezone) updateData.timezone = args.timezone;
+
+      // Append notes instead of replacing
+      if (args.notes) {
+        const existingNotes = currentLead.notes || '';
+        updateData.notes = existingNotes
+          ? `${existingNotes}\n${args.notes}`
+          : args.notes;
+      }
+
+      // Update lead
+      const updatedLead = await this.prisma.lead.update({
+        where: { id: leadId },
+        data: updateData
+      });
+
+      // Build summary of updated fields
+      const updatedFields = Object.keys(updateData).join(', ');
+
+      this.logger.log(`Successfully updated lead ${leadId}: ${updatedFields}`);
+
+      return {
+        success: true,
+        message: `Lead details updated successfully: ${updatedFields}`,
+        data: {
+          leadId: updatedLead.id,
+          updatedFields: Object.keys(updateData),
+          updates: updateData
+        }
+      };
+    } catch (error) {
+      this.logger.error(`Error updating lead details:`, error);
+      return {
+        success: false,
+        message: 'Failed to update lead details. Please try again.',
+        data: { errorType: 'UPDATE_FAILED', error: error.message }
       };
     }
   }
@@ -743,5 +931,49 @@ export class AiToolsService {
     }
 
     return { hasConflict: false };
+  }
+
+  /**
+   * Validate IANA timezone identifier
+   */
+  private validateTimezone(timezone: string): boolean {
+    try {
+      // Use Intl API to validate timezone
+      Intl.DateTimeFormat(undefined, { timeZone: timezone });
+      return true;
+    } catch (error) {
+      this.logger.error(`Invalid timezone: ${timezone}`);
+      return false;
+    }
+  }
+
+  /**
+   * Get timezone offset and abbreviation for a specific date/time
+   */
+  private getTimezoneInfo(date: string, time: string, timezone: string): {
+    offset: string;
+    abbreviation: string;
+  } {
+    const dateTime = new Date(`${date}T${time}:00`);
+
+    // Get timezone abbreviation
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      timeZoneName: 'short'
+    });
+
+    const parts = formatter.formatToParts(dateTime);
+    const abbreviation = parts.find(p => p.type === 'timeZoneName')?.value || '';
+
+    // Calculate offset
+    const utcDate = new Date(dateTime.toLocaleString('en-US', { timeZone: 'UTC' }));
+    const tzDate = new Date(dateTime.toLocaleString('en-US', { timeZone: timezone }));
+    const offsetMinutes = (tzDate.getTime() - utcDate.getTime()) / 60000;
+    const offsetHours = Math.floor(Math.abs(offsetMinutes) / 60);
+    const offsetMins = Math.abs(offsetMinutes) % 60;
+    const sign = offsetMinutes >= 0 ? '+' : '-';
+    const offset = `${sign}${String(offsetHours).padStart(2, '0')}:${String(offsetMins).padStart(2, '0')}`;
+
+    return { offset, abbreviation };
   }
 }

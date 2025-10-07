@@ -4,6 +4,7 @@ import { ContactCreatedDto } from './dto/contact-created.dto';
 import { OutboundMessageDto } from './dto/outbound-message.dto';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { SalesBotService } from '../../../modules/chat/sales-bot.service';
+import { TimezoneDetectorService } from '../../../../shared/utils/timezone-detector.service';
 
 @Injectable()
 export class WebhooksService {
@@ -12,7 +13,8 @@ export class WebhooksService {
   
   constructor(
     private prisma: PrismaService,
-    private salesBotService: SalesBotService
+    private salesBotService: SalesBotService,
+    private timezoneDetector: TimezoneDetectorService
   ) {
     this.logger.log(`WebhooksService initialized with useDummyResponses=${this.useDummyResponses}`);
   }
@@ -100,11 +102,23 @@ export class WebhooksService {
       }
       
       // Create a new Lead with the found user_id and their first strategy
-      const name = contactData.name || 
-        ((contactData.firstName && contactData.lastName) ? 
-          `${contactData.firstName} ${contactData.lastName}` : 
+      const name = contactData.name ||
+        ((contactData.firstName && contactData.lastName) ?
+          `${contactData.firstName} ${contactData.lastName}` :
           contactData.firstName || contactData.lastName || 'Unknown');
-      
+
+      // Detect timezone from location data
+      const detectedTimezone = this.timezoneDetector.detectTimezone({
+        postalCode: contactData.postalCode,
+        state: contactData.state,
+        city: contactData.city,
+        country: contactData.country
+      });
+
+      if (detectedTimezone) {
+        this.logger.log(`Detected timezone: ${detectedTimezone} for contact ${contactData.id}`);
+      }
+
       const lead = await this.prisma.lead.create({
         data: {
           regularUser: {
@@ -114,7 +128,11 @@ export class WebhooksService {
             connect: { id: strategyId }
           },
           name,
+          email: contactData.email,
+          phone: contactData.phone,
+          company: contactData.companyName,
           customId: contactData.id,
+          timezone: detectedTimezone,
           messageHistory: [],
           status: 'lead',
           subAccount: {

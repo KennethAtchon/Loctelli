@@ -76,6 +76,7 @@ model User {
   budget          String?
   bookingsTime    Json?       // JSON field for bookings time
   bookingEnabled  Int         @default(1) // 0 = False, 1 = True
+  timezone        String      @default("America/New_York") // User's default timezone (IANA format)
   calendarId      String?     // Calendar ID for GoHighLevel integration
   locationId      String?     // Location ID for GoHighLevel integration
   assignedUserId  String?     // Assigned User ID for GoHighLevel integration
@@ -138,6 +139,7 @@ model Lead {
   company        String?
   position       String?
   customId       String?
+  timezone       String?   // Lead's timezone preference (IANA format)
   messageHistory Json?     // List of messages in JSON format
   status         String    @default("lead")
   notes          String?   @db.Text

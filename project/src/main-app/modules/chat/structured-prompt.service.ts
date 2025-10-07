@@ -132,7 +132,7 @@ BOOKING INSTRUCTIONS:
       }
 
       // 6. Tool Instructions (Priority 6)
-      const toolInstructions = this.formatToolInstructions(template);
+      const toolInstructions = this.formatToolInstructions(template, lead);
       this.promptBuilder.addCustom('TOOL_INSTRUCTIONS', toolInstructions, 6, false);
     }
 
@@ -167,6 +167,8 @@ BOOKING INSTRUCTIONS:
   private formatLeadInfo(lead: any): string {
     if (!lead) return 'LEAD: Information not available';
 
+    const timezoneInfo = lead.timezone ? `\n- Timezone: ${lead.timezone}` : '';
+
     return `LEAD INFORMATION:
 - Name: ${lead.name || 'Not specified'}
 - Email: ${lead.email || 'Not specified'}
@@ -174,7 +176,7 @@ BOOKING INSTRUCTIONS:
 - Company: ${lead.company || 'Not specified'}
 - Position: ${lead.position || 'Not specified'}
 - Status: ${lead.status || 'New'}
-- Notes: ${lead.notes || 'None'}`;
+- Notes: ${lead.notes || 'None'}${timezoneInfo}`;
   }
 
   /**
@@ -326,17 +328,52 @@ RESPONSE STYLE: Professional, concise, sales-focused. Qualify leads based on the
   /**
    * Format tool instructions for enhanced builder
    */
-  private formatToolInstructions(template: any): string {
+  private formatToolInstructions(template: any, lead?: any): string {
     const bookingInstruction = template?.bookingInstruction || this.getDefaultBookingInstructions();
+
+    // Format timezone name for display
+    const formatTimezone = (tz: string): string => {
+      const parts = tz.split('/');
+      return parts[parts.length - 1].replace('_', ' ');
+    };
+
+    // Conditional timezone protocol based on whether lead has a timezone
+    const timezoneProtocol = lead?.timezone
+      ? `**TIMEZONE PROTOCOL** (CRITICAL):
+✓ Lead timezone is: ${lead.timezone} (${formatTimezone(lead.timezone)})
+✓ ALWAYS mention the timezone when proposing booking times to confirm with the lead
+✓ Example: "I can book you for Tuesday at 2pm ${formatTimezone(lead.timezone)} time. Does that work for you?"
+✓ If lead says timezone is wrong, ask for their correct timezone and use it instead
+✓ You can override the detected timezone if lead provides a different one`
+      : `**TIMEZONE PROTOCOL** (CRITICAL):
+⚠️ ALWAYS ask for the lead's timezone before booking
+⚠️ Never assume timezone from location, area code, or context
+⚠️ Confirm with timezone included (e.g., Tuesday 2pm Eastern Time)
+⚠️ Common US timezones: Eastern, Central, Mountain, Pacific`;
+
+    const requiredFields = lead?.timezone
+      ? '- Confirm date and time, MENTION the timezone (lead can correct if wrong)'
+      : '- Only book after confirming: date, time, AND timezone';
 
     return `BOOKING CAPABILITIES:
 ${bookingInstruction}
 
+${timezoneProtocol}
+
 TOOL USAGE RULES:
-- Always confirm details before booking
-- Use check_availability before booking_meeting
-- Present options clearly to the user
-- Handle booking errors gracefully`;
+${requiredFields}
+- Use check_availability to verify slot availability
+- Confirm booking success with timezone included
+- Handle errors gracefully
+
+LEAD INFORMATION MANAGEMENT:
+- Use update_lead_details tool when:
+  • Lead corrects their timezone (e.g., "Actually I'm in Pacific time")
+  • Lead provides contact information (email, phone, company)
+  • Lead shares their job title or company name
+  • You learn new relevant information about the lead
+- Always acknowledge updates: "Got it, I've updated your timezone to Pacific time"
+- Notes field: Add important conversation details that help qualify the lead`;
   }
 
   /**

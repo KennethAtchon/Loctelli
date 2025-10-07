@@ -335,7 +335,7 @@ describe('PromptTemplatesService', () => {
       mockPrismaService.promptTemplate.findUnique.mockResolvedValue(mockTemplate);
       mockPrismaService.promptTemplate.update.mockResolvedValue(mockActivatedTemplate);
 
-      const result = await service.activate(1);
+      const result = await service.activate(1, 1);
 
       expect(result).toEqual(mockActivatedTemplate);
       expect(prismaService.promptTemplate.update).toHaveBeenCalledWith({
@@ -356,7 +356,7 @@ describe('PromptTemplatesService', () => {
     it('should throw error when template does not exist', async () => {
       mockPrismaService.promptTemplate.findUnique.mockResolvedValue(null);
 
-      await expect(service.activate(999)).rejects.toThrow(NotFoundException);
+      await expect(service.activate(999, 1)).rejects.toThrow(NotFoundException);
     });
   });
 

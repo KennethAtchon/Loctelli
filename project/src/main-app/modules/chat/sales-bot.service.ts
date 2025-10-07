@@ -367,11 +367,32 @@ export class SalesBotService implements OnModuleInit {
         max_tokens: activeTemplate.maxTokens,
       };
 
-      // Add tools if booking is enabled for the user
+      // Get lead timezone if available for tools
+      const lead = await this.prisma.lead.findUnique({
+        where: { id: leadId },
+        select: { timezone: true }
+      });
+
+      // Convert null to undefined for TypeScript
+      const leadTimezone = lead?.timezone ?? undefined;
+
+      // Build tools array
+      const tools: any[] = [];
+
+      // Add booking tools if enabled
       if (user && user.bookingEnabled) {
-        requestPayload.tools = this.aiToolsService.getBookingTools();
+        tools.push(...this.aiToolsService.getBookingTools(leadTimezone));
+        this.logger.debug(`[createBotResponse] Added booking tools${leadTimezone ? ` with lead timezone: ${leadTimezone}` : ''}`);
+      }
+
+      // Always add lead management tools
+      tools.push(...this.aiToolsService.getLeadManagementTools());
+      this.logger.debug(`[createBotResponse] Added lead management tools`);
+
+      // Add tools to request if any are available
+      if (tools.length > 0) {
+        requestPayload.tools = tools;
         requestPayload.tool_choice = 'auto'; // Let the model decide when to use tools
-        this.logger.debug('[createBotResponse] Added booking tools to request');
       }
 
       const response = await axios.post(
