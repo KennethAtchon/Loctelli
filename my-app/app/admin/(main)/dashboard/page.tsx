@@ -12,6 +12,7 @@ import { DashboardStats, SystemStatus } from '@/lib/api/endpoints/admin-auth';
 import Link from 'next/link';
 import logger from '@/lib/logger';
 import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
+import { LeadDetailsContent } from '@/components/admin/lead-details-content';
 
 interface DetailedUser {
   id: number;
@@ -590,98 +591,12 @@ export default function AdminDashboardPage() {
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                          <DialogHeader>
-                            <DialogTitle>Lead Details - {lead.name}</DialogTitle>
-                            <DialogDescription>
-                              Complete lead information and related data
-                            </DialogDescription>
-                          </DialogHeader>
                           {selectedLead && selectedLead.id === lead.id && (
-                            <div className="space-y-6">
-                              {/* Basic Information */}
-                              <div>
-                                <h3 className="font-semibold mb-3">Basic Information</h3>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                  <div><strong>ID:</strong> {selectedLead.id}</div>
-                                  <div><strong>Name:</strong> {selectedLead.name}</div>
-                                  <div><strong>Email:</strong> {selectedLead.email || 'N/A'}</div>
-                                  <div><strong>Phone:</strong> {selectedLead.phone || 'N/A'}</div>
-                                  <div><strong>Company:</strong> {selectedLead.company || 'N/A'}</div>
-                                  <div><strong>Position:</strong> {selectedLead.position || 'N/A'}</div>
-                                  <div><strong>Custom ID:</strong> {selectedLead.customId || 'N/A'}</div>
-                                  <div><strong>Status:</strong> 
-                                    <Badge variant="outline" className="ml-2">{selectedLead.status}</Badge>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Timestamps */}
-                              <div>
-                                <h3 className="font-semibold mb-3">Timestamps</h3>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                  <div><strong>Created:</strong> {formatDate(selectedLead.createdAt)}</div>
-                                  <div><strong>Updated:</strong> {formatDate(selectedLead.updatedAt)}</div>
-                                  <div><strong>Last Message:</strong> {selectedLead.lastMessageDate ? formatDate(selectedLead.lastMessageDate) : 'No messages'}</div>
-                                </div>
-                              </div>
-
-                              {/* Notes */}
-                              {selectedLead.notes && (
-                                <div>
-                                  <h3 className="font-semibold mb-3">Notes</h3>
-                                  <p className="text-sm bg-gray-50 p-3 rounded">{selectedLead.notes}</p>
-                                </div>
-                              )}
-
-                              {/* Last Message */}
-                              {selectedLead.lastMessage && (
-                                <div>
-                                  <h3 className="font-semibold mb-3">Last Message</h3>
-                                  <p className="text-sm bg-gray-50 p-3 rounded">{selectedLead.lastMessage}</p>
-                                </div>
-                              )}
-
-                              {/* Assigned User */}
-                              {selectedLead.user && (
-                                <div>
-                                  <h3 className="font-semibold mb-3">Assigned User</h3>
-                                  <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div><strong>User ID:</strong> {selectedLead.user.id}</div>
-                                    <div><strong>User Name:</strong> {selectedLead.user.name}</div>
-                                    <div><strong>User Email:</strong> {selectedLead.user.email}</div>
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Assigned Strategy */}
-                              {selectedLead.strategy && (
-                                <div>
-                                  <h3 className="font-semibold mb-3">Assigned Strategy</h3>
-                                  <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div><strong>Strategy ID:</strong> {selectedLead.strategy.id}</div>
-                                    <div><strong>Strategy Name:</strong> {selectedLead.strategy.name}</div>
-                                    <div><strong>Strategy Tag:</strong> {selectedLead.strategy.tag || 'N/A'}</div>
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Bookings */}
-                              {selectedLead.bookings && selectedLead.bookings.length > 0 && (
-                                <div>
-                                  <h3 className="font-semibold mb-3">Bookings ({selectedLead.bookings.length})</h3>
-                                  <div className="space-y-2">
-                                    {selectedLead.bookings.map((booking) => (
-                                      <div key={booking.id} className="p-2 border rounded">
-                                        <div className="font-medium">{booking.bookingType}</div>
-                                        <div className="text-sm text-gray-600">
-                                          Status: {booking.status} | Created: {formatDate(booking.createdAt)}
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
+                            <LeadDetailsContent
+                              lead={selectedLead}
+                              formatDate={formatDate}
+                              getStatusBadgeVariant={() => 'outline' as const}
+                            />
                           )}
                         </DialogContent>
                       </Dialog>
