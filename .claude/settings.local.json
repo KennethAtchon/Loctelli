@@ -10,7 +10,10 @@
       "Bash(npx prisma generate:*)",
       "Read(//mnt/c/Users/kenne/Downloads/**)",
       "Bash(npm install:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(npx prisma migrate reset:*)"
     ],
     "deny": []
   },

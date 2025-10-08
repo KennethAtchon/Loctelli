@@ -223,7 +223,7 @@ export class GeneralService {
               id: true,
               name: true,
               tag: true,
-              tone: true,
+              aiName: true,
             }
           },
           leads: {

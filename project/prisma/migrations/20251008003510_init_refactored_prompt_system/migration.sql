@@ -46,6 +46,7 @@ CREATE TABLE "public"."User" (
     "budget" TEXT,
     "bookingsTime" JSONB,
     "bookingEnabled" INTEGER NOT NULL DEFAULT 1,
+    "timezone" TEXT NOT NULL DEFAULT 'America/New_York',
     "calendarId" TEXT,
     "locationId" TEXT,
     "assignedUserId" TEXT,
@@ -63,20 +64,29 @@ CREATE TABLE "public"."Strategy" (
     "id" SERIAL NOT NULL,
     "regularUserId" INTEGER NOT NULL,
     "subAccountId" INTEGER NOT NULL,
+    "promptTemplateId" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
+    "description" TEXT,
     "tag" TEXT,
-    "tone" TEXT,
-    "aiInstructions" TEXT,
-    "objectionHandling" TEXT,
-    "qualificationPriority" TEXT,
-    "aiObjective" TEXT,
-    "disqualificationCriteria" TEXT,
-    "exampleConversation" JSONB,
+    "industryContext" TEXT,
+    "aiName" TEXT NOT NULL,
+    "aiRole" TEXT NOT NULL,
+    "companyBackground" TEXT,
+    "conversationTone" TEXT NOT NULL,
+    "communicationStyle" TEXT,
+    "qualificationQuestions" TEXT NOT NULL,
+    "disqualificationRules" TEXT,
+    "objectionHandling" TEXT NOT NULL,
+    "closingStrategy" TEXT NOT NULL,
+    "bookingInstructions" TEXT,
+    "outputGuidelines" TEXT,
+    "prohibitedBehaviors" TEXT,
+    "metadata" JSONB,
     "delayMin" INTEGER,
     "delayMax" INTEGER,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "promptTemplateId" INTEGER NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Strategy_pkey" PRIMARY KEY ("id")
 );
@@ -93,6 +103,7 @@ CREATE TABLE "public"."Lead" (
     "company" TEXT,
     "position" TEXT,
     "customId" TEXT,
+    "timezone" TEXT,
     "messageHistory" JSONB,
     "status" TEXT NOT NULL DEFAULT 'lead',
     "notes" TEXT,
@@ -124,19 +135,29 @@ CREATE TABLE "public"."PromptTemplate" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
-    "isActive" BOOLEAN NOT NULL DEFAULT false,
-    "systemPrompt" TEXT NOT NULL,
-    "role" TEXT NOT NULL DEFAULT 'conversational AI and sales representative',
-    "instructions" TEXT,
-    "context" TEXT,
-    "bookingInstruction" TEXT,
-    "temperature" DOUBLE PRECISION NOT NULL DEFAULT 0.7,
+    "category" TEXT,
+    "baseSystemPrompt" TEXT NOT NULL,
+    "temperature" DOUBLE PRECISION DEFAULT 0.7,
     "maxTokens" INTEGER,
+    "isActive" BOOLEAN NOT NULL DEFAULT false,
+    "tags" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "createdByAdminId" INTEGER NOT NULL,
 
     CONSTRAINT "PromptTemplate_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."SubAccountPromptTemplate" (
+    "id" SERIAL NOT NULL,
+    "subAccountId" INTEGER NOT NULL,
+    "promptTemplateId" INTEGER NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "SubAccountPromptTemplate_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -343,11 +364,69 @@ CREATE TABLE "public"."form_submissions" (
     CONSTRAINT "form_submissions_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "public"."conversation_messages" (
+    "id" TEXT NOT NULL,
+    "leadId" INTEGER NOT NULL,
+    "role" TEXT NOT NULL,
+    "encryptedContent" TEXT NOT NULL,
+    "salt" TEXT NOT NULL,
+    "iv" TEXT NOT NULL,
+    "integrityHash" TEXT NOT NULL,
+    "validationScore" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    "messageTimestamp" TIMESTAMP(3) NOT NULL,
+    "metadata" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "conversation_messages_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."security_incidents" (
+    "id" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "severity" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "leadId" INTEGER,
+    "messageId" TEXT,
+    "userId" INTEGER,
+    "metadata" TEXT,
+    "resolved" BOOLEAN NOT NULL DEFAULT false,
+    "resolvedAt" TIMESTAMP(3),
+    "resolvedBy" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "security_incidents_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "AdminUser_email_key" ON "public"."AdminUser"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "public"."User"("email");
+
+-- CreateIndex
+CREATE INDEX "Strategy_subAccountId_idx" ON "public"."Strategy"("subAccountId");
+
+-- CreateIndex
+CREATE INDEX "Strategy_regularUserId_idx" ON "public"."Strategy"("regularUserId");
+
+-- CreateIndex
+CREATE INDEX "Strategy_promptTemplateId_idx" ON "public"."Strategy"("promptTemplateId");
+
+-- CreateIndex
+CREATE INDEX "PromptTemplate_category_idx" ON "public"."PromptTemplate"("category");
+
+-- CreateIndex
+CREATE INDEX "PromptTemplate_createdByAdminId_idx" ON "public"."PromptTemplate"("createdByAdminId");
+
+-- CreateIndex
+CREATE INDEX "SubAccountPromptTemplate_subAccountId_isActive_idx" ON "public"."SubAccountPromptTemplate"("subAccountId", "isActive");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "SubAccountPromptTemplate_subAccountId_promptTemplateId_key" ON "public"."SubAccountPromptTemplate"("subAccountId", "promptTemplateId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ApiKey_regularUserId_service_keyName_key" ON "public"."ApiKey"("regularUserId", "service", "keyName");
@@ -374,10 +453,10 @@ ALTER TABLE "public"."User" ADD CONSTRAINT "User_subAccountId_fkey" FOREIGN KEY 
 ALTER TABLE "public"."User" ADD CONSTRAINT "User_createdByAdminId_fkey" FOREIGN KEY ("createdByAdminId") REFERENCES "public"."AdminUser"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Strategy" ADD CONSTRAINT "Strategy_subAccountId_fkey" FOREIGN KEY ("subAccountId") REFERENCES "public"."SubAccount"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."Strategy" ADD CONSTRAINT "Strategy_regularUserId_fkey" FOREIGN KEY ("regularUserId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Strategy" ADD CONSTRAINT "Strategy_regularUserId_fkey" FOREIGN KEY ("regularUserId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."Strategy" ADD CONSTRAINT "Strategy_subAccountId_fkey" FOREIGN KEY ("subAccountId") REFERENCES "public"."SubAccount"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Strategy" ADD CONSTRAINT "Strategy_promptTemplateId_fkey" FOREIGN KEY ("promptTemplateId") REFERENCES "public"."PromptTemplate"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -402,6 +481,12 @@ ALTER TABLE "public"."Booking" ADD CONSTRAINT "Booking_leadId_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "public"."PromptTemplate" ADD CONSTRAINT "PromptTemplate_createdByAdminId_fkey" FOREIGN KEY ("createdByAdminId") REFERENCES "public"."AdminUser"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."SubAccountPromptTemplate" ADD CONSTRAINT "SubAccountPromptTemplate_subAccountId_fkey" FOREIGN KEY ("subAccountId") REFERENCES "public"."SubAccount"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."SubAccountPromptTemplate" ADD CONSTRAINT "SubAccountPromptTemplate_promptTemplateId_fkey" FOREIGN KEY ("promptTemplateId") REFERENCES "public"."PromptTemplate"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."IntegrationTemplate" ADD CONSTRAINT "IntegrationTemplate_createdByAdminId_fkey" FOREIGN KEY ("createdByAdminId") REFERENCES "public"."AdminUser"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -462,3 +547,6 @@ ALTER TABLE "public"."form_submissions" ADD CONSTRAINT "form_submissions_assigne
 
 -- AddForeignKey
 ALTER TABLE "public"."form_submissions" ADD CONSTRAINT "form_submissions_subAccountId_fkey" FOREIGN KEY ("subAccountId") REFERENCES "public"."SubAccount"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."conversation_messages" ADD CONSTRAINT "conversation_messages_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "public"."Lead"("id") ON DELETE CASCADE ON UPDATE CASCADE;

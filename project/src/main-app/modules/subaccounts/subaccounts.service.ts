@@ -62,7 +62,7 @@ export class SubAccountsService {
             id: true,
             name: true,
             tag: true,
-            tone: true,
+            aiName: true,
             createdAt: true
           }
         },

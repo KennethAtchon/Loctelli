@@ -106,25 +106,60 @@ model User {
 model Strategy {
   id                      Int        @id @default(autoincrement())
   regularUserId           Int
-  subAccountId            Int        // Required: Strategy belongs to a SubAccount
-  subAccount              SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
-  name                    String
-  tag                     String?
-  tone                    String?
-  aiInstructions          String?    @db.Text
-  objectionHandling       String?    @db.Text
-  qualificationPriority   String?
-  aiObjective             String?    @db.Text
-  disqualificationCriteria String?   @db.Text
-  exampleConversation     Json?
-  delayMin                Int?       // Minimum delay in seconds
-  delayMax                Int?       // Maximum delay in seconds
-  createdAt               DateTime   @default(now())
-  updatedAt               DateTime   @default(now()) @updatedAt
-  regularUser             User       @relation(fields: [regularUserId], references: [id], onDelete: Cascade)
-  leads                   Lead[]
+  subAccountId            Int
   promptTemplateId        Int
+
+  // ===== CORE IDENTITY =====
+  name                    String     // "Mike - Roofing Storm Damage"
+  description             String?    @db.Text
+  tag                     String?    // "roofing"
+  industryContext         String?    // "Roofing - Storm Damage"
+
+  // ===== PERSONA DETAILS =====
+  aiName                  String     // "Mike"
+  aiRole                  String     @db.Text // "Senior Roofing Consultant with 15 years experience..."
+  companyBackground       String?    @db.Text // "15 years in business, GAF Master Elite, BBB A+..."
+
+  // ===== CONVERSATION STYLE =====
+  conversationTone        String     @db.Text // "Assertive, direct, urgency-focused. Use phrases like..."
+  communicationStyle      String?    @db.Text // "Take control naturally, be empathetic but honest..."
+
+  // ===== QUALIFICATION & DISCOVERY =====
+  qualificationQuestions  String     @db.Text // "1. What type of issue? 2. When noticed? 3. Budget?..."
+  disqualificationRules   String?    @db.Text // "Budget under $10k: refer to specialists..."
+
+  // ===== OBJECTION HANDLING =====
+  objectionHandling       String     @db.Text // "PRICE: 'Here's the reality...' TIMING: '...'"
+
+  // ===== CLOSING & BOOKING =====
+  closingStrategy         String     @db.Text // "Use assumptive close. After budget confirmed..."
+  bookingInstructions     String?    @db.Text // "Offer specific time slots, create urgency..."
+
+  // ===== OUTPUT RULES =====
+  outputGuidelines        String?    @db.Text // "Keep responses 2-4 sentences, always end with question..."
+  prohibitedBehaviors     String?    @db.Text // "Don't be pushy, don't badmouth competitors..."
+
+  // ===== OPTIONAL STRUCTURED DATA =====
+  metadata                Json?      // Any additional data for analytics/filtering
+
+  // ===== BEHAVIORAL SETTINGS =====
+  delayMin                Int?
+  delayMax                Int?
+
+  // ===== METADATA =====
+  isActive                Boolean    @default(true)
+  createdAt               DateTime   @default(now())
+  updatedAt               DateTime   @updatedAt
+
+  // ===== RELATIONS =====
+  regularUser             User       @relation(fields: [regularUserId], references: [id], onDelete: Cascade)
+  subAccount              SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
   promptTemplate          PromptTemplate @relation(fields: [promptTemplateId], references: [id])
+  leads                   Lead[]
+
+  @@index([subAccountId])
+  @@index([regularUserId])
+  @@index([promptTemplateId])
 }
 
 model Lead {
@@ -170,23 +205,31 @@ model Booking {
 
 model PromptTemplate {
   id                  Int       @id @default(autoincrement())
-  name                String
+  name                String    // "Sales Agent", "Support Bot", "Scheduler"
   description         String?   @db.Text
-  isActive            Boolean   @default(false) // Deprecated: use SubAccountPromptTemplate instead
-  systemPrompt        String    @db.Text // The main system prompt
-  role                String    @default("conversational AI and sales representative")
-  aiName              String    @default("Lisa") // AI assistant's human name
-  instructions        String?   @db.Text // Additional instructions
-  context             String?   @db.Text // Context information
-  bookingInstruction  String?   @db.Text // Booking-specific instructions
-  temperature         Float     @default(0.7) // OpenAI temperature
-  maxTokens           Int?      // Optional token limit
+  category            String?   // "sales", "support", "scheduling"
+
+  // ===== THE MINIMAL BASE =====
+  baseSystemPrompt    String    @db.Text // ONE simple sentence
+
+  // ===== OPENAI DEFAULTS =====
+  temperature         Float?    @default(0.7)
+  maxTokens           Int?
+
+  // ===== METADATA =====
+  isActive            Boolean   @default(false)
+  tags                String[]  @default([])
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
   createdByAdminId    Int
   createdByAdmin      AdminUser @relation(fields: [createdByAdminId], references: [id])
+
+  // ===== RELATIONS =====
   strategies          Strategy[]
   subAccountTemplates SubAccountPromptTemplate[]
+
+  @@index([category])
+  @@index([createdByAdminId])
 }
 
 model SubAccountPromptTemplate {

@@ -163,21 +163,30 @@ export class StrategiesService {
       throw new NotFoundException(`Strategy with ID ${id} not found`);
     }
 
-    // Create a duplicate strategy with "(Copy)" suffix
+    // Create a duplicate strategy with "(Copy)" suffix - using new fields
     const duplicateData: CreateStrategyDto = {
       name: `${strategy.name} (Copy)`,
-      userId: strategy.regularUserId, // Keep the same user assignment
+      userId: strategy.regularUserId,
+      promptTemplateId: strategy.promptTemplateId,
+      description: strategy.description || undefined,
       tag: strategy.tag || undefined,
-      tone: strategy.tone || undefined,
-      aiInstructions: strategy.aiInstructions || undefined,
-      objectionHandling: strategy.objectionHandling || undefined,
-      qualificationPriority: strategy.qualificationPriority || undefined,
-      aiObjective: strategy.aiObjective || undefined,
-      disqualificationCriteria: strategy.disqualificationCriteria || undefined,
-      exampleConversation: strategy.exampleConversation || undefined,
+      industryContext: strategy.industryContext || undefined,
+      aiName: strategy.aiName,
+      aiRole: strategy.aiRole,
+      companyBackground: strategy.companyBackground || undefined,
+      conversationTone: strategy.conversationTone,
+      communicationStyle: strategy.communicationStyle || undefined,
+      qualificationQuestions: strategy.qualificationQuestions,
+      disqualificationRules: strategy.disqualificationRules || undefined,
+      objectionHandling: strategy.objectionHandling,
+      closingStrategy: strategy.closingStrategy,
+      bookingInstructions: strategy.bookingInstructions || undefined,
+      outputGuidelines: strategy.outputGuidelines || undefined,
+      prohibitedBehaviors: strategy.prohibitedBehaviors || undefined,
+      metadata: strategy.metadata || undefined,
       delayMin: strategy.delayMin || undefined,
       delayMax: strategy.delayMax || undefined,
-      promptTemplateId: strategy.promptTemplateId,
+      isActive: strategy.isActive,
     };
 
     // Ensure promptTemplateId is set and include SubAccount context
@@ -198,5 +207,59 @@ export class StrategiesService {
     return this.prisma.strategy.create({
       data: strategyData,
     });
+  }
+
+  /**
+   * Build the final system prompt from strategy fields and runtime context
+   */
+  async buildFinalPrompt(strategyId: number, lead: any, user: any): Promise<string> {
+    const strategy = await this.prisma.strategy.findUnique({
+      where: { id: strategyId },
+      include: { promptTemplate: true },
+    });
+
+    if (!strategy) {
+      throw new NotFoundException('Strategy not found');
+    }
+
+    // Build complete prompt from strategy fields
+    const sections = [
+      `You are ${strategy.aiName}, a ${strategy.aiRole} for ${user.company}.`,
+      '',
+      'COMPANY CONTEXT:',
+      `You work for ${user.company}, owned and managed by ${user.name}.`,
+      strategy.companyBackground || '',
+      '',
+      'LEAD CONTEXT:',
+      `You're currently speaking with ${lead.name} from ${lead.phone}.`,
+      '',
+      'CONVERSATION TONE & STYLE:',
+      strategy.conversationTone,
+      strategy.communicationStyle || '',
+      '',
+      'QUALIFICATION APPROACH:',
+      strategy.qualificationQuestions,
+    ];
+
+    if (strategy.disqualificationRules) {
+      sections.push('', 'DISQUALIFICATION RULES:', strategy.disqualificationRules);
+    }
+
+    sections.push('', 'OBJECTION HANDLING:', strategy.objectionHandling);
+    sections.push('', 'CLOSING STRATEGY:', strategy.closingStrategy);
+
+    if (strategy.bookingInstructions) {
+      sections.push('', 'BOOKING INSTRUCTIONS:', strategy.bookingInstructions);
+    }
+
+    if (strategy.outputGuidelines) {
+      sections.push('', 'OUTPUT GUIDELINES:', strategy.outputGuidelines);
+    }
+
+    if (strategy.prohibitedBehaviors) {
+      sections.push('', 'PROHIBITED BEHAVIORS:', strategy.prohibitedBehaviors);
+    }
+
+    return sections.filter(s => s !== null).join('\n');
   }
 }

@@ -240,39 +240,24 @@ export class PromptTemplatesService {
 
   async ensureActiveExists(adminId: number) {
     this.logger.debug('Ensuring active prompt template exists');
-    
+
     const activeTemplate = await this.prisma.promptTemplate.findFirst({
       where: { isActive: true },
     });
-    
+
     if (!activeTemplate) {
       this.logger.log('Creating active prompt template');
       return this.create({
-        name: 'Default Sales Prompt',
-        description: 'Standard conversational AI prompt for sales',
-        isActive: true,
-        systemPrompt: 'You are a proactive sales representative working for the company owner. Your primary mission is to QUALIFY leads and CLOSE qualified prospects. You must actively guide every conversation with a clear sales process: 1) Build rapport, 2) Qualify the lead (budget, needs, decision-making authority, timeline), 3) Present solutions for qualified leads, 4) Close with a meeting/next step. Take control of conversations - don\'t just respond passively. Ask strategic questions to uncover pain points and buying intent. Be friendly but purposeful.',
-        role: 'conversational AI assistant and customer service representative',
-        aiName: 'Lisa',
-        instructions: 'SALES PROCESS - Follow this framework: 1) RAPPORT: Start warm, use their name and say your name, ask how they\'re doing. 2) QUALIFY: Ask about their business, current challenges, budget range, decision-making process, and timeline. Use questions like "What\'s your biggest challenge with [relevant area]?" "What\'s your budget range for solving this?" "Who else is involved in making this decision?" 3) PRESENT: Only for qualified leads - present relevant solutions that match their needs and budget. 4) CLOSE: Always end qualified conversations with a meeting request. Be direct: "Based on what you\'ve shared, I think we can help. When would you be available for a 15-minute call to discuss this further?" Remember: You control the conversation flow. Don\'t just answer questions - guide toward qualification and closing.',
-        bookingInstruction: `CLOSING QUALIFIED LEADS: You have booking tools to close deals immediately. When a lead is QUALIFIED (has budget, need, authority, timeline), be direct and assumptive in your close:
-
-CLOSING SCRIPTS:
-- "Perfect! Based on everything you've shared, I can help you solve this. Let me check my calendar for this week."
-- "I have exactly what you need. Are you available Tuesday at 2 PM or Thursday at 3 PM?"
-- "Let's get this moving for you. I can do Monday morning or Wednesday afternoon - which works better?"
-
-BOOKING PROCESS:
-1. Use check_availability tool to find open slots
-2. Present 2-3 specific options (day/time)
-3. Once they choose, use book_meeting tool immediately
-4. Confirm the booking: "Perfect! I've got you scheduled for [day] at [time]. You'll receive a confirmation shortly."
-
-Be assumptive - don't ask IF they want to meet, ask WHEN they can meet. Strike while the iron is hot!`,
+        name: 'Sales Agent',
+        description: 'Conversational sales representative template',
+        category: 'sales',
+        baseSystemPrompt: 'You are a conversational sales representative for {{companyName}}, managed by {{ownerName}}.',
         temperature: 0.7,
+        isActive: true,
+        tags: ['sales', 'default'],
       }, adminId);
     }
-    
+
     return activeTemplate;
   }
 

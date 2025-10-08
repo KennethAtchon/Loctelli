@@ -1,42 +1,21 @@
-import { IsString, IsOptional, IsBoolean, IsNumber, Min, Max, IsNotEmpty } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsNumber, Min, Max, IsNotEmpty, IsArray } from 'class-validator';
 
 export class CreatePromptTemplateDto {
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name: string; // "Sales Agent", "Support Bot", "Scheduler"
 
   @IsString()
   @IsOptional()
   description?: string;
 
-  @IsBoolean()
+  @IsString()
   @IsOptional()
-  isActive?: boolean;
+  category?: string; // "sales", "support", "scheduling"
 
   @IsString()
   @IsNotEmpty()
-  systemPrompt: string;
-
-  @IsString()
-  @IsOptional()
-  role?: string;
-
-  @IsString()
-  @IsOptional()
-  aiName?: string;
-
-  @IsString()
-  @IsOptional()
-  instructions?: string;
-
-  @IsString()
-  @IsOptional()
-  context?: string;
-
-  @IsString()
-  @IsOptional()
-  bookingInstruction?: string;
-
+  baseSystemPrompt: string; // ONE simple sentence
 
   @IsNumber()
   @Min(0)
@@ -48,4 +27,13 @@ export class CreatePromptTemplateDto {
   @Min(1)
   @IsOptional()
   maxTokens?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  tags?: string[];
 } 
