@@ -42,7 +42,7 @@ export default function StrategiesPage() {
     },
     {
       title: 'Active Strategies',
-      value: strategies.filter(s => s.aiObjective === 'active').length,
+      value: strategies.filter(s => s.isActive).length,
       icon: <Target className="h-8 w-8" />,
       color: 'text-green-600',
     },
@@ -53,31 +53,46 @@ export default function StrategiesPage() {
     {
       key: 'name',
       header: 'Name',
-      render: (strategy) => <span className="font-medium">{strategy.name}</span>,
-    },
-    {
-      key: 'tag',
-      header: 'Tag',
       render: (strategy) => (
-        <Badge variant="outline">{strategy.tag}</Badge>
+        <div className="flex flex-col">
+          <span className="font-medium">{strategy.name}</span>
+          {strategy.description && (
+            <span className="text-xs text-gray-500 truncate max-w-xs">{strategy.description}</span>
+          )}
+        </div>
       ),
     },
     {
-      key: 'tone',
+      key: 'aiName',
+      header: 'AI Persona',
+      render: (strategy) => (
+        <div className="flex flex-col">
+          <span className="font-medium">{strategy.aiName}</span>
+          {strategy.tag && <Badge variant="outline" className="mt-1 w-fit text-xs">{strategy.tag}</Badge>}
+        </div>
+      ),
+    },
+    {
+      key: 'conversationTone',
       header: 'Tone',
       render: (strategy) => (
-        <Badge variant={getToneBadgeVariant(strategy.tone ?? '')}>
-          {strategy.tone}
-        </Badge>
+        <span className="text-sm truncate max-w-xs block">{strategy.conversationTone ? strategy.conversationTone.substring(0, 60) + '...' : 'Not set'}</span>
       ),
     },
     {
-      key: 'aiObjective',
-      header: 'Objective',
+      key: 'industryContext',
+      header: 'Industry',
       render: (strategy) => (
-        <span className="max-w-xs truncate">
-          {strategy.aiObjective}
-        </span>
+        <span className="text-sm">{strategy.industryContext || 'General'}</span>
+      ),
+    },
+    {
+      key: 'isActive',
+      header: 'Status',
+      render: (strategy) => (
+        <Badge variant={strategy.isActive ? 'default' : 'secondary'}>
+          {strategy.isActive ? 'Active' : 'Inactive'}
+        </Badge>
       ),
     },
     {
@@ -127,8 +142,9 @@ export default function StrategiesPage() {
     const filtered = strategies.filter(strategy =>
       strategy.name.toLowerCase().includes(term.toLowerCase()) ||
       strategy.tag?.toLowerCase().includes(term.toLowerCase()) ||
-      strategy.tone?.toLowerCase().includes(term.toLowerCase()) ||
-      strategy.aiObjective?.toLowerCase().includes(term.toLowerCase())
+      strategy.aiName?.toLowerCase().includes(term.toLowerCase()) ||
+      strategy.description?.toLowerCase().includes(term.toLowerCase()) ||
+      strategy.industryContext?.toLowerCase().includes(term.toLowerCase())
     );
     setFilteredStrategies(filtered);
     setTotalItems(filtered.length);
@@ -183,18 +199,6 @@ export default function StrategiesPage() {
   }, [loadStrategies]);
 
 
-  const getToneBadgeVariant = (tone: string) => {
-    switch (tone?.toLowerCase()) {
-      case 'professional':
-        return 'default';
-      case 'friendly':
-        return 'secondary';
-      case 'casual':
-        return 'outline';
-      default:
-        return 'secondary';
-    }
-  };
 
   const formatDate = (dateInput: string | Date) => {
     if (!dateInput) return 'N/A';

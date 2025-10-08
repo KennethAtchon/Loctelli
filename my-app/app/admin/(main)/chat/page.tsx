@@ -191,16 +191,38 @@ export default function ChatPage() {
     try {
       setIsLoadingHistory(true);
       const history: unknown[] = await api.chat.getChatHistory(leadIdNum);
-      
+
       logger.debug('Raw chat history from API:', history);
-      
+
+      // If no messages exist, automatically initiate the conversation
+      if (!history || history.length === 0) {
+        logger.debug('No messages found, initiating AI conversation...');
+        try {
+          const initiateResult = await api.chat.initiateConversation(leadIdNum);
+          logger.debug('AI conversation initiated:', initiateResult);
+
+          // Reload chat history to get the AI's initial message
+          const updatedHistory: unknown[] = await api.chat.getChatHistory(leadIdNum);
+          history.length = 0;
+          history.push(...updatedHistory);
+
+          toast({
+            title: 'Conversation Started',
+            description: 'AI has sent the first message!',
+          });
+        } catch (initiateError) {
+          logger.error('Failed to initiate conversation:', initiateError);
+          // Continue with empty history if initiation fails
+        }
+      }
+
       // Convert backend message format to frontend format
       const convertedMessages: ChatMessage[] = history.map((msg: unknown, index: number) => {
         const message = msg as ApiChatMessage;
         // Handle both old format (from/message) and new format (role/content)
         let role: 'user' | 'assistant';
         let content: string;
-        
+
         if (message.role && message.content) {
           // New format
           role = message.role === 'assistant' ? 'assistant' : 'user';
@@ -214,9 +236,9 @@ export default function ChatPage() {
           role = 'user';
           content = message.content || message.message || '';
         }
-        
+
         logger.debug(`Converting message ${index}:`, { original: message, converted: { role, content } });
-        
+
         return {
           id: `${leadIdNum}-${index}`,
           role,
@@ -228,7 +250,7 @@ export default function ChatPage() {
           }
         };
       });
-      
+
       logger.debug('Converted messages:', convertedMessages);
       setMessages(convertedMessages);
     } catch (error) {

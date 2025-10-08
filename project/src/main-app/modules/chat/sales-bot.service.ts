@@ -186,7 +186,7 @@ export class SalesBotService implements OnModuleInit {
   private async sendFollowUpMessage(lead: any) {
     try {
       this.logger.log(`Sending follow-up to lead ${lead.id}`);
-      
+
       // Example follow-up message
       const message = {
         content: `Hi ${lead.name}, just checking in to see how you're doing.`,
@@ -194,13 +194,13 @@ export class SalesBotService implements OnModuleInit {
         timestamp: new Date().toISOString(),
         metadata: { automated: true }
       };
-      
+
       // Parse existing messages or initialize empty array
       const existingMessages = lead.messageHistory ? JSON.parse(lead.messageHistory as string) : [];
-      
+
       // Add new message
       existingMessages.push(message);
-      
+
       // Update lead with new message
       await this.prisma.lead.update({
         where: { id: lead.id },
@@ -210,10 +210,69 @@ export class SalesBotService implements OnModuleInit {
           lastMessageDate: new Date().toISOString(),
         } as any,
       });
-      
+
       this.logger.log(`Follow-up sent to lead ${lead.id}`);
     } catch (error) {
       this.logger.error(`Error sending follow-up to lead ${lead.id}`, error);
+    }
+  }
+
+  /**
+   * Initiate a conversation with a lead where AI sends the first message
+   * @param leadId The lead's ID
+   * @returns The AI's initial message
+   */
+  async initiateConversation(leadId: number): Promise<string> {
+    try {
+      this.logger.log(`Initiating conversation with lead ${leadId}`);
+
+      // Get lead from database
+      const lead = await this.prisma.lead.findUnique({
+        where: { id: leadId },
+        include: {
+          regularUser: true,
+          strategy: true
+        }
+      });
+
+      if (!lead) {
+        this.logger.warn(`No lead found for leadId=${leadId}`);
+        throw new Error(`Lead with ID ${leadId} not found`);
+      }
+
+      // Check if conversation already started
+      const existingMessages = lead.messageHistory ? JSON.parse(lead.messageHistory as string) : [];
+      if (existingMessages.length > 0) {
+        this.logger.warn(`Conversation already initiated for leadId=${leadId}`);
+        return existingMessages[existingMessages.length - 1].content;
+      }
+
+      // Get the strategy details for personalized greeting
+      const strategy = lead.strategy;
+      const user = lead.regularUser;
+
+      // Generate initial greeting prompt
+      const greetingPrompt = await this.promptHelper.composePrompt(lead, user, strategy, []);
+
+      // Add instruction to generate an opening message
+      greetingPrompt.push({
+        role: 'user',
+        content: `Generate a warm, personalized opening message to initiate this conversation. Introduce yourself and express genuine interest in helping them. Keep it friendly and conversational. Do not wait for them to respond - you are starting the conversation.`
+      });
+
+      // Create bot response
+      const aiMessage = await this.createBotResponse(greetingPrompt, user, leadId);
+
+      // Append AI message to history
+      await this.appendMessagesToHistory(lead, [
+        { role: 'assistant', content: aiMessage }
+      ]);
+
+      this.logger.log(`Conversation initiated for leadId=${leadId}: ${aiMessage.substring(0, 50)}...`);
+      return aiMessage;
+    } catch (error) {
+      this.logger.error(`Error initiating conversation for leadId=${leadId}: ${error}`);
+      throw error;
     }
   }
   

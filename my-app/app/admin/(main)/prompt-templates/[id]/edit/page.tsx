@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,10 +13,12 @@ import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import type { PromptTemplate, UpdatePromptTemplateDto } from '@/lib/api/endpoints/prompt-templates';
+import { Badge } from '@/components/ui/badge';
 
 export default function EditPromptTemplatePage() {
   const [template, setTemplate] = useState<PromptTemplate | null>(null);
   const [formData, setFormData] = useState<UpdatePromptTemplateDto>({});
+  const [tagInput, setTagInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const router = useRouter();
@@ -38,14 +40,12 @@ export default function EditPromptTemplatePage() {
       setFormData({
         name: data.name,
         description: data.description,
-        systemPrompt: data.systemPrompt,
-        role: data.role,
-        instructions: data.instructions,
-        context: data.context,
-        bookingInstruction: data.bookingInstruction,
+        category: data.category,
+        baseSystemPrompt: data.baseSystemPrompt,
         temperature: data.temperature,
         maxTokens: data.maxTokens,
         isActive: data.isActive,
+        tags: data.tags || [],
       });
     } catch (error) {
       console.error('Failed to load template:', error);
@@ -60,20 +60,33 @@ export default function EditPromptTemplatePage() {
     }
   };
 
-  const handleInputChange = (field: keyof UpdatePromptTemplateDto, value: string | number | boolean | undefined) => {
+  const handleInputChange = (field: keyof UpdatePromptTemplateDto, value: string | number | boolean | undefined | string[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
     }));
   };
 
+  const handleAddTag = () => {
+    if (tagInput.trim() && !formData.tags?.includes(tagInput.trim())) {
+      const newTags = [...(formData.tags || []), tagInput.trim()];
+      handleInputChange('tags', newTags);
+      setTagInput('');
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    const newTags = (formData.tags || []).filter(tag => tag !== tagToRemove);
+    handleInputChange('tags', newTags);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.name?.trim() || !formData.systemPrompt?.trim()) {
+
+    if (!formData.name?.trim() || !formData.baseSystemPrompt?.trim()) {
       toast({
         title: 'Validation Error',
-        description: 'Name and System Prompt are required',
+        description: 'Name and Base System Prompt are required',
         variant: 'destructive',
       });
       return;
@@ -81,21 +94,19 @@ export default function EditPromptTemplatePage() {
 
     try {
       setSaving(true);
-      
+
       // Ensure all required fields are present and properly formatted
       const submitData = {
         name: formData.name?.trim(),
         description: formData.description?.trim() || undefined,
-        systemPrompt: formData.systemPrompt?.trim(),
-        role: formData.role?.trim() || 'conversational AI and sales representative',
-        instructions: formData.instructions?.trim() || undefined,
-        context: formData.context?.trim() || undefined,
-        bookingInstruction: formData.bookingInstruction?.trim() || undefined,
+        category: formData.category?.trim() || undefined,
+        baseSystemPrompt: formData.baseSystemPrompt?.trim(),
         temperature: formData.temperature || 0.7,
         maxTokens: formData.maxTokens || undefined,
         isActive: formData.isActive || false,
+        tags: formData.tags || [],
       };
-      
+
       console.log('Updating prompt template with data:', submitData);
       const result = await api.promptTemplates.update(templateId, submitData);
       console.log('Template updated successfully:', result);
@@ -178,7 +189,7 @@ export default function EditPromptTemplatePage() {
                     id="name"
                     value={formData.name || ''}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="e.g., Aggressive Sales, Consultative Approach"
+                    placeholder="e.g., Sales Agent, Support Bot, Scheduler"
                     required
                   />
                 </div>
@@ -195,79 +206,87 @@ export default function EditPromptTemplatePage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="role">AI Role *</Label>
+                  <Label htmlFor="category">Category</Label>
                   <Input
-                    id="role"
-                    value={formData.role || ''}
-                    onChange={(e) => handleInputChange('role', e.target.value)}
-                    placeholder="e.g., conversational AI and sales representative"
-                    required
+                    id="category"
+                    value={formData.category || ''}
+                    onChange={(e) => handleInputChange('category', e.target.value)}
+                    placeholder="e.g., sales, support, scheduling"
                   />
                 </div>
               </CardContent>
             </Card>
 
-            {/* System Prompt */}
+            {/* Base System Prompt */}
             <Card>
               <CardHeader>
-                <CardTitle>System Prompt *</CardTitle>
+                <CardTitle>Base System Prompt *</CardTitle>
                 <CardDescription>
-                  The main prompt that defines the AI's behavior and personality
+                  ONE simple sentence that defines the AI's core behavior. Keep it minimal - strategies will add detailed persona and instructions.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Textarea
-                  value={formData.systemPrompt || ''}
-                  onChange={(e) => handleInputChange('systemPrompt', e.target.value)}
-                  placeholder="You are a conversational AI and sales representative for the company. You are the leader, take control of the conversation..."
-                  rows={8}
+                  value={formData.baseSystemPrompt || ''}
+                  onChange={(e) => handleInputChange('baseSystemPrompt', e.target.value)}
+                  placeholder="You are a helpful AI assistant that guides conversations professionally."
+                  rows={4}
                   className="font-mono text-sm"
                   required
                 />
+                <p className="text-xs text-gray-500 mt-2">
+                  Keep this short and simple. Detailed instructions, persona, and conversation style will be defined in individual strategies.
+                </p>
               </CardContent>
             </Card>
 
-            {/* Additional Instructions */}
+            {/* Tags */}
             <Card>
               <CardHeader>
-                <CardTitle>Additional Instructions</CardTitle>
+                <CardTitle>Tags</CardTitle>
                 <CardDescription>
-                  Optional additional instructions for the AI
+                  Add tags to categorize and organize templates
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="instructions">Instructions</Label>
-                  <Textarea
-                    id="instructions"
-                    value={formData.instructions || ''}
-                    onChange={(e) => handleInputChange('instructions', e.target.value)}
-                    placeholder="Specific instructions for how the AI should behave..."
-                    rows={4}
+                <div className="flex gap-2">
+                  <Input
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddTag();
+                      }
+                    }}
+                    placeholder="Enter tag and press Add"
                   />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAddTag}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add
+                  </Button>
                 </div>
 
-                <div>
-                  <Label htmlFor="context">Context</Label>
-                  <Textarea
-                    id="context"
-                    value={formData.context || ''}
-                    onChange={(e) => handleInputChange('context', e.target.value)}
-                    placeholder="Additional context information..."
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="bookingInstruction">Booking Instructions</Label>
-                  <Textarea
-                    id="bookingInstruction"
-                    value={formData.bookingInstruction || ''}
-                    onChange={(e) => handleInputChange('bookingInstruction', e.target.value)}
-                    placeholder="Instructions for handling booking requests..."
-                    rows={4}
-                  />
-                </div>
+                {formData.tags && formData.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {formData.tags.map((tag) => (
+                      <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTag(tag)}
+                          className="ml-1 hover:text-red-600"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -283,11 +302,13 @@ export default function EditPromptTemplatePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-
                 <div>
                   <Label className="flex items-center justify-between">
                     Temperature: {formData.temperature || 0.7}
                   </Label>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Controls randomness. Lower = more focused, Higher = more creative
+                  </p>
                   <Slider
                     value={[formData.temperature || 0.7]}
                     onValueChange={(value) => handleInputChange('temperature', value[0])}
@@ -300,6 +321,9 @@ export default function EditPromptTemplatePage() {
 
                 <div>
                   <Label htmlFor="maxTokens">Max Tokens (Optional)</Label>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Maximum length of AI responses
+                  </p>
                   <Input
                     id="maxTokens"
                     type="number"
@@ -334,8 +358,6 @@ export default function EditPromptTemplatePage() {
                     onCheckedChange={(checked) => handleInputChange('isActive', checked)}
                   />
                 </div>
-
-
               </CardContent>
             </Card>
 
@@ -357,7 +379,7 @@ export default function EditPromptTemplatePage() {
                       </>
                     )}
                   </Button>
-                  
+
                   <Button
                     type="button"
                     variant="outline"
@@ -375,4 +397,4 @@ export default function EditPromptTemplatePage() {
       </form>
     </div>
   );
-} 
+}

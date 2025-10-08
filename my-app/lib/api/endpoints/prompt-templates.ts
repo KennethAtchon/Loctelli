@@ -4,14 +4,18 @@ export interface PromptTemplate {
   id: number;
   name: string;
   description?: string;
-  isActive: boolean;
-  systemPrompt: string;
-  role: string;
-  instructions?: string;
-  context?: string;
-  bookingInstruction?: string;
-  temperature: number;
+  category?: string;
+
+  // The Minimal Base
+  baseSystemPrompt: string;
+
+  // OpenAI Defaults
+  temperature?: number;
   maxTokens?: number;
+
+  // Metadata
+  isActive: boolean;
+  tags?: string[];
   createdAt: string;
   updatedAt: string;
   createdByAdmin: {
@@ -26,14 +30,18 @@ export interface PromptTemplate {
 export interface CreatePromptTemplateDto {
   name: string;
   description?: string;
-  isActive?: boolean;
-  systemPrompt: string;
-  role?: string;
-  instructions?: string;
-  context?: string;
-  bookingInstruction?: string;
+  category?: string;
+
+  // The Minimal Base
+  baseSystemPrompt: string;
+
+  // OpenAI Defaults
   temperature?: number;
   maxTokens?: number;
+
+  // Metadata
+  isActive?: boolean;
+  tags?: string[];
 }
 
 export type UpdatePromptTemplateDto = Partial<CreatePromptTemplateDto>;

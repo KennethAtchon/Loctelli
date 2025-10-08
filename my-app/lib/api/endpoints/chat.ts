@@ -44,4 +44,8 @@ export class ChatApi extends ApiClient {
   async clearChatHistory(leadId: number): Promise<void> {
     return this.delete<void>(`/chat/messages/lead/${leadId}`);
   }
+
+  async initiateConversation(leadId: number): Promise<{ success: boolean; message: string; leadId: number }> {
+    return this.post<{ success: boolean; message: string; leadId: number }>(`/chat/initiate/${leadId}`, {});
+  }
 } 

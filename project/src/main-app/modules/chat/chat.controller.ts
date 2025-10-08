@@ -6,6 +6,7 @@ import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { JwtAuthGuard } from '../../../shared/auth/auth.guard';
 import { Public } from '../../../shared/decorators/public.decorator';
+import { SalesBotService } from './sales-bot.service';
 
 @Controller('chat')
 @UseGuards(JwtAuthGuard)
@@ -14,7 +15,8 @@ export class ChatController {
 
   constructor(
     private readonly chatService: ChatService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly salesBotService: SalesBotService
   ) {}
 
   @Post('send')
@@ -197,7 +199,7 @@ export class ChatController {
   @Delete('messages/lead/:leadId')
   async clearLeadMessages(@Param('leadId', ParseIntPipe) leadId: number, @CurrentUser() user) {
     this.logger.log(`🗑️ Clear chat history attempt for lead ID: ${leadId} by user: ${user.email}`);
-    
+
     try {
       // Check if the lead belongs to the current user
       this.logger.debug(`Checking lead ownership for lead ID: ${leadId}`);
@@ -212,7 +214,7 @@ export class ChatController {
         this.logger.warn(`Clear chat history failed - access denied for user: ${user.email} on lead: ${leadId}`);
         throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
       }
-      
+
       this.logger.debug(`Lead ownership verified for user: ${user.email} on lead: ${leadId}`);
       await this.chatService.clearMessageHistory(leadId);
       this.logger.log(`✅ Chat history cleared successfully for lead ID: ${leadId} by user: ${user.email}`);
@@ -220,6 +222,28 @@ export class ChatController {
     } catch (error) {
       this.logger.error(`❌ Clear chat history failed for lead ID: ${leadId} by user: ${user.email}`, error.stack);
       throw error;
+    }
+  }
+
+  @Post('initiate/:leadId')
+  @Public()
+  async initiateConversation(@Param('leadId', ParseIntPipe) leadId: number) {
+    this.logger.log(`🚀 Initiating AI conversation for lead ID: ${leadId}`);
+
+    try {
+      const message = await this.salesBotService.initiateConversation(leadId);
+      this.logger.log(`✅ AI conversation initiated successfully for lead ID: ${leadId}`);
+      return {
+        success: true,
+        message,
+        leadId
+      };
+    } catch (error) {
+      this.logger.error(`❌ Failed to initiate conversation for lead ID: ${leadId}`, error.stack);
+      throw new HttpException(
+        error.message || 'Failed to initiate conversation',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
     }
   }
 }

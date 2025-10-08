@@ -238,6 +238,8 @@ async function main() {
 
   // Create default leads if none exist
   const existingLead = await prisma.lead.findFirst();
+  const createdLeads: any[] = [];
+
   if (!existingLead) {
     console.log('Creating default leads...');
 
@@ -260,7 +262,7 @@ async function main() {
           }
         }
 
-        await prisma.lead.create({
+        const lead = await prisma.lead.create({
           data: {
             ...leadData,
             regularUser: {
@@ -274,9 +276,19 @@ async function main() {
             },
           },
         });
+
+        createdLeads.push(lead);
       }
 
       console.log(`Created ${DEFAULT_LEAD_DATA.length} default leads successfully`);
+
+      // Store Sarah's lead ID for post-seed initialization
+      if (createdLeads.length > 1) {
+        const sarahLead = createdLeads[1];
+        console.log(`Sarah Johnson created with leadId=${sarahLead.id}`);
+        console.log(`\nTo initiate AI conversation, run after the app starts:`);
+        console.log(`  curl -X POST http://localhost:8000/api/chat/initiate/${sarahLead.id}\n`);
+      }
     }
   } else {
     console.log('Default leads already exist');

@@ -197,11 +197,13 @@ export default function PromptTemplatesPage() {
                 {/* Template Details */}
                 <div className="text-sm text-gray-600">
                   <div className="grid grid-cols-2 gap-2">
+                    {template.category && (
+                      <div>
+                        <span className="font-medium">Category:</span> {template.category}
+                      </div>
+                    )}
                     <div>
-                      <span className="font-medium">Role:</span> {template.role}
-                    </div>
-                    <div>
-                      <span className="font-medium">Temperature:</span> {template.temperature}
+                      <span className="font-medium">Temperature:</span> {template.temperature ?? 0.7}
                     </div>
                     {template.maxTokens && (
                       <div>
@@ -213,11 +215,11 @@ export default function PromptTemplatesPage() {
 
                 {/* System Prompt Preview */}
                 <div>
-                  <div className="text-sm font-medium text-gray-700 mb-1">System Prompt:</div>
+                  <div className="text-sm font-medium text-gray-700 mb-1">Base System Prompt:</div>
                   <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded border max-h-20 overflow-hidden">
-                    {template.systemPrompt.length > 100
-                      ? `${template.systemPrompt.substring(0, 100)}...`
-                      : template.systemPrompt}
+                    {template.baseSystemPrompt?.length > 100
+                      ? `${template.baseSystemPrompt.substring(0, 100)}...`
+                      : template.baseSystemPrompt}
                   </div>
                 </div>
 

@@ -26,18 +26,47 @@ export interface Strategy {
   id: number;
   regularUserId: number;
   subAccountId: number;
+  promptTemplateId: number;
+
+  // Core Identity
   name: string;
+  description?: string;
   tag?: string;
-  tone?: string;
-  aiInstructions?: string;
-  objectionHandling?: string;
-  qualificationPriority?: string;
-  aiObjective?: string;
-  disqualificationCriteria?: string;
-  exampleConversation?: any;
+  industryContext?: string;
+
+  // Persona Details
+  aiName: string;
+  aiRole: string;
+  companyBackground?: string;
+
+  // Conversation Style
+  conversationTone: string;
+  communicationStyle?: string;
+
+  // Qualification & Discovery
+  qualificationQuestions: string;
+  disqualificationRules?: string;
+
+  // Objection Handling
+  objectionHandling: string;
+
+  // Closing & Booking
+  closingStrategy: string;
+  bookingInstructions?: string;
+
+  // Output Rules
+  outputGuidelines?: string;
+  prohibitedBehaviors?: string;
+
+  // Optional Structured Data
+  metadata?: any;
+
+  // Behavioral Settings
   delayMin?: number;
   delayMax?: number;
-  promptTemplateId: number;
+
+  // Metadata
+  isActive?: boolean;
   createdAt: Date;
   updatedAt: Date;
   user?: User;
@@ -112,20 +141,49 @@ export interface CreateUserDto {
 }
 
 export interface CreateStrategyDto {
-  regularUserId: number;
-  subAccountId: number;
+  userId: number;
+  promptTemplateId: number;
+
+  // Core Identity
   name: string;
+  description?: string;
   tag?: string;
-  tone?: string;
-  aiInstructions?: string;
-  objectionHandling?: string;
-  qualificationPriority?: string;
-  aiObjective?: string;
-  disqualificationCriteria?: string;
-  exampleConversation?: any;
+  industryContext?: string;
+
+  // Persona Details
+  aiName: string;
+  aiRole: string;
+  companyBackground?: string;
+
+  // Conversation Style
+  conversationTone: string;
+  communicationStyle?: string;
+
+  // Qualification & Discovery
+  qualificationQuestions: string;
+  disqualificationRules?: string;
+
+  // Objection Handling
+  objectionHandling: string;
+
+  // Closing & Booking
+  closingStrategy: string;
+  bookingInstructions?: string;
+
+  // Output Rules
+  outputGuidelines?: string;
+  prohibitedBehaviors?: string;
+
+  // Optional Structured Data
+  metadata?: any;
+
+  // Behavioral Settings
   delayMin?: number;
   delayMax?: number;
-  promptTemplateId?: number;
+
+  // Metadata
+  isActive?: boolean;
+  subAccountId?: number;
 }
 
 export interface CreateLeadDto {
