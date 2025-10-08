@@ -144,7 +144,7 @@ export function BookingsTimeEditor({ value, onChange, className }: BookingsTimeE
   };
 
   const generateBusinessHours = (date: string) => {
-    const businessSlots = [];
+    const businessSlots: string[] = [];
     for (let hour = 9; hour < 17; hour++) {
       businessSlots.push(`${hour.toString().padStart(2, '0')}:00`);
       businessSlots.push(`${hour.toString().padStart(2, '0')}:30`);

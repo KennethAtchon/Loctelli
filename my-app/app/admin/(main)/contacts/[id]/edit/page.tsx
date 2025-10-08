@@ -14,11 +14,12 @@ import { ContactSubmission, UpdateContactSubmissionDto, User } from '@/types';
 import logger from '@/lib/logger';
 
 interface ContactEditPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default function ContactEditPage({ params }: ContactEditPageProps) {
   const router = useRouter();
+  const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(null);
   const [contact, setContact] = useState<ContactSubmission | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,19 +36,25 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
     assignedToId: undefined,
   });
 
+  useEffect(() => {
+    params.then(p => setResolvedParams(p));
+  }, [params]);
+
   const loadContact = useCallback(async () => {
+    if (!resolvedParams) return;
+
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const [contactData, usersData] = await Promise.all([
-        api.contacts.getContact(params.id),
+        api.contacts.getContact(resolvedParams.id),
         api.users.getUsers() // Assuming this exists
       ]);
-      
+
       setContact(contactData);
       setUsers(usersData);
-      
+
       // Initialize form data
       setFormData({
         status: contactData.status,
@@ -60,7 +67,7 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [params.id]);
+  }, [resolvedParams]);
 
   const handleSave = async () => {
     if (!contact) return;

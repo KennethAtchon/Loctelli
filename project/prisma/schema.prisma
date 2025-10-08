@@ -176,6 +176,7 @@ model Lead {
   customId       String?
   timezone       String?   // Lead's timezone preference (IANA format)
   messageHistory Json?     // List of messages in JSON format
+  conversationState Json?  // Structured state tracking (qualified, budget, timeline, stage, etc.)
   status         String    @default("lead")
   notes          String?   @db.Text
   lastMessage    String?   @db.Text

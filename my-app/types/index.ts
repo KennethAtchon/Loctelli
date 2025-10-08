@@ -73,6 +73,18 @@ export interface Strategy {
   leads?: Lead[];
 }
 
+// Conversation State types
+export interface ConversationState {
+  qualified?: boolean | null;
+  budgetDiscussed?: boolean;
+  timelineDiscussed?: boolean;
+  decisionMaker?: boolean | null;
+  painPointsIdentified?: string[];
+  objections?: string[];
+  stage?: 'discovery' | 'qualification' | 'objection_handling' | 'closing' | 'booked';
+  lastUpdated?: string;
+}
+
 // Lead types (belong to Users)
 export interface Lead {
   id: number;
@@ -85,11 +97,15 @@ export interface Lead {
   company?: string;
   position?: string;
   customId?: string;
+  timezone?: string;
   messageHistory?: any;
+  conversationState?: ConversationState;
   status: string;
   notes?: string;
   lastMessage?: string;
   lastMessageDate?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
   user?: User;
   strategy?: Strategy;
   bookings?: Booking[];

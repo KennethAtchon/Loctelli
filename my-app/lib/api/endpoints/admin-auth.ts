@@ -142,29 +142,66 @@ export interface DetailedUser {
   }>;
 }
 
+export interface ConversationState {
+  qualified?: boolean | null;
+  budgetDiscussed?: boolean;
+  timelineDiscussed?: boolean;
+  decisionMaker?: boolean | null;
+  painPointsIdentified?: string[];
+  objections?: string[];
+  stage?: 'discovery' | 'qualification' | 'objection_handling' | 'closing' | 'booked';
+  lastUpdated?: string;
+}
+
 export interface DetailedLead {
   id: number;
+  regularUserId: number;
+  strategyId: number;
+  subAccountId: number;
   name: string;
   email?: string;
   phone?: string;
   company?: string;
   position?: string;
   customId?: string;
+  timezone?: string;
+  messageHistory?: any;
   status: string;
   notes?: string;
   lastMessage?: string;
   lastMessageDate?: string;
+  conversationState?: ConversationState;
   createdAt: string;
   updatedAt: string;
+  regularUser?: {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    company?: string;
+    budget?: string;
+    bookingEnabled: number;
+    isActive: boolean;
+  };
   user?: {
     id: number;
     name: string;
     email: string;
+    role: string;
+    company?: string;
+    budget?: string;
+    bookingEnabled: number;
+    isActive: boolean;
   };
   strategy?: {
     id: number;
     name: string;
     tag?: string;
+    description?: string;
+    aiName: string;
+    aiRole: string;
+    industryContext?: string;
+    isActive?: boolean;
   };
   bookings?: Array<{
     id: number;

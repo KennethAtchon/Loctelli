@@ -7,8 +7,8 @@ import { usePagination } from '@/components/customUI';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Building, Eye, Edit, Trash2 } from 'lucide-react';
-import { Lead } from '@/types';
+import { Building, Eye, Edit, Trash2, TrendingUp, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { Lead, ConversationState } from '@/types';
 import { DetailedLead } from '@/lib/api/endpoints/admin-auth';
 import logger from '@/lib/logger';
 import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
@@ -90,6 +90,38 @@ export default function LeadsPage() {
           {lead.status}
         </Badge>
       ),
+    },
+    {
+      key: 'conversationStage',
+      header: 'Stage',
+      render: (lead) => {
+        const stage = lead.conversationState?.stage;
+        if (!stage) return <span className="text-gray-400 text-xs">-</span>;
+
+        const stageColors: Record<string, string> = {
+          discovery: 'bg-blue-100 text-blue-700',
+          qualification: 'bg-purple-100 text-purple-700',
+          objection_handling: 'bg-orange-100 text-orange-700',
+          closing: 'bg-yellow-100 text-yellow-700',
+          booked: 'bg-green-100 text-green-700',
+        };
+
+        return (
+          <span className={`text-xs px-2 py-1 rounded-full ${stageColors[stage] || 'bg-gray-100 text-gray-700'}`}>
+            {stage.replace('_', ' ')}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'qualified',
+      header: 'Qualified',
+      render: (lead) => {
+        const qualified = lead.conversationState?.qualified;
+        if (qualified === true) return <CheckCircle className="h-4 w-4 text-green-600" />;
+        if (qualified === false) return <AlertCircle className="h-4 w-4 text-red-600" />;
+        return <Clock className="h-4 w-4 text-gray-400" />;
+      },
     },
     {
       key: 'strategy',
@@ -283,7 +315,8 @@ export default function LeadsPage() {
                   <div><strong>Phone:</strong> {selectedLead.phone || 'N/A'}</div>
                   <div><strong>Company:</strong> {selectedLead.company || 'N/A'}</div>
                   <div><strong>Position:</strong> {selectedLead.position || 'N/A'}</div>
-                  <div><strong>Status:</strong> 
+                  <div><strong>Timezone:</strong> {selectedLead.timezone || 'N/A'}</div>
+                  <div><strong>Status:</strong>
                     <Badge variant={getStatusBadgeVariant(selectedLead.status)} className="ml-2">
                       {selectedLead.status}
                     </Badge>
@@ -291,6 +324,112 @@ export default function LeadsPage() {
                   <div><strong>Custom ID:</strong> {selectedLead.customId || 'N/A'}</div>
                 </div>
               </div>
+
+              {/* Conversation State */}
+              {selectedLead.conversationState && (
+                <div>
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Conversation Progress
+                  </h3>
+                  <div className="space-y-3">
+                    {/* Stage */}
+                    {selectedLead.conversationState.stage && (
+                      <div className="flex items-center gap-2">
+                        <strong className="min-w-[140px]">Current Stage:</strong>
+                        <Badge variant="default" className="capitalize">
+                          {selectedLead.conversationState.stage.replace('_', ' ')}
+                        </Badge>
+                      </div>
+                    )}
+
+                    {/* Qualification Status */}
+                    <div className="flex items-center gap-2">
+                      <strong className="min-w-[140px]">Qualified:</strong>
+                      {selectedLead.conversationState.qualified === true ? (
+                        <span className="flex items-center gap-1 text-green-600">
+                          <CheckCircle className="h-4 w-4" /> Yes
+                        </span>
+                      ) : selectedLead.conversationState.qualified === false ? (
+                        <span className="flex items-center gap-1 text-red-600">
+                          <AlertCircle className="h-4 w-4" /> No
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-gray-500">
+                          <Clock className="h-4 w-4" /> Not yet determined
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Discussion Flags */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex items-center gap-2">
+                        <strong>Budget Discussed:</strong>
+                        {selectedLead.conversationState.budgetDiscussed ? (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <span className="text-gray-400 text-sm">Not yet</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <strong>Timeline Discussed:</strong>
+                        {selectedLead.conversationState.timelineDiscussed ? (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <span className="text-gray-400 text-sm">Not yet</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Decision Maker */}
+                    <div className="flex items-center gap-2">
+                      <strong className="min-w-[140px]">Decision Maker:</strong>
+                      {selectedLead.conversationState.decisionMaker === true ? (
+                        <span className="text-green-600">Yes</span>
+                      ) : selectedLead.conversationState.decisionMaker === false ? (
+                        <span className="text-orange-600">No (requires approval)</span>
+                      ) : (
+                        <span className="text-gray-500">Unknown</span>
+                      )}
+                    </div>
+
+                    {/* Pain Points */}
+                    {selectedLead.conversationState.painPointsIdentified && selectedLead.conversationState.painPointsIdentified.length > 0 && (
+                      <div>
+                        <strong className="block mb-2">Pain Points Identified:</strong>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedLead.conversationState.painPointsIdentified.map((point, idx) => (
+                            <Badge key={idx} variant="secondary" className="text-xs">
+                              {point}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Objections */}
+                    {selectedLead.conversationState.objections && selectedLead.conversationState.objections.length > 0 && (
+                      <div>
+                        <strong className="block mb-2">Objections Raised:</strong>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedLead.conversationState.objections.map((objection, idx) => (
+                            <Badge key={idx} variant="destructive" className="text-xs">
+                              {objection}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Last Updated */}
+                    {selectedLead.conversationState.lastUpdated && (
+                      <div className="text-xs text-gray-500 mt-2">
+                        Last updated: {formatDate(selectedLead.conversationState.lastUpdated)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Notes */}
               {selectedLead.notes && (
@@ -313,13 +452,18 @@ export default function LeadsPage() {
               </div>
 
               {/* User Information */}
-              {selectedLead.user && (
+              {(selectedLead.regularUser || selectedLead.user) && (
                 <div>
                   <h3 className="font-semibold mb-3">Assigned User</h3>
                   <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div><strong>User ID:</strong> {selectedLead.user.id}</div>
-                                         <div><strong>Name:</strong> {selectedLead.user.name}</div>
-                     <div><strong>Email:</strong> {selectedLead.user.email}</div>
+                    <div><strong>User ID:</strong> {(selectedLead.regularUser || selectedLead.user)?.id}</div>
+                    <div><strong>Name:</strong> {(selectedLead.regularUser || selectedLead.user)?.name}</div>
+                    <div><strong>Email:</strong> {(selectedLead.regularUser || selectedLead.user)?.email}</div>
+                    <div><strong>Role:</strong> {(selectedLead.regularUser || selectedLead.user)?.role}</div>
+                    <div><strong>Company:</strong> {(selectedLead.regularUser || selectedLead.user)?.company || 'N/A'}</div>
+                    <div><strong>Budget:</strong> {(selectedLead.regularUser || selectedLead.user)?.budget || 'N/A'}</div>
+                    <div><strong>Booking Enabled:</strong> {(selectedLead.regularUser || selectedLead.user)?.bookingEnabled ? 'Yes' : 'No'}</div>
+                    <div><strong>Active:</strong> {(selectedLead.regularUser || selectedLead.user)?.isActive ? 'Yes' : 'No'}</div>
                   </div>
                 </div>
               )}
@@ -327,11 +471,48 @@ export default function LeadsPage() {
               {/* Strategy Information */}
               {selectedLead.strategy && (
                 <div>
-                  <h3 className="font-semibold mb-3">Strategy</h3>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div><strong>Strategy ID:</strong> {selectedLead.strategy.id}</div>
-                                         <div><strong>Name:</strong> {selectedLead.strategy.name}</div>
-                     <div><strong>Tag:</strong> {selectedLead.strategy.tag || 'N/A'}</div>
+                  <h3 className="font-semibold mb-3">Strategy Details</h3>
+                  <div className="space-y-3 text-sm">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div><strong>Strategy ID:</strong> {selectedLead.strategy.id}</div>
+                      <div><strong>Name:</strong> {selectedLead.strategy.name}</div>
+                      <div><strong>Tag:</strong> {selectedLead.strategy.tag || 'N/A'}</div>
+                      <div><strong>Active:</strong> {selectedLead.strategy.isActive ? 'Yes' : 'No'}</div>
+                    </div>
+
+                    {selectedLead.strategy.description && (
+                      <div>
+                        <strong>Description:</strong>
+                        <p className="mt-1 text-gray-600">{selectedLead.strategy.description}</p>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div><strong>AI Name:</strong> {selectedLead.strategy.aiName}</div>
+                      <div><strong>Industry:</strong> {selectedLead.strategy.industryContext || 'N/A'}</div>
+                    </div>
+
+                    {selectedLead.strategy.aiRole && (
+                      <div>
+                        <strong>AI Role:</strong>
+                        <p className="mt-1 text-gray-600 text-xs">{selectedLead.strategy.aiRole}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Message History */}
+              {selectedLead.lastMessage && (
+                <div>
+                  <h3 className="font-semibold mb-3">Latest Message</h3>
+                  <div className="p-3 bg-gray-50 rounded text-sm">
+                    <p className="text-gray-700">{selectedLead.lastMessage}</p>
+                    {selectedLead.lastMessageDate && (
+                      <p className="text-xs text-gray-500 mt-2">
+                        Sent: {formatDate(selectedLead.lastMessageDate)}
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -352,6 +533,16 @@ export default function LeadsPage() {
                   </div>
                 </div>
               )}
+
+              {/* Sub Account ID */}
+              <div>
+                <h3 className="font-semibold mb-3">System Information</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div><strong>Regular User ID:</strong> {selectedLead.regularUserId || selectedLead.user?.id || 'N/A'}</div>
+                  <div><strong>Strategy ID:</strong> {selectedLead.strategyId || selectedLead.strategy?.id || 'N/A'}</div>
+                  <div><strong>SubAccount ID:</strong> {selectedLead.subAccountId || 'N/A'}</div>
+                </div>
+              </div>
             </div>
           </DialogContent>
         </Dialog>

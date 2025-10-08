@@ -166,6 +166,31 @@ BOOKING INSTRUCTIONS:
 
     const timezoneInfo = lead.timezone ? `\n- Timezone: ${lead.timezone}` : '';
 
+    // Parse conversation state if available
+    let conversationStateInfo = '';
+    if (lead.conversationState) {
+      try {
+        const state = typeof lead.conversationState === 'string'
+          ? JSON.parse(lead.conversationState)
+          : lead.conversationState;
+
+        const stateParts: string[] = [];
+        if (state.stage) stateParts.push(`Stage: ${state.stage}`);
+        if (state.qualified !== undefined) stateParts.push(`Qualified: ${state.qualified}`);
+        if (state.budgetDiscussed) stateParts.push(`Budget Discussed: Yes`);
+        if (state.timelineDiscussed) stateParts.push(`Timeline Discussed: Yes`);
+        if (state.decisionMaker !== undefined) stateParts.push(`Decision Maker: ${state.decisionMaker}`);
+        if (state.painPointsIdentified?.length) stateParts.push(`Pain Points: ${state.painPointsIdentified.join(', ')}`);
+        if (state.objections?.length) stateParts.push(`Objections: ${state.objections.join(', ')}`);
+
+        if (stateParts.length > 0) {
+          conversationStateInfo = `\n\nCONVERSATION STATE:\n- ${stateParts.join('\n- ')}`;
+        }
+      } catch (error) {
+        this.logger.warn(`Failed to parse conversationState for lead ${lead.id}`, error);
+      }
+    }
+
     return `LEAD INFORMATION:
 - Name: ${lead.name || 'Not specified'}
 - Email: ${lead.email || 'Not specified'}
@@ -173,7 +198,7 @@ BOOKING INSTRUCTIONS:
 - Company: ${lead.company || 'Not specified'}
 - Position: ${lead.position || 'Not specified'}
 - Status: ${lead.status || 'New'}
-- Notes: ${lead.notes || 'None'}${timezoneInfo}`;
+- Notes: ${lead.notes || 'None'}${timezoneInfo}${conversationStateInfo}`;
   }
 
 
@@ -365,7 +390,19 @@ LEAD INFORMATION MANAGEMENT:
   • Lead shares their job title or company name
   • You learn new relevant information about the lead
 - Always acknowledge updates: "Got it, I've updated your timezone to Pacific time"
-- Notes field: Add important conversation details that help qualify the lead`;
+- Notes field: Add important conversation details that help qualify the lead
+
+CONVERSATION STATE TRACKING:
+- Use update_conversation_state tool to track sales progress throughout the conversation
+- Update the state when you learn something important:
+  • Stage changes (discovery → qualification → objection_handling → closing → booked)
+  • Lead qualification status changes (qualified: true/false)
+  • Budget or timeline is discussed (budgetDiscussed: true, timelineDiscussed: true)
+  • You learn they are/aren't the decision maker (decisionMaker: true/false)
+  • Lead mentions pain points (painPointsIdentified: ["problem 1", "problem 2"])
+  • Lead raises objections (objections: ["price concern", "timing issue"])
+- This helps maintain context across long conversations
+- The state is displayed in CONVERSATION STATE section above, so you can reference what you've already learned`;
   }
 
   /**

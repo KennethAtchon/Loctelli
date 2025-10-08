@@ -535,7 +535,7 @@ export default function ChatPage() {
         {leadProfile && (
           <div className="max-w-7xl mx-auto mt-3 px-4">
             <div className="bg-white border border-gray-200 rounded-xl p-4">
-              <div className="flex items-start justify-between">
+              <div className="flex items-start justify-between flex-wrap">
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
                     <span className="text-lg font-bold text-white">

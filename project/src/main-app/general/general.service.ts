@@ -265,6 +265,11 @@ export class GeneralService {
               id: true,
               name: true,
               email: true,
+              role: true,
+              company: true,
+              budget: true,
+              bookingEnabled: true,
+              isActive: true,
             }
           },
           strategy: {
@@ -272,6 +277,11 @@ export class GeneralService {
               id: true,
               name: true,
               tag: true,
+              description: true,
+              aiName: true,
+              aiRole: true,
+              industryContext: true,
+              isActive: true,
             }
           },
           bookings: {

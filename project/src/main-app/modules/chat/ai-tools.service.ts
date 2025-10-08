@@ -28,6 +28,27 @@ export interface UpdateLeadToolArgs {
   notes?: string;
 }
 
+export interface ConversationState {
+  qualified?: boolean | null;           // Has the lead been qualified?
+  budgetDiscussed?: boolean;            // Have we discussed budget?
+  timelineDiscussed?: boolean;          // Have we discussed timeline?
+  decisionMaker?: boolean | null;       // Are they the decision maker?
+  painPointsIdentified?: string[];      // What problems did they mention?
+  objections?: string[];                // What objections have they raised?
+  stage?: 'discovery' | 'qualification' | 'objection_handling' | 'closing' | 'booked';
+  lastUpdated?: string;
+}
+
+export interface UpdateConversationStateArgs {
+  qualified?: boolean | null;
+  budgetDiscussed?: boolean;
+  timelineDiscussed?: boolean;
+  decisionMaker?: boolean | null;
+  painPointsIdentified?: string[];
+  objections?: string[];
+  stage?: 'discovery' | 'qualification' | 'objection_handling' | 'closing' | 'booked';
+}
+
 export interface ToolCallResult {
   success: boolean;
   message: string;
@@ -172,6 +193,51 @@ export class AiToolsService {
             }
           }
         }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'update_conversation_state',
+          description: 'Track important conversation context and sales progress. Use this to remember what you\'ve learned about the lead\'s needs, budget, timeline, objections, and where they are in the sales process. Update this whenever you learn something important.',
+          parameters: {
+            type: 'object',
+            properties: {
+              qualified: {
+                type: 'boolean',
+                description: 'Set to true once you\'ve confirmed they meet qualification criteria (budget, authority, need, timeline). Set to false if they are disqualified.',
+                nullable: true
+              },
+              budgetDiscussed: {
+                type: 'boolean',
+                description: 'Set to true when budget has been discussed or confirmed'
+              },
+              timelineDiscussed: {
+                type: 'boolean',
+                description: 'Set to true when timeline/urgency has been discussed'
+              },
+              decisionMaker: {
+                type: 'boolean',
+                description: 'Set to true if they are the decision maker, false if they need to consult others',
+                nullable: true
+              },
+              painPointsIdentified: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'List of specific problems or pain points the lead has mentioned (e.g., ["roof leaking", "storm damage", "insurance claim needed"])'
+              },
+              objections: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'List of objections raised by the lead (e.g., ["price too high", "need to think about it", "already working with competitor"])'
+              },
+              stage: {
+                type: 'string',
+                enum: ['discovery', 'qualification', 'objection_handling', 'closing', 'booked'],
+                description: 'Current stage of the sales conversation: discovery (learning needs), qualification (confirming fit), objection_handling (addressing concerns), closing (ready to book), booked (meeting scheduled)'
+              }
+            }
+          }
+        }
       }
     ];
   }
@@ -198,6 +264,9 @@ export class AiToolsService {
 
         case 'update_lead_details':
           return await this.updateLeadDetails(args as UpdateLeadToolArgs, leadId);
+
+        case 'update_conversation_state':
+          return await this.updateConversationState(args as UpdateConversationStateArgs, leadId);
 
         default:
           this.logger.warn(`Unknown tool function: ${functionName}`);
@@ -548,6 +617,101 @@ export class AiToolsService {
       return {
         success: false,
         message: 'Failed to update lead details. Please try again.',
+        data: { errorType: 'UPDATE_FAILED', error: error.message }
+      };
+    }
+  }
+
+  /**
+   * Update conversation state tracking
+   */
+  private async updateConversationState(
+    args: UpdateConversationStateArgs,
+    leadId: number
+  ): Promise<ToolCallResult> {
+    this.logger.log(`Updating conversation state for leadId=${leadId}`, args);
+
+    try {
+      // Get current conversation state
+      const currentLead = await this.prisma.lead.findUnique({
+        where: { id: leadId },
+        select: { conversationState: true }
+      });
+
+      if (!currentLead) {
+        return {
+          success: false,
+          message: 'Lead not found.',
+          data: { errorType: 'LEAD_NOT_FOUND' }
+        };
+      }
+
+      // Parse existing state or initialize
+      let currentState: ConversationState = {};
+      if (currentLead.conversationState) {
+        try {
+          currentState = typeof currentLead.conversationState === 'string'
+            ? JSON.parse(currentLead.conversationState)
+            : currentLead.conversationState as ConversationState;
+        } catch (error) {
+          this.logger.warn(`Failed to parse existing conversationState for lead ${leadId}`, error);
+          currentState = {};
+        }
+      }
+
+      // Merge updates with existing state
+      const updatedState: ConversationState = {
+        ...currentState,
+        ...args,
+        lastUpdated: new Date().toISOString()
+      };
+
+      // Handle array fields (append rather than replace)
+      if (args.painPointsIdentified) {
+        const existingPainPoints = currentState.painPointsIdentified || [];
+        // Merge and deduplicate
+        updatedState.painPointsIdentified = Array.from(new Set([
+          ...existingPainPoints,
+          ...args.painPointsIdentified
+        ]));
+      }
+
+      if (args.objections) {
+        const existingObjections = currentState.objections || [];
+        // Merge and deduplicate
+        updatedState.objections = Array.from(new Set([
+          ...existingObjections,
+          ...args.objections
+        ]));
+      }
+
+      // Update lead with new conversation state
+      await this.prisma.lead.update({
+        where: { id: leadId },
+        data: {
+          conversationState: updatedState as any
+        }
+      });
+
+      // Build summary of what was updated
+      const updates = Object.keys(args).join(', ');
+
+      this.logger.log(`Successfully updated conversation state for lead ${leadId}: ${updates}`);
+
+      return {
+        success: true,
+        message: `Conversation state updated: ${updates}`,
+        data: {
+          leadId,
+          updatedFields: Object.keys(args),
+          currentState: updatedState
+        }
+      };
+    } catch (error) {
+      this.logger.error(`Error updating conversation state:`, error);
+      return {
+        success: false,
+        message: 'Failed to update conversation state. Please try again.',
         data: { errorType: 'UPDATE_FAILED', error: error.message }
       };
     }
