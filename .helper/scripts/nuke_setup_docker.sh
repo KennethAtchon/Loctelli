@@ -15,23 +15,28 @@
 #   --region auto
 
 
-# Stop all running containers
-sleep 1
-docker stop $(docker ps -aq)
+# Stop Loctelli containers
+echo "Stopping Loctelli containers..."
+docker stop loctelli_db loctelli_redis loctelli_api loctelli_frontend 2>/dev/null || true
 
-# Remove all containers
-sleep 1
-docker rm -f $(docker ps -aq)
+# Remove Loctelli containers
+echo "Removing Loctelli containers..."
+docker rm -f loctelli_db loctelli_redis loctelli_api loctelli_frontend 2>/dev/null || true
 
-# Remove all volumes
-sleep 1
-docker volume rm -f $(docker volume ls -q)
+# Remove Loctelli volumes
+echo "Removing Loctelli volumes..."
+docker volume rm -f loctelli_pgdata loctelli_redisdata 2>/dev/null || true
 
-# Remove all images 
-sleep 1
-docker rmi -f $(docker images -q)
+# Remove Loctelli network
+echo "Removing Loctelli network..."
+docker network rm loctelli-network 2>/dev/null || true
 
-# Repopagrate docker
+# Remove Loctelli images
+echo "Removing Loctelli images..."
+docker rmi -f loctelli-api loctelli-frontend 2>/dev/null || true
+
+# Rebuild and start Loctelli services
+echo "Rebuilding and starting Loctelli services..."
 sleep 3
 docker-compose up --build
 

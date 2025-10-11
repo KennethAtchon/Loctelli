@@ -29,7 +29,6 @@ interface MessageHistoryItem {
 export class SalesBotService implements OnModuleInit {
   private readonly logger = new Logger(SalesBotService.name);
   private readonly openaiModel = 'gpt-4o-mini';
-  private readonly temperature = 0.7;
   private readonly maxHistory = 20;
   private readonly openaiApiKey: string;
   

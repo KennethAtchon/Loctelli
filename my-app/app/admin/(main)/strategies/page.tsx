@@ -83,7 +83,7 @@ export default function StrategiesPage() {
       key: 'industryContext',
       header: 'Industry',
       render: (strategy) => (
-        <span className="text-sm">{strategy.industryContext || 'General'}</span>
+        <span className="text-sm truncate">{strategy.industryContext || 'General'}</span>
       ),
     },
     {
