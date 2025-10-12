@@ -107,7 +107,7 @@ export class SecurityMonitoringService implements OnModuleInit {
 
   async onModuleInit() {
     this.logger.log('Initializing Security Monitoring Service');
-    await this.startRealtimeMonitoring();
+    // await this.startRealtimeMonitoring(); Pause for now to reduce costs
     this.logger.log('Security Monitoring Service initialized and running');
   }
 
