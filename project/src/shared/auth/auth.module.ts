@@ -4,12 +4,12 @@ import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 // Controllers
-import { AuthController } from '../../main-app/controllers/auth.controller';
-import { AdminAuthController } from '../../main-app/controllers/admin-auth.controller';
+import { UnifiedAuthController } from '../../main-app/controllers/unified-auth.controller';
+import { AdminManagementController } from '../../main-app/controllers/admin-management.controller';
 
 // Services
-import { AuthService } from './services/auth.service';
-import { AdminAuthService } from './services/admin-auth.service';
+import { UnifiedAuthService } from './services/unified-auth.service';
+import { SecurityService } from './services/security.service';
 import { SystemUserService } from './services/system-user.service';
 import { AdminAuthCodeService } from './services/admin-auth-code.service';
 
@@ -39,22 +39,32 @@ import { PrismaModule } from '../prisma/prisma.module';
     ConfigModule,
   ],
   controllers: [
-    AuthController,
-    AdminAuthController,
+    UnifiedAuthController,
+    AdminManagementController,
   ],
   providers: [
-    AuthService,
-    AdminAuthService,
+    // Unified auth services
+    UnifiedAuthService,
+    SecurityService,
+
+    // Shared services
     SystemUserService,
     AdminAuthCodeService,
+
+    // Strategy & Guards
     JwtStrategy,
     JwtAuthGuard,
   ],
   exports: [
-    AuthService,
-    AdminAuthService,
+    // Unified auth services
+    UnifiedAuthService,
+    SecurityService,
+
+    // Shared services
     SystemUserService,
     AdminAuthCodeService,
+
+    // Strategy & Guards
     JwtStrategy,
     JwtAuthGuard,
     JwtModule,

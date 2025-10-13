@@ -149,7 +149,7 @@ export class UnifiedAuthService {
         name: user.name,
         email: user.email,
         role: user.role,
-        company: user.company,
+        company: user.company ?? undefined,
         subAccountId: user.subAccountId,
       },
     };
@@ -405,7 +405,7 @@ export class UnifiedAuthService {
         account,
         payload.accountType,
         ipAddress,
-        storedToken.userAgent,
+        storedToken.userAgent ?? undefined,
       );
 
       // Revoke old refresh token
