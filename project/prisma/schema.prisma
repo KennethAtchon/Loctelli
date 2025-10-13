@@ -595,8 +595,70 @@ model SecurityIncident {
   @@map("security_incidents")
 }
 
-// Update Lead model to include conversation messages
-// Note: This would be done via migration to add the relation
+// Authentication Security Models
+
+model AuthAttempt {
+  id              String   @id @default(cuid())
+  email           String
+  accountType     String   // 'user' | 'admin'
+  success         Boolean
+  ipAddress       String
+  userAgent       String?  @db.Text
+  failureReason   String?  // 'invalid_credentials', 'account_locked', 'account_inactive'
+  geoLocation     Json?    // { country, city, lat, lng }
+  isNewLocation   Boolean  @default(false)
+  isNewDevice     Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@index([email, accountType, createdAt])
+  @@index([ipAddress, createdAt])
+  @@index([success, createdAt])
+  @@map("auth_attempts")
+}
+
+model AccountLockout {
+  id              String   @id @default(cuid())
+  email           String
+  accountType     String   // 'user' | 'admin'
+  failedAttempts  Int      @default(0)
+  lockedUntil     DateTime?
+  lastAttemptAt   DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([email, accountType])
+  @@index([lockedUntil])
+  @@index([email, accountType])
+  @@map("account_lockouts")
+}
+
+model PasswordHistory {
+  id           String   @id @default(cuid())
+  userId       Int
+  accountType  String   // 'user' | 'admin'
+  passwordHash String   // Bcrypt hash
+  createdAt    DateTime @default(now())
+
+  @@index([userId, accountType, createdAt])
+  @@map("password_history")
+}
+
+model RefreshToken {
+  id           String   @id @default(cuid())
+  userId       Int
+  accountType  String   // 'user' | 'admin'
+  tokenHash    String   @unique // SHA-256 hash of token
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  ipAddress    String
+  userAgent    String?  @db.Text
+  createdAt    DateTime @default(now())
+
+  @@index([userId, accountType])
+  @@index([expiresAt])
+  @@index([tokenHash])
+  @@map("refresh_tokens")
+}
 
 
 
