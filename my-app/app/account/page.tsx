@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { User, Mail, Briefcase, DollarSign, Calendar, LogOut, Building, Activity } from 'lucide-react';
+import { User, Mail, Briefcase, Calendar, LogOut, Building, Activity } from 'lucide-react';
 import logger from '@/lib/logger';
 
 export default function AccountPage() {
@@ -128,16 +128,6 @@ export default function AccountPage() {
                       Company
                     </label>
                     <p className="text-lg text-gray-900">{user.company}</p>
-                  </div>
-                )}
-
-                {user.budget && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-gray-500" />
-                      Budget
-                    </label>
-                    <p className="text-lg text-gray-900">{user.budget}</p>
                   </div>
                 )}
               </div>

@@ -277,8 +277,6 @@ function normalizeUserProfile(profile: UserProfile): UnifiedAccount {
     createdAt: profile.createdAt,
     updatedAt: profile.updatedAt,
     company: profile.company,
-    budget: profile.budget,
-    subAccountId: profile.subAccountId,
   };
 }
 

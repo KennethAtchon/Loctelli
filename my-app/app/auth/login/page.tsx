@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/unified-auth-context';
+import { useUnifiedAuth } from '@/contexts/unified-auth-context';
 import type { LoginDto } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,10 +14,10 @@ import logger from '@/lib/logger';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { loginUser, isAuthenticated, isLoading, isAdmin } = useUnifiedAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  
+
   // Debug error state changes
   useEffect(() => {
     logger.debug('🔍 Error state changed:', error);
@@ -31,9 +31,14 @@ export default function LoginPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      router.push('/admin/dashboard');
+      // Check if user is admin via the auth context
+      if (isAdmin()) {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/account');
+      }
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, isAdmin, router]);
 
   // Fallback to prevent infinite loading
   useEffect(() => {
@@ -64,31 +69,31 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const timestamp = new Date().toISOString();
     logger.debug(`🔐 Login form submitted at ${timestamp}:`, { email: formData.email });
-    
+
     // Prevent multiple submissions
     if (isSubmitting) {
       logger.debug('🚫 Form already submitting, ignoring');
       return;
     }
-    
+
     setIsSubmitting(true);
     setError('');
 
     try {
       logger.debug('🧪 Testing login with credentials...');
-      await login(formData);
+      await loginUser(formData);
       logger.debug('✅ Login successful, redirecting...');
-      // Redirect to admin dashboard
-      router.push('/admin/dashboard');
+      // Redirect to account page (useEffect will handle admin redirect if needed)
+      router.push('/account');
     } catch (error) {
       logger.error('❌ Login failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Login failed. Please try again.';
       setError(errorMessage);
       logger.debug('📝 Set error message:', errorMessage);
-      
+
       // Force a small delay to ensure the error state is set
       setTimeout(() => {
         logger.debug('⏰ Error state should be visible now');
