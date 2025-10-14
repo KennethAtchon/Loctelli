@@ -621,9 +621,9 @@ export class UnifiedAuthService {
 
     // Store refresh token in database
     const tokenHash = createHash('sha256').update(refreshToken).digest('hex');
-    const expiresAt = new Date(
-      Date.now() + (refreshExpiration.includes('d') ? 7 * 24 * 60 * 60 * 1000 : 30 * 24 * 60 * 60 * 1000),
-    );
+
+    // Parse refresh token expiration correctly
+    const expiresAt = this.parseTokenExpiration(refreshExpiration);
 
     await this.prisma.refreshToken.create({
       data: {
@@ -640,6 +640,37 @@ export class UnifiedAuthService {
       access_token: accessToken,
       refresh_token: refreshToken,
     };
+  }
+
+  /**
+   * Parse token expiration string to Date
+   * Supports: '15m', '7d', '30d', etc.
+   */
+  private parseTokenExpiration(expiration: string): Date {
+    const value = parseInt(expiration);
+    const unit = expiration.slice(-1);
+
+    let milliseconds: number;
+
+    switch (unit) {
+      case 's': // seconds
+        milliseconds = value * 1000;
+        break;
+      case 'm': // minutes
+        milliseconds = value * 60 * 1000;
+        break;
+      case 'h': // hours
+        milliseconds = value * 60 * 60 * 1000;
+        break;
+      case 'd': // days
+        milliseconds = value * 24 * 60 * 60 * 1000;
+        break;
+      default:
+        this.logger.warn(`Unknown expiration unit: ${unit}, defaulting to 7 days`);
+        milliseconds = 7 * 24 * 60 * 60 * 1000;
+    }
+
+    return new Date(Date.now() + milliseconds);
   }
 
   /**

@@ -55,25 +55,23 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
   const [account, setAccount] = useState<UnifiedAccount | null>(null);
   const [accountType, setAccountType] = useState<AccountType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [authCheckInProgress, setAuthCheckInProgress] = useState(false);
 
   const isAuthenticated = !!account && !!accountType;
 
   // Check for existing tokens and auto-login on mount
   useEffect(() => {
-    if (authCheckInProgress) {
-      logger.debug('🔄 Auth check already in progress, skipping...');
-      return;
-    }
+    let isMounted = true; // Track if component is still mounted
+    let timeoutId: NodeJS.Timeout | null = null;
 
     const checkAuth = async () => {
-      setAuthCheckInProgress(true);
       logger.debug('🔍 Checking unified authentication...');
 
-      const timeoutId = setTimeout(() => {
-        logger.warn('⚠️ Unified auth check timeout - forcing loading to false');
-        setIsLoading(false);
-        setAuthCheckInProgress(false);
+      // Set a safety timeout
+      timeoutId = setTimeout(() => {
+        if (isMounted) {
+          logger.warn('⚠️ Unified auth check timeout - forcing loading to false');
+          setIsLoading(false);
+        }
       }, 10000);
 
       try {
@@ -82,10 +80,14 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           logger.debug('✅ Found admin tokens, attempting to get profile...');
           try {
             const profile = await api.adminAuth.getAdminProfile();
+            if (!isMounted) return; // Component unmounted, don't update state
+
             logger.debug('✅ Admin profile retrieved successfully:', profile.email);
             setAccount(normalizeAdminProfile(profile));
             setAccountType('admin');
           } catch (error) {
+            if (!isMounted) return;
+
             logger.error('❌ Admin profile request failed:', error);
             if (error instanceof Error && (error.message.includes('401') || error.message.includes('Unauthorized'))) {
               logger.debug('🔒 Auth error detected, clearing admin tokens');
@@ -98,10 +100,14 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           logger.debug('✅ Found user tokens, attempting to get profile...');
           try {
             const profile = await api.auth.getProfile();
+            if (!isMounted) return; // Component unmounted, don't update state
+
             logger.debug('✅ User profile retrieved successfully:', profile.email);
             setAccount(normalizeUserProfile(profile));
             setAccountType('user');
           } catch (error) {
+            if (!isMounted) return;
+
             logger.error('❌ User profile request failed:', error);
             if (error instanceof Error && (error.message.includes('401') || error.message.includes('Unauthorized'))) {
               logger.debug('🔒 Auth error detected, clearing user tokens');
@@ -112,16 +118,24 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
           logger.debug('❌ No tokens found');
         }
       } catch (error) {
+        if (!isMounted) return;
         logger.error('❌ Unified auth check failed:', error);
       } finally {
-        clearTimeout(timeoutId);
-        logger.debug('🏁 Unified auth check completed');
-        setIsLoading(false);
-        setAuthCheckInProgress(false);
+        if (timeoutId) clearTimeout(timeoutId);
+        if (isMounted) {
+          logger.debug('🏁 Unified auth check completed');
+          setIsLoading(false);
+        }
       }
     };
 
     checkAuth();
+
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      isMounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, []);
 
   const loginUser = async (credentials: LoginDto) => {
