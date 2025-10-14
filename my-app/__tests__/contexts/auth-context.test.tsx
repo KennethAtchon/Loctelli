@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { AuthProvider, useAuth } from '@/contexts/auth-context'
+import { UnifiedAuthProvider, useAuth } from '@/contexts/unified-auth-context'
 import { api } from '@/lib/api'
 import { AuthCookies } from '@/lib/cookies'
 import { ApiClient } from '@/lib/api/client'
@@ -101,9 +101,9 @@ describe('AuthContext', () => {
       mockAuthCookies.hasUserTokens.mockReturnValue(false)
       
       render(
-        <AuthProvider>
+        <UnifiedAuthProvider>
           <TestComponent />
-        </AuthProvider>
+        </UnifiedAuthProvider>
       )
       
       // Wait for the auth check to complete
@@ -117,9 +117,9 @@ describe('AuthContext', () => {
       mockAuthCookies.hasUserTokens.mockReturnValue(false)
       
       render(
-        <AuthProvider>
+        <UnifiedAuthProvider>
           <TestComponent />
-        </AuthProvider>
+        </UnifiedAuthProvider>
       )
       
       await waitFor(() => {
@@ -142,9 +142,9 @@ describe('AuthContext', () => {
       mockApi.auth.getProfile.mockResolvedValue(mockUser)
       
       render(
-        <AuthProvider>
+        <UnifiedAuthProvider>
           <TestComponent />
-        </AuthProvider>
+        </UnifiedAuthProvider>
       )
       
       await waitFor(() => {
@@ -161,9 +161,9 @@ describe('AuthContext', () => {
       )
       
       render(
-        <AuthProvider>
+        <UnifiedAuthProvider>
           <TestComponent />
-        </AuthProvider>
+        </UnifiedAuthProvider>
       )
       
       // Fast-forward time to trigger timeout
@@ -209,9 +209,9 @@ describe('AuthContext', () => {
         )
       }
       render(
-        <AuthProvider>
+        <UnifiedAuthProvider>
           <TestComponentWithRef />
-        </AuthProvider>
+        </UnifiedAuthProvider>
       )
       await act(async () => {
         await authContext.login({ email: 'test@example.com', password: 'password' })
@@ -234,9 +234,9 @@ describe('AuthContext', () => {
         return <div />
       }
       render(
-        <AuthProvider>
+        <UnifiedAuthProvider>
           <TestComponentWithRef />
-        </AuthProvider>
+        </UnifiedAuthProvider>
       )
       await expect(
         act(async () => {
@@ -279,9 +279,9 @@ describe('AuthContext', () => {
         )
       }
       render(
-        <AuthProvider>
+        <UnifiedAuthProvider>
           <TestComponentWithRef />
-        </AuthProvider>
+        </UnifiedAuthProvider>
       )
       await act(async () => {
         await authContext.register({ email: 'test@example.com', password: 'password', name: 'Test User' })
@@ -305,9 +305,9 @@ describe('AuthContext', () => {
         return <div />
       }
       render(
-        <AuthProvider>
+        <UnifiedAuthProvider>
           <TestComponentWithRef />
-        </AuthProvider>
+        </UnifiedAuthProvider>
       )
       await expect(
         act(async () => {
@@ -335,9 +335,9 @@ describe('AuthContext', () => {
         )
       }
       render(
-        <AuthProvider>
+        <UnifiedAuthProvider>
           <TestComponentWithRef />
-        </AuthProvider>
+        </UnifiedAuthProvider>
       )
       await act(async () => {
         await authContext.logout()
@@ -358,9 +358,9 @@ describe('AuthContext', () => {
         return <div />
       }
       render(
-        <AuthProvider>
+        <UnifiedAuthProvider>
           <TestComponentWithRef />
-        </AuthProvider>
+        </UnifiedAuthProvider>
       )
       await act(async () => {
         await authContext.logout()
@@ -377,9 +377,9 @@ describe('AuthContext', () => {
       mockApi.auth.getProfile.mockRejectedValue(authError)
       
       render(
-        <AuthProvider>
+        <UnifiedAuthProvider>
           <TestComponent />
-        </AuthProvider>
+        </UnifiedAuthProvider>
       )
       
       await waitFor(() => {
@@ -394,9 +394,9 @@ describe('AuthContext', () => {
       mockApi.auth.getProfile.mockRejectedValue(networkError)
       
       render(
-        <AuthProvider>
+        <UnifiedAuthProvider>
           <TestComponent />
-        </AuthProvider>
+        </UnifiedAuthProvider>
       )
       
       await waitFor(() => {
@@ -413,7 +413,7 @@ describe('AuthContext', () => {
       
       expect(() => {
         render(<TestComponent />)
-      }).toThrow('useAuth must be used within an AuthProvider')
+      }).toThrow('useAuth must be used within an UnifiedAuthProvider')
       
       consoleSpy.mockRestore()
     })

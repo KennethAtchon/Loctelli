@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { useAdminAuth } from '@/contexts/admin-auth-context';
+import { useAdminAuth } from '@/contexts/unified-auth-context';
 import {
   LayoutDashboard,
   Users,

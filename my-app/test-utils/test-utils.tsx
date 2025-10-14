@@ -1,8 +1,7 @@
 import React, { ReactElement } from 'react'
 import { render, RenderOptions } from '@testing-library/react'
 import { ThemeProvider } from '@/components/theme-provider'
-import { AuthProvider } from '@/contexts/auth-context'
-import { AdminAuthProvider } from '@/contexts/admin-auth-context'
+import { UnifiedAuthProvider } from '@/contexts/unified-auth-context'
 
 // Mock the API client
 jest.mock('@/lib/api/client', () => ({
@@ -128,11 +127,9 @@ const AllTheProviders = ({ children }: AllTheProvidersProps) => {
       enableSystem
       disableTransitionOnChange
     >
-      <AuthProvider>
-        <AdminAuthProvider>
-          {children}
-        </AdminAuthProvider>
-      </AuthProvider>
+      <UnifiedAuthProvider>
+        {children}
+      </UnifiedAuthProvider>
     </ThemeProvider>
   )
 }

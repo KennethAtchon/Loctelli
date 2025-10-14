@@ -3,12 +3,15 @@ import { ApiClient } from '../client';
 export interface AdminLoginDto {
   email: string;
   password: string;
+  accountType?: 'admin';
+  rememberMe?: boolean;
 }
 
 export interface AdminRegisterDto {
   name: string;
   email: string;
   password: string;
+  accountType?: 'admin';
   role?: string;
   permissions?: Record<string, unknown>;
   authCode: string;
@@ -225,66 +228,77 @@ export interface ChangeAdminPasswordDto {
 
 export class AdminAuthApi extends ApiClient {
   async adminLogin(data: AdminLoginDto): Promise<AdminAuthResponse> {
-    return this.post<AdminAuthResponse>('/admin/auth/login', data);
+    // Use unified /auth/login endpoint with accountType: 'admin'
+    const loginData = { ...data, accountType: 'admin' as const };
+    return this.post<AdminAuthResponse>('/auth/login', loginData);
   }
 
   async adminRegister(data: AdminRegisterDto): Promise<Omit<AdminProfile, 'lastLoginAt' | 'createdAt' | 'updatedAt'>> {
-    return this.post<Omit<AdminProfile, 'lastLoginAt' | 'createdAt' | 'updatedAt'>>('/admin/auth/register', data);
+    // Use unified /auth/register endpoint with accountType: 'admin'
+    const registerData = { ...data, accountType: 'admin' as const };
+    return this.post<Omit<AdminProfile, 'lastLoginAt' | 'createdAt' | 'updatedAt'>>('/auth/register', registerData);
   }
 
   async adminRefreshToken(refreshToken: string): Promise<{ access_token: string; refresh_token: string }> {
-    return this.post<{ access_token: string; refresh_token: string }>('/admin/auth/refresh', { refresh_token: refreshToken });
+    // Use unified /auth/refresh endpoint
+    return this.post<{ access_token: string; refresh_token: string }>('/auth/refresh', { refresh_token: refreshToken });
   }
 
   async adminLogout(): Promise<{ message: string }> {
-    return this.post<{ message: string }>('/admin/auth/logout');
+    // Use unified /auth/logout endpoint
+    return this.post<{ message: string }>('/auth/logout');
   }
 
   async getAdminProfile(): Promise<AdminProfile> {
-    return this.get<AdminProfile>('/admin/auth/profile');
+    // Use unified /auth/profile endpoint
+    return this.get<AdminProfile>('/auth/profile');
   }
 
+  // Note: Admin profile updates are not currently supported by the backend
+  // Admins should use the unified /auth endpoints for password changes
+  // TODO: Implement admin profile update endpoint in backend if needed
   async updateAdminProfile(data: UpdateAdminProfileDto): Promise<AdminProfile> {
-    return this.put<AdminProfile>('/admin/auth/profile', data);
+    throw new Error('Admin profile updates are not currently supported. Please contact a super admin.');
   }
 
   async changeAdminPassword(data: ChangeAdminPasswordDto): Promise<{ message: string }> {
-    return this.post<{ message: string }>('/admin/auth/change-password', data);
+    // Use unified /auth/change-password endpoint
+    return this.post<{ message: string }>('/auth/change-password', data);
   }
 
   async getAllUsers(subaccountId?: string): Promise<UserProfile[]> {
-    const endpoint = subaccountId && subaccountId !== 'GLOBAL' 
-      ? `/admin/auth/users?subaccountId=${subaccountId}`
-      : '/admin/auth/users';
+    const endpoint = subaccountId && subaccountId !== 'GLOBAL'
+      ? `/admin/users?subaccountId=${subaccountId}`
+      : '/admin/users';
     return this.get<UserProfile[]>(endpoint);
   }
 
   async createUser(data: CreateUserDto): Promise<Omit<UserProfile, 'lastLoginAt' | 'createdAt' | 'updatedAt' | 'createdByAdmin'>> {
-    return this.post<Omit<UserProfile, 'lastLoginAt' | 'createdAt' | 'updatedAt' | 'createdByAdmin'>>('/admin/auth/users', data);
+    return this.post<Omit<UserProfile, 'lastLoginAt' | 'createdAt' | 'updatedAt' | 'createdByAdmin'>>('/admin/users', data);
   }
 
   async updateUser(userId: number, data: UpdateUserDto): Promise<Omit<UserProfile, 'createdByAdmin'>> {
-    return this.put<Omit<UserProfile, 'createdByAdmin'>>(`/admin/auth/users/${userId}`, data);
+    return this.put<Omit<UserProfile, 'createdByAdmin'>>(`/admin/users/${userId}`, data);
   }
 
   async deleteUser(userId: number): Promise<{ message: string }> {
-    return this.delete<{ message: string }>(`/admin/auth/users/${userId}`);
+    return this.delete<{ message: string }>(`/admin/users/${userId}`);
   }
 
   async generateAuthCode(): Promise<{ authCode: string; message: string; expiresIn: string }> {
-    return this.post<{ authCode: string; message: string; expiresIn: string }>('/admin/auth/generate-auth-code');
+    return this.post<{ authCode: string; message: string; expiresIn: string }>('/admin/auth-code/generate');
   }
 
   async getCurrentAuthCode(): Promise<{ authCode: string; message: string }> {
-    return this.get<{ authCode: string; message: string }>('/admin/auth/current-auth-code');
+    return this.get<{ authCode: string; message: string }>('/admin/auth-code/current');
   }
 
   async getAllAdminAccounts(): Promise<AdminProfile[]> {
-    return this.get<AdminProfile[]>('/admin/auth/accounts');
+    return this.get<AdminProfile[]>('/admin/accounts');
   }
 
   async deleteAdminAccount(adminId: number): Promise<{ message: string }> {
-    return this.delete<{ message: string }>(`/admin/auth/accounts/${adminId}`);
+    return this.delete<{ message: string }>(`/admin/accounts/${adminId}`);
   }
 
   async getDashboardStats(subaccountId?: string): Promise<DashboardStats> {

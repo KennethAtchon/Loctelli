@@ -3,7 +3,7 @@
 import { User, LogOut, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { useAdminAuth } from '@/contexts/admin-auth-context';
+import { useAdminAuth } from '@/contexts/unified-auth-context';
 import { SubaccountFilter } from './subaccount-filter';
 import { DarkModeToggleCompact } from '@/components/ui/dark-mode-toggle';
 import {

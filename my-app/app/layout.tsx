@@ -3,8 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { AuthProvider } from "@/contexts/auth-context";
-import { AdminAuthProvider } from "@/contexts/admin-auth-context";
+import { UnifiedAuthProvider } from "@/contexts/unified-auth-context";
 import { validateEnvironmentVariables } from "@/lib/utils/envUtils";
 import logger from '@/lib/logger';
 import { Toaster } from "@/components/ui/sonner";
@@ -84,11 +83,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
-            <AdminAuthProvider>
-              {children}
-            </AdminAuthProvider>
-          </AuthProvider>
+          <UnifiedAuthProvider>
+            {children}
+          </UnifiedAuthProvider>
           <Toaster />
         </ThemeProvider>
       </body>

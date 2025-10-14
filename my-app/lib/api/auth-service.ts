@@ -27,10 +27,8 @@ export class AuthService {
       '/auth/register',
       '/auth/refresh',
       '/auth/logout',
-      '/admin/auth/login',
-      '/admin/auth/register',
-      '/admin/auth/refresh',
-      '/admin/auth/logout'
+      '/auth/profile',
+      '/auth/change-password'
     ];
     return authEndpoints.includes(endpoint);
   }
@@ -98,9 +96,9 @@ export class AuthService {
       if (adminRefreshToken) {
         try {
           logger.debug('🔄 Attempting admin token refresh...');
-          // Use direct fetch to avoid infinite loop
+          // Use direct fetch to avoid infinite loop - now using unified endpoint
           this.isRefreshRequest = true;
-          const response = await fetch(`${this.baseUrl}/admin/auth/refresh`, {
+          const response = await fetch(`${this.baseUrl}/auth/refresh`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

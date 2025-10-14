@@ -3,12 +3,15 @@ import { ApiClient } from '../client';
 export interface LoginDto {
   email: string;
   password: string;
+  accountType?: 'user' | 'admin';
+  rememberMe?: boolean;
 }
 
 export interface RegisterDto {
   name: string;
   email: string;
   password: string;
+  accountType?: 'user' | 'admin';
   company?: string;
   budget?: string;
 }
@@ -39,11 +42,15 @@ export interface UserProfile {
 
 export class AuthApi extends ApiClient {
   async login(data: LoginDto): Promise<AuthResponse> {
-    return this.post<AuthResponse>('/auth/login', data);
+    // Default to 'user' account type if not specified
+    const loginData = { ...data, accountType: data.accountType || 'user' };
+    return this.post<AuthResponse>('/auth/login', loginData);
   }
 
   async register(data: RegisterDto): Promise<Omit<UserProfile, 'lastLoginAt' | 'createdAt' | 'updatedAt'>> {
-    return this.post<Omit<UserProfile, 'lastLoginAt' | 'createdAt' | 'updatedAt'>>('/auth/register', data);
+    // Default to 'user' account type if not specified
+    const registerData = { ...data, accountType: data.accountType || 'user' };
+    return this.post<Omit<UserProfile, 'lastLoginAt' | 'createdAt' | 'updatedAt'>>('/auth/register', registerData);
   }
 
   async refreshToken(refreshToken: string): Promise<{ access_token: string; refresh_token: string }> {

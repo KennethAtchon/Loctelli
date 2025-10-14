@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAdminAuth } from '@/contexts/admin-auth-context';
+import { useAdminAuth } from '@/contexts/unified-auth-context';
 import type { AdminLoginDto } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
