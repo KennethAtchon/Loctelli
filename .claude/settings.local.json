@@ -19,7 +19,9 @@
       "Bash(do sed -i \"s|from ''''@/contexts/auth-context''''|from ''''@/contexts/unified-auth-context''''|g\" \"$file\")",
       "Bash(echo \"Updated: $file\")",
       "Bash(done)",
-      "Bash(do sed -i \"s|from ''''@/contexts/admin-auth-context''''|from ''''@/contexts/unified-auth-context''''|g\" \"$file\")"
+      "Bash(do sed -i \"s|from ''''@/contexts/admin-auth-context''''|from ''''@/contexts/unified-auth-context''''|g\" \"$file\")",
+      "Bash(chmod +x .helper/scripts/scan-tenant-migration.sh)",
+      "Bash(bash .helper/scripts/scan-tenant-migration.sh)"
     ],
     "deny": []
   },

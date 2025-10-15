@@ -11,11 +11,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { FormSubmission } from '@/lib/api';
 import { Eye, ArrowLeft, FileText, Users, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import logger from '@/lib/logger';
-import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
+import { useTenant } from '@/contexts/tenant-context';
 
 export default function FormSubmissionsPage() {
   const router = useRouter();
-  const { getCurrentSubaccount } = useSubaccountFilter();
+  const { subAccountId } = useTenant();
   const [submissions, setSubmissions] = useState<FormSubmission[]>([]);
   const [filteredSubmissions, setFilteredSubmissions] = useState<FormSubmission[]>([]);
   const [stats, setStats] = useState({ total: 0, new: 0, reviewed: 0, contacted: 0 });
@@ -185,9 +185,6 @@ export default function FormSubmissionsPage() {
       setIsRefreshing(true);
       setError(null);
 
-      const currentSubAccount = getCurrentSubaccount();
-      const subAccountId = currentSubAccount?.id;
-
       const submissionsData = await api.forms.getFormSubmissions(subAccountId);
 
       setSubmissions(submissionsData);
@@ -212,7 +209,7 @@ export default function FormSubmissionsPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [getCurrentSubaccount]);
+  }, [subAccountId]);
 
   // Handle search for submissions
   const handleSubmissionSearch = (term: string) => {

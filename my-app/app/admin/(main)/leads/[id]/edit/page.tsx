@@ -15,12 +15,12 @@ import Link from 'next/link';
 import { Lead, CreateLeadDto, Strategy } from '@/types';
 import type { UserProfile } from '@/lib/api/endpoints/admin-auth';
 import logger from '@/lib/logger';
-import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
+import { useTenant } from '@/contexts/tenant-context';
 
 export default function EditLeadPage() {
   const router = useRouter();
   const params = useParams();
-  const { currentFilter, getCurrentSubaccount } = useSubaccountFilter();
+  const { adminFilter, subAccountId } = useTenant();
   const leadId = parseInt(params.id as string);
   
   const [isLoading, setIsLoading] = useState(false);
@@ -51,22 +51,21 @@ export default function EditLeadPage() {
         setIsLoadingLead(true);
         const [leadData, usersData] = await Promise.all([
           api.leads.getLead(leadId),
-          api.adminAuth.getAllUsers(currentFilter)
+          api.adminAuth.getAllUsers(adminFilter)
         ]);
-        
+
         setLead(leadData);
         setSelectedUserId(leadData.regularUserId);
-        
+
         // Filter out admin users, only show regular users
         const regularUsers = usersData.filter(user => user.role !== 'admin');
         setUsers(regularUsers);
-        
+
         // Load strategies for the selected user
         const strategiesData = await api.strategies.getStrategiesByUser(leadData.regularUserId);
         setStrategies(strategiesData);
-        
+
         // Populate form with existing data
-        const currentSubaccount = getCurrentSubaccount();
         setFormData({
           regularUserId: leadData.regularUserId,
           strategyId: leadData.strategyId,
@@ -78,7 +77,7 @@ export default function EditLeadPage() {
           customId: leadData.customId || '',
           status: leadData.status,
           notes: leadData.notes || '',
-          subAccountId: currentSubaccount?.id || leadData.subAccountId || 0,
+          subAccountId: subAccountId || leadData.subAccountId || 0,
         });
       } catch (error) {
         logger.error('Failed to load lead data:', error);
@@ -91,7 +90,7 @@ export default function EditLeadPage() {
     if (leadId) {
       loadData();
     }
-  }, [leadId, currentFilter, getCurrentSubaccount]);
+  }, [leadId, adminFilter, subAccountId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

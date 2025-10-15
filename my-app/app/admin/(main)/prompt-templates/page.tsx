@@ -9,7 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 import type { PromptTemplate } from '@/lib/api/endpoints/prompt-templates';
-import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
+import { useTenant } from '@/contexts/tenant-context';
 
 export default function PromptTemplatesPage() {
   const [templates, setTemplates] = useState<PromptTemplate[]>([]);
@@ -18,21 +18,20 @@ export default function PromptTemplatesPage() {
   const [deleting, setDeleting] = useState<number | null>(null);
   const router = useRouter();
   const { toast } = useToast();
-  const { getCurrentSubaccount, isGlobalView } = useSubaccountFilter();
+  const { subAccountId, isGlobalView, getCurrentSubaccount } = useTenant();
 
   useEffect(() => {
     loadTemplates();
-  }, [getCurrentSubaccount]);
+  }, [subAccountId]);
 
   const loadTemplates = async () => {
     try {
       setLoading(true);
-      const currentSubaccount = getCurrentSubaccount();
 
       let data: PromptTemplate[];
-      if (currentSubaccount) {
+      if (subAccountId) {
         // Load templates for specific subaccount with activation status
-        data = await api.promptTemplates.getAllForSubAccount(currentSubaccount.id);
+        data = await api.promptTemplates.getAllForSubAccount(subAccountId);
       } else {
         // Load all templates (global view)
         data = await api.promptTemplates.getAll();
@@ -52,9 +51,7 @@ export default function PromptTemplatesPage() {
   };
 
   const handleActivate = async (id: number) => {
-    const currentSubaccount = getCurrentSubaccount();
-
-    if (isGlobalView()) {
+    if (isGlobalView) {
       toast({
         title: 'Error',
         description: 'Please select a specific subaccount to activate templates. Templates cannot be activated globally.',
@@ -63,7 +60,7 @@ export default function PromptTemplatesPage() {
       return;
     }
 
-    if (!currentSubaccount) {
+    if (!subAccountId) {
       toast({
         title: 'Error',
         description: 'No subaccount selected. Please select a subaccount first.',
@@ -74,11 +71,12 @@ export default function PromptTemplatesPage() {
 
     try {
       setActivating(id);
-      await api.promptTemplates.activate(id, currentSubaccount.id);
+      await api.promptTemplates.activate(id, subAccountId);
       await loadTemplates(); // Reload to get updated status
+      const currentSubaccount = getCurrentSubaccount();
       toast({
         title: 'Success',
-        description: `Template activated successfully for ${currentSubaccount.name}`,
+        description: `Template activated successfully for ${currentSubaccount?.name}`,
       });
     } catch (error) {
       console.error('Failed to activate template:', error);
@@ -155,7 +153,7 @@ export default function PromptTemplatesPage() {
                 (for {getCurrentSubaccount()?.name})
               </span>
             )}
-            {isGlobalView() && (
+            {isGlobalView && (
               <span className="ml-2 text-amber-600 font-medium">
                 (Global View - Select a subaccount to activate templates)
               </span>

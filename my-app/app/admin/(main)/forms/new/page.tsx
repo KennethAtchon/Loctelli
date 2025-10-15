@@ -11,14 +11,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
-import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
+import { useTenant } from '@/contexts/tenant-context';
 import { FormFieldEditor } from '@/components/admin/forms/form-field-editor';
 import { JsonImportDialog } from '@/components/admin/forms/json-import-dialog';
 import type { CreateFormTemplateDto, FormField } from '@/lib/api/endpoints/forms';
 
 
 export default function NewFormTemplatePage() {
-  const { getCurrentSubaccount } = useSubaccountFilter();
+  const { subAccountId } = useTenant();
   const [formData, setFormData] = useState<CreateFormTemplateDto>({
     name: '',
     slug: '',
@@ -137,10 +137,9 @@ export default function NewFormTemplatePage() {
 
     setLoading(true);
     try {
-      const currentSubAccount = getCurrentSubaccount();
       const dataToSubmit = {
         ...formData,
-        subAccountId: currentSubAccount?.id,
+        subAccountId: subAccountId,
       };
 
       await api.forms.createFormTemplate(dataToSubmit);

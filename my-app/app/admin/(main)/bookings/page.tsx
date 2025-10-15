@@ -10,10 +10,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Calendar, Clock, User, Building, Eye, Edit } from 'lucide-react';
 import { Booking } from '@/types';
 import logger from '@/lib/logger';
-import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
+import { useTenant } from '@/contexts/tenant-context';
 
 export default function BookingsPage() {
-  const { getCurrentSubaccount } = useSubaccountFilter();
+  const { getTenantQueryParams } = useTenant();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -141,10 +141,12 @@ export default function BookingsPage() {
     try {
       setIsRefreshing(true);
       setError(null);
-      const currentSubaccount = getCurrentSubaccount();
-      const bookingsData = await api.bookings.getBookings(
-        currentSubaccount ? { subAccountId: currentSubaccount.id } : undefined
-      );
+
+      // Use tenant context for automatic filtering
+      const queryParams = getTenantQueryParams();
+      logger.debug('Loading bookings with tenant params:', queryParams);
+
+      const bookingsData = await api.bookings.getBookings(queryParams);
       setBookings(bookingsData);
       setFilteredBookings(bookingsData);
       setTotalItems(bookingsData.length);
@@ -155,7 +157,7 @@ export default function BookingsPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [getCurrentSubaccount]);
+  }, [getTenantQueryParams]);
 
   // Handle search
   const handleSearch = (term: string) => {

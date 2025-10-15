@@ -10,7 +10,7 @@ import { api } from '@/lib/api';
 import type { SubAccount, CreateSubAccountDto, UpdateSubAccountDto } from '@/lib/api';
 import { CreateSubAccountDialog } from './create-subaccount-dialog';
 import { EditSubAccountDialog } from './edit-subaccount-dialog';
-import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
+import { useTenant } from '@/contexts/tenant-context';
 
 export default function SubAccountsPage() {
   const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
@@ -19,7 +19,7 @@ export default function SubAccountsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingSubAccount, setEditingSubAccount] = useState<SubAccount | null>(null);
-  const { setFilter, refreshSubaccounts, refreshFilter } = useSubaccountFilter();
+  const { setSubAccountId, refreshSubaccounts } = useTenant();
 
   const loadSubAccounts = async () => {
     try {
@@ -44,8 +44,7 @@ export default function SubAccountsPage() {
       toast.success('SubAccount created successfully');
       setIsCreateDialogOpen(false);
       await loadSubAccounts();
-      await refreshSubaccounts(); // Refresh the subaccount filter context
-      refreshFilter(); // Refresh the filter to ensure it's updated
+      await refreshSubaccounts(); // Refresh the subaccount context
     } catch {
       toast.error('Failed to create SubAccount');
     }
@@ -85,7 +84,7 @@ export default function SubAccountsPage() {
   const handleViewDetails = async (subAccount: SubAccount) => {
     // Ensure the subaccount list is up to date before setting the filter
     await refreshSubaccounts();
-    setFilter(subAccount.id.toString());
+    setSubAccountId(subAccount.id);
     toast.success(`Filtered to ${subAccount.name}`);
   };
 

@@ -10,13 +10,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Target, Eye, Edit, Trash2 } from 'lucide-react';
 import { Strategy } from '@/types';
 import logger from '@/lib/logger';
-import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
+import { useTenant } from '@/contexts/tenant-context';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function StrategiesPage() {
   const router = useRouter();
-  const { getCurrentSubaccount } = useSubaccountFilter();
+  const { getTenantQueryParams } = useTenant();
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [filteredStrategies, setFilteredStrategies] = useState<Strategy[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -121,10 +121,12 @@ export default function StrategiesPage() {
     try {
       setIsRefreshing(true);
       setError(null);
-      const currentSubaccount = getCurrentSubaccount();
-      const strategiesData = await api.strategies.getStrategies(
-        currentSubaccount ? { subAccountId: currentSubaccount.id } : undefined
-      );
+
+      // Use tenant context for automatic filtering
+      const queryParams = getTenantQueryParams();
+      logger.debug('Loading strategies with tenant params:', queryParams);
+
+      const strategiesData = await api.strategies.getStrategies(queryParams);
       setStrategies(strategiesData);
       setFilteredStrategies(strategiesData);
       setTotalItems(strategiesData.length);
@@ -135,7 +137,7 @@ export default function StrategiesPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [getCurrentSubaccount]);
+  }, [getTenantQueryParams]);
 
   // Handle search
   const handleSearch = (term: string) => {

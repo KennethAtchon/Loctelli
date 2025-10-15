@@ -11,7 +11,7 @@ import { Users, Target, Calendar, RefreshCw, Plus, Eye, Building, Globe, Code, T
 import { DashboardStats, SystemStatus } from '@/lib/api/endpoints/admin-auth';
 import Link from 'next/link';
 import logger from '@/lib/logger';
-import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
+import { useTenant } from '@/contexts/tenant-context';
 import { LeadDetailsContent } from '@/components/admin/lead-details-content';
 
 interface DetailedUser {
@@ -89,7 +89,7 @@ interface DetailedLead {
 }
 
 export default function AdminDashboardPage() {
-  const { currentFilter, getCurrentSubaccount, isGlobalView } = useSubaccountFilter();
+  const { adminFilter, isGlobalView, getCurrentSubaccount } = useTenant();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
   const [recentLeads, setRecentLeads] = useState<DetailedLead[]>([]);
@@ -103,10 +103,14 @@ export default function AdminDashboardPage() {
     try {
       setIsRefreshing(true);
       setError(null);
+
+      // Use tenant context - adminFilter is compatible with the API
+      logger.debug('Loading dashboard with tenant filter:', adminFilter);
+
       const [dashboardStats, status, leads] = await Promise.all([
-        api.adminAuth.getDashboardStats(currentFilter),
+        api.adminAuth.getDashboardStats(adminFilter),
         api.adminAuth.getSystemStatus(),
-        api.adminAuth.getRecentLeads(currentFilter)
+        api.adminAuth.getRecentLeads(adminFilter)
       ]);
       setStats(dashboardStats);
       setSystemStatus(status);
@@ -118,7 +122,7 @@ export default function AdminDashboardPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [currentFilter]);
+  }, [adminFilter]);
 
   useEffect(() => {
     loadDashboardData();

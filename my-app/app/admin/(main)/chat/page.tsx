@@ -17,7 +17,7 @@ import { DetailedLead } from '@/lib/api/endpoints/admin-auth';
 import { Lead } from '@/types';
 import logger from '@/lib/logger';
 import { useToast } from '@/hooks/use-toast';
-import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
+import { useTenant } from '@/contexts/tenant-context';
 import { cn } from '@/lib/utils';
 import ChatInterface, { type Message as ChatInterfaceMessage, type ChatInterfaceConfig, type ChatInterfaceRef } from '@/components/chat/chat-interface';
 
@@ -48,7 +48,7 @@ interface ChatApiResponse {
 }
 
 export default function ChatPage() {
-  const { currentFilter, getCurrentSubaccount } = useSubaccountFilter();
+  const { getTenantQueryParams } = useTenant();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatInterfaceMessages, setChatInterfaceMessages] = useState<ChatInterfaceMessage[]>([]);
   const [selectedLeadId, setSelectedLeadId] = useState<string>('');
@@ -101,18 +101,12 @@ export default function ChatPage() {
       try {
         setIsLoadingLeads(true);
         setError(null);
-        
-        const currentSubaccount = getCurrentSubaccount();
-        const params: { subAccountId?: number } = {};
-        
-        if (currentSubaccount) {
-          params.subAccountId = currentSubaccount.id;
-          logger.debug('Loading leads for subaccount:', currentSubaccount.name, currentSubaccount.id);
-        } else {
-          logger.debug('Loading leads for global view');
-        }
-        
-        const leadsData = await api.leads.getLeads(params);
+
+        // Use tenant context for automatic filtering
+        const queryParams = getTenantQueryParams();
+        logger.debug('Loading leads with tenant params:', queryParams);
+
+        const leadsData = await api.leads.getLeads(queryParams);
         setLeads(leadsData);
         logger.debug('Loaded leads:', leadsData.length);
       } catch (error) {
@@ -123,7 +117,7 @@ export default function ChatPage() {
       }
     };
     loadLeads();
-  }, [currentFilter, getCurrentSubaccount]);
+  }, [getTenantQueryParams]);
 
   // Cleanup error state on unmount
   useEffect(() => {
@@ -135,12 +129,12 @@ export default function ChatPage() {
   // Clear selected lead when subaccount filter changes
   useEffect(() => {
     if (selectedLeadId) {
-      const currentSubaccount = getCurrentSubaccount();
+      const { subAccountId } = getTenantQueryParams();
       const selectedLead = leads.find(lead => lead.id.toString() === selectedLeadId);
-      
+
       // If we have a selected lead but it doesn't belong to the current subaccount, clear it
-      if (selectedLead && currentSubaccount && selectedLead.subAccountId !== currentSubaccount.id) {
-        logger.debug('Clearing selected lead due to subaccount filter change');
+      if (selectedLead && subAccountId && selectedLead.subAccountId !== subAccountId) {
+        logger.debug('Clearing selected lead due to tenant filter change');
         setSelectedLeadId('');
         setMessages([]);
         setIsTyping(false);
@@ -150,7 +144,7 @@ export default function ChatPage() {
         setleadProfile(null);
       }
     }
-  }, [currentFilter, leads, selectedLeadId, getCurrentSubaccount]);
+  }, [getTenantQueryParams, leads, selectedLeadId]);
 
   const loadleadProfile = async (id: string) => {
     if (!id.trim()) {

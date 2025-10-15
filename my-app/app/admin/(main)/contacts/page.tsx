@@ -11,10 +11,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Mail, Phone, Eye, Edit, MessageSquare, User, Calendar } from 'lucide-react';
 import { ContactSubmission, CreateContactNoteDto } from '@/types';
 import logger from '@/lib/logger';
-import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
+import { useTenant } from '@/contexts/tenant-context';
 
 export default function ContactsPage() {
-  const { getCurrentSubaccount } = useSubaccountFilter();
+  const { getTenantQueryParams } = useTenant();
   const [contacts, setContacts] = useState<ContactSubmission[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<ContactSubmission[]>([]);
   const [stats, setStats] = useState({ total: 0, newCount: 0, inProgress: 0, closed: 0 });
@@ -156,12 +156,16 @@ export default function ContactsPage() {
     try {
       setIsRefreshing(true);
       setError(null);
-      
+
+      // Use tenant context for automatic filtering
+      const queryParams = getTenantQueryParams();
+      logger.debug('Loading contacts with tenant params:', queryParams);
+
       const [contactsData, statsData] = await Promise.all([
-        api.contacts.getContacts(),
-        api.contacts.getStats()
+        api.contacts.getContacts(queryParams),
+        api.contacts.getStats(queryParams)
       ]);
-      
+
       setContacts(contactsData);
       setFilteredContacts(contactsData);
       setStats(statsData);
@@ -173,7 +177,7 @@ export default function ContactsPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, []);
+  }, [getTenantQueryParams]);
 
   // Handle search
   const handleSearch = (term: string) => {

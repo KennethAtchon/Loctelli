@@ -11,12 +11,12 @@ import { Building, Eye, Edit, Trash2, TrendingUp, AlertCircle, CheckCircle, Cloc
 import { Lead, ConversationState } from '@/types';
 import { DetailedLead } from '@/lib/api/endpoints/admin-auth';
 import logger from '@/lib/logger';
-import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
+import { useTenant } from '@/contexts/tenant-context';
 import Link from 'next/link';
 import { LeadDetailsContent } from '@/components/admin/lead-details-content';
 
 export default function LeadsPage() {
-  const { getCurrentSubaccount } = useSubaccountFilter();
+  const { getTenantQueryParams, isGlobalView, subAccountId } = useTenant();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -154,10 +154,12 @@ export default function LeadsPage() {
     try {
       setIsRefreshing(true);
       setError(null);
-      const currentSubaccount = getCurrentSubaccount();
-      const leadsData = await api.leads.getLeads(
-        currentSubaccount ? { subAccountId: currentSubaccount.id } : undefined
-      );
+
+      // Use tenant context for automatic filtering
+      const queryParams = getTenantQueryParams();
+      logger.debug('Loading leads with tenant params:', queryParams);
+
+      const leadsData = await api.leads.getLeads(queryParams);
       setLeads(leadsData);
       setFilteredLeads(leadsData);
       setTotalItems(leadsData.length);
@@ -168,7 +170,7 @@ export default function LeadsPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [getCurrentSubaccount]);
+  }, [getTenantQueryParams]);
 
   // Handle search
   const handleSearch = (term: string) => {

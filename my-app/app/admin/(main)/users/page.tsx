@@ -11,12 +11,12 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Eye, Edit, Trash2, Users, UserCheck, UserX, UserPlus } from 'lucide-react';
 import logger from '@/lib/logger';
-import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
+import { useTenant } from '@/contexts/tenant-context';
 import { CreateUserDialog } from './create-user-dialog';
 import { EditUserDialog } from './edit-user-dialog';
 
 export default function UsersPage() {
-  const { currentFilter, availableSubaccounts } = useSubaccountFilter();
+  const { getTenantQueryParams, adminFilter, availableSubaccounts } = useTenant();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -146,7 +146,9 @@ export default function UsersPage() {
     try {
       setIsRefreshing(true);
       setError('');
-      const usersData = await api.adminAuth.getAllUsers(currentFilter);
+
+      // Use tenant context - adminFilter is compatible with the API
+      const usersData = await api.adminAuth.getAllUsers(adminFilter);
       setUsers(usersData);
       setFilteredUsers(usersData);
       setTotalItems(usersData.length);
@@ -157,7 +159,7 @@ export default function UsersPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [currentFilter]);
+  }, [adminFilter]);
 
   // Handle search
   const handleSearch = (term: string) => {

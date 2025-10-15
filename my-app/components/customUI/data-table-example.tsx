@@ -7,12 +7,12 @@ import { DataTable, Column, Filter, StatCard } from './data-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, Edit, Trash2, Users, UserCheck, UserX, UserPlus } from 'lucide-react';
-import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
+import { useTenant } from '@/contexts/tenant-context';
 import { usePagination } from './use-pagination';
 
 // Example of how to refactor the Users page using the new DataTable component
 export function UsersTableExample() {
-  const { currentFilter } = useSubaccountFilter();
+  const { adminFilter } = useTenant();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -139,7 +139,7 @@ export function UsersTableExample() {
     try {
       setIsRefreshing(true);
       setError('');
-      const usersData = await api.adminAuth.getAllUsers(currentFilter);
+      const usersData = await api.adminAuth.getAllUsers(adminFilter);
       setUsers(usersData);
       setFilteredUsers(usersData);
       setTotalItems(usersData.length);
@@ -150,7 +150,7 @@ export function UsersTableExample() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [currentFilter, setTotalItems]);
+  }, [adminFilter, setTotalItems]);
 
   // Handle search
   const handleSearch = (term: string) => {

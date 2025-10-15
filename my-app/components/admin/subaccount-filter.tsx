@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
+import { useTenant } from '@/contexts/tenant-context';
 import { cn } from '@/lib/utils';
 
 interface SubaccountFilterProps {
@@ -22,31 +22,31 @@ interface SubaccountFilterProps {
 
 export function SubaccountFilter({ className, variant = 'default' }: SubaccountFilterProps) {
   const {
-    currentFilter,
+    subAccountId,
     availableSubaccounts,
     isSubaccountsLoading,
-    setFilter,
+    setSubAccountId,
     getCurrentSubaccount,
     isGlobalView,
-  } = useSubaccountFilter();
+  } = useTenant();
 
   const [isOpen, setIsOpen] = useState(false);
   const currentSubaccount = getCurrentSubaccount();
 
-  const handleFilterChange = (filter: string) => {
-    setFilter(filter);
+  const handleFilterChange = (filterId: number | null) => {
+    setSubAccountId(filterId);
     setIsOpen(false);
   };
 
   const getDisplayText = () => {
-    if (isGlobalView()) {
+    if (isGlobalView) {
       return 'GLOBAL';
     }
     return currentSubaccount?.name || 'Unknown';
   };
 
   const getDisplayIcon = () => {
-    if (isGlobalView()) {
+    if (isGlobalView) {
       return <Globe className="h-4 w-4" />;
     }
     return <Building2 className="h-4 w-4" />;
@@ -81,15 +81,15 @@ export function SubaccountFilter({ className, variant = 'default' }: SubaccountF
           <DropdownMenuSeparator />
           
           <DropdownMenuItem
-            onClick={() => handleFilterChange('GLOBAL')}
+            onClick={() => handleFilterChange(null)}
             className={cn(
               'flex items-center gap-2 hover:bg-blue-50 transition-colors duration-200',
-              currentFilter === 'GLOBAL' && 'bg-blue-50 text-blue-700'
+              isGlobalView && 'bg-blue-50 text-blue-700'
             )}
           >
             <Globe className="h-4 w-4" />
             <span>Global View</span>
-            {currentFilter === 'GLOBAL' && (
+            {isGlobalView && (
               <Badge variant="secondary" className="ml-auto text-xs">
                 Active
               </Badge>
@@ -99,10 +99,10 @@ export function SubaccountFilter({ className, variant = 'default' }: SubaccountF
           {availableSubaccounts.map((subaccount) => (
             <DropdownMenuItem
               key={subaccount.id}
-              onClick={() => handleFilterChange(subaccount.id.toString())}
+              onClick={() => handleFilterChange(subaccount.id)}
               className={cn(
                 'flex items-center gap-2 hover:bg-blue-50 transition-colors duration-200',
-                currentFilter === subaccount.id.toString() && 'bg-blue-50 text-blue-700'
+                subAccountId === subaccount.id && 'bg-blue-50 text-blue-700'
               )}
             >
               <Building2 className="h-4 w-4" />
@@ -114,7 +114,7 @@ export function SubaccountFilter({ className, variant = 'default' }: SubaccountF
                   </div>
                 )}
               </div>
-              {currentFilter === subaccount.id.toString() && (
+              {subAccountId === subaccount.id && (
                 <Badge variant="secondary" className="ml-auto text-xs">
                   Active
                 </Badge>
@@ -151,7 +151,7 @@ export function SubaccountFilter({ className, variant = 'default' }: SubaccountF
               <div className="flex flex-col items-start">
                 <span className="text-sm font-medium">{getDisplayText()}</span>
                 <span className="text-xs text-gray-500">
-                  {isGlobalView() ? 'All Subaccounts' : 'Subaccount View'}
+                  {isGlobalView ? 'All Subaccounts' : 'Subaccount View'}
                 </span>
               </div>
               <ChevronDown className="h-4 w-4" />
@@ -164,10 +164,10 @@ export function SubaccountFilter({ className, variant = 'default' }: SubaccountF
         <DropdownMenuSeparator />
         
         <DropdownMenuItem
-          onClick={() => handleFilterChange('GLOBAL')}
+          onClick={() => handleFilterChange(null)}
           className={cn(
             'flex items-center gap-3 py-3',
-            currentFilter === 'GLOBAL' && 'bg-blue-50 text-blue-700'
+            isGlobalView && 'bg-blue-50 text-blue-700'
           )}
         >
           <Globe className="h-5 w-5" />
@@ -175,7 +175,7 @@ export function SubaccountFilter({ className, variant = 'default' }: SubaccountF
             <div className="font-medium">Global View</div>
             <div className="text-sm text-gray-500">View all subaccounts data</div>
           </div>
-          {currentFilter === 'GLOBAL' && (
+          {isGlobalView && (
             <Badge variant="secondary" className="ml-auto">
               Active
             </Badge>
@@ -185,10 +185,10 @@ export function SubaccountFilter({ className, variant = 'default' }: SubaccountF
         {availableSubaccounts.map((subaccount) => (
           <DropdownMenuItem
             key={subaccount.id}
-            onClick={() => handleFilterChange(subaccount.id.toString())}
+            onClick={() => handleFilterChange(subaccount.id)}
             className={cn(
               'flex items-center gap-3 py-3',
-              currentFilter === subaccount.id.toString() && 'bg-blue-50 text-blue-700'
+              subAccountId === subaccount.id && 'bg-blue-50 text-blue-700'
             )}
           >
             <Building2 className="h-5 w-5" />
@@ -201,7 +201,7 @@ export function SubaccountFilter({ className, variant = 'default' }: SubaccountF
                 {subaccount._count.users} users • {subaccount._count.strategies} strategies
               </div>
             </div>
-            {currentFilter === subaccount.id.toString() && (
+            {subAccountId === subaccount.id && (
               <Badge variant="secondary" className="ml-auto">
                 Active
               </Badge>

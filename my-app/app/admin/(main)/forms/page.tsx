@@ -11,11 +11,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { FormTemplate, FormSubmission } from '@/lib/api';
 import { Eye, Edit, Plus, FileText, Users, Calendar, CheckCircle } from 'lucide-react';
 import logger from '@/lib/logger';
-import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
+import { useTenant } from '@/contexts/tenant-context';
 
 export default function FormsPage() {
   const router = useRouter();
-  const { getCurrentSubaccount } = useSubaccountFilter();
+  const { subAccountId } = useTenant();
   const [templates, setTemplates] = useState<FormTemplate[]>([]);
   const [submissions, setSubmissions] = useState<FormSubmission[]>([]);
   const [filteredTemplates, setFilteredTemplates] = useState<FormTemplate[]>([]);
@@ -149,12 +149,12 @@ export default function FormsPage() {
       setIsRefreshing(true);
       setError(null);
 
-      const currentSubAccount = getCurrentSubaccount();
-      const subAccountId = currentSubAccount?.id;
+      // Use tenant context for automatic filtering
+      logger.debug('Loading forms with tenant subAccountId:', subAccountId);
 
       const [templatesData, submissionsData] = await Promise.all([
-        api.forms.getFormTemplates(subAccountId),
-        api.forms.getFormSubmissions(subAccountId)
+        api.forms.getFormTemplates(subAccountId || undefined),
+        api.forms.getFormSubmissions(subAccountId || undefined)
       ]);
 
       setTemplates(templatesData);
@@ -180,7 +180,7 @@ export default function FormsPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [getCurrentSubaccount]);
+  }, [subAccountId]);
 
   // Handle search for templates
   const handleTemplateSearch = (term: string) => {

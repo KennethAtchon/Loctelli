@@ -16,12 +16,12 @@ import { CreateStrategyDto } from '@/types';
 import type { UserProfile } from '@/lib/api/endpoints/admin-auth';
 import type { PromptTemplate } from '@/lib/api/endpoints/prompt-templates';
 import logger from '@/lib/logger';
-import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
+import { useTenant } from '@/contexts/tenant-context';
 import { useToast } from '@/hooks/use-toast';
 
 export default function NewStrategyPage() {
   const router = useRouter();
-  const { currentFilter } = useSubaccountFilter();
+  const { adminFilter } = useTenant();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -60,7 +60,7 @@ export default function NewStrategyPage() {
     const loadData = async () => {
       try {
         const [usersData, templatesData] = await Promise.all([
-          api.adminAuth.getAllUsers(currentFilter),
+          api.adminAuth.getAllUsers(adminFilter),
           api.promptTemplates.getAll()
         ]);
 
@@ -80,7 +80,7 @@ export default function NewStrategyPage() {
       }
     };
     loadData();
-  }, [currentFilter]);
+  }, [adminFilter]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

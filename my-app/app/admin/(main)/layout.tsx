@@ -4,6 +4,7 @@ import { Header } from '@/components/admin/header';
 import { AdminProtectedRoute } from '@/components/auth/admin-protected-route';
 import { SubaccountFilterProvider } from '@/contexts/subaccount-filter-context';
 import { DarkModeProvider } from '@/contexts/dark-mode-context';
+import { TenantProvider } from '@/contexts/tenant-context';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -32,9 +33,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     <AdminProtectedRoute>
       <DarkModeProvider>
         <SubaccountFilterProvider>
-          <AdminLayoutContent>
-            {children}
-          </AdminLayoutContent>
+          <TenantProvider>
+            <AdminLayoutContent>
+              {children}
+            </AdminLayoutContent>
+          </TenantProvider>
         </SubaccountFilterProvider>
       </DarkModeProvider>
     </AdminProtectedRoute>

@@ -16,11 +16,11 @@ import { CreateLeadDto } from '@/types';
 import { Strategy } from '@/types';
 import type { UserProfile } from '@/lib/api/endpoints/admin-auth';
 import logger from '@/lib/logger';
-import { useSubaccountFilter } from '@/contexts/subaccount-filter-context';
+import { useTenant } from '@/contexts/tenant-context';
 
 export default function NewLeadPage() {
   const router = useRouter();
-  const { currentFilter, getCurrentSubaccount } = useSubaccountFilter();
+  const { adminFilter } = useTenant();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -44,18 +44,18 @@ export default function NewLeadPage() {
   useEffect(() => {
     const loadUsers = async () => {
       try {
-        const usersData = await api.adminAuth.getAllUsers(currentFilter);
+        const usersData = await api.adminAuth.getAllUsers(adminFilter);
         // Filter out admin users, only show regular users
         const regularUsers = usersData.filter(user => user.role !== 'admin');
         setUsers(regularUsers);
-        
+
 
       } catch (error) {
         logger.error('Failed to load users:', error);
       }
     };
     loadUsers();
-  }, [currentFilter, getCurrentSubaccount]);
+  }, [adminFilter]);
 
   // Load strategies for the selected user
   useEffect(() => {
