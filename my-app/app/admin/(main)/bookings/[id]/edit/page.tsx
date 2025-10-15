@@ -63,7 +63,7 @@ export default function EditBookingPage() {
         });
 
         // Load users for dropdown
-        const usersData = await api.adminAuth.getAllUsers(adminFilter);
+        const usersData = await api.adminAuth.getAllUsers(adminFilter ?? undefined);
         setUsers(usersData);
 
         // Load leads for dropdown

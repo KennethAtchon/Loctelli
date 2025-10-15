@@ -44,7 +44,7 @@ export default function NewLeadPage() {
   useEffect(() => {
     const loadUsers = async () => {
       try {
-        const usersData = await api.adminAuth.getAllUsers(adminFilter);
+        const usersData = await api.adminAuth.getAllUsers(adminFilter ?? undefined);
         // Filter out admin users, only show regular users
         const regularUsers = usersData.filter(user => user.role !== 'admin');
         setUsers(regularUsers);

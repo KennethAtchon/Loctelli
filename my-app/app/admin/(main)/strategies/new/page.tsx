@@ -60,7 +60,7 @@ export default function NewStrategyPage() {
     const loadData = async () => {
       try {
         const [usersData, templatesData] = await Promise.all([
-          api.adminAuth.getAllUsers(adminFilter),
+          api.adminAuth.getAllUsers(adminFilter ?? undefined),
           api.promptTemplates.getAll()
         ]);
 

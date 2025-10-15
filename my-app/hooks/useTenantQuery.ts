@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, UseQueryOptions, UseMutationOptions, Query } from '@tanstack/react-query';
 import { useTenant } from '@/contexts/tenant-context';
 import logger from '@/lib/logger';
 
@@ -92,7 +92,7 @@ export function useTenantMutation<
 
   return useMutation<TData, TError, TVariables, TContext>({
     ...options,
-    mutationFn: async (variables) => {
+    mutationFn: async (variables: TVariables) => {
       // Validate requirement
       if (options.requireSubAccount && !subAccountId) {
         throw new Error('SubAccount required for this operation');
@@ -108,9 +108,9 @@ export function useTenantMutation<
         subAccountId,
       });
 
-      return options.mutationFn({ ...variables, subAccountId } as any);
+      return options.mutationFn({ ...variables, subAccountId } as TVariables & { subAccountId: number | null });
     },
-    onSuccess: (...args) => {
+    onSuccess: (data, variables, context) => {
       // Invalidate specified queries
       if (options.invalidateQueries) {
         options.invalidateQueries.forEach((queryKey) => {
@@ -122,7 +122,8 @@ export function useTenantMutation<
 
       // Call original onSuccess if provided
       if (options.onSuccess) {
-        options.onSuccess(...args);
+        // @ts-expect-error - onSuccess signature varies between versions
+        options.onSuccess(data, variables, context);
       }
     },
   });
@@ -173,7 +174,7 @@ export function useInvalidateTenantQueries() {
       logger.debug('Invalidating all tenant queries', { mode, subAccountId });
 
       queryClient.invalidateQueries({
-        predicate: (query) => {
+        predicate: (query: Query) => {
           const key = query.queryKey as any[];
           const lastItem = key[key.length - 1];
 
@@ -189,9 +190,9 @@ export function useInvalidateTenantQueries() {
       });
     },
 
-    invalidateTenantQuery: (queryKey: readonly unknown[]) => {
+    invalidateTenantQuery: (query: readonly unknown[]) => {
       queryClient.invalidateQueries({
-        queryKey: [...queryKey, { tenantMode: mode, subAccountId }],
+        queryKey: [...query, { tenantMode: mode, subAccountId }],
       });
     },
   };

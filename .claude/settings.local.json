@@ -21,7 +21,9 @@
       "Bash(done)",
       "Bash(do sed -i \"s|from ''''@/contexts/admin-auth-context''''|from ''''@/contexts/unified-auth-context''''|g\" \"$file\")",
       "Bash(chmod +x .helper/scripts/scan-tenant-migration.sh)",
-      "Bash(bash .helper/scripts/scan-tenant-migration.sh)"
+      "Bash(bash .helper/scripts/scan-tenant-migration.sh)",
+      "Bash(npm ci)",
+      "Bash(pnpm install)"
     ],
     "deny": []
   },

@@ -14,7 +14,8 @@ import logger from '@/lib/logger';
 import { useTenant } from '@/contexts/tenant-context';
 
 export default function ContactsPage() {
-  const { getTenantQueryParams } = useTenant();
+  // Tenant filtering is handled automatically via headers in the API client
+  const { } = useTenant();
   const [contacts, setContacts] = useState<ContactSubmission[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<ContactSubmission[]>([]);
   const [stats, setStats] = useState({ total: 0, newCount: 0, inProgress: 0, closed: 0 });
@@ -157,13 +158,12 @@ export default function ContactsPage() {
       setIsRefreshing(true);
       setError(null);
 
-      // Use tenant context for automatic filtering
-      const queryParams = getTenantQueryParams();
-      logger.debug('Loading contacts with tenant params:', queryParams);
+      // Tenant filtering is handled automatically via headers in the API client
+      logger.debug('Loading contacts - tenant filtering is automatic via headers');
 
       const [contactsData, statsData] = await Promise.all([
-        api.contacts.getContacts(queryParams),
-        api.contacts.getStats(queryParams)
+        api.contacts.getContacts(),
+        api.contacts.getStats()
       ]);
 
       setContacts(contactsData);
@@ -177,7 +177,7 @@ export default function ContactsPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [getTenantQueryParams]);
+  }, []);
 
   // Handle search
   const handleSearch = (term: string) => {

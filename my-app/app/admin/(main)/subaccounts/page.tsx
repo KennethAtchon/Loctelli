@@ -44,7 +44,7 @@ export default function SubAccountsPage() {
       toast.success('SubAccount created successfully');
       setIsCreateDialogOpen(false);
       await loadSubAccounts();
-      await refreshSubaccounts(); // Refresh the subaccount context
+      await refreshSubaccounts?.(); // Refresh the subaccount context
     } catch {
       toast.error('Failed to create SubAccount');
     }
@@ -83,8 +83,8 @@ export default function SubAccountsPage() {
 
   const handleViewDetails = async (subAccount: SubAccount) => {
     // Ensure the subaccount list is up to date before setting the filter
-    await refreshSubaccounts();
-    setSubAccountId(subAccount.id);
+    await refreshSubaccounts?.();
+    setSubAccountId?.(subAccount.id);
     toast.success(`Filtered to ${subAccount.name}`);
   };
 

@@ -31,10 +31,10 @@ export function SubaccountFilter({ className, variant = 'default' }: SubaccountF
   } = useTenant();
 
   const [isOpen, setIsOpen] = useState(false);
-  const currentSubaccount = getCurrentSubaccount();
+  const currentSubaccount = getCurrentSubaccount?.();
 
   const handleFilterChange = (filterId: number | null) => {
-    setSubAccountId(filterId);
+    setSubAccountId?.(filterId);
     setIsOpen(false);
   };
 

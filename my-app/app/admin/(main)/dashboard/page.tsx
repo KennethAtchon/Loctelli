@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Users, Target, Calendar, RefreshCw, Plus, Eye, Building, Globe, Code, TrendingUp, TrendingDown, Activity, Zap } from 'lucide-react';
-import { DashboardStats, SystemStatus } from '@/lib/api/endpoints/admin-auth';
+import { DashboardStats, SystemStatus, DetailedLead } from '@/lib/api/endpoints/admin-auth';
 import Link from 'next/link';
 import logger from '@/lib/logger';
 import { useTenant } from '@/contexts/tenant-context';
@@ -56,38 +56,6 @@ interface DetailedUser {
   }>;
 }
 
-interface DetailedLead {
-  id: number;
-  name: string;
-  email?: string;
-  phone?: string;
-  company?: string;
-  position?: string;
-  customId?: string;
-  status: string;
-  notes?: string;
-  lastMessage?: string;
-  lastMessageDate?: string;
-  createdAt: string;
-  updatedAt: string;
-  user?: {
-    id: number;
-    name: string;
-    email: string;
-  };
-  strategy?: {
-    id: number;
-    name: string;
-    tag?: string;
-  };
-  bookings?: Array<{
-    id: number;
-    bookingType: string;
-    status: string;
-    createdAt: string;
-  }>;
-}
-
 export default function AdminDashboardPage() {
   const { adminFilter, isGlobalView, getCurrentSubaccount } = useTenant();
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -108,9 +76,9 @@ export default function AdminDashboardPage() {
       logger.debug('Loading dashboard with tenant filter:', adminFilter);
 
       const [dashboardStats, status, leads] = await Promise.all([
-        api.adminAuth.getDashboardStats(adminFilter),
+        api.adminAuth.getDashboardStats(adminFilter ?? undefined),
         api.adminAuth.getSystemStatus(),
-        api.adminAuth.getRecentLeads(adminFilter)
+        api.adminAuth.getRecentLeads(adminFilter ?? undefined)
       ]);
       setStats(dashboardStats);
       setSystemStatus(status);
@@ -168,16 +136,16 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return 'N/A';
-    
-    const date = new Date(dateString);
-    
+  const formatDate = (dateInput: string | Date) => {
+    if (!dateInput) return 'N/A';
+
+    const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+
     // Check if the date is valid
     if (isNaN(date.getTime())) {
       return 'Invalid Date';
     }
-    
+
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -231,15 +199,15 @@ export default function AdminDashboardPage() {
             <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 dark:from-gray-100 dark:via-blue-200 dark:to-indigo-200 bg-clip-text text-transparent">
               Admin Dashboard
             </h1>
-            {!isGlobalView() && (
+            {!isGlobalView && (
               <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/60 rounded-full shadow-sm">
                 <Building className="h-4 w-4 text-blue-600" />
                 <span className="text-sm font-semibold text-blue-700">
-                  {getCurrentSubaccount()?.name}
+                  {getCurrentSubaccount?.()?.name}
                 </span>
               </div>
             )}
-            {isGlobalView() && (
+            {isGlobalView && (
               <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-gray-50 to-slate-50 border border-gray-200/60 rounded-full shadow-sm">
                 <Globe className="h-4 w-4 text-gray-600" />
                 <span className="text-sm font-semibold text-gray-700">
@@ -249,9 +217,9 @@ export default function AdminDashboardPage() {
             )}
           </div>
           <p className="text-gray-600 dark:text-gray-300 text-lg">
-            {isGlobalView() 
-              ? 'Comprehensive overview of all subaccounts and system metrics' 
-              : `Detailed insights for ${getCurrentSubaccount()?.name} subaccount`
+            {isGlobalView
+              ? 'Comprehensive overview of all subaccounts and system metrics'
+              : `Detailed insights for ${getCurrentSubaccount?.()?.name} subaccount`
             }
           </p>
         </div>

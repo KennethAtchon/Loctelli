@@ -35,6 +35,18 @@ export interface TenantContextType {
   // For admin: set filter
   setAdminFilter: ((filter: string) => void) | null;
 
+  // For admin: loading state
+  isSubaccountsLoading: boolean;
+
+  // For admin: refresh subaccounts list
+  refreshSubaccounts: (() => Promise<void>) | null;
+
+  // For admin: set subaccount id (legacy support)
+  setSubAccountId: ((id: number | null) => void) | null;
+
+  // For admin: get current subaccount
+  getCurrentSubaccount: (() => any | null) | null;
+
   // Get query parameters for API calls
   getTenantQueryParams: () => { subAccountId?: number };
 
@@ -73,6 +85,10 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         adminFilter: null,
         availableSubaccounts: [],
         setAdminFilter: null,
+        isSubaccountsLoading: false,
+        refreshSubaccounts: null,
+        setSubAccountId: null,
+        getCurrentSubaccount: null,
         getTenantQueryParams: () => ({}),
         getTenantHeaders: () => ({}),
         canAccessSubAccount: () => false,
@@ -95,6 +111,12 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         adminFilter: subaccountFilterContext?.currentFilter || 'GLOBAL',
         availableSubaccounts: subaccountFilterContext?.availableSubaccounts || [],
         setAdminFilter: subaccountFilterContext?.setFilter || null,
+        isSubaccountsLoading: subaccountFilterContext?.isSubaccountsLoading || false,
+        refreshSubaccounts: subaccountFilterContext?.refreshSubaccounts || null,
+        setSubAccountId: subaccountFilterContext?.setFilter ? (id: number | null) => {
+          subaccountFilterContext.setFilter(id === null ? 'GLOBAL' : id.toString());
+        } : null,
+        getCurrentSubaccount: subaccountFilterContext?.getCurrentSubaccount || null,
 
         getTenantQueryParams: () => {
           if (isGlobal) return {};
@@ -134,6 +156,10 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       adminFilter: null,
       availableSubaccounts: [],
       setAdminFilter: null,
+      isSubaccountsLoading: false,
+      refreshSubaccounts: null,
+      setSubAccountId: null,
+      getCurrentSubaccount: null,
 
       getTenantQueryParams: () => {
         return { subAccountId: userSubAccountId };

@@ -139,7 +139,7 @@ export default function NewFormTemplatePage() {
     try {
       const dataToSubmit = {
         ...formData,
-        subAccountId: subAccountId,
+        subAccountId: subAccountId ?? undefined,
       };
 
       await api.forms.createFormTemplate(dataToSubmit);

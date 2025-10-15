@@ -185,7 +185,7 @@ export default function FormSubmissionsPage() {
       setIsRefreshing(true);
       setError(null);
 
-      const submissionsData = await api.forms.getFormSubmissions(subAccountId);
+      const submissionsData = await api.forms.getFormSubmissions(subAccountId ?? undefined);
 
       setSubmissions(submissionsData);
       setFilteredSubmissions(submissionsData);

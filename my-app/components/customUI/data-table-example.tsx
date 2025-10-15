@@ -139,7 +139,7 @@ export function UsersTableExample() {
     try {
       setIsRefreshing(true);
       setError('');
-      const usersData = await api.adminAuth.getAllUsers(adminFilter);
+      const usersData = await api.adminAuth.getAllUsers(adminFilter ?? undefined);
       setUsers(usersData);
       setFilteredUsers(usersData);
       setTotalItems(usersData.length);

@@ -51,7 +51,7 @@ export default function EditLeadPage() {
         setIsLoadingLead(true);
         const [leadData, usersData] = await Promise.all([
           api.leads.getLead(leadId),
-          api.adminAuth.getAllUsers(adminFilter)
+          api.adminAuth.getAllUsers(adminFilter ?? undefined)
         ]);
 
         setLead(leadData);

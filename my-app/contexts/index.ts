@@ -3,4 +3,4 @@ export { UnifiedAuthProvider, useUnifiedAuth, useAuth, useAdminAuth } from './un
 
 // Other contexts
 export { DarkModeProvider, useDarkMode } from './dark-mode-context';
-export { SubAccountFilterProvider, useSubAccountFilter } from './subaccount-filter-context';
+export { SubaccountFilterProvider, useSubaccountFilter } from './subaccount-filter-context';

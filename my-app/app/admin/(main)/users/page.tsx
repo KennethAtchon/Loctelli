@@ -148,7 +148,7 @@ export default function UsersPage() {
       setError('');
 
       // Use tenant context - adminFilter is compatible with the API
-      const usersData = await api.adminAuth.getAllUsers(adminFilter);
+      const usersData = await api.adminAuth.getAllUsers(adminFilter ?? undefined);
       setUsers(usersData);
       setFilteredUsers(usersData);
       setTotalItems(usersData.length);

@@ -73,7 +73,7 @@ export default function PromptTemplatesPage() {
       setActivating(id);
       await api.promptTemplates.activate(id, subAccountId);
       await loadTemplates(); // Reload to get updated status
-      const currentSubaccount = getCurrentSubaccount();
+      const currentSubaccount = getCurrentSubaccount?.();
       toast({
         title: 'Success',
         description: `Template activated successfully for ${currentSubaccount?.name}`,
@@ -148,9 +148,9 @@ export default function PromptTemplatesPage() {
           <h1 className="text-3xl font-bold text-gray-900">Prompt Templates</h1>
           <p className="text-gray-600 mt-2">
             Manage AI prompt templates for your sales conversations
-            {getCurrentSubaccount() && (
+            {getCurrentSubaccount?.() && (
               <span className="ml-2 text-blue-600 font-medium">
-                (for {getCurrentSubaccount()?.name})
+                (for {getCurrentSubaccount?.()?.name})
               </span>
             )}
             {isGlobalView && (
@@ -181,7 +181,7 @@ export default function PromptTemplatesPage() {
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                  {(getCurrentSubaccount() ? template.isActiveForSubAccount : template.isActive) ? (
+                  {(getCurrentSubaccount?.() ? template.isActiveForSubAccount : template.isActive) ? (
                     <CheckCircle className="h-5 w-5 text-green-600" />
                   ) : (
                     <Circle className="h-5 w-5 text-gray-400" />
@@ -237,8 +237,8 @@ export default function PromptTemplatesPage() {
                     <Edit className="h-4 w-4 mr-1" />
                     Edit
                   </Button>
-                  
-                  {!(getCurrentSubaccount() ? template.isActiveForSubAccount : template.isActive) && (
+
+                  {!(getCurrentSubaccount?.() ? template.isActiveForSubAccount : template.isActive) && (
                     <Button
                       variant="outline"
                       size="sm"
