@@ -22,8 +22,8 @@ export class AdminGuard implements CanActivate {
       throw new ForbiddenException('User not authenticated');
     }
     
-    // Check if user is an admin user (type === 'admin')
-    if (user.type !== 'admin') {
+    // Check if user is an admin user (accountType === 'admin')
+    if (user.accountType !== 'admin') {
       throw new ForbiddenException('Admin access required');
     }
     

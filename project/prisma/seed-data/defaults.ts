@@ -50,6 +50,7 @@ export const DEFAULT_USER_DATA = [
 ];
 
 export const DEFAULT_SUBACCOUNT_DATA = {
+  id: 2, // Explicitly set to 2 since ONBOARDING uses ID 1
   name: 'Default SubAccount',
   description: 'Default SubAccount for new users and existing data',
   isActive: true,

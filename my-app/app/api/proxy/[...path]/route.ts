@@ -4,6 +4,18 @@ import logger from '@/lib/logger';
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
 const API_KEY = process.env.API_KEY; // Server-side only, not NEXT_PUBLIC
 
+// Helper function to parse cookies from cookie header
+function parseCookies(cookieHeader: string): Record<string, string> {
+  const cookies: Record<string, string> = {};
+  cookieHeader.split(';').forEach(cookie => {
+    const [name, value] = cookie.trim().split('=');
+    if (name && value) {
+      cookies[name] = decodeURIComponent(value);
+    }
+  });
+  return cookies;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
@@ -73,7 +85,31 @@ async function handleRequest(
     }
 
     // Forward user authentication headers if present
-    const userToken = request.headers.get('x-user-token');
+    // First check for x-user-token header (from direct API calls)
+    let userToken = request.headers.get('x-user-token');
+
+    // If no header, check cookies (for browser requests through proxy)
+    if (!userToken) {
+      const cookies = request.headers.get('cookie');
+      if (cookies) {
+        // Parse cookies and look for admin tokens first (admin takes precedence)
+        const cookieMap = parseCookies(cookies);
+
+        // Check for admin tokens first
+        if (cookieMap['admin_access_token']) {
+          userToken = cookieMap['admin_access_token'];
+          logger.debug('✅ Found admin_access_token in cookies, forwarding to backend');
+        }
+        // Fall back to regular user token
+        else if (cookieMap['access_token']) {
+          userToken = cookieMap['access_token'];
+          logger.debug('✅ Found access_token in cookies, forwarding to backend');
+        } else {
+          logger.debug('⚠️ No authentication tokens found in cookies');
+        }
+      }
+    }
+
     if (userToken) {
       headers['x-user-token'] = userToken;
     }
