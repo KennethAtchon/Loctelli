@@ -23,27 +23,78 @@ const getDefaultAdminPassword = (): string => {
   return defaultPassword;
 };
 
+// Constants for ONBOARDING subaccount
+const ONBOARDING_SUBACCOUNT_ID = 1;
+const ONBOARDING_NAME = 'Onboarding Workspace';
+const ONBOARDING_DESCRIPTION = 'Temporary workspace for users who have not yet joined or created a subaccount';
+
 async function main() {
   console.log('Starting database seed...');
 
   // Get the first admin user or create one if none exists
   let adminUser = await prisma.adminUser.findFirst();
-  
+
   if (!adminUser) {
     console.log('No admin user found, creating default admin...');
     const defaultPassword = getDefaultAdminPassword();
     const hashedPassword = await bcrypt.hash(defaultPassword, 12);
-    
+
     adminUser = await prisma.adminUser.create({
       data: {
         ...DEFAULT_ADMIN_DATA,
         password: hashedPassword,
       },
     });
-    
+
     console.log(`Default admin created with email: ${DEFAULT_ADMIN_DATA.email}`);
     console.log('Default password: ' + defaultPassword);
   }
+
+  // Create or update ONBOARDING subaccount
+  console.log('Setting up ONBOARDING subaccount...');
+  const onboardingSubAccount = await prisma.subAccount.upsert({
+    where: { id: ONBOARDING_SUBACCOUNT_ID },
+    update: {
+      name: ONBOARDING_NAME,
+      description: ONBOARDING_DESCRIPTION,
+      settings: {
+        isOnboarding: true,
+        restrictedAccess: true,
+        features: {
+          leads: false,
+          strategies: false,
+          bookings: false,
+          sms: false,
+          integrations: false,
+          profile: true,
+          settings: true,
+          tenantSetup: true
+        }
+      }
+    },
+    create: {
+      id: ONBOARDING_SUBACCOUNT_ID,
+      name: ONBOARDING_NAME,
+      description: ONBOARDING_DESCRIPTION,
+      isActive: true,
+      settings: {
+        isOnboarding: true,
+        restrictedAccess: true,
+        features: {
+          leads: false,
+          strategies: false,
+          bookings: false,
+          sms: false,
+          integrations: false,
+          profile: true,
+          settings: true,
+          tenantSetup: true
+        }
+      },
+      createdByAdminId: adminUser.id,
+    },
+  });
+  console.log('ONBOARDING subaccount set up successfully');
 
   // Create default SubAccount if it doesn't exist
   let defaultSubAccount = await prisma.subAccount.findFirst({

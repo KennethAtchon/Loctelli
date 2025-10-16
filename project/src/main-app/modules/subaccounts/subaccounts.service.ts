@@ -1,10 +1,17 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, UnauthorizedException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { CreateSubAccountDto } from './dto/create-subaccount.dto';
 import { UpdateSubAccountDto } from './dto/update-subaccount.dto';
+import { JoinSubAccountDto } from './dto/join-subaccount.dto';
+import { CreateInvitationDto } from './dto/create-invitation.dto';
+import { ONBOARDING_SUBACCOUNT_ID } from '../../../shared/constants/tenant.constants';
+import * as bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class SubAccountsService {
+  private readonly logger = new Logger(SubAccountsService.name);
+
   constructor(private prisma: PrismaService) {}
 
   async create(adminId: number, createSubAccountDto: CreateSubAccountDto) {
@@ -146,5 +153,276 @@ export class SubAccountsService {
       }
       return user;
     }
+  }
+
+  // ========== ONBOARDING METHODS ==========
+
+  /**
+   * Create a new subaccount for a user (moves them from ONBOARDING)
+   */
+  async createSubAccountForUser(
+    userId: number,
+    createDto: CreateSubAccountDto,
+  ) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.subAccountId !== ONBOARDING_SUBACCOUNT_ID) {
+      throw new BadRequestException('User already belongs to a subaccount');
+    }
+
+    // Create new subaccount
+    const subAccount = await this.prisma.subAccount.create({
+      data: {
+        name: createDto.name,
+        description: createDto.description,
+        settings: createDto.settings || {},
+        createdByAdminId: user.createdByAdminId || 1, // Fallback to system admin
+      },
+    });
+
+    // Move user from ONBOARDING to new subaccount and make them admin
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        subAccountId: subAccount.id,
+        role: 'admin', // User becomes admin of their own subaccount
+      },
+    });
+
+    this.logger.log(
+      `User ${userId} created subaccount ${subAccount.id} and became admin`
+    );
+
+    return subAccount;
+  }
+
+  /**
+   * Join an existing subaccount using invitation code
+   */
+  async joinSubAccount(
+    userId: number,
+    joinDto: JoinSubAccountDto,
+  ) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.subAccountId !== ONBOARDING_SUBACCOUNT_ID) {
+      throw new BadRequestException('User already belongs to a subaccount');
+    }
+
+    // Find and validate invitation
+    const invitation = await this.prisma.subAccountInvitation.findUnique({
+      where: { code: joinDto.invitationCode },
+      include: { subAccount: true },
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invalid invitation code');
+    }
+
+    if (!invitation.isActive) {
+      throw new BadRequestException('Invitation is no longer active');
+    }
+
+    if (invitation.expiresAt && invitation.expiresAt < new Date()) {
+      throw new BadRequestException('Invitation has expired');
+    }
+
+    if (invitation.maxUses && invitation.currentUses >= invitation.maxUses) {
+      throw new BadRequestException('Invitation has reached maximum uses');
+    }
+
+    // Validate password if required
+    if (invitation.password) {
+      const isPasswordValid = await bcrypt.compare(
+        joinDto.password || '',
+        invitation.password,
+      );
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Invalid invitation password');
+      }
+    }
+
+    // Move user from ONBOARDING to target subaccount
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        subAccountId: invitation.subAccountId,
+      },
+    });
+
+    // Increment invitation usage count
+    await this.prisma.subAccountInvitation.update({
+      where: { id: invitation.id },
+      data: {
+        currentUses: { increment: 1 },
+      },
+    });
+
+    this.logger.log(
+      `User ${userId} joined subaccount ${invitation.subAccountId} via invitation`
+    );
+
+    return invitation.subAccount;
+  }
+
+  /**
+   * Check if user is in ONBOARDING
+   */
+  async isUserInOnboarding(userId: number): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { subAccountId: true },
+    });
+
+    return user?.subAccountId === ONBOARDING_SUBACCOUNT_ID;
+  }
+
+  /**
+   * Get onboarding status for user
+   */
+  async getOnboardingStatus(userId: number) {
+    const isOnboarding = await this.isUserInOnboarding(userId);
+    return {
+      isOnboarding,
+      requiresSetup: isOnboarding,
+      subAccountId: isOnboarding ? ONBOARDING_SUBACCOUNT_ID : null,
+    };
+  }
+
+  /**
+   * Create invitation code (admin only)
+   */
+  async createInvitation(
+    adminId: number,
+    createDto: CreateInvitationDto,
+  ) {
+    // Verify subaccount exists
+    const subAccount = await this.prisma.subAccount.findUnique({
+      where: { id: createDto.subAccountId },
+    });
+
+    if (!subAccount) {
+      throw new NotFoundException('SubAccount not found');
+    }
+
+    // Generate unique invitation code
+    const code = this.generateInvitationCode();
+
+    // Hash password if provided
+    let hashedPassword: string | null = null;
+    if (createDto.password) {
+      hashedPassword = await bcrypt.hash(createDto.password, 10);
+    }
+
+    // Create invitation
+    const invitation = await this.prisma.subAccountInvitation.create({
+      data: {
+        code,
+        subAccountId: createDto.subAccountId,
+        password: hashedPassword,
+        maxUses: createDto.maxUses,
+        expiresAt: createDto.expiresAt ? new Date(createDto.expiresAt) : null,
+        isActive: createDto.isActive !== undefined ? createDto.isActive : true,
+        createdByAdminId: adminId,
+      },
+      include: {
+        subAccount: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    this.logger.log(
+      `Admin ${adminId} created invitation ${invitation.code} for subaccount ${createDto.subAccountId}`
+    );
+
+    return invitation;
+  }
+
+  /**
+   * Validate invitation code (public - for preview)
+   */
+  async validateInvitationCode(code: string) {
+    const invitation = await this.prisma.subAccountInvitation.findUnique({
+      where: { code },
+      include: {
+        subAccount: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+          },
+        },
+      },
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invalid invitation code');
+    }
+
+    // Check if invitation is valid
+    const isValid =
+      invitation.isActive &&
+      (!invitation.expiresAt || invitation.expiresAt > new Date()) &&
+      (!invitation.maxUses || invitation.currentUses < invitation.maxUses);
+
+    return {
+      valid: isValid,
+      subAccount: invitation.subAccount,
+      requiresPassword: !!invitation.password,
+      maxUses: invitation.maxUses,
+      currentUses: invitation.currentUses,
+      expiresAt: invitation.expiresAt,
+    };
+  }
+
+  /**
+   * List all invitations for a subaccount (admin only)
+   */
+  async listInvitations(subAccountId: number) {
+    return this.prisma.subAccountInvitation.findMany({
+      where: { subAccountId },
+      include: {
+        createdByAdmin: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /**
+   * Generate a unique invitation code
+   */
+  private generateInvitationCode(): string {
+    // Generate a random 8-character alphanumeric code
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const bytes = randomBytes(8);
+    let code = '';
+
+    for (let i = 0; i < 8; i++) {
+      code += chars[bytes[i] % chars.length];
+    }
+
+    return code;
   }
 } 

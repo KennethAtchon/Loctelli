@@ -23,7 +23,11 @@
       "Bash(chmod +x .helper/scripts/scan-tenant-migration.sh)",
       "Bash(bash .helper/scripts/scan-tenant-migration.sh)",
       "Bash(npm ci)",
-      "Bash(pnpm install)"
+      "Bash(pnpm install)",
+      "Bash(npx prisma db seed:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npx prisma studio:*)",
+      "Bash(pnpm tsc:*)"
     ],
     "deny": []
   },

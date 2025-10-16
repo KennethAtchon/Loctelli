@@ -264,7 +264,7 @@ export class UnifiedAuthService {
   }
 
   /**
-   * User registration
+   * User registration - assigns users to ONBOARDING workspace
    */
   private async registerUser(registerDto: UnifiedRegisterDto): Promise<any> {
     // Check if user already exists
@@ -279,30 +279,10 @@ export class UnifiedAuthService {
     // Hash password
     const hashedPassword = await bcrypt.hash(registerDto.password, 12);
 
-    // Get or create default SubAccount
-    let defaultSubAccount = await this.prisma.subAccount.findFirst({
-      where: { name: 'Default SubAccount' },
-    });
+    // Assign to ONBOARDING by default (ID: 1)
+    const ONBOARDING_ID = 1;
 
-    if (!defaultSubAccount) {
-      const defaultAdmin = await this.prisma.adminUser.findFirst({
-        where: { role: 'super_admin' },
-      });
-
-      if (!defaultAdmin) {
-        throw new BadRequestException('No admin available to create SubAccount');
-      }
-
-      defaultSubAccount = await this.prisma.subAccount.create({
-        data: {
-          name: 'Default SubAccount',
-          description: 'Default SubAccount for new users',
-          createdByAdminId: defaultAdmin.id,
-        },
-      });
-    }
-
-    // Create user
+    // Create user assigned to ONBOARDING
     const user = await this.prisma.user.create({
       data: {
         name: registerDto.name,
@@ -310,11 +290,11 @@ export class UnifiedAuthService {
         password: hashedPassword,
         company: registerDto.company,
         budget: registerDto.budget,
-        subAccountId: defaultSubAccount.id,
+        subAccountId: ONBOARDING_ID, // Auto-assign to ONBOARDING
       },
     });
 
-    this.logger.log(`User registration successful: ${user.email} (ID: ${user.id})`);
+    this.logger.log(`User registered to ONBOARDING: ${user.email} (ID: ${user.id})`);
 
     const { password, ...result } = user;
     return result;

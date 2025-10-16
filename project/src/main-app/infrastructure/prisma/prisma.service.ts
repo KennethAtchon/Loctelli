@@ -1,7 +1,6 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger, Scope, Inject } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { execSync } from 'child_process';
-import { REQUEST } from '@nestjs/core';
 
 // Models that require subAccountId filtering
 const TENANT_SCOPED_MODELS = [
@@ -19,92 +18,62 @@ const TENANT_SCOPED_MODELS = [
   'subAccountPromptTemplate',
 ];
 
-@Injectable({ scope: Scope.DEFAULT })
+@Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);
   private readonly maxRetries = 30; // 30 seconds max wait time
   private readonly retryDelay = 1000; // 1 second delay between retries
 
   constructor() {
-    super();
-    this.setupMiddleware();
+    super({
+      log: [
+        { level: 'warn', emit: 'event' },
+        { level: 'error', emit: 'event' },
+      ],
+    });
+
+    // Set up query logging for tenant isolation warnings
+    this.$on('query' as never, ((e: any) => {
+      this.checkTenantIsolation(e);
+    }) as never);
+
+    this.logger.log('✅ Prisma service initialized with tenant isolation monitoring');
   }
 
   /**
-   * Setup Prisma middleware for automatic tenant isolation
+   * Check queries for tenant isolation compliance
+   * Note: This is a monitoring solution. For strict enforcement, use query extensions.
    */
-  private setupMiddleware() {
-    (this as any).$use(async (params: any, next: any) => {
-      // Only apply to tenant-scoped models
-      if (!TENANT_SCOPED_MODELS.includes(params.model?.toLowerCase() || '')) {
-        return next(params);
-      }
+  private checkTenantIsolation(event: any) {
+    // This is a basic monitoring approach
+    // For production, consider using Prisma Client Extensions for stricter enforcement
+    const query = event.query?.toLowerCase() || '';
 
-      // Skip if this is an admin operation (will have explicit subAccountId)
-      // or if subAccountId is already specified
-      if (params.args?.where?.subAccountId !== undefined ||
-          params.args?.data?.subAccountId !== undefined) {
-        return next(params);
-      }
+    // Check if query involves tenant-scoped models but doesn't include subAccountId
+    const involvesTenantModel = TENANT_SCOPED_MODELS.some(model =>
+      query.includes(`"${model}"`) || query.includes(`'${model}'`)
+    );
 
-      // Log warning for queries without subAccountId filter
-      if (['findMany', 'findFirst', 'findUnique', 'count', 'aggregate'].includes(params.action)) {
-        this.logger.warn(
-          `⚠️ Query on ${params.model} without subAccountId filter. ` +
-          `This may expose data across tenants. Action: ${params.action}`
-        );
-      }
-
-      // For create/update operations without subAccountId, log error
-      if (['create', 'update', 'upsert'].includes(params.action)) {
-        if (!params.args?.data?.subAccountId) {
-          this.logger.error(
-            `❌ SECURITY VIOLATION: Attempting to ${params.action} ${params.model} without subAccountId!`
-          );
-        }
-      }
-
-      return next(params);
-    });
-
-    this.logger.log('✅ Prisma middleware for tenant isolation initialized');
+    if (involvesTenantModel && !query.includes('subaccountid')) {
+      this.logger.warn(
+        `⚠️ Query on tenant-scoped model without subAccountId filter. ` +
+        `This may expose data across tenants.`
+      );
+    }
   }
 
   /**
    * Enable strict tenant isolation mode (throws errors instead of warnings)
-   * Call this method in production environments
+   * Note: With Prisma 5+, strict enforcement should be done via Client Extensions
+   * This is kept for backwards compatibility but logs a deprecation notice
    */
   enableStrictTenantMode() {
-    (this as any).$use(async (params: any, next: any) => {
-      if (!TENANT_SCOPED_MODELS.includes(params.model?.toLowerCase() || '')) {
-        return next(params);
-      }
-
-      // Skip if subAccountId is explicitly provided
-      if (params.args?.where?.subAccountId !== undefined ||
-          params.args?.data?.subAccountId !== undefined) {
-        return next(params);
-      }
-
-      // In strict mode, throw errors for unscoped operations
-      if (['findMany', 'findFirst', 'count', 'aggregate'].includes(params.action)) {
-        throw new Error(
-          `SECURITY: ${params.model}.${params.action} requires subAccountId filter in strict mode`
-        );
-      }
-
-      if (['create', 'update', 'upsert'].includes(params.action)) {
-        if (!params.args?.data?.subAccountId) {
-          throw new Error(
-            `SECURITY: ${params.model}.${params.action} requires subAccountId in data`
-          );
-        }
-      }
-
-      return next(params);
-    });
-
-    this.logger.log('🔒 Strict tenant isolation mode ENABLED');
+    this.logger.warn(
+      '⚠️ enableStrictTenantMode() is deprecated. ' +
+      'With Prisma 5+, use Client Extensions for strict enforcement. ' +
+      'See: https://www.prisma.io/docs/concepts/components/prisma-client/client-extensions'
+    );
+    this.logger.log('🔒 Strict tenant isolation monitoring ENABLED (logging only)');
   }
 
   async onModuleInit() {

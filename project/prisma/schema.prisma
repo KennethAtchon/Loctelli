@@ -31,6 +31,9 @@ model AdminUser {
 
   // Dynamic forms
   formTemplates   FormTemplate[] // Form templates created by this admin
+
+  // Invitation system
+  subAccountInvitations SubAccountInvitation[]
 }
 
 model SubAccount {
@@ -41,7 +44,7 @@ model SubAccount {
   settings        Json?       // SubAccount-specific settings
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
-  
+
   // Relationships
   createdByAdminId Int
   createdByAdmin  AdminUser   @relation(fields: [createdByAdminId], references: [id])
@@ -63,6 +66,9 @@ model SubAccount {
   // Prompt template selections
   promptTemplates SubAccountPromptTemplate[]
   formSubmissions FormSubmission[]
+
+  // Invitation system
+  invitations     SubAccountInvitation[]
 }
 
 model User {
@@ -658,6 +664,36 @@ model RefreshToken {
   @@index([expiresAt])
   @@index([tokenHash])
   @@map("refresh_tokens")
+}
+
+// Invitation System
+
+model SubAccountInvitation {
+  id              String    @id @default(cuid())
+  subAccountId    Int
+  subAccount      SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
+
+  // Invitation details
+  code            String    @unique // Unique invite code
+  password        String?   // Optional password protection (hashed)
+
+  // Usage limits
+  maxUses         Int?      // Null = unlimited
+  currentUses     Int       @default(0)
+  expiresAt       DateTime? // Null = never expires
+
+  // Metadata
+  isActive        Boolean   @default(true)
+  createdByAdminId Int
+  createdByAdmin  AdminUser @relation(fields: [createdByAdminId], references: [id])
+
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([code])
+  @@index([subAccountId])
+  @@map("subaccount_invitations")
 }
 
 

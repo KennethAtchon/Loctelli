@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { AuthModule } from '../shared/auth/auth.module';
+import { OnboardingGuard } from '../shared/guards/onboarding.guard';
 import { UsersModule } from './modules/users/users.module';
 import { StrategiesModule } from './modules/strategies/strategies.module';
 import { LeadsModule } from './modules/leads/leads.module';
@@ -42,6 +44,13 @@ import { FormsModule } from './modules/forms/forms.module';
     FinderModule,
     ContactsModule,
     FormsModule,
+  ],
+  providers: [
+    // Apply OnboardingGuard globally
+    {
+      provide: APP_GUARD,
+      useClass: OnboardingGuard,
+    },
   ],
 })
 export class MainAppModule {} 

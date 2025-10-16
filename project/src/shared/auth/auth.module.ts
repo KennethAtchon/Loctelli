@@ -18,6 +18,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 
 // Guards
 import { JwtAuthGuard } from './auth.guard';
+import { OnboardingGuard } from '../guards/onboarding.guard';
 
 // Shared modules
 import { PrismaModule } from '../prisma/prisma.module';
@@ -54,6 +55,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     // Strategy & Guards
     JwtStrategy,
     JwtAuthGuard,
+    OnboardingGuard,
   ],
   exports: [
     // Unified auth services
@@ -67,6 +69,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     // Strategy & Guards
     JwtStrategy,
     JwtAuthGuard,
+    OnboardingGuard,
     JwtModule,
     PassportModule,
   ],
