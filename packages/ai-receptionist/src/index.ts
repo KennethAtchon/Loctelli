@@ -1,17 +1,20 @@
 /**
  * @loctelli/ai-receptionist
  * AI Agent Orchestration Framework
+ *
+ * Supports two usage patterns:
+ * 1. Convenience client: new AIReceptionist({ ... })
+ * 2. Direct resource imports: import { CallsResource } from '@loctelli/ai-receptionist'
  */
 
 // Main client
 export { AIReceptionist } from './client';
 
-// Resources (user-facing API)
+// Resources (user-facing API - can be imported directly for tree-shaking)
 export {
   CallsResource,
   SMSResource,
   EmailResource,
-  CalendarResource,
 } from './resources';
 
 export type {
@@ -21,9 +24,27 @@ export type {
   SMSMessage,
   SendEmailOptions,
   EmailMessage,
-  BookAppointmentOptions,
-  Appointment,
 } from './resources';
+
+// Configuration types (for TypeScript users)
+export type {
+  AIReceptionistConfig,
+  CallsResourceConfig,
+  SMSResourceConfig,
+  EmailResourceConfig,
+  GoogleResourceConfig,
+  TwilioResourceConfig,
+  BaseConfig,
+} from './core';
+
+// Configuration validation (for advanced usage)
+export {
+  validateCallsConfig,
+  validateSMSConfig,
+  validateEmailResourceConfig,
+  validateBaseConfig,
+  ConfigValidationError,
+} from './core';
 
 // Orchestrators (for advanced usage - internal layer)
 export { TwilioOrchestrator } from './orchestrators/twilio.orchestrator';
@@ -33,10 +54,10 @@ export { AIOrchestrator } from './orchestrators/ai.orchestrator';
 export { ConversationManager } from './orchestrators/conversation.manager';
 
 // Utility services (for advanced usage)
-export { AnalyticsService, WebhookService, AuthService } from './services';
+export { AnalyticsService, WebhookService } from './services';
 export type { AnalyticsEvent, WebhookConfig } from './services';
 
-// Types
+// Legacy types (from types.ts - for backward compatibility)
 export * from './types';
 
 // Errors

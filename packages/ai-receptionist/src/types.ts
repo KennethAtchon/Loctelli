@@ -3,35 +3,17 @@
  * AI Agent Orchestration Framework - Use your own API credentials
  */
 
+import type { AIReceptionistConfig } from './core';
+
 // ============================================================================
 // CORE CONFIGURATION
 // ============================================================================
 
 /**
  * Main SDK configuration - accepts user's own API credentials
+ * @deprecated Use AIReceptionistConfig instead for better type inference
  */
-export interface AIReceptionistOptions {
-  /** Twilio configuration (user's own account) */
-  twilio?: TwilioConfig;
-
-  /** Google APIs configuration (user's own account) */
-  google?: GoogleConfig;
-
-  /** Twitter/X API configuration (user's own account) */
-  twitter?: TwitterConfig;
-
-  /** AI Model configuration (user's choice of provider) */
-  model: AIModelConfig;
-
-  /** Agent behavior configuration */
-  agent: AgentConfig;
-
-  /** Notification settings */
-  notifications?: NotificationConfig;
-
-  /** Debug mode */
-  debug?: boolean;
-}
+export type AIReceptionistOptions = AIReceptionistConfig;
 
 /**
  * Twilio configuration for phone/SMS
