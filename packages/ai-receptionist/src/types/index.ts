@@ -165,7 +165,7 @@ export interface SMSOptions {
 // ============================================================================
 
 export interface AIModelConfig {
-  provider: 'openai' | 'anthropic' | 'google';
+  provider: 'openai' | 'openrouter' | 'anthropic' | 'google';
   apiKey: string;
   model: string;
   temperature?: number;
@@ -184,6 +184,13 @@ export interface AIResponse {
   content: string;
   toolCalls?: ToolCall[];
   finishReason?: 'stop' | 'tool_calls' | 'length';
+}
+
+/**
+ * Interface that all AI providers must implement
+ */
+export interface IAIProvider extends IProvider {
+  chat(options: ChatOptions): Promise<AIResponse>;
 }
 
 // ============================================================================

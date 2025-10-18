@@ -6,6 +6,7 @@
 import { AIReceptionistConfig } from './types';
 import { TwilioProvider } from './providers/communication/twilio.provider';
 import { OpenAIProvider } from './providers/ai/openai.provider';
+import { OpenRouterProvider } from './providers/ai/openrouter.provider';
 import { GoogleCalendarProvider } from './providers/calendar/google-calendar.provider';
 import { ConversationService } from './services/conversation.service';
 import { ToolExecutionService } from './services/tool-execution.service';
@@ -66,7 +67,7 @@ export class AIReceptionist {
   // Internal components
   private config: AIReceptionistConfig;
   private twilioProvider?: TwilioProvider;
-  private aiProvider!: OpenAIProvider;
+  private aiProvider!: OpenAIProvider | OpenRouterProvider;
   private calendarProvider?: GoogleCalendarProvider;
   private conversationService!: ConversationService;
   private toolExecutor!: ToolExecutionService;
@@ -133,8 +134,20 @@ export class AIReceptionist {
       this.config.onToolError
     );
 
-    // 6. Initialize AI provider
-    this.aiProvider = new OpenAIProvider(this.config.model, this.config.agent);
+    // 6. Initialize AI provider based on configured provider
+    switch (this.config.model.provider) {
+      case 'openai':
+        this.aiProvider = new OpenAIProvider(this.config.model, this.config.agent);
+        break;
+      case 'openrouter':
+        this.aiProvider = new OpenRouterProvider(this.config.model, this.config.agent);
+        break;
+      case 'anthropic':
+      case 'google':
+        throw new Error(`${this.config.model.provider} provider not yet implemented`);
+      default:
+        throw new Error(`Unknown AI provider: ${this.config.model.provider}`);
+    }
     await this.aiProvider.initialize();
 
     // 7. Initialize communication providers if configured

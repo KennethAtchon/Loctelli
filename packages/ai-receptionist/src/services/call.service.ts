@@ -4,15 +4,14 @@
  */
 
 import { TwilioProvider } from '../providers/communication/twilio.provider';
-import { OpenAIProvider } from '../providers/ai/openai.provider';
 import { ConversationService } from './conversation.service';
 import { ToolExecutionService } from './tool-execution.service';
-import { MakeCallOptions, CallSession, AgentConfig } from '../types';
+import { MakeCallOptions, CallSession, AgentConfig, IAIProvider } from '../types';
 
 export class CallService {
   constructor(
     private twilioProvider: TwilioProvider,
-    private aiProvider: OpenAIProvider,
+    private aiProvider: IAIProvider,
     private conversationService: ConversationService,
     private toolExecutor: ToolExecutionService,
     private agentConfig: AgentConfig,
