@@ -3,30 +3,17 @@
  * AI-powered receptionist for phone calls, video calls, SMS, and email automation
  */
 
-export { AIReceptionist } from './receptionist';
-export { PhoneClient } from './clients/phone';
-export { VideoClient } from './clients/video';
-export { SMSClient } from './clients/sms';
-export { EmailClient } from './clients/email';
-export * from './types';
+// Main client
+export { AIReceptionist } from './client';
 
-// Re-export common types for convenience
-export type {
-  AIReceptionistOptions,
-  AgentConfig,
-  CallOptions,
-  CallSession,
-  CallSummary,
-  SMSOptions,
-  SMSConversation,
-  SMSSummary,
-  EmailOptions,
-  EmailConversation,
-  EmailSummary,
-  AppointmentBookedEvent,
-  GoogleCalendarConfig,
-  GoogleSheetsConfig,
-  NotificationConfig,
-  TranscriptEvent,
-  CommunicationChannel,
-} from './types';
+// Resources
+export { PhoneResource, VideoResource, SMSResource, EmailResource } from './resources';
+
+// Errors
+export * from './errors';
+
+// Utils
+export * from './utils';
+
+// Types
+export * from './types';
