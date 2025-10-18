@@ -3,20 +3,22 @@
  * Agent-centric architecture with clone pattern for multi-agent support
  */
 
-import { AIReceptionistConfig } from './types';
-import { TwilioProvider } from './providers/communication/twilio.provider';
-import { OpenAIProvider } from './providers/ai/openai.provider';
-import { OpenRouterProvider } from './providers/ai/openrouter.provider';
-import { GoogleCalendarProvider } from './providers/calendar/google-calendar.provider';
+import type { AIReceptionistConfig } from './types';
 import { ConversationService } from './services/conversation.service';
 import { ToolExecutionService } from './services/tool-execution.service';
-import { CallService } from './services/call.service';
 import { ToolRegistry } from './tools/registry';
-import { CallsResource } from './resources/calls.resource';
-import { SMSResource } from './resources/sms.resource';
-import { EmailResource } from './resources/email.resource';
 import { InMemoryConversationStore } from './storage/in-memory-conversation.store';
 import { setupStandardTools } from './tools/standard';
+
+// Type-only imports for tree-shaking
+import type { TwilioProvider } from './providers/communication/twilio.provider';
+import type { OpenAIProvider } from './providers/ai/openai.provider';
+import type { OpenRouterProvider } from './providers/ai/openrouter.provider';
+import type { GoogleCalendarProvider } from './providers/calendar/google-calendar.provider';
+import type { CallService } from './services/call.service';
+import type { CallsResource } from './resources/calls.resource';
+import type { SMSResource } from './resources/sms.resource';
+import type { EmailResource } from './resources/email.resource';
 
 /**
  * AIReceptionist - Agent-centric AI SDK
@@ -134,14 +136,18 @@ export class AIReceptionist {
       this.config.onToolError
     );
 
-    // 6. Initialize AI provider based on configured provider
+    // 6. Initialize AI provider based on configured provider (lazy loaded)
     switch (this.config.model.provider) {
-      case 'openai':
+      case 'openai': {
+        const { OpenAIProvider } = await import('./providers/ai/openai.provider');
         this.aiProvider = new OpenAIProvider(this.config.model, this.config.agent);
         break;
-      case 'openrouter':
+      }
+      case 'openrouter': {
+        const { OpenRouterProvider } = await import('./providers/ai/openrouter.provider');
         this.aiProvider = new OpenRouterProvider(this.config.model, this.config.agent);
         break;
+      }
       case 'anthropic':
       case 'google':
         throw new Error(`${this.config.model.provider} provider not yet implemented`);
@@ -150,12 +156,14 @@ export class AIReceptionist {
     }
     await this.aiProvider.initialize();
 
-    // 7. Initialize communication providers if configured
+    // 7. Initialize communication providers if configured (lazy loaded)
     if (this.config.providers.communication?.twilio) {
+      const { TwilioProvider } = await import('./providers/communication/twilio.provider');
       this.twilioProvider = new TwilioProvider(this.config.providers.communication.twilio);
       await this.twilioProvider.initialize();
 
-      // Initialize call service
+      // Initialize call service (lazy loaded)
+      const { CallService } = await import('./services/call.service');
       this.callService = new CallService(
         this.twilioProvider,
         this.aiProvider,
@@ -164,18 +172,22 @@ export class AIReceptionist {
         this.config.agent
       );
 
-      // Initialize resources
+      // Initialize resources (lazy loaded)
+      const { CallsResource } = await import('./resources/calls.resource');
+      const { SMSResource } = await import('./resources/sms.resource');
       (this as any).calls = new CallsResource(this.callService);
       (this as any).sms = new SMSResource(this.twilioProvider);
     }
 
-    // 8. Initialize calendar provider if configured
+    // 8. Initialize calendar provider if configured (lazy loaded)
     if (this.config.providers.calendar?.google) {
+      const { GoogleCalendarProvider } = await import('./providers/calendar/google-calendar.provider');
       this.calendarProvider = new GoogleCalendarProvider(this.config.providers.calendar.google);
       await this.calendarProvider.initialize();
     }
 
-    // 9. Initialize email resource (basic for now)
+    // 9. Initialize email resource (basic for now) (lazy loaded)
+    const { EmailResource } = await import('./resources/email.resource');
     (this as any).email = new EmailResource();
 
     this.initialized = true;

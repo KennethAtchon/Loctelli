@@ -107,7 +107,31 @@ await sarah.sms.send({ to: '+1234567890', body: 'Hello!' });
 
 ## Key Features
 
-### 1. Agent-Centric Design
+### 1. Tree-Shakable & Optimized 🌲
+
+The SDK is built with tree-shaking in mind for minimal bundle sizes:
+
+```typescript
+// Only OpenAI + Twilio + SMS are bundled (~25 KB)
+const client = new AIReceptionist({
+  model: { provider: 'openai', ... },  // ✅ Only OpenAI bundled
+  providers: {
+    communication: { twilio: { ... } }  // ✅ Only Twilio bundled
+    // No calendar = Calendar NOT bundled ✅
+  }
+});
+```
+
+**Bundle sizes:**
+- **Core**: 24.75 KB
+- **+ OpenAI**: +0.12 KB
+- **+ OpenRouter**: +4.70 KB
+- **+ Twilio**: +0.12 KB
+- **+ Calendar**: +0.13 KB
+
+📖 See [TREE_SHAKING.md](TREE_SHAKING.md) for optimization guide
+
+### 2. Agent-Centric Design
 
 Each `AIReceptionist` instance represents one AI agent with unified personality across all channels.
 

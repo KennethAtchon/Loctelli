@@ -10,6 +10,47 @@
       "types": "./dist/index.d.ts",
       "require": "./dist/index.js",
       "import": "./dist/index.mjs"
+    },
+    "./client": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    },
+    "./providers/openai": {
+      "types": "./dist/index.d.ts",
+      "import": "./src/providers/ai/openai.provider.ts"
+    },
+    "./providers/openrouter": {
+      "types": "./dist/index.d.ts",
+      "import": "./src/providers/ai/openrouter.provider.ts"
+    },
+    "./providers/twilio": {
+      "types": "./dist/index.d.ts",
+      "import": "./src/providers/communication/twilio.provider.ts"
+    },
+    "./providers/google-calendar": {
+      "types": "./dist/index.d.ts",
+      "import": "./src/providers/calendar/google-calendar.provider.ts"
+    },
+    "./resources/calls": {
+      "types": "./dist/index.d.ts",
+      "import": "./src/resources/calls.resource.ts"
+    },
+    "./resources/sms": {
+      "types": "./dist/index.d.ts",
+      "import": "./src/resources/sms.resource.ts"
+    },
+    "./resources/email": {
+      "types": "./dist/index.d.ts",
+      "import": "./src/resources/email.resource.ts"
+    },
+    "./tools": {
+      "types": "./dist/index.d.ts",
+      "import": "./src/tools/index.ts"
+    },
+    "./types": {
+      "types": "./dist/index.d.ts",
+      "import": "./src/types/index.ts"
     }
   },
   "files": [
