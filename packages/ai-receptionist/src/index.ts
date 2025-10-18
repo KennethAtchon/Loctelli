@@ -9,6 +9,14 @@ export { AIReceptionist } from './client';
 // Resources
 export { PhoneResource, VideoResource, SMSResource, EmailResource } from './resources';
 
+// Shared services (for advanced usage)
+export type {
+  AuthService,
+  WebhookService,
+  CalendarService,
+  AnalyticsService,
+} from './services';
+
 // Errors
 export * from './errors';
 
