@@ -1,116 +1,55 @@
 /**
  * Email Resource
- * User-facing API for managing email conversations
- *
- * Supports two usage patterns:
- * 1. Standalone: new EmailResource({ email, model, agent })
- * 2. Via client: client.email.send(...)
+ * User-facing API for email operations
  */
 
-import { EmailResourceConfig, validateEmailResourceConfig } from '../core';
+import { SendEmailOptions, EmailSession } from '../types';
 
-export interface SendEmailOptions {
-  to: string;
-  subject: string;
-  body: string;
-  html?: boolean;
-}
-
-export interface EmailMessage {
-  id: string;
-  to: string;
-  from: string;
-  subject: string;
-  body: string;
-  status: 'queued' | 'sent' | 'delivered' | 'failed';
-  sentAt: Date;
-}
-
-/**
- * Email Resource - handles email messaging
- *
- * Can be used standalone for better tree-shaking:
- * @example
- * ```typescript
- * import { EmailResource } from '@loctelli/ai-receptionist';
- *
- * const email = new EmailResource({
- *   email: {
- *     provider: 'sendgrid',
- *     apiKey: '...',
- *     from: 'noreply@example.com'
- *   },
- *   model: { provider: 'openai', apiKey: '...', model: 'gpt-4' },
- *   agent: { name: 'Sarah', role: 'Sales Rep' }
- * });
- *
- * const message = await email.send({
- *   to: 'customer@example.com',
- *   subject: 'Thank you for contacting us',
- *   body: 'We will get back to you soon.'
- * });
- * ```
- *
- * Or via the main client:
- * @example
- * ```typescript
- * const client = new AIReceptionist({ ... });
- * const message = await client.email.send({ to: 'customer@example.com', ... });
- * ```
- */
 export class EmailResource {
-  private config: EmailResourceConfig;
-
-  constructor(config: EmailResourceConfig) {
-    // Validate configuration on construction
-    validateEmailResourceConfig(config);
-    this.config = config;
-  }
+  constructor() {}
 
   /**
    * Send an email
    *
    * @example
    * ```typescript
-   * const message = await email.send({
-   *   to: 'customer@example.com',
-   *   subject: 'Thank you for contacting us',
-   *   body: 'We will get back to you soon.',
-   *   html: true
+   * const email = await client.email.send({
+   *   to: 'user@example.com',
+   *   subject: 'Welcome!',
+   *   body: 'Thanks for reaching out...',
+   *   html: '<h1>Welcome!</h1><p>Thanks for reaching out...</p>'
    * });
-   * console.log('Email sent:', message.id);
+   * console.log('Email sent:', email.id);
    * ```
    */
-  async send(options: SendEmailOptions): Promise<EmailMessage> {
-    // TODO: Implement email sending via SendGrid/Mailgun/SES based on config.email.provider
-    throw new Error('Email resource not yet implemented');
+  async send(options: SendEmailOptions): Promise<EmailSession> {
+    console.log(`[EmailResource] Sending email to ${options.to}`);
+
+    // TODO: Implement email sending via provider
+
+    return {
+      id: `EMAIL_${Date.now()}`,
+      conversationId: '', // TODO: Create conversation for email
+      to: options.to,
+      subject: options.subject,
+      status: 'sent',
+      sentAt: new Date()
+    };
   }
 
   /**
    * Get email details
-   *
-   * @example
-   * ```typescript
-   * const emailDetails = await email.get('email-id-123');
-   * console.log('Email status:', emailDetails.status);
-   * ```
+   * TODO: Implement
    */
-  async get(emailId: string): Promise<EmailMessage> {
-    // TODO: Fetch email details
-    throw new Error('Not implemented');
+  async get(emailId: string): Promise<EmailSession> {
+    throw new Error('Not implemented yet');
   }
 
   /**
    * List recent emails
-   *
-   * @example
-   * ```typescript
-   * const recentEmails = await email.list({ limit: 10 });
-   * console.log(`Found ${recentEmails.length} emails`);
-   * ```
+   * TODO: Implement
    */
-  async list(options?: { limit?: number }): Promise<EmailMessage[]> {
-    // TODO: List emails
-    throw new Error('Not implemented');
+  async list(options?: { limit?: number }): Promise<EmailSession[]> {
+    throw new Error('Not implemented yet');
   }
 }

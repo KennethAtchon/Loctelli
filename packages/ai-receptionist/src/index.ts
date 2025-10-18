@@ -1,64 +1,114 @@
 /**
  * @loctelli/ai-receptionist
- * AI Agent Orchestration Framework
+ * Agent-Centric AI Communication SDK
  *
- * Supports two usage patterns:
- * 1. Convenience client: new AIReceptionist({ ... })
- * 2. Direct resource imports: import { CallsResource } from '@loctelli/ai-receptionist'
+ * Build AI agents that can communicate through multiple channels (calls, SMS, email)
+ * with extensible tool systems and channel-specific handlers.
  */
 
-// Main client
+// ============================================================================
+// Main Client
+// ============================================================================
+
 export { AIReceptionist } from './client';
 
-// Resources (user-facing API - can be imported directly for tree-shaking)
-export {
-  CallsResource,
-  SMSResource,
-  EmailResource,
-} from './resources';
+// ============================================================================
+// Resources (User-facing API)
+// ============================================================================
+
+export { CallsResource } from './resources/calls.resource';
+export { SMSResource } from './resources/sms.resource';
+export { EmailResource } from './resources/email.resource';
+
+// ============================================================================
+// Tools (Tool System)
+// ============================================================================
+
+export { ToolRegistry } from './tools/registry';
+export { ToolBuilder } from './tools/builder';
+export { Tools } from './tools';
+
+// ============================================================================
+// Providers (External API Adapters)
+// ============================================================================
+
+export { TwilioProvider } from './providers/communication/twilio.provider';
+export { OpenAIProvider } from './providers/ai/openai.provider';
+export { GoogleCalendarProvider } from './providers/calendar/google-calendar.provider';
+
+// ============================================================================
+// Services (Business Logic Layer)
+// ============================================================================
+
+export { ConversationService } from './services/conversation.service';
+export { ToolExecutionService } from './services/tool-execution.service';
+export { CallService } from './services/call.service';
+
+// ============================================================================
+// Storage
+// ============================================================================
+
+export { InMemoryConversationStore } from './storage/in-memory-conversation.store';
+
+// ============================================================================
+// Types (All type exports)
+// ============================================================================
 
 export type {
-  MakeCallOptions,
-  CallSession,
-  SendSMSOptions,
-  SMSMessage,
-  SendEmailOptions,
-  EmailMessage,
-} from './resources';
-
-// Configuration types (for TypeScript users)
-export type {
+  // Main SDK config
   AIReceptionistConfig,
-  CallsResourceConfig,
-  SMSResourceConfig,
-  EmailResourceConfig,
-  GoogleResourceConfig,
-  TwilioResourceConfig,
-  BaseConfig,
-} from './core';
 
-// Configuration validation (for advanced usage)
-export {
-  validateCallsConfig,
-  validateSMSConfig,
-  validateEmailResourceConfig,
-  validateBaseConfig,
-  ConfigValidationError,
-} from './core';
+  // Agent config
+  AgentConfig,
+  VoiceConfig,
 
-// Orchestrators (for advanced usage - internal layer)
-export { TwilioOrchestrator } from './orchestrators/twilio.orchestrator';
-export { GoogleOrchestrator } from './orchestrators/google.orchestrator';
-export { TwitterOrchestrator } from './orchestrators/twitter.orchestrator';
-export { AIOrchestrator } from './orchestrators/ai.orchestrator';
-export { ConversationManager } from './orchestrators/conversation.manager';
+  // Tool system
+  ITool,
+  ToolHandlers,
+  ToolHandler,
+  ToolResult,
+  ChannelResponse,
+  ExecutionContext,
+  ToolConfig,
+  JSONSchema,
 
-// Utility services (for advanced usage)
-export { AnalyticsService, WebhookService } from './services';
-export type { AnalyticsEvent, WebhookConfig } from './services';
+  // Conversation & Memory
+  Conversation,
+  ConversationMessage,
+  ToolCall,
+  IConversationStore,
+  ConversationFilters,
 
-// Legacy types (from types.ts - for backward compatibility)
-export * from './types';
+  // Providers
+  IProvider,
+  TwilioConfig,
+  SendGridConfig,
+  AIModelConfig,
+  GoogleCalendarConfig,
+  ProviderConfig,
 
-// Errors
-export * from './errors';
+  // Resources
+  MakeCallOptions,
+  SendSMSOptions,
+  SendEmailOptions,
+  CallSession,
+  SMSSession,
+  EmailSession,
+
+  // Events
+  ToolExecutionEvent,
+  ToolErrorEvent,
+  ConversationEvent,
+
+  // Other
+  CallOptions,
+  SMSOptions,
+  ChatOptions,
+  AIResponse,
+  CalendarEvent,
+  NotificationConfig,
+  AnalyticsConfig,
+  CalendarToolConfig,
+  BookingToolConfig,
+  CRMToolConfig,
+} from './types';

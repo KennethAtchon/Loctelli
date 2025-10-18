@@ -1,28 +1,13 @@
-so my vision is, services will be called by resources, and services will be the one to call orchestrators, does that make sense? can we do like another mini refractor and update architecture md
-Absolutely! That makes perfect sense. Let me clarify the architecture: Your Vision:
-Resources (user-facing API)
-    ↓
-Services (business logic layer)
-    ↓
-Orchestrators (integration layer with external APIs)
-This is a much cleaner separation of concerns! Let me refactor to implement this layered architecture.
-Update Todos
+so my vision is, services will be called by resources, and services will be the one to call orchestrators, does that make sense? 
 
-Understand current services structure
+Like for a call, .doCall(phone)
 
-Create service layer for calls (CallsService)
+We use twilio or something to go back and forth with the user, make the ai usse like calendar or other tools for booking, and for managing the user's stuff, make we need to use like builder pattern to build tools up that the user wants the AI to use, etc. This is very complicated to explain, can you create a markdown file called Design_Improvements.md, tell me how my idea sounds and recommend improvements if they are. We can talk about it first. you ask me some question that you don't understand about what I just said.
 
-Create service layer for SMS (SMSService)
+So basically client.ts has AI recipients
+AI recipients as resources, which are just different channels of communicate (maybe this can be changed, idk if this is the best way to do things)
 
-Create service layer for email (EmailService)
+each channel of communication can leverage services and orchestrator, to do things
 
-Update ConfigurationManager to provide services instead of orchestrators
+What I want to add is like a something that allows the resources to hook together tool calls to the AI, and essentially build the AI based on the channel of communication to be optional, we would also allow flexibility but we would have like standardized methods that all users would call to build it easily.
 
-Refactor resources to call services instead of orchestrators
-
-Update ARCHITECTURE.md with new layered architecture
-Read c:\Users\kenne\Documents\Workplace\Loctelli\packages\ai-receptionist\src\services\index.ts
-Globpattern: "**/*.ts"
-⎿
-Found 4 files
-Session limit reached ∙ resets 10pm

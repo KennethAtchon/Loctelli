@@ -1,14 +1,7 @@
 /**
- * User-facing resources for the AI Receptionist SDK
- *
- * Each resource can be used standalone for better tree-shaking:
- * @example
- * import { CallsResource } from '@loctelli/ai-receptionist';
+ * Resource exports
  */
 
-export { CallsResource, type MakeCallOptions, type CallSession } from './calls.resource';
-export { SMSResource, type SendSMSOptions, type SMSMessage } from './sms.resource';
-export { EmailResource, type SendEmailOptions, type EmailMessage } from './email.resource';
-
-// TODO: Implement CalendarResource
-// export { CalendarResource, type BookAppointmentOptions, type Appointment } from './calendar.resource';
+export { CallsResource } from './calls.resource';
+export { SMSResource } from './sms.resource';
+export { EmailResource } from './email.resource';
