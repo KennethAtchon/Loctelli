@@ -1,28 +1,127 @@
 /**
  * Core types for the Loctelli AI Receptionist SDK
- * Supports: Phone calls, Video calls, SMS, and Email automation
+ * AI Agent Orchestration Framework - Use your own API credentials
  */
 
 // ============================================================================
 // CORE CONFIGURATION
 // ============================================================================
 
+/**
+ * Main SDK configuration - accepts user's own API credentials
+ */
 export interface AIReceptionistOptions {
-  /** API key for authentication */
-  apiKey: string;
-  /** Base URL for the AI Receptionist API */
-  apiUrl?: string;
+  /** Twilio configuration (user's own account) */
+  twilio?: TwilioConfig;
+
+  /** Google APIs configuration (user's own account) */
+  google?: GoogleConfig;
+
+  /** Twitter/X API configuration (user's own account) */
+  twitter?: TwitterConfig;
+
+  /** AI Model configuration (user's choice of provider) */
+  model: AIModelConfig;
+
+  /** Agent behavior configuration */
+  agent: AgentConfig;
+
+  /** Notification settings */
+  notifications?: NotificationConfig;
+
   /** Debug mode */
   debug?: boolean;
 }
 
+/**
+ * Twilio configuration for phone/SMS
+ */
+export interface TwilioConfig {
+  /** Twilio Account SID */
+  accountSid: string;
+  /** Twilio Auth Token */
+  authToken: string;
+  /** Your Twilio phone number */
+  phoneNumber: string;
+  /** Webhook URL for incoming calls/SMS (optional - SDK can auto-configure) */
+  webhookUrl?: string;
+}
+
+/**
+ * Google APIs configuration
+ */
+export interface GoogleConfig {
+  /** Google Calendar configuration */
+  calendar?: {
+    /** OAuth2 Client ID */
+    clientId: string;
+    /** OAuth2 Client Secret */
+    clientSecret: string;
+    /** OAuth2 Refresh Token */
+    refreshToken: string;
+    /** Calendar ID (default: 'primary') */
+    calendarId?: string;
+  };
+
+  /** Google Sheets configuration */
+  sheets?: {
+    /** Spreadsheet ID */
+    spreadsheetId: string;
+    /** Sheet name/tab */
+    sheetName?: string;
+    /** OAuth2 credentials */
+    clientId: string;
+    clientSecret: string;
+    refreshToken: string;
+  };
+}
+
+/**
+ * Twitter/X API configuration
+ */
+export interface TwitterConfig {
+  /** Twitter API Key */
+  apiKey: string;
+  /** Twitter API Secret */
+  apiSecret: string;
+  /** Twitter Access Token */
+  accessToken: string;
+  /** Twitter Access Secret */
+  accessSecret: string;
+}
+
+/**
+ * AI Model configuration - supports multiple providers
+ */
+export interface AIModelConfig {
+  /** AI provider */
+  provider: 'openai' | 'anthropic' | 'gemini' | 'custom';
+  /** API key for the provider */
+  apiKey: string;
+  /** Model name (e.g., 'gpt-4', 'claude-3-opus', 'gemini-pro') */
+  model: string;
+  /** Temperature (0-2, controls randomness) */
+  temperature?: number;
+  /** Max tokens per response */
+  maxTokens?: number;
+  /** Custom API endpoint (for custom providers) */
+  endpoint?: string;
+}
+
+/**
+ * Agent behavior configuration
+ */
 export interface AgentConfig {
   /** Agent name (e.g., "Sarah") */
   name: string;
-  /** Agent role/description */
+  /** Agent role/description (e.g., "Sales Representative") */
   role: string;
-  /** Conversation tone */
-  tone?: 'professional' | 'friendly' | 'assertive' | 'casual';
+  /** Personality description (e.g., "friendly and professional") */
+  personality?: string;
+  /** Custom instructions for the agent */
+  instructions?: string;
+  /** Which tools/integrations the agent can use */
+  tools?: Array<'calendar' | 'sheets' | 'sms' | 'twitter' | 'email'>;
   /** Business information for answering questions */
   businessInfo?: {
     name: string;
@@ -31,8 +130,6 @@ export interface AgentConfig {
     location?: string;
     pricing?: string;
   };
-  /** Custom system prompt additions */
-  customInstructions?: string;
 }
 
 // ============================================================================

@@ -1,9 +1,8 @@
 /**
- * Export all resources
+ * User-facing resources for the AI Receptionist SDK
  */
 
-export { BaseResource } from './base';
-export { PhoneResource } from './phone';
-export { VideoResource } from './video';
-export { SMSResource } from './sms';
-export { EmailResource } from './email';
+export { CallsResource, type MakeCallOptions, type CallSession } from './calls.resource';
+export { SMSResource, type SendSMSOptions, type SMSMessage } from './sms.resource';
+export { EmailResource, type SendEmailOptions, type EmailMessage } from './email.resource';
+export { CalendarResource, type BookAppointmentOptions, type Appointment } from './calendar.resource';

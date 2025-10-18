@@ -1,95 +1,51 @@
 /**
  * Main AI Receptionist SDK Client
+ * Lightweight wrapper for convenient access to all resources
  */
 
 import { AIReceptionistOptions } from './types';
-import { HttpClient } from './utils/http';
-import { PhoneResource, VideoResource, SMSResource, EmailResource } from './resources';
-import {
-  AuthService,
-  WebhookService,
-  CalendarService,
-  AnalyticsService,
-} from './services';
+import { CallsResource } from './resources/calls.resource';
+import { SMSResource } from './resources/sms.resource';
+import { EmailResource } from './resources/email.resource';
+import { CalendarResource } from './resources/calendar.resource';
 
+/**
+ * AIReceptionist - Universal AI Agent Orchestration Library
+ *
+ * This is a lightweight client that provides convenient access to all resources.
+ * For better tree-shaking, you can import and use resources directly.
+ *
+ * @example
+ * ```typescript
+ * // Option 1: Use the client for convenient access to all resources
+ * const client = new AIReceptionist({
+ *   twilio: { accountSid: '...', authToken: '...', phoneNumber: '...' },
+ *   google: { calendar: { ... } },
+ *   model: { provider: 'openai', apiKey: '...', model: 'gpt-4' },
+ *   agent: { name: 'Sarah', role: 'Sales Rep', ... }
+ * });
+ *
+ * await client.calls.make({ to: '+1234567890' });
+ * await client.sms.send({ to: '+1234567890', body: 'Hello!' });
+ * await client.calendar.book({ ... });
+ *
+ * // Option 2: Import resources directly (better tree-shaking)
+ * import { CallsResource } from '@loctelli/ai-receptionist';
+ * const calls = new CallsResource({ twilio: { ... }, model: { ... }, agent: { ... } });
+ * await calls.make({ to: '+1234567890' });
+ * ```
+ */
 export class AIReceptionist {
-  private http: HttpClient;
-
-  /**
-   * Shared services used across all resources
-   */
-  public readonly services: {
-    auth: AuthService;
-    webhook: WebhookService;
-    calendar: CalendarService;
-    analytics: AnalyticsService;
-  };
-
-  // Lazy-loaded resources
-  private _phone?: PhoneResource;
-  private _video?: VideoResource;
-  private _sms?: SMSResource;
-  private _email?: EmailResource;
+  public readonly calls: CallsResource;
+  public readonly sms: SMSResource;
+  public readonly email: EmailResource;
+  public readonly calendar: CalendarResource;
 
   constructor(options: AIReceptionistOptions) {
-    const baseURL = options.apiUrl || 'https://api.loctelli.com/v1';
-
-    this.http = new HttpClient({
-      baseURL,
-      apiKey: options.apiKey,
-      debug: options.debug,
-    });
-
-    // Initialize shared services (always loaded, lightweight)
-    this.services = {
-      auth: new AuthService(this.http),
-      webhook: new WebhookService(this.http),
-      calendar: new CalendarService(this.http),
-      analytics: new AnalyticsService(this.http, { debug: options.debug }),
-    };
-  }
-
-  /**
-   * Phone resource (lazy loaded)
-   * Access phone calls, numbers, and voice features
-   */
-  get phone(): PhoneResource {
-    if (!this._phone) {
-      this._phone = new PhoneResource(this);
-    }
-    return this._phone;
-  }
-
-  /**
-   * Video resource (lazy loaded)
-   * Access video calls and room features
-   */
-  get video(): VideoResource {
-    if (!this._video) {
-      this._video = new VideoResource(this);
-    }
-    return this._video;
-  }
-
-  /**
-   * SMS resource (lazy loaded)
-   * Access SMS messaging and conversations
-   */
-  get sms(): SMSResource {
-    if (!this._sms) {
-      this._sms = new SMSResource(this);
-    }
-    return this._sms;
-  }
-
-  /**
-   * Email resource (lazy loaded)
-   * Access email messaging and threads
-   */
-  get email(): EmailResource {
-    if (!this._email) {
-      this._email = new EmailResource(this);
-    }
-    return this._email;
+    // Initialize resources with config - they handle their own orchestrator setup
+    this.calls = new CallsResource(options);
+    this.sms = new SMSResource(options);
+    this.email = new EmailResource(options);
+    this.calendar = new CalendarResource(options);
   }
 }

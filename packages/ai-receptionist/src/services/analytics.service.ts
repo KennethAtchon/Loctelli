@@ -1,9 +1,7 @@
 /**
- * Shared Analytics Service
- * Tracks events and metrics across all resources
+ * Analytics Service - SKELETON
+ * TODO: Track events and metrics for monitoring AI receptionist performance
  */
-
-import { HttpClient } from '../utils/http';
 
 export interface AnalyticsEvent {
   event: string;
@@ -14,10 +12,7 @@ export interface AnalyticsEvent {
 export class AnalyticsService {
   private debug: boolean;
 
-  constructor(
-    private http: HttpClient,
-    options?: { debug?: boolean }
-  ) {
+  constructor(options?: { debug?: boolean }) {
     this.debug = options?.debug || false;
   }
 
@@ -35,26 +30,6 @@ export class AnalyticsService {
       console.log('[Analytics]', payload);
     }
 
-    try {
-      await this.http.post('/analytics/events', payload);
-    } catch (error) {
-      // Don't throw on analytics errors
-      if (this.debug) {
-        console.error('[Analytics Error]', error);
-      }
-    }
-  }
-
-  /**
-   * Track multiple events in batch
-   */
-  async trackBatch(events: AnalyticsEvent[]): Promise<void> {
-    try {
-      await this.http.post('/analytics/events/batch', { events });
-    } catch (error) {
-      if (this.debug) {
-        console.error('[Analytics Batch Error]', error);
-      }
-    }
+    // TODO: Send to your analytics provider (Mixpanel, Segment, etc.)
   }
 }

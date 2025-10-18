@@ -1,27 +1,43 @@
 /**
  * @loctelli/ai-receptionist
- * AI-powered receptionist for phone calls, video calls, SMS, and email automation
+ * AI Agent Orchestration Framework
  */
 
 // Main client
 export { AIReceptionist } from './client';
 
-// Resources
-export { PhoneResource, VideoResource, SMSResource, EmailResource } from './resources';
+// Resources (user-facing API)
+export {
+  CallsResource,
+  SMSResource,
+  EmailResource,
+  CalendarResource,
+} from './resources';
 
-// Shared services (for advanced usage)
 export type {
-  AuthService,
-  WebhookService,
-  CalendarService,
-  AnalyticsService,
-} from './services';
+  MakeCallOptions,
+  CallSession,
+  SendSMSOptions,
+  SMSMessage,
+  SendEmailOptions,
+  EmailMessage,
+  BookAppointmentOptions,
+  Appointment,
+} from './resources';
 
-// Errors
-export * from './errors';
+// Orchestrators (for advanced usage - internal layer)
+export { TwilioOrchestrator } from './orchestrators/twilio.orchestrator';
+export { GoogleOrchestrator } from './orchestrators/google.orchestrator';
+export { TwitterOrchestrator } from './orchestrators/twitter.orchestrator';
+export { AIOrchestrator } from './orchestrators/ai.orchestrator';
+export { ConversationManager } from './orchestrators/conversation.manager';
 
-// Utils
-export * from './utils';
+// Utility services (for advanced usage)
+export { AnalyticsService, WebhookService, AuthService } from './services';
+export type { AnalyticsEvent, WebhookConfig } from './services';
 
 // Types
 export * from './types';
+
+// Errors
+export * from './errors';

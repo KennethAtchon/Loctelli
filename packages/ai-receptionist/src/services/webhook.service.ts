@@ -1,45 +1,35 @@
 /**
- * Shared Webhook Service
- * Handles webhook registration and event processing across all resources
+ * Webhook Service - SKELETON
+ * TODO: Handle incoming webhooks from Twilio, Google, etc.
  */
 
-import { HttpClient } from '../utils/http';
+import { EventEmitter } from 'events';
 
 export interface WebhookConfig {
-  url: string;
-  events: string[];
-  secret?: string;
+  port?: number;
+  path?: string;
 }
 
-export class WebhookService {
-  constructor(private http: HttpClient) {}
+export class WebhookService extends EventEmitter {
+  private server?: any;
 
-  /**
-   * Register a webhook endpoint
-   */
-  async register(config: WebhookConfig): Promise<{ id: string; url: string }> {
-    return this.http.post('/webhooks', config);
+  constructor(config?: WebhookConfig) {
+    super();
+    // TODO: Initialize HTTP server for webhooks
   }
 
   /**
-   * Unregister a webhook
+   * Start webhook server
    */
-  async unregister(webhookId: string): Promise<void> {
-    return this.http.delete(`/webhooks/${webhookId}`);
+  async start(): Promise<void> {
+    // TODO: Start Express/Fastify server
+    // Listen for incoming webhooks from Twilio, Google, etc.
   }
 
   /**
-   * List all registered webhooks
+   * Stop webhook server
    */
-  async list(): Promise<WebhookConfig[]> {
-    return this.http.get('/webhooks');
-  }
-
-  /**
-   * Verify webhook signature
-   */
-  verifySignature(payload: string, signature: string, secret: string): boolean {
-    // TODO: Implement signature verification
-    return true;
+  async stop(): Promise<void> {
+    // TODO: Stop server
   }
 }
