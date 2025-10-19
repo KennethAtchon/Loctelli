@@ -196,7 +196,7 @@ export function ContactSection() {
             <div className="mt-8">
               <Button
                 className="bg-blue-500 hover:bg-blue-600"
-                onClick={() => open("https://calendly.com/loctelli-info/30min")}
+                onClick={() => open("https://calendly.com/loctelli-info/45min")}
               >
                 Book a Demo
               </Button>

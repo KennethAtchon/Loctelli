@@ -26,7 +26,7 @@ export function HeroSection() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
-                onClick={() => open("https://calendly.com/loctelli-info/30min")}
+                onClick={() => open("https://calendly.com/loctelli-info/45min")}
                 className="bg-teal-500 hover:bg-teal-600 text-white px-8 py-6 text-lg rounded-full transition-transform hover:scale-105"
               >
                 Book a Demo

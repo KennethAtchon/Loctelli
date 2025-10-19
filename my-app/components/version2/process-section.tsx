@@ -290,7 +290,7 @@ export function ProcessSection() {
                 Choose one service or get all three. Book a free consultation to discuss which process fits your business best.
               </p>
               <Button 
-                onClick={() => open("https://calendly.com/loctelli-info/30min")}
+                onClick={() => open("https://calendly.com/loctelli-info/45min")}
                 className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <Calendar className="w-5 h-5 mr-2" />

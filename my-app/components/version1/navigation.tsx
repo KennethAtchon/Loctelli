@@ -80,7 +80,7 @@ export function Navigation() {
           </Link>
           <Button
             className="bg-teal-500 hover:bg-teal-600 text-white"
-            onClick={() => open("https://calendly.com/loctelli-info/30min")}
+            onClick={() => open("https://calendly.com/loctelli-info/45min")}
           >
             Book a Demo
           </Button>
@@ -145,7 +145,7 @@ export function Navigation() {
               className="bg-teal-500 hover:bg-teal-600 text-white w-full"
               onClick={() => {
                 setIsMobileMenuOpen(false);
-                open("https://calendly.com/loctelli-info/30min");
+                open("https://calendly.com/loctelli-info/45min");
               }}
             >
               Book a Demo

@@ -193,7 +193,7 @@ export function PricingSection() {
           <Button
             variant="outline"
             className="mt-4 border-blue-500 text-blue-500 hover:bg-blue-50"
-            onClick={() => open("https://calendly.com/loctelli-info/30min")}
+            onClick={() => open("https://calendly.com/loctelli-info/45min")}
           >
             Book a Demo
           </Button>

@@ -40,7 +40,7 @@ export function HeroSection() {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <Button 
-              onClick={() => open("https://calendly.com/loctelli-info/30min")}
+              onClick={() => open("https://calendly.com/loctelli-info/45min")}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
             >
               <Calendar className="w-4 h-4 mr-2" />

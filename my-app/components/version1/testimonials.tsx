@@ -243,7 +243,7 @@ export function Testimonials() {
         >
           <Button
             className="bg-teal-500 hover:bg-teal-600 text-white px-8 py-6 text-lg rounded-full transition-transform hover:scale-105"
-            onClick={() => open("https://calendly.com/loctelli-info/30min")}
+            onClick={() => open("https://calendly.com/loctelli-info/45min")}
           >
             Book a Demo
           </Button>

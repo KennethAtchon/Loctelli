@@ -119,7 +119,7 @@ export function ServicesSection() {
             <h3 className="text-2xl font-bold mb-3">Ready to Get All Four Services?</h3>
             <p className="text-blue-100 mb-4">Book a call to see how we can transform your business with our complete marketing suite.</p>
             <Button 
-              onClick={() => open("https://calendly.com/loctelli-info/30min")}
+              onClick={() => open("https://calendly.com/loctelli-info/45min")}
               className="bg-white text-blue-600 hover:bg-gray-100 px-6 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
             >
               Schedule Your Strategy Call
