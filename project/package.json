@@ -32,7 +32,7 @@
     "@aws-sdk/lib-storage": "^3.850.0",
     "@aws-sdk/s3-request-presigner": "^3.850.0",
     "@gohighlevel/api-client": "^2.0.0",
-    "@kennethatchon/ai-receptionist": "^0.1.0",
+    "@atchonk/ai-receptionist": "*",
     "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",

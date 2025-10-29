@@ -8,8 +8,10 @@
 import { Controller, Post, Get, Body, Logger, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AIReceptionistTestService } from './ai-receptionist-test.service';
+import { Public } from '../../../shared/decorators/public.decorator';
 
-@Controller()
+@Public()
+@Controller('ai-receptionist')
 export class AIReceptionistTestController {
   private readonly logger = new Logger(AIReceptionistTestController.name);
 
@@ -228,7 +230,7 @@ export class AIReceptionistTestController {
   async testAskAiEmail() {
     const receptionist = this.aiReceptionistTestService.getReceptionist();
 
-    const response = await receptionist.text.generate({
+    const response = await receptionist.text?.generate({
       prompt: "Hey can you shoot a quick email to hailey.prescott@loctelli.com and ask how shes doing? Just do it, don't ask for clarification.",
       metadata: {
         trigger: 'email',

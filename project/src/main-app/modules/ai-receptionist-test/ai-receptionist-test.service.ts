@@ -7,7 +7,7 @@
 
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AIReceptionist } from '@loctelli/ai-receptionist';
+import { AIReceptionist } from '@atchonk/ai-receptionist';
 
 interface AgentResponse {
   content: string;
@@ -83,6 +83,15 @@ export class AIReceptionistTestService implements OnModuleInit {
           model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
           temperature: 0.7,
           maxTokens: 500
+        },
+        providers: {
+          email: {
+            postmark: {
+              apiKey: this.configService.get<string>('POSTMARK_API_KEY')!,
+              fromEmail: this.configService.get<string>('POSTMARK_FROM_EMAIL')!,
+              fromName: this.configService.get<string>('POSTMARK_FROM_NAME')!,
+            }
+          }
         },
         debug: process.env.DEBUG === 'true'
       });

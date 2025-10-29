@@ -15,9 +15,9 @@ Standalone test module for the AI Receptionist SDK. **No integration** with exis
 
 1. **Install AI Receptionist SDK** (if not already installed):
    ```bash
-   npm install @loctelli/ai-receptionist
+   npm install @atchonk/ai-receptionist
    # or
-   pnpm add @loctelli/ai-receptionist
+   pnpm add @atchonk/ai-receptionist
    ```
 
 2. **Add to your AppModule**:
