@@ -27,7 +27,8 @@
       "Bash(npx prisma db seed:*)",
       "Bash(npx tsx:*)",
       "Bash(npx prisma studio:*)",
-      "Bash(pnpm tsc:*)"
+      "Bash(pnpm tsc:*)",
+      "Bash(test:*)"
     ],
     "deny": []
   },
