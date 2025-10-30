@@ -5,8 +5,8 @@
  * NO integration with existing backend - standalone testing only
  */
 
-import { Controller, Post, Get, Body, Logger, Req, Res } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Controller, Post, Get, Body, Logger, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { AIReceptionistTestService } from './ai-receptionist-test.service';
 import { Public } from '../../../shared/decorators/public.decorator';
 
@@ -36,6 +36,31 @@ export class AIReceptionistTestController {
   }
 
   /**
+   * Version endpoint - shows installed AI Receptionist package version
+   */
+  @Get('version')
+  async getVersion() {
+    try {
+      // Read package.json from the installed package
+      const packageJson = require('@atchonk/ai-receptionist/package.json');
+      return {
+        package: '@atchonk/ai-receptionist',
+        version: packageJson.version,
+        description: packageJson.description,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      this.logger.error('Error reading package version:', error);
+      return {
+        package: '@atchonk/ai-receptionist',
+        version: 'unknown',
+        error: 'Could not read package version',
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  /**
    * Root endpoint
    */
   @Get()
@@ -44,6 +69,7 @@ export class AIReceptionistTestController {
       message: 'AI Receptionist Webhook Test Server',
       endpoints: {
         health: '/health',
+        version: '/version',
         webhooks: {
           voice: 'POST /webhooks/voice',
           sms: 'POST /webhooks/sms',
@@ -108,23 +134,20 @@ export class AIReceptionistTestController {
 
   /**
    * Email webhook endpoint (Postmark)
+   *
+   * Security notes:
+   * - Postmark does NOT provide webhook signatures for inbound emails
+   * - Recommended security: Basic auth in webhook URL, HTTPS, and IP whitelisting
+   * - Configure webhook URL in Postmark with: https://user:pass@api.loctelli.com/ai-receptionist/webhooks/email
    */
   @Post('webhooks/email')
-  async emailWebhook(@Body() body: any, @Req() req: Request, @Res() res: Response) {
+  async emailWebhook(@Body() body: any, @Res() res: Response) {
     this.logger.log('Received email webhook');
     this.logger.debug(JSON.stringify({ payload: body }));
 
     try {
-      const signature = req.headers['x-postmark-signature'] as string | undefined;
-
-      // Skip signature validation for testing - only require it in production
-      if (!signature && process.env.NODE_ENV === 'production' && process.env.POSTMARK_WEBHOOK_SECRET) {
-        this.logger.warn('Missing webhook signature in production');
-        return res.status(401).send({ error: 'Missing signature' });
-      }
-
       const receptionist = this.aiReceptionistTestService.getReceptionist();
-      const result = await receptionist.handleEmailWebhook(body, signature);
+      const result = await receptionist.handleEmailWebhook(body);
       return res.send(result);
     } catch (error) {
       this.logger.error('Email webhook error:', error);

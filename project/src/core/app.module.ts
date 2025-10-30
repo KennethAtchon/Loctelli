@@ -85,7 +85,7 @@ export class AppModule implements NestModule {
         { path: 'auth/change-password', method: RequestMethod.POST },
       );
 
-    // Apply API key middleware to all routes except status/health, auth, and debug
+    // Apply API key middleware to all routes except status/health, auth, debug, and ai-receptionist
     consumer
       .apply(ApiKeyMiddleware)
       .exclude(
@@ -93,6 +93,7 @@ export class AppModule implements NestModule {
         { path: 'debug/redis/*', method: RequestMethod.GET },
         { path: 'debug/redis/*', method: RequestMethod.POST },
         { path: 'debug/redis/*', method: RequestMethod.DELETE },
+        { path: 'ai-receptionist(.*)', method: RequestMethod.ALL },
       )
       .forRoutes('*');
   }
