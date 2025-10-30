@@ -21,7 +21,7 @@ export class AIReceptionistTestModule implements NestModule {
     consumer
       .apply(WebhookSecurityMiddleware)
       .forRoutes(
-        { path: 'ai-receptionist/webhooks/*', method: RequestMethod.ALL }
+        { path: 'ai-receptionist/webhooks/(.*)', method: RequestMethod.ALL }
       );
   }
 }

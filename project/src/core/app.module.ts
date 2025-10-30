@@ -90,10 +90,10 @@ export class AppModule implements NestModule {
       .apply(ApiKeyMiddleware)
       .exclude(
         { path: 'status/health', method: RequestMethod.GET },
-        { path: 'debug/redis/*', method: RequestMethod.GET },
-        { path: 'debug/redis/*', method: RequestMethod.POST },
-        { path: 'debug/redis/*', method: RequestMethod.DELETE },
-        { path: 'ai-receptionist(.*)', method: RequestMethod.ALL },
+        { path: 'debug/redis/(.*)', method: RequestMethod.GET },
+        { path: 'debug/redis/(.*)', method: RequestMethod.POST },
+        { path: 'debug/redis/(.*)', method: RequestMethod.DELETE },
+        { path: 'ai-receptionist/(.*)', method: RequestMethod.ALL },
       )
       .forRoutes('*');
   }
