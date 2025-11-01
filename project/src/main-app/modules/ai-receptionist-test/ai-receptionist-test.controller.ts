@@ -41,8 +41,12 @@ export class AIReceptionistTestController {
   @Get('version')
   async getVersion() {
     try {
-      // Read package.json from the installed package
-      const packageJson = require('@atchonk/ai-receptionist/package.json');
+      // Read package.json from node_modules directly using fs
+      const fs = require('fs');
+      const path = require('path');
+      const packageJsonPath = path.join(process.cwd(), 'node_modules', '@atchonk', 'ai-receptionist', 'package.json');
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+
       return {
         package: '@atchonk/ai-receptionist',
         version: packageJson.version,

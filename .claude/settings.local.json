@@ -28,7 +28,8 @@
       "Bash(npx tsx:*)",
       "Bash(npx prisma studio:*)",
       "Bash(pnpm tsc:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(npm update:*)"
     ],
     "deny": []
   },

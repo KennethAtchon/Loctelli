@@ -40,11 +40,11 @@ Standalone test module for the AI Receptionist SDK. **No integration** with exis
 
 ## API Endpoints
 
-Base URL: `http://localhost:8000/test/ai-receptionist`
+Base URL: `http://localhost:8000/ai-receptionist`
 
 ### 1. Health Check
 ```bash
-GET /test/ai-receptionist/health
+GET /ai-receptionist/health
 ```
 
 **Response:**
@@ -62,7 +62,7 @@ GET /test/ai-receptionist/health
 
 ### 2. Basic Message Test
 ```bash
-POST /test/ai-receptionist/message
+POST /ai-receptionist/message
 Content-Type: application/json
 
 {
@@ -83,7 +83,7 @@ Content-Type: application/json
 
 ### 3. Business Context Test
 ```bash
-POST /test/ai-receptionist/business-context
+POST /ai-receptionist/business-context
 Content-Type: application/json
 
 {
@@ -112,7 +112,7 @@ Content-Type: application/json
 
 ### 4. Security Test (Jailbreak Detection)
 ```bash
-POST /test/ai-receptionist/security
+POST /ai-receptionist/security
 Content-Type: application/json
 
 {
@@ -151,7 +151,7 @@ Content-Type: application/json
 
 ### 5. SMS Test
 ```bash
-POST /test/ai-receptionist/sms
+POST /ai-receptionist/sms
 Content-Type: application/json
 
 {
@@ -175,7 +175,7 @@ Content-Type: application/json
 
 ### 6. Email Test
 ```bash
-POST /test/ai-receptionist/email
+POST /ai-receptionist/email
 Content-Type: application/json
 
 {
@@ -201,7 +201,7 @@ Content-Type: application/json
 
 ### 7. Multi-Turn Conversation Test
 ```bash
-POST /test/ai-receptionist/conversation
+POST /ai-receptionist/conversation
 Content-Type: application/json
 
 {
@@ -247,15 +247,17 @@ Content-Type: application/json
 
 ```bash
 # Health check
-curl http://localhost:8000/test/ai-receptionist/health
+curl http://localhost:8000/ai-receptionist/health
+
+curl http://localhost:8000/ai-receptionist/version
 
 # Basic message
-curl -X POST http://localhost:8000/test/ai-receptionist/message \
+curl -X POST http://localhost:8000/ai-receptionist/message \
   -H "Content-Type: application/json" \
   -d '{"message": "Hi, can you help me?"}'
 
 # Business context
-curl -X POST http://localhost:8000/test/ai-receptionist/business-context \
+curl -X POST http://localhost:8000/ai-receptionist/business-context \
   -H "Content-Type: application/json" \
   -d '{
     "message": "What times are available?",
@@ -264,7 +266,7 @@ curl -X POST http://localhost:8000/test/ai-receptionist/business-context \
   }'
 
 # Security test
-curl -X POST http://localhost:8000/test/ai-receptionist/security \
+curl -X POST http://localhost:8000/ai-receptionist/security \
   -H "Content-Type: application/json" \
   -d '{
     "attempts": [
@@ -274,7 +276,7 @@ curl -X POST http://localhost:8000/test/ai-receptionist/security \
   }'
 
 # SMS test
-curl -X POST http://localhost:8000/test/ai-receptionist/sms \
+curl -X POST http://localhost:8000/ai-receptionist/sms \
   -H "Content-Type: application/json" \
   -d '{"from": "+1234567890", "message": "Book a demo"}'
 ```
