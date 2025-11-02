@@ -142,7 +142,7 @@ export class AIReceptionistTestController {
    * Security notes:
    * - Postmark does NOT provide webhook signatures for inbound emails
    * - Recommended security: Basic auth in webhook URL, HTTPS, and IP whitelisting
-   * - Configure webhook URL in Postmark with: https://user:pass@api.loctelli.com/ai-receptionist/webhooks/email
+   * - Configure webhook URL in Postmark with: https://api.loctelli.com/ai-receptionist/webhooks/email
    */
   @Post('webhooks/email')
   async emailWebhook(@Body() body: any, @Res() res: Response) {
@@ -211,61 +211,4 @@ export class AIReceptionistTestController {
     }
   }
 
-  /**
-   * Test email endpoint
-   */
-  @Post('test/email')
-  async testEmail(@Body() body: { from?: string; subject?: string; message?: string; html?: string }) {
-    const testPayload = {
-      From: body?.from || 'test@example.com',
-      FromFull: {
-        Email: body?.from || 'test@example.com',
-        Name: 'Test User',
-        MailboxHash: ''
-      },
-      To: process.env.POSTMARK_FROM_EMAIL || 'receptionist@test.com',
-      ToFull: [{
-        Email: process.env.POSTMARK_FROM_EMAIL || 'receptionist@test.com',
-        Name: 'AI Receptionist',
-        MailboxHash: ''
-      }],
-      Subject: body?.subject || 'Test Email',
-      MessageID: `TEST_${Date.now()}`,
-      TextBody: body?.message || 'This is a test email',
-      HtmlBody: body?.html || '<p>This is a test email</p>',
-      Date: new Date().toISOString(),
-      Headers: [],
-      Attachments: []
-    };
-
-    this.logger.log(JSON.stringify({ payload: testPayload, message: 'Testing email webhook' }));
-
-    try {
-      const receptionist = this.aiReceptionistTestService.getReceptionist();
-      const result = await receptionist.handleEmailWebhook(testPayload);
-      return { success: true, response: result };
-    } catch (error) {
-      this.logger.error('Test email error:', error);
-      return { success: false, error: String(error) };
-    }
-  }
-
-  /**
-   * Test ask AI email endpoint
-   */
-  @Get('test/ask-ai-email')
-  async testAskAiEmail() {
-    const receptionist = this.aiReceptionistTestService.getReceptionist();
-
-    const response = await receptionist.text?.generate({
-      prompt: "Hey can you shoot a quick email to hailey.prescott@loctelli.com and ask how shes doing? Just do it, don't ask for clarification.",
-      metadata: {
-        trigger: 'email',
-        customer: 'hailey.prescott@loctelli.com',
-        context: 'Hailey is a customer of ours and we want to check in on her.',
-      }
-    });
-
-    return { success: true, response: response };
-  }
 }

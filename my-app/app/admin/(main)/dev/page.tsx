@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Play, Code, Copy, Download } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Play, Code, Copy, Download, Send, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +14,8 @@ import { useToast } from '@/hooks/use-toast';
 import DatabaseSchema from '@/components/admin/database-schema';
 
 export default function DevPage() {
+  const router = useRouter();
+
   // Debug section state
   const [debugMethod, setDebugMethod] = useState('GET');
   const [debugUrl, setDebugUrl] = useState('');
@@ -22,7 +25,7 @@ export default function DevPage() {
   const [debugStatus, setDebugStatus] = useState<number | null>(null);
   const [debugLoading, setDebugLoading] = useState(false);
   const [debugTime, setDebugTime] = useState<number | null>(null);
-  
+
   const { toast } = useToast();
 
   // Debug section functions
@@ -128,6 +131,36 @@ export default function DevPage() {
           <p className="text-gray-600">Database schema and development utilities.</p>
         </div>
       </div>
+
+      {/* Developer View Navigation */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Developer View</CardTitle>
+          <CardDescription>
+            Access to experimental and development features
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4">
+            <Button
+              onClick={() => router.push('/admin/sms')}
+              className="flex items-center gap-2"
+              variant="outline"
+            >
+              <Send className="h-4 w-4" />
+              SMS Management
+            </Button>
+            <Button
+              onClick={() => router.push('/admin/finder')}
+              className="flex items-center gap-2"
+              variant="outline"
+            >
+              <Search className="h-4 w-4" />
+              Business Finder
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Database Schema */}
       <div className="space-y-4">

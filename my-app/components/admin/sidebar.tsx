@@ -36,8 +36,6 @@ const navigation = [
   { name: 'Leads', href: '/admin/leads', icon: Users },
   { name: 'Bookings', href: '/admin/bookings', icon: Calendar },
   { name: 'Chat', href: '/admin/chat', icon: MessageSquare },
-  { name: 'SMS', href: '/admin/sms', icon: Send },
-  { name: 'Business Finder', href: '/admin/finder', icon: Search },
   { name: 'Prompt Builder', href: '/admin/prompt-templates', icon: FileText },
   { name: 'Integrations', href: '/admin/integrations', icon: Link2 },
   { name: 'Dev', href: '/admin/dev', icon: Database },
