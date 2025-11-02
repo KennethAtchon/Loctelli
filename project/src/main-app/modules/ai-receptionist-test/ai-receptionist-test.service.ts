@@ -85,6 +85,13 @@ export class AIReceptionistTestService implements OnModuleInit {
           maxTokens: 500
         },
         providers: {
+          communication: {
+            twilio: {
+              accountSid: this.configService.get<string>('TWILIO_ACCOUNT_SID')!,
+              authToken: this.configService.get<string>('TWILIO_AUTH_TOKEN')!,
+              phoneNumber: this.configService.get<string>('TWILIO_PHONE_NUMBER')!
+            }
+          },
           email: {
             postmark: {
               apiKey: this.configService.get<string>('POSTMARK_API_KEY')!,
