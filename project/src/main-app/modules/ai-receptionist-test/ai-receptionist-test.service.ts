@@ -100,6 +100,17 @@ export class AIReceptionistTestService implements OnModuleInit {
             }
           }
         },
+        webhooks: {
+          baseUrl: this.configService.get<string>('BASE_URL') || 'http://localhost:8000',
+          endpoints: {
+            voice: '/ai-receptionist/webhooks/voice',
+            sms: '/ai-receptionist/webhooks/sms',
+            email: '/ai-receptionist/webhooks/email'
+          }
+        },
+        voice: {
+          voiceId: 'Polly.Matthew' // Male voice - change to 'Polly.Joanna' for female
+        },
         debug: process.env.DEBUG === 'true'
       });
 

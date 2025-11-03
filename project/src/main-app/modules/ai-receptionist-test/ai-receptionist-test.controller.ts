@@ -114,6 +114,31 @@ export class AIReceptionistTestController {
   }
 
   /**
+   * Voice webhook continue endpoint (Twilio gather callback)
+   * Handles subsequent interactions after initial greeting
+   */
+  @Post('webhooks/voice/continue')
+  async voiceWebhookContinue(@Body() body: any, @Res() res: Response) {
+    this.logger.log('Received voice webhook continue');
+    this.logger.debug(JSON.stringify({ payload: body }));
+
+    try {
+      const receptionist = this.aiReceptionistTestService.getReceptionist();
+      const twimlResponse = await receptionist.handleVoiceWebhook(body);
+      return res.type('text/xml').send(twimlResponse);
+    } catch (error) {
+      this.logger.error('Voice webhook continue error:', error);
+      return res.status(500).type('text/xml').send(`
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Response>
+          <Say voice="alice">I apologize, but I'm experiencing technical difficulties.</Say>
+          <Hangup/>
+        </Response>
+      `);
+    }
+  }
+
+  /**
    * SMS webhook endpoint (Twilio)
    */
   @Post('webhooks/sms')
