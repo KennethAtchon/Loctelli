@@ -51,7 +51,7 @@ export class LeadManagementTools {
           }
         }
       })
-      .onCall(async (params, ctx: ExecutionContext): Promise<ToolResult> => {
+      .default(async (params, ctx: ExecutionContext): Promise<ToolResult> => {
         try {
           // Extract leadId from metadata
           const leadId = ctx.metadata?.leadId as number;
@@ -61,7 +61,7 @@ export class LeadManagementTools {
               success: false,
               error: 'Missing leadId in context',
               response: {
-                speak: "I'm sorry, I couldn't find the lead information."
+                text: "I'm sorry, I couldn't find the lead information."
               }
             };
           }
@@ -76,7 +76,7 @@ export class LeadManagementTools {
               success: false,
               error: 'Lead not found',
               response: {
-                speak: "I couldn't find the lead information. Please try again."
+                text: "I couldn't find the lead information. Please try again."
               }
             };
           }
@@ -105,7 +105,7 @@ export class LeadManagementTools {
             success: true,
             data: updateData,
             response: {
-              speak: `Great! I've updated ${updatedFields.length > 0 ? updatedFields.join(', ') : 'your information'}. Is there anything else I can help you with?`
+              text: `Great! I've updated ${updatedFields.length > 0 ? updatedFields.join(', ') : 'your information'}. Is there anything else I can help you with?`
             }
           };
         } catch (error) {
@@ -114,7 +114,7 @@ export class LeadManagementTools {
             success: false,
             error: error.message,
             response: {
-              speak: "I'm sorry, I encountered an issue updating your information. Please try again."
+              text: "I'm sorry, I encountered an issue updating your information. Please try again."
             }
           };
         }
@@ -169,7 +169,7 @@ export class LeadManagementTools {
           }
         }
       })
-      .onCall(async (params, ctx: ExecutionContext): Promise<ToolResult> => {
+      .default(async (params, ctx: ExecutionContext): Promise<ToolResult> => {
         try {
           // Extract leadId from metadata
           const leadId = ctx.metadata?.leadId as number;
@@ -179,7 +179,7 @@ export class LeadManagementTools {
               success: false,
               error: 'Missing leadId in context',
               response: {
-                speak: "I'm sorry, I couldn't find the lead information."
+                text: "I'm sorry, I couldn't find the lead information."
               }
             };
           }
@@ -195,7 +195,7 @@ export class LeadManagementTools {
               success: false,
               error: 'Lead not found',
               response: {
-                speak: "I couldn't find the lead information."
+                text: "I couldn't find the lead information."
               }
             };
           }
@@ -223,7 +223,7 @@ export class LeadManagementTools {
             success: true,
             data: updatedState,
             response: {
-              speak: 'Got it! I\'ve noted that information.'
+              text: 'Got it! I\'ve noted that information.'
             }
           };
         } catch (error) {
@@ -232,7 +232,7 @@ export class LeadManagementTools {
             success: false,
             error: error.message,
             response: {
-              speak: "I'm sorry, I encountered an issue saving that information."
+              text: "I'm sorry, I encountered an issue saving that information."
             }
           };
         }

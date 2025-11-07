@@ -2,7 +2,7 @@ import { Controller, Post, Get, Body, Logger, Res, Query } from '@nestjs/common'
 import { Response } from 'express';
 import { Public } from '../../../shared/decorators/public.decorator';
 import { AgentFactoryService } from './agent-factory.service';
-import { AgentConfigService } from './agent-config.service';
+import { AgentConfigService } from './config/agent-config.service';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { BookingTools } from './custom-tools/booking-tools';
@@ -341,27 +341,7 @@ export class AIReceptionistWebhookController {
 
     const agent = await this.agentFactory.getOrCreateAgent(userId, leadId, fullAgentConfig);
 
-    // Register custom tools for this agent instance
-    await this.registerCustomTools(agent, leadId);
-
     return agent;
-  }
-
-  /**
-   * Register custom tools with an agent instance
-   * Note: Tools are registered at factory level, so we need to register them before creating agents
-   * For now, we'll skip tool registration per-agent and register them at factory initialization
-   */
-  private async registerCustomTools(agent: any, leadId: number): Promise<void> {
-    try {
-      // Tools are registered at factory level in AgentFactoryService
-      // Per-agent tool registration would require accessing the factory's tool registry
-      // For now, we'll rely on factory-level tool registration
-      this.logger.debug(`Custom tools should be registered at factory level (leadId=${leadId})`);
-    } catch (error) {
-      this.logger.warn(`Failed to register custom tools: ${error.message}`);
-      // Don't throw - tools are optional
-    }
   }
 }
 

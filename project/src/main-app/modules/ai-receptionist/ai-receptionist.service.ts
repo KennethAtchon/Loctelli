@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { AgentFactoryService } from './agent-factory.service';
-import { AgentConfigService } from './agent-config.service';
+import { AgentConfigService } from './config/agent-config.service';
 import { GenerateTextRequestDto, GenerateTextResponseDto } from './dto/index';
 import { BookingTools } from './custom-tools/booking-tools';
 import { LeadManagementTools } from './custom-tools/lead-management-tools';
@@ -63,9 +63,6 @@ export class AIReceptionistService {
         leadId,
         fullAgentConfig
       );
-
-      // Register custom tools for this agent instance
-      await this.registerCustomTools(agent, lead.timezone || undefined);
 
       // Load conversation history into agent memory
       await this.loadConversationHistory(agent, leadId);
@@ -143,9 +140,6 @@ export class AIReceptionistService {
         fullAgentConfig
       );
 
-      // Register custom tools for this agent instance
-      await this.registerCustomTools(agent, lead.timezone || undefined);
-
       // Generate initial greeting
       const greeting = await agent.text.generate({
         prompt: 'Generate a warm, personalized opening message to initiate this conversation. Introduce yourself and express genuine interest in helping them. Keep it friendly and conversational.',
@@ -221,23 +215,6 @@ export class AIReceptionistService {
     // Also clear from agent memory if agent exists
     // Note: This would require tracking which agents are active, which we can add later
     this.logger.debug(`Cleared conversation history for leadId=${leadId}`);
-  }
-
-  /**
-   * Register custom tools with an agent instance
-   * Note: Tools are registered at factory level, so we need to register them before creating agents
-   * For now, we'll skip tool registration per-agent and register them at factory initialization
-   */
-  private async registerCustomTools(agent: AgentInstance, leadTimezone?: string): Promise<void> {
-    try {
-      // Tools are registered at factory level in AgentFactoryService
-      // Per-agent tool registration would require accessing the factory's tool registry
-      // For now, we'll rely on factory-level tool registration
-      this.logger.debug(`Custom tools should be registered at factory level`);
-    } catch (error) {
-      this.logger.warn(`Failed to register custom tools: ${error.message}`);
-      // Don't throw - tools are optional
-    }
   }
 
   /**

@@ -67,7 +67,7 @@ export class BookingTools {
         },
         required: ['date', 'time', 'location', 'subject']
       })
-      .onCall(async (params, ctx: ExecutionContext): Promise<ToolResult> => {
+      .default(async (params, ctx: ExecutionContext): Promise<ToolResult> => {
         try {
           // Extract userId and leadId from metadata
           const userId = ctx.metadata?.userId as number;
@@ -78,7 +78,7 @@ export class BookingTools {
               success: false,
               error: 'Missing userId or leadId in context',
               response: {
-                speak: "I'm sorry, I encountered an issue booking the meeting. Please try again or contact support."
+                text: "I'm sorry, I encountered an issue booking the meeting. Please try again or contact support."
               }
             };
           }
@@ -100,7 +100,7 @@ export class BookingTools {
               success: false,
               error: 'Booking is not enabled for this user',
               response: {
-                speak: "I'm sorry, booking is not enabled for this account. Please contact support."
+                text: "I'm sorry, booking is not enabled for this account. Please contact support."
               }
             };
           }
@@ -136,7 +136,7 @@ export class BookingTools {
             success: true,
             data: { bookingId: booking.id },
             response: {
-              speak: `Perfect! I've booked your meeting for ${params.date} at ${params.time}. You'll receive a confirmation email shortly.`
+              text: `Perfect! I've booked your meeting for ${params.date} at ${params.time}. You'll receive a confirmation email shortly.`
             }
           };
         } catch (error) {
@@ -145,7 +145,7 @@ export class BookingTools {
             success: false,
             error: error.message,
             response: {
-              speak: "I'm sorry, I encountered an issue booking the meeting. Please try again or contact support."
+              text: "I'm sorry, I encountered an issue booking the meeting. Please try again or contact support."
             }
           };
         }
@@ -183,7 +183,7 @@ export class BookingTools {
         },
         required: ['date']
       })
-      .onCall(async (params, ctx: ExecutionContext): Promise<ToolResult> => {
+      .default(async (params, ctx: ExecutionContext): Promise<ToolResult> => {
         try {
           // Extract userId from metadata
           const userId = ctx.metadata?.userId as number;
@@ -193,7 +193,7 @@ export class BookingTools {
               success: false,
               error: 'Missing userId in context',
               response: {
-                speak: "I'm sorry, I couldn't check availability right now."
+                text: "I'm sorry, I couldn't check availability right now."
               }
             };
           }
@@ -235,7 +235,7 @@ export class BookingTools {
               bookedSlots: bookedTimes
             },
             response: {
-              speak: `Here are the available time slots for ${params.date}: ${availableSlots.length > 0 ? availableSlots.join(', ') : 'No available slots'}`
+              text: `Here are the available time slots for ${params.date}: ${availableSlots.length > 0 ? availableSlots.join(', ') : 'No available slots'}`
             }
           };
         } catch (error) {
@@ -244,7 +244,7 @@ export class BookingTools {
             success: false,
             error: error.message,
             response: {
-              speak: "I'm sorry, I couldn't check availability right now. Please try again later."
+              text: "I'm sorry, I couldn't check availability right now. Please try again later."
             }
           };
         }

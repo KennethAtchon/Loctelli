@@ -1,8 +1,8 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { AgentInstanceConfig } from '@atchonk/ai-receptionist';
-import { PrismaService } from '../../infrastructure/prisma/prisma.service';
-import { PromptTemplatesService } from '../prompt-templates/prompt-templates.service';
-import { AgentConfigMapper } from './mappers/agent-config.mapper';
+import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { PromptTemplatesService } from '../../prompt-templates/prompt-templates.service';
+import { AgentConfigMapper } from '../mappers/agent-config.mapper';
 
 /**
  * Service responsible for building agent configurations from database entities
@@ -50,7 +50,7 @@ export class AgentConfigService {
     const agentConfig: AgentInstanceConfig = {
       identity: this.mapper.mapIdentity(strategy, promptTemplate, user),
       personality: this.mapper.mapPersonality(strategy, promptTemplate),
-      knowledge: this.mapper.mapKnowledge(strategy, promptTemplate, lead),
+      knowledge: this.mapper.mapKnowledge(strategy, promptTemplate),
       goals: this.mapper.mapGoals(strategy, promptTemplate),
       memory: {
         contextWindow: promptTemplate?.maxTokens ? Math.floor(promptTemplate.maxTokens / 50) : 20

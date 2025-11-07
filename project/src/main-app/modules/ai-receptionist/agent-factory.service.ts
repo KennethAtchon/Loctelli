@@ -5,7 +5,9 @@ import { DatabaseStorage } from '@atchonk/ai-receptionist';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import type { AgentInstanceConfig } from '@atchonk/ai-receptionist';
-import { GoogleCalendarConfigService } from './google-calendar-config.service';
+import { GoogleCalendarConfigService } from './config/google-calendar-config.service';
+import { BookingTools } from './custom-tools/booking-tools';
+import { LeadManagementTools } from './custom-tools/lead-management-tools';
 
 /**
  * Service responsible for managing AI-receptionist factory and agent instances
@@ -21,7 +23,9 @@ export class AgentFactoryService implements OnModuleInit {
 
   constructor(
     private configService: ConfigService,
-    private googleCalendarConfig: GoogleCalendarConfigService
+    private googleCalendarConfig: GoogleCalendarConfigService,
+    private bookingTools: BookingTools,
+    private leadManagementTools: LeadManagementTools
   ) {}
 
   async onModuleInit() {
@@ -73,6 +77,18 @@ export class AgentFactoryService implements OnModuleInit {
           }
         } : {
           type: 'memory'
+        },
+        tools: {
+          // Register custom tools at factory level
+          // These tools extract userId and leadId from ExecutionContext.metadata
+          custom: [
+            // Booking tools - timezone will be resolved from lead data in tool execution
+            this.bookingTools.createBookMeetingTool(), // Generic version without timezone in description
+            this.bookingTools.createCheckAvailabilityTool(),
+            // Lead management tools
+            this.leadManagementTools.createUpdateLeadDetailsTool(),
+            this.leadManagementTools.createUpdateConversationStateTool()
+          ]
         },
         debug: process.env.DEBUG === 'true'
       };

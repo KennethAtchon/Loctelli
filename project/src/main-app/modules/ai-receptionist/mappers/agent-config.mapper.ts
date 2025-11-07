@@ -53,52 +53,24 @@ export class AgentConfigMapper {
   /**
    * Map Strategy and PromptTemplate to agent knowledge configuration
    */
-  mapKnowledge(strategy: any, promptTemplate: any, lead: any): AgentInstanceConfig['knowledge'] {
-    const contextDocs: string[] = [];
-
-    // Add strategy context
-    if (strategy?.industryContext) {
-      contextDocs.push(`Industry Context: ${strategy.industryContext}`);
-    }
-    if (strategy?.companyBackground) {
-      contextDocs.push(`Company Background: ${strategy.companyBackground}`);
-    }
-    if (strategy?.qualificationQuestions) {
-      contextDocs.push(`Qualification Questions: ${strategy.qualificationQuestions}`);
-    }
-    if (strategy?.objectionHandling) {
-      contextDocs.push(`Objection Handling: ${strategy.objectionHandling}`);
-    }
-    if (strategy?.closingStrategy) {
-      contextDocs.push(`Closing Strategy: ${strategy.closingStrategy}`);
-    }
-
-    // Add prompt template context
-    if (promptTemplate?.baseSystemPrompt) {
-      contextDocs.push(`System Prompt: ${promptTemplate.baseSystemPrompt}`);
-    }
-
-    // Add lead-specific context
-    if (lead) {
-      if (lead.company) {
-        contextDocs.push(`Lead Company: ${lead.company}`);
-      }
-      if (lead.position) {
-        contextDocs.push(`Lead Position: ${lead.position}`);
-      }
-      if (lead.notes) {
-        contextDocs.push(`Lead Notes: ${lead.notes}`);
-      }
-    }
+  mapKnowledge(strategy: any, promptTemplate: any): AgentInstanceConfig['knowledge'] {
+    const domain = strategy?.industryContext || promptTemplate?.category || 'Sales';
+    const expertise = this.extractExpertise(strategy, promptTemplate);
+    const industries = this.extractIndustries(strategy, promptTemplate);
+    const knownDomains = this.extractKnownDomains(strategy, promptTemplate, domain);
+    const limitations = this.extractLimitations(strategy, promptTemplate);
 
     return {
-      domain: strategy?.industryContext || promptTemplate?.category || 'Sales',
-      expertise: this.extractExpertise(strategy, promptTemplate),
-      industries: [strategy?.tag || promptTemplate?.category || 'General'],
+      domain,
+      expertise,
+      industries,
+      knownDomains,
+      limitations,
       languages: {
         fluent: ['English'],
         conversational: []
-      }
+      },
+      uncertaintyThreshold: 'I will say "I don\'t know" when I\'m not confident in my answer or when the question is outside my expertise.'
     };
   }
 
@@ -113,10 +85,10 @@ export class AgentConfigMapper {
     const secondary: string[] = [];
 
     if (strategy?.qualificationQuestions) {
-      secondary.push('Gather relevant information using the qualification questions');
+      secondary.push(`Gather relevant information using the qualification questions: ${strategy.qualificationQuestions}`);
     }
     if (strategy?.objectionHandling) {
-      secondary.push('Handle objections professionally using the defined objection handling strategies');
+      secondary.push(`Handle objections professionally using the defined objection handling strategies: ${strategy.objectionHandling}`);
     }
     if (strategy?.outputGuidelines) {
       secondary.push(`Follow output guidelines: ${strategy.outputGuidelines}`);
@@ -228,6 +200,61 @@ export class AgentConfigMapper {
     }
 
     return expertise.length > 0 ? expertise : ['lead qualification', 'appointment booking', 'customer service'];
+  }
+
+  /**
+   * Extract industries from strategy and prompt template
+   */
+  private extractIndustries(strategy: any, promptTemplate: any): string[] {
+    const industries: string[] = [];
+
+    if (strategy?.tag) {
+      industries.push(strategy.tag);
+    }
+    if (strategy?.industryContext) {
+      industries.push(strategy.industryContext);
+    }
+    if (promptTemplate?.category) {
+      industries.push(promptTemplate.category);
+    }
+
+    // Remove duplicates and return
+    const uniqueIndustries = Array.from(new Set(industries));
+    return uniqueIndustries.length > 0 ? uniqueIndustries : ['General'];
+  }
+
+  /**
+   * Extract known domains from strategy, prompt template, and base domain
+   */
+  private extractKnownDomains(strategy: any, promptTemplate: any, baseDomain: string): string[] {
+    const knownDomains: string[] = [baseDomain];
+
+    if (strategy?.industryContext && !knownDomains.includes(strategy.industryContext)) {
+      knownDomains.push(strategy.industryContext);
+    }
+    if (promptTemplate?.category && !knownDomains.includes(promptTemplate.category)) {
+      knownDomains.push(promptTemplate.category);
+    }
+
+    return knownDomains;
+  }
+
+  /**
+   * Extract limitations from strategy and prompt template
+   */
+  private extractLimitations(strategy: any, promptTemplate: any): string[] {
+    const limitations: string[] = [
+      'Information outside my domain of expertise',
+      'Real-time data I don\'t have access to',
+      'Personal opinions or subjective matters'
+    ];
+
+    // Add strategy-specific limitations if any
+    if (strategy?.prohibitedBehaviors) {
+      limitations.push(`Prohibited behaviors: ${strategy.prohibitedBehaviors}`);
+    }
+
+    return limitations;
   }
 }
 
