@@ -1,7 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { SemanticSecurityService } from './semantic-security.service';
-import { ValidationPipelineService } from './validation-pipeline.service';
 import { SecureConversationService } from './secure-conversation.service';
 
 interface SecurityEvent {
@@ -100,8 +98,6 @@ export class SecurityMonitoringService implements OnModuleInit {
 
   constructor(
     private prisma: PrismaService,
-    private semanticSecurity: SemanticSecurityService,
-    private validationPipeline: ValidationPipelineService,
     private secureConversation: SecureConversationService
   ) {}
 
@@ -132,9 +128,7 @@ export class SecurityMonitoringService implements OnModuleInit {
    */
   async monitorConversation(
     leadId: number,
-    message: string,
-    validationResult: any,
-    semanticAnalysis: any
+    message: string
   ): Promise<ConversationAnalysis> {
     this.logger.debug(`[monitorConversation] leadId=${leadId}`);
 
@@ -147,40 +141,6 @@ export class SecurityMonitoringService implements OnModuleInit {
         anomalousActivityScore: 0,
         recommendedActions: []
       };
-
-      // Analyze validation results
-      if (!validationResult.isValid) {
-        analysis.conversationRisk += 0.3;
-        analysis.threatIndicators.push(...validationResult.failedStages.map((stage: any) => stage.name));
-
-        // Log security events
-        for (const event of validationResult.securityEvents) {
-          await this.logSecurityEvent({
-            type: this.mapEventType(event.type),
-            severity: this.mapSeverity(event.severity),
-            description: event.description,
-            leadId,
-            metadata: event.metadata
-          });
-        }
-      }
-
-      // Analyze semantic threats
-      if (!semanticAnalysis.isSecure) {
-        analysis.conversationRisk += semanticAnalysis.riskScore;
-        analysis.threatIndicators.push(...semanticAnalysis.threats.map((t: any) => t.type));
-
-        // Log semantic threats
-        for (const threat of semanticAnalysis.threats) {
-          await this.logSecurityEvent({
-            type: threat.type.toUpperCase() as SecurityEventType,
-            severity: this.mapSeverity(threat.severity),
-            description: `Semantic threat detected: ${threat.type}`,
-            leadId,
-            metadata: { pattern: threat.pattern, confidence: threat.confidence }
-          });
-        }
-      }
 
       // Check for progressive attacks
       const progressiveAttack = await this.detectProgressiveAttack(leadId);
@@ -288,8 +248,6 @@ export class SecurityMonitoringService implements OnModuleInit {
     activeThreats: number;
     recentEvents: SecurityEvent[];
     systemHealth: {
-      validationPipelineStatus: 'HEALTHY' | 'DEGRADED' | 'DOWN';
-      semanticSecurityStatus: 'HEALTHY' | 'DEGRADED' | 'DOWN';
       storageIntegrity: 'HEALTHY' | 'COMPROMISED';
       monitoringStatus: 'ACTIVE' | 'INACTIVE';
     };
@@ -593,8 +551,6 @@ export class SecurityMonitoringService implements OnModuleInit {
 
   private async checkSystemHealth(): Promise<any> {
     return {
-      validationPipelineStatus: 'HEALTHY',
-      semanticSecurityStatus: 'HEALTHY',
       storageIntegrity: 'HEALTHY',
       monitoringStatus: 'ACTIVE'
     };

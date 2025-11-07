@@ -6,7 +6,7 @@ import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { JwtAuthGuard } from '../../../shared/auth/auth.guard';
 import { Public } from '../../../shared/decorators/public.decorator';
-import { SalesBotService } from './sales-bot.service';
+import { AIReceptionistService } from '../ai-receptionist/ai-receptionist.service';
 
 @Controller('chat')
 @UseGuards(JwtAuthGuard)
@@ -16,7 +16,7 @@ export class ChatController {
   constructor(
     private readonly chatService: ChatService,
     private readonly prisma: PrismaService,
-    private readonly salesBotService: SalesBotService
+    private readonly aiReceptionistService: AIReceptionistService
   ) {}
 
   @Post('send')
@@ -231,7 +231,7 @@ export class ChatController {
     this.logger.log(`🚀 Initiating AI conversation for lead ID: ${leadId}`);
 
     try {
-      const message = await this.salesBotService.initiateConversation(leadId);
+      const message = await this.aiReceptionistService.initiateConversation(leadId);
       this.logger.log(`✅ AI conversation initiated successfully for lead ID: ${leadId}`);
       return {
         success: true,

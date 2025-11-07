@@ -3,7 +3,7 @@ import { WebhookEventDto } from './dto/webhook-event.dto';
 import { ContactCreatedDto } from './dto/contact-created.dto';
 import { OutboundMessageDto } from './dto/outbound-message.dto';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
-import { SalesBotService } from '../../../modules/chat/sales-bot.service';
+import { AIReceptionistService } from '../../../modules/ai-receptionist/ai-receptionist.service';
 import { TimezoneDetectorService } from '../../../../shared/utils/timezone-detector.service';
 
 @Injectable()
@@ -13,7 +13,7 @@ export class WebhooksService {
   
   constructor(
     private prisma: PrismaService,
-    private salesBotService: SalesBotService,
+    private aiReceptionistService: AIReceptionistService,
     private timezoneDetector: TimezoneDetectorService
   ) {
     this.logger.log(`WebhooksService initialized with useDummyResponses=${this.useDummyResponses}`);
@@ -255,16 +255,36 @@ export class WebhooksService {
   }
 
   /**
-   * Generate a real AI response using the SalesBotService
+   * Generate a real AI response using the AIReceptionistService
    * @param message The message to respond to
    * @param leadId The lead ID
    * @returns The AI-generated response
    */
   private async generateRealResponse(message: string, leadId: number): Promise<string> {
     try {
-      this.logger.log(`Calling SalesBotService.generateResponse for leadId=${leadId}`);
-      const response = await this.salesBotService.generateResponse(message, leadId);
-      this.logger.log(`SalesBotService response generated successfully for leadId=${leadId}`);
+      this.logger.log(`Calling AIReceptionistService.generateTextResponse for leadId=${leadId}`);
+      
+      // Get lead for context
+      const lead = await this.prisma.lead.findUnique({
+        where: { id: leadId },
+        include: { regularUser: true, strategy: true }
+      });
+
+      if (!lead) {
+        throw new Error(`Lead with ID ${leadId} not found`);
+      }
+
+      const response = await this.aiReceptionistService.generateTextResponse({
+        leadId,
+        message,
+        context: {
+          userId: lead.regularUserId,
+          strategyId: lead.strategyId,
+          leadData: lead
+        }
+      });
+      
+      this.logger.log(`AIReceptionistService response generated successfully for leadId=${leadId}`);
       return response;
     } catch (error) {
       this.logger.error(`Error generating real response for leadId=${leadId}: ${error.message}`);

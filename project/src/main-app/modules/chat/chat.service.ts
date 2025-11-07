@@ -2,13 +2,13 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { ChatMessageDto } from './dto/chat-message.dto';
 import { SendMessageDto } from './dto/send-message.dto';
-import { SalesBotService } from './sales-bot.service';
+import { AIReceptionistService } from '../ai-receptionist/ai-receptionist.service';
 
 @Injectable()
 export class ChatService {
   constructor(
     private prisma: PrismaService,
-    private salesBotService: SalesBotService
+    private aiReceptionistService: AIReceptionistService
   ) {}
 
   async sendMessage(chatMessageDto: ChatMessageDto) {
@@ -32,8 +32,16 @@ export class ChatService {
       metadata: metadata || {}
     };
 
-    // Generate AI response using SalesBotService (this will handle message history)
-    const aiResponse = await this.salesBotService.generateResponse(content, leadId);
+    // Generate AI response using AI-receptionist service
+    const aiResponse = await this.aiReceptionistService.generateTextResponse({
+      leadId,
+      message: content,
+      context: {
+        userId: lead.regularUserId,
+        strategyId: lead.strategyId,
+        leadData: lead
+      }
+    });
     
     // Create the AI response object for response
     const aiMessage = {
@@ -104,28 +112,21 @@ export class ChatService {
       throw new NotFoundException(`No lead found with customId ${customId}`);
     }
     
-    // Generate a response using an empty string as the message
-    // This simulates the behavior of the Python implementation
-    const response = await this.generateResponse('', lead.id);
+    // Generate a response using AI-receptionist
+    const response = await this.aiReceptionistService.generateTextResponse({
+      leadId: lead.id,
+      message: '',
+      context: {
+        userId: lead.regularUserId,
+        strategyId: lead.strategyId
+      }
+    });
     
     return {
       status: 'success',
       customId,
       message: response
     };
-  }
-  
-  /**
-   * Generate a response to a lead message
-   * This is a placeholder for the actual AI response generation
-   * @param message The message to respond to
-   * @param leadId The lead ID
-   * @returns The generated response
-   */
-  private async generateResponse(message: string, leadId: number): Promise<string> {
-    // In a real implementation, this would call your AI service
-    // For now, we'll return a simple response
-    return `Thank you for your message. Our team will get back to you shortly.`;
   }
 
   /**

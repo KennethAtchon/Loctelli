@@ -21,7 +21,7 @@ import { DebugModule } from './debug/debug.module';
 import { FinderModule } from './modules/finder/finder.module';
 import { ContactsModule } from './modules/contacts/contacts.module';
 import { FormsModule } from './modules/forms/forms.module';
-import { AIReceptionistTestModule } from './modules/ai-receptionist-test/ai-receptionist-test.module';
+import { AIReceptionistModule } from './modules/ai-receptionist/ai-receptionist.module';
 
 @Module({
   imports: [
@@ -45,7 +45,7 @@ import { AIReceptionistTestModule } from './modules/ai-receptionist-test/ai-rece
     FinderModule,
     ContactsModule,
     FormsModule,
-    AIReceptionistTestModule,
+    AIReceptionistModule,
   ],
   providers: [
     // Apply OnboardingGuard globally
