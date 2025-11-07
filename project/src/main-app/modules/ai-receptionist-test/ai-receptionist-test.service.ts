@@ -89,7 +89,13 @@ export class AIReceptionistTestService implements OnModuleInit {
             twilio: {
               accountSid: this.configService.get<string>('TWILIO_ACCOUNT_SID')!,
               authToken: this.configService.get<string>('TWILIO_AUTH_TOKEN')!,
-              phoneNumber: this.configService.get<string>('TWILIO_PHONE_NUMBER')!
+              phoneNumber: this.configService.get<string>('TWILIO_PHONE_NUMBER')!,
+              webhookBaseUrl: this.configService.get<string>('BASE_URL') || 'http://localhost:8000',
+              voiceWebhookPath: '/ai-receptionist/webhooks/voice',
+              smsWebhookPath: '/ai-receptionist/webhooks/sms',
+              voice: {
+                voiceId: 'Polly.Matthew' // Male voice - change to 'Polly.Joanna' for female
+              }
             }
           },
           email: {
@@ -98,18 +104,8 @@ export class AIReceptionistTestService implements OnModuleInit {
               fromEmail: this.configService.get<string>('POSTMARK_FROM_EMAIL')!,
               fromName: this.configService.get<string>('POSTMARK_FROM_NAME')!,
             }
-          }
-        },
-        webhooks: {
-          baseUrl: this.configService.get<string>('BASE_URL') || 'http://localhost:8000',
-          endpoints: {
-            voice: '/ai-receptionist/webhooks/voice',
-            sms: '/ai-receptionist/webhooks/sms',
-            email: '/ai-receptionist/webhooks/email'
-          }
-        },
-        voice: {
-          voiceId: 'Polly.Matthew' // Male voice - change to 'Polly.Joanna' for female
+          },
+          calendar: this.getGoogleCalendarConfig()
         },
         debug: process.env.DEBUG === 'true'
       });
@@ -122,6 +118,56 @@ export class AIReceptionistTestService implements OnModuleInit {
       this.logger.error('Failed to initialize AI Receptionist:', error);
       throw error;
     }
+  }
+
+  /**
+   * Get Google Calendar configuration
+   * Returns undefined if Google credentials are not configured
+   */
+  private getGoogleCalendarConfig() {
+    const calendarId = this.configService.get<string>('GOOGLE_CALENDAR_ID');
+    const apiKey = this.configService.get<string>('GOOGLE_API_KEY');
+    
+    // Check for Service Account credentials (JSON string from env)
+    const serviceAccountJson = this.configService.get<string>('GOOGLE_SERVICE_ACCOUNT_JSON');
+    let credentials: any = undefined;
+
+    if (serviceAccountJson) {
+      try {
+        credentials = JSON.parse(serviceAccountJson);
+      } catch (error) {
+        this.logger.warn('Failed to parse GOOGLE_SERVICE_ACCOUNT_JSON, using OAuth2 credentials instead');
+      }
+    }
+
+    // If no service account, try OAuth2 credentials
+    if (!credentials) {
+      const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
+      const clientSecret = this.configService.get<string>('GOOGLE_CLIENT_SECRET');
+      const refreshToken = this.configService.get<string>('GOOGLE_REFRESH_TOKEN');
+      
+      if (clientId && clientSecret && refreshToken) {
+        credentials = {
+          client_id: clientId,
+          client_secret: clientSecret,
+          refresh_token: refreshToken,
+          redirect_uri: this.configService.get<string>('GOOGLE_REDIRECT_URI') || 'http://localhost:8000/oauth/callback'
+        };
+      }
+    }
+
+    // Only return config if we have at least calendarId and one auth method
+    if (!calendarId || (!apiKey && !credentials)) {
+      return undefined;
+    }
+
+    return {
+      google: {
+        calendarId: calendarId,
+        ...(apiKey && { apiKey }),
+        ...(credentials && { credentials })
+      }
+    };
   }
 
   /**
