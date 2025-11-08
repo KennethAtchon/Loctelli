@@ -11,7 +11,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     super();
   }
 
-  canActivate(context: ExecutionContext) {
+  canActivate(context: ExecutionContext): boolean | Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const route = `${request.method} ${request.url}`;
     
@@ -28,7 +28,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
     
     this.logger.debug(`🔐 Protected route, checking JWT: ${route}`);
-    return super.canActivate(context);
+    return super.canActivate(context) as boolean | Promise<boolean>;
   }
 
   handleRequest(err: any, user: any, info: any, context: ExecutionContext) {

@@ -596,8 +596,8 @@ export class UnifiedAuthService {
     const accessExpiration = expirations?.access || '15m';
     const refreshExpiration = expirations?.refresh || '7d';
 
-    const accessToken = this.jwtService.sign(payload, { expiresIn: accessExpiration });
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: refreshExpiration });
+    const accessToken = this.jwtService.sign(payload as any, { expiresIn: accessExpiration } as any);
+    const refreshToken = this.jwtService.sign(payload as any, { expiresIn: refreshExpiration } as any);
 
     // Store refresh token in database
     const tokenHash = createHash('sha256').update(refreshToken).digest('hex');

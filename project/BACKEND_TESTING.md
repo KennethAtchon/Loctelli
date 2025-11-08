@@ -32,9 +32,9 @@ Ensure the backend is running from the `/project` directory:
 ```bash
 # MUST be run from /project directory
 cd project
-npm run start:dev
+pnpm run start:dev
 # OR
-npm run start
+pnpm run start
 
 # Backend should be accessible at http://localhost:8000
 ```

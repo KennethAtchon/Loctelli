@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AIReceptionistFactory, type AgentInstance, type FactoryConfig } from '@atchonk/ai-receptionist';
+import { AIReceptionistFactory, type AgentInstance, type AIReceptionistConfig } from '@atchonk/ai-receptionist';
 import { DatabaseStorage } from '@atchonk/ai-receptionist';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
@@ -40,8 +40,8 @@ export class AgentFactoryService implements OnModuleInit {
         this.logger.log('Database connection established for AI-receptionist memory storage');
       }
 
-      // Create factory configuration
-      const factoryConfig: FactoryConfig = {
+      // Create factory configuration (agent config is optional for factory)
+      const factoryConfig: AIReceptionistConfig = {
         model: {
           provider: 'openai',
           apiKey: this.configService.get<string>('OPENAI_API_KEY')!,
