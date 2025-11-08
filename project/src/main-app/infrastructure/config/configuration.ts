@@ -34,17 +34,6 @@ export default () => ({
       'http://loctelli.com',
     ],
   },
-  businessFinder: {
-    googlePlaces: {
-      apiKey: process.env.GOOGLE_PLACES_API_KEY,
-    },
-    yelp: {
-      apiKey: process.env.YELP_API_KEY,
-    },
-    apiKeyEncryption: {
-      secret: process.env.API_KEY_ENCRYPTION_SECRET || 'default-secret-key-32-characters!!',
-    },
-  },
   twilio: {
     accountSid: process.env.TWILIO_ACCOUNT_SID,
     authToken: process.env.TWILIO_AUTH_TOKEN,

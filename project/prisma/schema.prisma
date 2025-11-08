@@ -53,9 +53,6 @@ model SubAccount {
   leads           Lead[]      // Leads created within this SubAccount
   bookings        Booking[]   // Bookings created within this SubAccount
   integrations    Integration[] // Integrations configured for this SubAccount
-  smsMessages     SmsMessage[] // SMS messages sent within this SubAccount
-  smsCampaigns    SmsCampaign[] // SMS campaigns created within this SubAccount
-  businessSearches BusinessSearch[] // Business searches performed within this SubAccount
 
   // Contact management
   contactSubmissions ContactSubmission[]
@@ -96,11 +93,6 @@ model User {
   strategies      Strategy[]
   leads           Lead[]      // Leads created by this user
   bookings        Booking[]
-  smsMessages     SmsMessage[] // SMS messages sent by this user
-  smsCampaigns    SmsCampaign[] // SMS campaigns created by this user
-  apiKeys         ApiKey[] // User's custom API keys
-  businessSearches BusinessSearch[] // Business searches performed by this user
-  rateLimits      RateLimit[] // Rate limit tracking for this user
   
   // Contact management
   assignedContacts ContactSubmission[]
@@ -292,136 +284,6 @@ model Integration {
   createdByAdmin        AdminUser @relation(fields: [createdByAdminId], references: [id])
 }
 
-model SmsMessage {
-  id           Int      @id @default(autoincrement())
-  regularUserId Int
-  subAccountId Int      // Required: SMS belongs to a SubAccount
-  subAccount   SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
-  regularUser  User     @relation(fields: [regularUserId], references: [id], onDelete: Cascade)
-  
-  // Message details
-  phoneNumber  String   // Recipient phone number
-  message      String   @db.Text // SMS content
-  status       String   @default("pending") // pending, sent, delivered, failed
-  
-  // Twilio details
-  twilioSid    String?  // Twilio message SID
-  errorMessage String?  @db.Text // Error details if failed
-  
-  // Campaign tracking
-  campaignId   Int?     // Optional: Link to SMS campaign
-  campaign     SmsCampaign? @relation(fields: [campaignId], references: [id])
-  
-  // Timestamps
-  sentAt       DateTime?
-  deliveredAt  DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-model SmsCampaign {
-  id           Int      @id @default(autoincrement())
-  regularUserId Int
-  subAccountId Int      // Required: Campaign belongs to a SubAccount
-  subAccount   SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
-  regularUser  User     @relation(fields: [regularUserId], references: [id], onDelete: Cascade)
-  
-  // Campaign details
-  name         String   // Campaign name
-  message      String   @db.Text // SMS template
-  status       String   @default("draft") // draft, sending, completed, failed
-  
-  // Statistics
-  totalRecipients Int   @default(0)
-  sentCount      Int   @default(0)
-  deliveredCount Int   @default(0)
-  failedCount    Int   @default(0)
-  
-  // Timestamps
-  scheduledAt  DateTime?
-  startedAt    DateTime?
-  completedAt  DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
-  // Relations
-  messages     SmsMessage[]
-}
-
-// Business Finder Models
-
-model ApiKey {
-  id          Int      @id @default(autoincrement())
-  regularUserId Int?   // Optional: Can be global (service keys) or user-specific
-  regularUser User?    @relation(fields: [regularUserId], references: [id], onDelete: Cascade)
-  service     String   // "google_places", "yelp", "openstreetmap"
-  keyName     String   // Display name for the key
-  keyValue    String   // Encrypted API key
-  isActive    Boolean  @default(true)
-  dailyLimit  Int?     // Daily request limit for this key
-  usageCount  Int      @default(0) // Current day usage
-  lastUsed    DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@unique([regularUserId, service, keyName])
-}
-
-model BusinessSearch {
-  id            String   @id @default(uuid())
-  regularUserId Int
-  subAccountId  Int      // Required: Search belongs to a SubAccount
-  subAccount    SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
-  regularUser   User     @relation(fields: [regularUserId], references: [id], onDelete: Cascade)
-  
-  // Search parameters
-  query         String   // Business name or category
-  location      String?  // Address, city, coordinates
-  radius        Float?   // Search radius in kilometers
-  category      String?  // Business category filter
-  
-  // Search metadata
-  searchHash    String   @unique // Hash of search parameters for caching
-  totalResults  Int      @default(0)
-  results       Json     // Array of business results from all APIs
-  sources       Json     // Array of APIs used: ["google_places", "yelp", "osm"]
-  
-  // Performance tracking
-  responseTime  Int?     // Total search time in milliseconds
-  apiCalls      Json     // Object tracking calls per API: {google: 1, yelp: 1}
-  
-  // Status
-  status        String   @default("completed") // pending, completed, failed, expired
-  errorMessage  String?  @db.Text
-  
-  // Cache management
-  expiresAt     DateTime // Cache expiry (24 hours from creation)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-model RateLimit {
-  id          Int      @id @default(autoincrement())
-  regularUserId Int?   // Optional: Can track global or per-user limits
-  regularUser User?    @relation(fields: [regularUserId], references: [id], onDelete: Cascade)
-  ipAddress   String?  // Track by IP for abuse prevention
-  service     String   // "business_finder", "google_places", "yelp", etc.
-  
-  // Usage tracking
-  requestCount Int     @default(0)
-  dailyLimit   Int     @default(500) // Default daily limit
-  windowStart  DateTime // Start of current rate limit window
-  
-  // Violation tracking
-  violations   Int     @default(0) // Number of times limit exceeded
-  blockedUntil DateTime? // Temporary ban expiry
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@unique([regularUserId, service])
-  @@unique([ipAddress, service])
-}
 
 // Contact System Models
 

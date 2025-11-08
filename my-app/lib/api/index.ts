@@ -12,9 +12,7 @@ import { AuthApi } from './endpoints/auth';
 import { AdminAuthApi } from './endpoints/admin-auth';
 import { AdminSubAccountsApi } from './endpoints/admin-subaccounts';
 import { GeneralApi } from './endpoints/general';
-import { SmsApi } from './endpoints/sms';
 import { ContactsApi } from './endpoints/contacts';
-import { FinderApi } from './endpoints/finder';
 import { FormsApi } from './endpoints/forms';
 
 export class Api extends ApiClient {
@@ -31,9 +29,7 @@ export class Api extends ApiClient {
   public integrations: IntegrationsApi;
   public status: StatusApi;
   public general: GeneralApi;
-  public sms: SmsApi;
   public contacts: ContactsApi;
-  public finder: FinderApi;
   public forms: FormsApi;
 
   constructor(baseUrl?: string) {
@@ -53,9 +49,7 @@ export class Api extends ApiClient {
     this.integrations = new IntegrationsApi(baseUrl);
     this.status = new StatusApi(baseUrl);
     this.general = new GeneralApi(baseUrl);
-    this.sms = new SmsApi(baseUrl);
     this.contacts = new ContactsApi(baseUrl);
-    this.finder = new FinderApi(baseUrl);
     this.forms = new FormsApi(baseUrl);
   }
 }
@@ -77,9 +71,7 @@ export { IntegrationTemplatesApi } from './endpoints/integration-templates';
 export { IntegrationsApi } from './endpoints/integrations';
 export { StatusApi } from './endpoints/status';
 export { GeneralApi } from './endpoints/general';
-export { SmsApi } from './endpoints/sms';
 export { ContactsApi } from './endpoints/contacts';
-export { FinderApi } from './endpoints/finder';
 export { FormsApi } from './endpoints/forms';
 
 // Export types

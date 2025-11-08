@@ -24,10 +24,8 @@ export const ONBOARDING_RESTRICTIONS = {
     '/api/leads/*',
     '/api/strategies/*',
     '/api/bookings/*',
-    '/api/sms/*',
     '/api/chat/*',
     '/api/integrations/*',
-    '/api/business-finder/*',
     '/api/contacts/*',
     '/api/forms/*',
   ],
@@ -37,9 +35,7 @@ export const ONBOARDING_RESTRICTIONS = {
     canViewLeads: false,
     canCreateStrategies: false,
     canMakeBookings: false,
-    canSendSms: false,
     canUseIntegrations: false,
-    canAccessBusinessFinder: false,
     canManageContacts: false,
   }
 };
