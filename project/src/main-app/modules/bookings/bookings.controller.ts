@@ -26,7 +26,8 @@ export class BookingsController {
       }
       return this.bookingsService.create(createBookingDto, createBookingDto.subAccountId);
     } else {
-      // Regular users can only create bookings in their own SubAccount
+      // Regular users can only create bookings for themselves in their own SubAccount
+      createBookingDto.regularUserId = user.userId;
       return this.bookingsService.create(createBookingDto, user.subAccountId);
     }
   }

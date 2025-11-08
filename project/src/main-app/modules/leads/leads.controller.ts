@@ -32,7 +32,8 @@ export class LeadsController {
         this.logger.debug(`Admin creating lead for subAccountId: ${createLeadDto.subAccountId}`);
         result = await this.leadsService.create(createLeadDto, createLeadDto.subAccountId);
       } else {
-        // Regular users can only create leads in their own SubAccount
+        // Regular users can only create leads for themselves in their own SubAccount
+        createLeadDto.regularUserId = user.userId;
         this.logger.debug(`Regular user creating lead for subAccountId: ${user.subAccountId}`);
         result = await this.leadsService.create(createLeadDto, user.subAccountId);
       }

@@ -2,7 +2,7 @@ import { IsString, IsOptional, IsInt, IsJSON, IsNumber, IsNotEmpty, IsBoolean } 
 
 export class CreateStrategyDto {
   @IsInt()
-  userId: number;
+  regularUserId: number;
 
   @IsInt()
   promptTemplateId: number;

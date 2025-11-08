@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { CreateStrategyDto } from './dto/create-strategy.dto';
 import { UpdateStrategyDto } from './dto/update-strategy.dto';
@@ -6,167 +6,293 @@ import { PromptTemplatesService } from '../prompt-templates/prompt-templates.ser
 
 @Injectable()
 export class StrategiesService {
+  private readonly logger = new Logger(StrategiesService.name);
+
   constructor(
     private prisma: PrismaService,
     private promptTemplatesService: PromptTemplatesService
   ) {}
 
   async create(createStrategyDto: CreateStrategyDto, subAccountId: number) {
+    this.logger.log(`Creating new strategy: ${createStrategyDto.name} for user ${createStrategyDto.regularUserId}, subAccount ${subAccountId}`);
+    
     // If no promptTemplateId is provided, get the active template as fallback
     if (!createStrategyDto.promptTemplateId) {
+      this.logger.debug('No promptTemplateId provided, attempting to find active template');
       try {
         const activeTemplate = await this.promptTemplatesService.getActive();
         createStrategyDto.promptTemplateId = activeTemplate.id;
+        this.logger.debug(`Using active prompt template: ${activeTemplate.id}`);
       } catch (error) {
+        this.logger.warn('No active template found, searching for any available template', error);
         // If no active template exists, get the first available template
         const templates = await this.promptTemplatesService.findAll();
         if (templates.length > 0) {
           createStrategyDto.promptTemplateId = templates[0].id;
+          this.logger.debug(`Using first available template: ${templates[0].id} (${templates.length} templates found)`);
         } else {
+          this.logger.error('No prompt templates available');
           throw new Error('No prompt templates available. Please create a prompt template first.');
         }
       }
+    } else {
+      this.logger.debug(`Using provided promptTemplateId: ${createStrategyDto.promptTemplateId}`);
     }
 
-    // Ensure promptTemplateId is set before creating
-    const { userId, subAccountId: _, promptTemplateId, ...restDto } = createStrategyDto;
+    // DTO fields now match Prisma schema exactly - just add subAccountId
     const strategyData = {
-      ...restDto,
-      regularUser: {
-        connect: { id: userId }
-      },
-      promptTemplate: {
-        connect: { id: promptTemplateId! }
-      },
-      subAccount: {
-        connect: { id: subAccountId }
-      },
+      ...createStrategyDto,
+      subAccountId,
     };
 
-    return this.prisma.strategy.create({
-      data: strategyData,
-    });
+    try {
+      const createdStrategy = await this.prisma.strategy.create({
+        data: strategyData,
+      });
+      this.logger.log(`Strategy created successfully: ID ${createdStrategy.id}, name: ${createdStrategy.name}`);
+      return createdStrategy;
+    } catch (error) {
+      this.logger.error(`Failed to create strategy: ${createStrategyDto.name}`, error);
+      throw error;
+    }
   }
 
   async findAll() {
-    return this.prisma.strategy.findMany({
-      include: {
-        regularUser: true,
-        leads: true,
-      },
-    });
+    this.logger.debug('Finding all strategies');
+    try {
+      const strategies = await this.prisma.strategy.findMany({
+        include: {
+          regularUser: true,
+          leads: true,
+        },
+      });
+      this.logger.log(`Found ${strategies.length} strategies`);
+      return strategies;
+    } catch (error) {
+      this.logger.error('Failed to find all strategies', error);
+      throw error;
+    }
   }
 
   async findAllBySubAccount(subAccountId: number) {
-    return this.prisma.strategy.findMany({
-      where: { subAccountId },
-      include: {
-        regularUser: true,
-        leads: true,
-      },
-    });
+    this.logger.debug(`Finding all strategies for subAccount: ${subAccountId}`);
+    try {
+      const strategies = await this.prisma.strategy.findMany({
+        where: { subAccountId },
+        include: {
+          regularUser: true,
+          leads: true,
+        },
+      });
+      this.logger.log(`Found ${strategies.length} strategies for subAccount ${subAccountId}`);
+      return strategies;
+    } catch (error) {
+      this.logger.error(`Failed to find strategies for subAccount ${subAccountId}`, error);
+      throw error;
+    }
   }
 
   async findAllByUser(userId: number) {
-    return this.prisma.strategy.findMany({
-      where: { regularUserId: userId },
-      include: {
-        leads: true,
-      },
-    });
+    this.logger.debug(`Finding all strategies for user: ${userId}`);
+    try {
+      const strategies = await this.prisma.strategy.findMany({
+        where: { regularUserId: userId },
+        include: {
+          leads: true,
+        },
+      });
+      this.logger.log(`Found ${strategies.length} strategies for user ${userId}`);
+      return strategies;
+    } catch (error) {
+      this.logger.error(`Failed to find strategies for user ${userId}`, error);
+      throw error;
+    }
   }
 
   async findAllByAdmin(adminId: number) {
+    this.logger.debug(`Finding all strategies for admin: ${adminId}`);
     // All admins can see all strategies
-    return this.prisma.strategy.findMany({
-      include: {
-        regularUser: true,
-        leads: true,
-        subAccount: {
-          select: { id: true, name: true }
-        }
-      },
-    });
+    try {
+      const strategies = await this.prisma.strategy.findMany({
+        include: {
+          regularUser: true,
+          leads: true,
+          subAccount: {
+            select: { id: true, name: true }
+          }
+        },
+      });
+      this.logger.log(`Admin ${adminId} retrieved ${strategies.length} strategies`);
+      return strategies;
+    } catch (error) {
+      this.logger.error(`Failed to find strategies for admin ${adminId}`, error);
+      throw error;
+    }
   }
 
   async findOne(id: number, userId: number, userRole: string) {
-    const strategy = await this.prisma.strategy.findUnique({
-      where: { id },
-      include: {
-        regularUser: true,
-        leads: true,
-      },
-    });
+    this.logger.debug(`Finding strategy ${id} for user ${userId} (role: ${userRole})`);
+    try {
+      const strategy = await this.prisma.strategy.findUnique({
+        where: { id },
+        include: {
+          regularUser: true,
+          leads: true,
+        },
+      });
 
-    if (!strategy) {
-      throw new NotFoundException(`Strategy with ID ${id} not found`);
+      if (!strategy) {
+        this.logger.warn(`Strategy ${id} not found for user ${userId}`);
+        throw new NotFoundException(`Strategy with ID ${id} not found`);
+      }
+
+      // Check if user has permission to access this strategy
+      if (userRole !== 'admin' && userRole !== 'super_admin' && strategy.regularUserId !== userId) {
+        this.logger.warn(`User ${userId} attempted to access strategy ${id} owned by user ${strategy.regularUserId}`);
+        throw new ForbiddenException('Access denied');
+      }
+
+      this.logger.log(`Strategy ${id} found: ${strategy.name} (${strategy.leads?.length || 0} leads)`);
+      return strategy;
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof ForbiddenException) {
+        throw error;
+      }
+      this.logger.error(`Failed to find strategy ${id}`, error);
+      throw error;
     }
-
-    return strategy;
   }
 
   async findByUserId(userId: number) {
-    return this.prisma.strategy.findMany({
-      where: { regularUserId: userId },
-      include: {
-        leads: true,
-      },
-    });
+    this.logger.debug(`Finding strategies by userId: ${userId}`);
+    try {
+      const strategies = await this.prisma.strategy.findMany({
+        where: { regularUserId: userId },
+        include: {
+          leads: true,
+        },
+      });
+      this.logger.log(`Found ${strategies.length} strategies for userId ${userId}`);
+      return strategies;
+    } catch (error) {
+      this.logger.error(`Failed to find strategies for userId ${userId}`, error);
+      throw error;
+    }
   }
 
   async update(id: number, updateStrategyDto: UpdateStrategyDto, userId: number, userRole: string) {
+    this.logger.log(`Updating strategy ${id} by user ${userId} (role: ${userRole})`);
+    this.logger.debug(`Update data: ${JSON.stringify(updateStrategyDto)}`);
+    
     // Check if strategy exists
     const strategy = await this.prisma.strategy.findUnique({
       where: { id },
     });
 
     if (!strategy) {
+      this.logger.warn(`Strategy ${id} not found for update by user ${userId}`);
       throw new NotFoundException(`Strategy with ID ${id} not found`);
     }
 
+    // Check if user has permission to update this strategy
+    if (userRole !== 'admin' && userRole !== 'super_admin' && strategy.regularUserId !== userId) {
+      this.logger.warn(`User ${userId} attempted to update strategy ${id} owned by user ${strategy.regularUserId}`);
+      throw new ForbiddenException('Access denied');
+    }
+
+    this.logger.debug(`Strategy ${id} found: ${strategy.name}, owned by user ${strategy.regularUserId}`);
+
+    // Check authorization for sensitive fields
+    if (updateStrategyDto.regularUserId !== undefined && userRole !== 'admin' && userRole !== 'super_admin') {
+      this.logger.warn(`User ${userId} attempted to change strategy ${id} ownership`);
+      throw new ForbiddenException('Only admins can change strategy ownership');
+    }
+
+    if (updateStrategyDto.subAccountId !== undefined && userRole !== 'admin' && userRole !== 'super_admin') {
+      this.logger.warn(`User ${userId} attempted to change strategy ${id} subAccount`);
+      throw new ForbiddenException('Only admins can change strategy subAccount');
+    }
+
+    // DTO fields now match Prisma schema exactly - no mapping needed
+    const updateData = { ...updateStrategyDto };
+
     try {
-      return await this.prisma.strategy.update({
+      const updatedStrategy = await this.prisma.strategy.update({
         where: { id },
-        data: updateStrategyDto,
+        data: updateData,
       });
+      this.logger.log(`Strategy ${id} updated successfully: ${updatedStrategy.name}`);
+      return updatedStrategy;
     } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
+      this.logger.error(`Failed to update strategy ${id}`, error);
       throw new NotFoundException(`Strategy with ID ${id} not found`);
     }
   }
 
   async remove(id: number, userId: number, userRole: string) {
+    this.logger.log(`Removing strategy ${id} by user ${userId} (role: ${userRole})`);
+    
     // Check if strategy exists
     const strategy = await this.prisma.strategy.findUnique({
       where: { id },
     });
 
     if (!strategy) {
+      this.logger.warn(`Strategy ${id} not found for deletion by user ${userId}`);
       throw new NotFoundException(`Strategy with ID ${id} not found`);
     }
 
+    // Check if user has permission to delete this strategy
+    if (userRole !== 'admin' && userRole !== 'super_admin' && strategy.regularUserId !== userId) {
+      this.logger.warn(`User ${userId} attempted to delete strategy ${id} owned by user ${strategy.regularUserId}`);
+      throw new ForbiddenException('Access denied');
+    }
+
+    this.logger.debug(`Strategy ${id} found: ${strategy.name}, owned by user ${strategy.regularUserId}`);
+
     try {
-      return await this.prisma.strategy.delete({
+      const deletedStrategy = await this.prisma.strategy.delete({
         where: { id },
       });
+      this.logger.log(`Strategy ${id} deleted successfully: ${deletedStrategy.name}`);
+      return deletedStrategy;
     } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
+      this.logger.error(`Failed to delete strategy ${id}`, error);
       throw new NotFoundException(`Strategy with ID ${id} not found`);
     }
   }
 
   async duplicate(id: number, userId: number, userRole: string) {
+    this.logger.log(`Duplicating strategy ${id} by user ${userId} (role: ${userRole})`);
+    
     // Check if strategy exists
     const strategy = await this.prisma.strategy.findUnique({
       where: { id },
     });
 
     if (!strategy) {
+      this.logger.warn(`Strategy ${id} not found for duplication by user ${userId}`);
       throw new NotFoundException(`Strategy with ID ${id} not found`);
     }
 
-    // Create a duplicate strategy with "(Copy)" suffix - using new fields
+    // Check if user has permission to duplicate this strategy
+    if (userRole !== 'admin' && userRole !== 'super_admin' && strategy.regularUserId !== userId) {
+      this.logger.warn(`User ${userId} attempted to duplicate strategy ${id} owned by user ${strategy.regularUserId}`);
+      throw new ForbiddenException('Access denied');
+    }
+
+    this.logger.debug(`Duplicating strategy: ${strategy.name} (ID: ${id}), subAccount: ${strategy.subAccountId}, promptTemplate: ${strategy.promptTemplateId}`);
+
+    // Create a duplicate strategy with "(Copy)" suffix - DTO fields match Prisma schema
     const duplicateData: CreateStrategyDto = {
       name: `${strategy.name} (Copy)`,
-      userId: strategy.regularUserId,
+      regularUserId: strategy.regularUserId,
       promptTemplateId: strategy.promptTemplateId,
       description: strategy.description || undefined,
       tag: strategy.tag || undefined,
@@ -189,77 +315,24 @@ export class StrategiesService {
       isActive: strategy.isActive,
     };
 
-    // Ensure promptTemplateId is set and include SubAccount context
-    const { userId: duplicateUserId, subAccountId: __, promptTemplateId: duplicateTemplateId, ...restDuplicateData } = duplicateData;
+    // DTO fields now match Prisma schema exactly - just add subAccountId
     const strategyData = {
-      ...restDuplicateData,
-      regularUser: {
-        connect: { id: duplicateUserId }
-      },
-      promptTemplate: {
-        connect: { id: duplicateTemplateId! }
-      },
-      subAccount: {
-        connect: { id: strategy.subAccountId }
-      },
+      ...duplicateData,
+      subAccountId: strategy.subAccountId,
     };
 
-    return this.prisma.strategy.create({
-      data: strategyData,
-    });
-  }
-
-  /**
-   * Build the final system prompt from strategy fields and runtime context
-   */
-  async buildFinalPrompt(strategyId: number, lead: any, user: any): Promise<string> {
-    const strategy = await this.prisma.strategy.findUnique({
-      where: { id: strategyId },
-      include: { promptTemplate: true },
-    });
-
-    if (!strategy) {
-      throw new NotFoundException('Strategy not found');
+    try {
+      const duplicatedStrategy = await this.prisma.strategy.create({
+        data: strategyData,
+      });
+      this.logger.log(`Strategy ${id} duplicated successfully: new ID ${duplicatedStrategy.id}, name: ${duplicatedStrategy.name}`);
+      return duplicatedStrategy;
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof ForbiddenException) {
+        throw error;
+      }
+      this.logger.error(`Failed to duplicate strategy ${id}`, error);
+      throw error;
     }
-
-    // Build complete prompt from strategy fields
-    const sections = [
-      `You are ${strategy.aiName}, a ${strategy.aiRole} for ${user.company}.`,
-      '',
-      'COMPANY CONTEXT:',
-      `You work for ${user.company}, owned and managed by ${user.name}.`,
-      strategy.companyBackground || '',
-      '',
-      'LEAD CONTEXT:',
-      `You're currently speaking with ${lead.name} from ${lead.phone}.`,
-      '',
-      'CONVERSATION TONE & STYLE:',
-      strategy.conversationTone,
-      strategy.communicationStyle || '',
-      '',
-      'QUALIFICATION APPROACH:',
-      strategy.qualificationQuestions,
-    ];
-
-    if (strategy.disqualificationRules) {
-      sections.push('', 'DISQUALIFICATION RULES:', strategy.disqualificationRules);
-    }
-
-    sections.push('', 'OBJECTION HANDLING:', strategy.objectionHandling);
-    sections.push('', 'CLOSING STRATEGY:', strategy.closingStrategy);
-
-    if (strategy.bookingInstructions) {
-      sections.push('', 'BOOKING INSTRUCTIONS:', strategy.bookingInstructions);
-    }
-
-    if (strategy.outputGuidelines) {
-      sections.push('', 'OUTPUT GUIDELINES:', strategy.outputGuidelines);
-    }
-
-    if (strategy.prohibitedBehaviors) {
-      sections.push('', 'PROHIBITED BEHAVIORS:', strategy.prohibitedBehaviors);
-    }
-
-    return sections.filter(s => s !== null).join('\n');
   }
 }

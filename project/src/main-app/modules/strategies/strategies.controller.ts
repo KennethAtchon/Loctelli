@@ -22,7 +22,8 @@ export class StrategiesController {
       }
       return this.strategiesService.create(createStrategyDto, createStrategyDto.subAccountId);
     } else {
-      // Regular users can only create strategies in their own SubAccount
+      // Regular users can only create strategies for themselves in their own SubAccount
+      createStrategyDto.regularUserId = user.userId;
       return this.strategiesService.create(createStrategyDto, user.subAccountId);
     }
   }

@@ -7,24 +7,12 @@ import { UpdateLeadDto } from './dto/update-lead.dto';
 export class LeadsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(CreateLeadDto: CreateLeadDto, subAccountId: number) {
-    const { userId, strategyId, subAccountId: _, ...leadData } = CreateLeadDto;
-    
+  async create(createLeadDto: CreateLeadDto, subAccountId: number) {
+    // DTO fields now match Prisma schema exactly - just add subAccountId
     const createData: any = {
-      ...leadData,
-      regularUser: {
-        connect: { id: userId }
-      },
-      subAccount: {
-        connect: { id: subAccountId }
-      },
+      ...createLeadDto,
+      subAccountId,
     };
-
-    if (strategyId) {
-      createData.strategy = {
-        connect: { id: strategyId }
-      };
-    }
 
     return this.prisma.lead.create({
       data: createData,

@@ -10,9 +10,9 @@ export class UpdateContactSubmissionDto {
   @IsOptional()
   priority?: Priority;
 
-  @IsString()
+  @IsInt()
   @IsOptional()
-  assignedToId?: string;
+  assignedToId?: number;
 
   @IsDateString()
   @IsOptional()

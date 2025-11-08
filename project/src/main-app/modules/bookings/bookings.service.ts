@@ -8,14 +8,12 @@ export class BookingsService {
   constructor(private prisma: PrismaService) {}
 
   async create(createBookingDto: CreateBookingDto, subAccountId: number) {
+    // DTO fields now match Prisma schema exactly - just add subAccountId
     return this.prisma.booking.create({
       data: {
-        regularUserId: createBookingDto.userId,
-        leadId: createBookingDto.leadId,
-        bookingType: createBookingDto.bookingType,
-        details: createBookingDto.details,
+        ...createBookingDto,
         status: createBookingDto.status || 'pending',
-        subAccountId, // Add SubAccount context
+        subAccountId,
       },
     });
   }

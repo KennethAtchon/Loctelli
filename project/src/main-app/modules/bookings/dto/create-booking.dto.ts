@@ -2,7 +2,7 @@ import { IsString, IsOptional, IsInt, IsJSON, IsNumber } from 'class-validator';
 
 export class CreateBookingDto {
   @IsInt()
-  userId: number;
+  regularUserId: number;
 
   @IsInt()
   @IsOptional()

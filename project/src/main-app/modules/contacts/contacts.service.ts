@@ -49,16 +49,10 @@ export class ContactsService {
   }
 
   async update(id: string, data: UpdateContactSubmissionDto, subAccountId: number) {
-    const updateData: any = { ...data };
-    
-    // Convert assignedToId string to number if provided
-    if (data.assignedToId) {
-      updateData.assignedToId = parseInt(data.assignedToId);
-    }
-
+    // DTO fields now match Prisma schema exactly - no conversion needed
     return this.prisma.contactSubmission.update({
       where: { id, subAccountId },
-      data: updateData,
+      data,
       include: {
         assignedTo: true,
       },

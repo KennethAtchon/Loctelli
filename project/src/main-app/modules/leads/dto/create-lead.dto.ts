@@ -2,7 +2,7 @@ import { IsString, IsOptional, IsInt, IsEmail, IsJSON, IsNumber } from 'class-va
 
 export class CreateLeadDto {
   @IsInt()
-  userId: number;
+  regularUserId: number;
 
   @IsInt()
   strategyId: number;
@@ -40,7 +40,7 @@ export class CreateLeadDto {
 
   @IsJSON()
   @IsOptional()
-  messages?: any;
+  messageHistory?: any;
 
   @IsString()
   @IsOptional()

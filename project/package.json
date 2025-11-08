@@ -25,6 +25,7 @@
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
     "db:reset": "ts-node scripts/reset-database.ts",
+    "audit:dtos": "npx ts-node scripts/audit-dtos.ts",
     "clean": "rm -rf dist && rm -rf node_modules && rm -rf pnpm-lock.yaml"
   },
   "dependencies": {
