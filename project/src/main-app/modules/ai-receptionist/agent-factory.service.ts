@@ -108,6 +108,7 @@ export class AgentFactoryService implements OnModuleInit {
   /**
    * Get or create an agent instance for a specific user and lead
    * Uses caching to avoid recreating agents unnecessarily
+   * Always rebuilds prompt using SDK's rebuildSystemPrompt() to ensure it's up to date
    */
   async getOrCreateAgent(
     userId: number,
@@ -119,7 +120,15 @@ export class AgentFactoryService implements OnModuleInit {
     // Check cache first
     if (this.agentCache.has(cacheKey)) {
       const cached = this.agentCache.get(cacheKey)!;
-      this.logger.debug(`Using cached agent for userId=${userId}, leadId=${leadId}`);
+      this.logger.debug(`Using cached agent for userId=${userId}, leadId=${leadId}, rebuilding prompt`);
+      
+      // Always rebuild the prompt to ensure it's up to date with any config changes
+      await cached.agent.rebuildSystemPrompt();
+      
+      // Always log the full system prompt
+      const fullPrompt = cached.agent.getSystemPrompt();
+      this.logger.log(`[FULL SYSTEM PROMPT] userId=${userId}, leadId=${leadId}\n${fullPrompt}`);
+      
       return cached;
     }
 
@@ -130,6 +139,10 @@ export class AgentFactoryService implements OnModuleInit {
     // Create new agent instance
     this.logger.debug(`Creating new agent instance for userId=${userId}, leadId=${leadId}`);
     const agent = await this.factory.createAgent(agentConfig);
+
+    // Always log the full system prompt for new agents
+    const fullPrompt = agent.agent.getSystemPrompt();
+    this.logger.log(`[FULL SYSTEM PROMPT] userId=${userId}, leadId=${leadId}\n${fullPrompt}`);
 
     // Cache the agent
     this.agentCache.set(cacheKey, agent);

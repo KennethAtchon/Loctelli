@@ -22,7 +22,6 @@ export class GoogleCalendarConfigService {
     // Check for Service Account credentials (JSON string from env)
     const serviceAccountJson = this.configService.get<string>('GOOGLE_SERVICE_ACCOUNT_JSON');
     let credentials: any = undefined;
-
     if (serviceAccountJson) {
       try {
         credentials = JSON.parse(serviceAccountJson);
@@ -47,15 +46,27 @@ export class GoogleCalendarConfigService {
       }
     }
 
-    // Only return config if we have at least calendarId and one auth method
-    if (!calendarId || (!apiKey && !credentials)) {
+    // If we have credentials (service account or OAuth2), we don't need API key
+    // Only use API key if we don't have credentials
+    let useApiKey = false;
+    if (!credentials && apiKey) {
+      // Validate API key format if we're going to use it (must be at least 20 characters)
+      if (apiKey.length >= 20) {
+        useApiKey = true;
+      } else {
+        this.logger.warn(`Google API key is too short (${apiKey.length} chars, minimum 20). Ignoring API key.`);
+      }
+    }
+
+    // Only return config if we have at least calendarId and one valid auth method
+    if (!calendarId || (!useApiKey && !credentials)) {
       return undefined;
     }
 
     return {
       google: {
         calendarId: calendarId,
-        ...(apiKey && { apiKey }),
+        ...(useApiKey && { apiKey }),
         ...(credentials && { credentials })
       }
     };
