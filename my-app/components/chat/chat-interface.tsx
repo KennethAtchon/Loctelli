@@ -12,6 +12,7 @@ import {
   ThumbsUp,
   ThumbsDown,
   Image,
+  X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -60,9 +61,8 @@ export interface ChatInterfaceRef {
 
 export interface ChatInterfaceProps {
   messages?: Message[]
-  onSendMessage?: (message: string) => void
+  onSendMessage?: (message: string, images?: File[]) => void
   onStreamingMessage?: (messageId: string, content: string) => void
-  onImageUpload?: (file: File) => void
   isStreaming?: boolean
   className?: string
   config?: ChatInterfaceConfig
@@ -91,7 +91,6 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
   messages: externalMessages = [], 
   onSendMessage, 
   onStreamingMessage,
-  onImageUpload,
   isStreaming: externalIsStreaming = false,
   className,
   config = {},
@@ -134,6 +133,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
   const inputContainerRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const shouldFocusAfterStreamingRef = useRef(false)
+  const [attachedImages, setAttachedImages] = useState<Array<{ file: File; preview: string }>>([])
   // Store selection state
   const selectionStateRef = useRef<{ start: number | null; end: number | null }>({ start: null, end: null })
 
@@ -360,17 +360,19 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (inputValue.trim() && !isStreaming && !disabled && !loading && onSendMessage) {
+    const hasContent = inputValue.trim() || attachedImages.length > 0
+    if (hasContent && !isStreaming && !disabled && !loading && onSendMessage) {
       // Add vibration when message is submitted
       if (typeof window !== 'undefined' && navigator.vibrate) {
         navigator.vibrate(50)
       }
-      
 
       const userMessage = inputValue.trim()
+      const imagesToSend = attachedImages.map(img => img.file)
 
-      // Reset input before sending
+      // Reset input and attachments before sending
       setInputValue("")
+      setAttachedImages([])
       setHasTyped(false)
       setActiveButton("none")
 
@@ -381,8 +383,8 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
       // Focus the textarea
       focusTextarea()
 
-      // Send message via callback
-      onSendMessage(userMessage)
+      // Send message with images via callback
+      onSendMessage(userMessage, imagesToSend.length > 0 ? imagesToSend : undefined)
     }
   }
 
@@ -410,18 +412,48 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file && file.type.startsWith('image/')) {
-      // Call the image upload callback if provided
-      if (onImageUpload) {
-        onImageUpload(file)
-      }
-      // Reset the input so the same file can be selected again
+    const files = Array.from(e.target.files || [])
+    const imageFiles = files.filter(file => file.type.startsWith('image/'))
+    
+    if (imageFiles.length > 0) {
+      // Create previews for all images
+      const newImages = imageFiles.map(file => {
+        const preview = URL.createObjectURL(file)
+        return { file, preview }
+      })
+      
+      setAttachedImages(prev => [...prev, ...newImages])
+      
+      // Reset the input so the same files can be selected again
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
     }
   }
+
+  const removeImage = (index: number) => {
+    setAttachedImages(prev => {
+      const updated = prev.filter((_, i) => i !== index)
+      // Revoke the URL to free memory
+      URL.revokeObjectURL(prev[index].preview)
+      return updated
+    })
+  }
+
+  // Cleanup preview URLs on unmount
+  React.useEffect(() => {
+    return () => {
+      // Cleanup all preview URLs when component unmounts
+      attachedImages.forEach(img => {
+        try {
+          URL.revokeObjectURL(img.preview)
+        } catch (e) {
+          // Ignore errors if URL already revoked
+        }
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const toggleButton = (button: ActiveButton) => {
     if (!isStreaming && !disabled && !loading) {
@@ -560,6 +592,31 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
             )}
             onClick={handleInputContainerClick}
           >
+            {/* Image previews */}
+            {attachedImages.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-2 pb-2 border-b border-gray-100">
+                {attachedImages.map((img, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={img.preview}
+                      alt={`Preview ${index + 1}`}
+                      className="h-16 w-16 object-cover rounded-lg border border-gray-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        removeImage(index)
+                      }}
+                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
             <div className={cn("pb-9", !finalConfig.showActionButtons && "pb-2")}>
               <Textarea
                 ref={textareaRef}
@@ -587,6 +644,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
               ref={fileInputRef}
               type="file"
               accept="image/*"
+              multiple
               className="hidden"
               onChange={handleFileChange}
             />
@@ -611,9 +669,9 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
                     size="icon"
                     className={cn(
                       "rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200",
-                      hasTyped ? "bg-black scale-110" : "bg-gray-200",
+                      (hasTyped || attachedImages.length > 0) ? "bg-black scale-110" : "bg-gray-200",
                     )}
-                    disabled={!inputValue.trim() || isStreaming || disabled || loading}
+                    disabled={(!inputValue.trim() && attachedImages.length === 0) || isStreaming || disabled || loading}
                   >
                     <ArrowUp className={cn("h-4 w-4 transition-colors", hasTyped ? "text-white" : "text-gray-500")} />
                     <span className="sr-only">Submit</span>
@@ -640,11 +698,11 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
                   type="submit"
                   variant="outline"
                   size="icon"
-                  className={cn(
-                    "rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200",
-                    hasTyped ? "bg-black scale-110" : "bg-gray-200",
-                  )}
-                  disabled={!inputValue.trim() || isStreaming || disabled || loading}
+                    className={cn(
+                      "rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200",
+                      (hasTyped || attachedImages.length > 0) ? "bg-black scale-110" : "bg-gray-200",
+                    )}
+                    disabled={(!inputValue.trim() && attachedImages.length === 0) || isStreaming || disabled || loading}
                 >
                   <ArrowUp className={cn("h-4 w-4 transition-colors", hasTyped ? "text-white" : "text-gray-500")} />
                   <span className="sr-only">Submit</span>

@@ -33,19 +33,29 @@ export class ChatService {
     };
 
     // Generate AI response using AI-receptionist service
-    // Pass image data if present in metadata
-    const imageData = metadata?.hasImage && metadata?.imageBase64 
-      ? {
-          imageBase64: metadata.imageBase64,
-          imageName: metadata.imageName,
-          imageType: metadata.imageType
-        }
-      : undefined;
+    // Pass image data if present in metadata (support multiple images)
+    let imageData: { imageBase64: string; imageName?: string; imageType?: string }[] | undefined;
+    
+    if (metadata?.hasImages && metadata?.images && Array.isArray(metadata.images)) {
+      // Multiple images
+      imageData = metadata.images.map((img: any) => ({
+        imageBase64: img.base64,
+        imageName: img.name,
+        imageType: img.type
+      }));
+    } else if (metadata?.hasImage && metadata?.imageBase64) {
+      // Single image (backward compatibility)
+      imageData = [{
+        imageBase64: metadata.imageBase64,
+        imageName: metadata.imageName,
+        imageType: metadata.imageType
+      }];
+    }
 
     const aiResponse = await this.aiReceptionistService.generateTextResponse({
       leadId,
       message: content,
-      imageData,
+      imageData: imageData && imageData.length > 0 ? imageData : undefined,
       context: {
         userId: lead.regularUserId,
         strategyId: lead.strategyId,

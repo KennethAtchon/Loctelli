@@ -8,12 +8,11 @@ export class GenerateTextRequestDto {
   message: string;
 
   @IsOptional()
-  @IsObject()
-  imageData?: {
+  imageData?: Array<{
     imageBase64: string;
     imageName?: string;
     imageType?: string;
-  };
+  }>;
 
   @IsOptional()
   @IsObject()

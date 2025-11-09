@@ -306,101 +306,9 @@ export default function ChatPage() {
     }
   };
 
-  // Handle image upload from ChatInterface
-  const handleImageUpload = async (file: File) => {
-    if (!selectedLeadId.trim()) {
-      setError('Please select a lead first');
-      return;
-    }
-
-    // Convert image to base64
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64String = reader.result as string;
-      
-      setIsLoading(true);
-      setError(null);
-
-      // Create a message with image
-      const imageMessage: ChatMessage = {
-        id: `${Date.now()}-user-image`,
-        role: 'user',
-        content: `[Image: ${file.name}]`,
-        imageUrl: base64String,
-        timestamp: new Date(),
-        metadata: {
-          leadId: parseInt(selectedLeadId, 10),
-          leadName: leadProfile?.name,
-          imageBase64: base64String,
-          imageName: file.name,
-          imageType: file.type
-        }
-      };
-
-      // Add image message to chat immediately
-      setMessages(prev => [...prev, imageMessage]);
-
-      // Start typing indicator
-      setIsTyping(true);
-
-      try {
-        // Send message with image to API
-        const response = await api.chat.sendMessage({
-          leadId: parseInt(selectedLeadId, 10),
-          content: `User sent an image: ${file.name}`,
-          role: 'user',
-          metadata: {
-            imageBase64: base64String,
-            imageName: file.name,
-            imageType: file.type,
-            hasImage: true
-          }
-        }) as ChatApiResponse;
-
-        logger.debug('Chat API response with image:', response);
-
-        // Create AI message with empty content first
-        const aiMessageId = `${Date.now()}-ai`;
-        const aiMessage: ChatMessage = {
-          id: aiMessageId,
-          role: 'assistant',
-          content: '',
-          timestamp: new Date(),
-          metadata: {
-            leadId: parseInt(selectedLeadId, 10),
-            leadName: leadProfile?.name
-          }
-        };
-
-        // Add AI message placeholder to chat
-        setMessages(prev => [...prev, aiMessage]);
-
-        // Stop the typing indicator and start streaming the AI response
-        setIsTyping(false);
-        const aiContent = response.aiMessage?.content || 'No response received';
-        if (chatInterfaceRef.current) {
-          await chatInterfaceRef.current.startStreamingMessage(aiMessageId, aiContent);
-        }
-
-      } catch (err) {
-        logger.error('Failed to send image:', err);
-        setError('Failed to send image. Please try again.');
-        setIsTyping(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    reader.onerror = () => {
-      setError('Failed to read image file');
-      setIsLoading(false);
-    };
-
-    reader.readAsDataURL(file);
-  };
 
   // Handle message sending from ChatInterface
-  const handleChatInterfaceSendMessage = async (message: string) => {
+  const handleChatInterfaceSendMessage = async (message: string, images?: File[]) => {
     if (!selectedLeadId.trim()) {
       setError('Please select a lead first');
       return;
@@ -409,15 +317,55 @@ export default function ChatPage() {
     setIsLoading(true);
     setError(null);
 
+    // Convert images to base64 if present
+    let imageBase64Array: string[] = [];
+    let imageMetadata: any = {};
+
+    if (images && images.length > 0) {
+      const imagePromises = images.map(file => {
+        return new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      });
+
+      try {
+        imageBase64Array = await Promise.all(imagePromises);
+        imageMetadata = {
+          images: imageBase64Array.map((base64, index) => ({
+            base64,
+            name: images[index].name,
+            type: images[index].type
+          })),
+          hasImages: true,
+          imageCount: images.length
+        };
+      } catch (err) {
+        logger.error('Failed to read images:', err);
+        setError('Failed to process images. Please try again.');
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    // Build message content
+    const messageContent = message || (images && images.length > 0 
+      ? `[Sent ${images.length} image${images.length > 1 ? 's' : ''}]` 
+      : '');
+
     // First, add the user message immediately
     const userMessage: ChatMessage = {
       id: `${Date.now()}-user`,
       role: 'user',
-      content: message,
+      content: messageContent,
+      imageUrl: imageBase64Array.length > 0 ? imageBase64Array[0] : undefined,
       timestamp: new Date(),
       metadata: {
         leadId: parseInt(selectedLeadId, 10),
-        leadName: leadProfile?.name
+        leadName: leadProfile?.name,
+        ...imageMetadata
       }
     };
 
@@ -428,11 +376,16 @@ export default function ChatPage() {
     setIsTyping(true);
 
     try {
-      // Send message to API with lead ID
+      // Send message to API with lead ID and images
       const response = await api.chat.sendMessage({
         leadId: parseInt(selectedLeadId, 10),
-        content: message,
-        role: 'user'
+        content: messageContent,
+        role: 'user',
+        metadata: {
+          ...imageMetadata,
+          leadId: parseInt(selectedLeadId, 10),
+          leadName: leadProfile?.name
+        }
       }) as ChatApiResponse;
 
       logger.debug('Chat API response:', response);
@@ -733,7 +686,6 @@ export default function ChatPage() {
                   ref={chatInterfaceRef}
                   messages={chatInterfaceMessages}
                   onSendMessage={handleChatInterfaceSendMessage}
-                  onImageUpload={handleImageUpload}
                   onStreamingMessage={handleStreamingMessageComplete}
                   isStreaming={isTyping}
                   config={chatInterfaceConfig}

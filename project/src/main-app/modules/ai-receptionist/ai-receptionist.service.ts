@@ -69,13 +69,22 @@ export class AIReceptionistService {
 
       // Build prompt - include image reference if present
       let prompt = message;
-      if (imageData) {
-        // Include image in the prompt for vision-capable models
-        // The image is already base64 encoded, we'll pass it in metadata
-        // and the SDK should handle it if it supports vision
-        prompt = imageData.imageName 
-          ? `${message}\n\n[User attached an image: ${imageData.imageName}]`
-          : `${message}\n\n[User attached an image]`;
+      if (imageData && imageData.length > 0) {
+        const imageCount = imageData.length;
+        const imageNames = imageData
+          .map(img => img.imageName)
+          .filter(Boolean)
+          .join(', ');
+        
+        if (imageNames) {
+          prompt = imageCount === 1
+            ? `${message}\n\n[User attached an image: ${imageNames}]`
+            : `${message}\n\n[User attached ${imageCount} images: ${imageNames}]`;
+        } else {
+          prompt = imageCount === 1
+            ? `${message}\n\n[User attached an image]`
+            : `${message}\n\n[User attached ${imageCount} images]`;
+        }
       }
 
       // Generate response using AI-receptionist text resource
@@ -93,12 +102,12 @@ export class AIReceptionistService {
             company: lead.company
           },
           // Include image data in metadata for vision processing
-          ...(imageData && {
-            image: {
-              base64: imageData.imageBase64,
-              type: imageData.imageType || 'image/jpeg',
-              name: imageData.imageName
-            }
+          ...(imageData && imageData.length > 0 && {
+            images: imageData.map(img => ({
+              base64: img.imageBase64,
+              type: img.imageType || 'image/jpeg',
+              name: img.imageName
+            }))
           })
         }
       });

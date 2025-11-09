@@ -129,8 +129,8 @@ export class BookingTools {
             }
           });
 
-          // Create GoHighLevel block slot
-          await this.bookingHelper.createGohighlevelBlockSlot(booking);
+          // TODO: Create GoHighLevel block slot
+          // await this.bookingHelper.createGohighlevelBlockSlot(booking);
 
           return {
             success: true,

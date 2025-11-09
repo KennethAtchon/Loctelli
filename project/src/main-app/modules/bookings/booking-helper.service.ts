@@ -34,8 +34,14 @@ export class BookingHelperService {
   /**
    * Calls the GoHighLevel API to create a block slot for the new booking.
    * @param booking Booking entity from database
+   * @deprecated Temporarily disabled - not priority
    */
   async createGohighlevelBlockSlot(booking: any): Promise<void> {
+    // TODO: Re-enable GHL block slot creation when priority
+    this.logger.warn('createGohighlevelBlockSlot is temporarily disabled');
+    return;
+    
+    /* COMMENTED OUT - NOT PRIORITY
     try {
       // Lookup user to get calendarId
       const user = await this.prisma.user.findUnique({
@@ -151,6 +157,7 @@ export class BookingHelperService {
     } catch (error) {
       this.logger.error(`Error posting block slot to GHL: ${error}`);
     }
+    */
   }
 
   /**
@@ -169,9 +176,10 @@ export class BookingHelperService {
       userId,
       leadId,
     );
-    if (booking) {
-      await this.createGohighlevelBlockSlot(booking);
-    }
+    // TODO: Re-enable GHL block slot creation when priority
+    // if (booking) {
+    //   await this.createGohighlevelBlockSlot(booking);
+    // }
     return booking;
   }
 

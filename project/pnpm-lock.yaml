@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@atchonk/ai-receptionist':
-        specifier: ^0.1.17
-        version: 0.1.17(@prisma/client@6.19.0(prisma@6.19.0(typescript@5.9.3))(typescript@5.9.3))(prisma@6.19.0(typescript@5.9.3))
+        specifier: ^0.1.18
+        version: 0.1.18(@prisma/client@6.19.0(prisma@6.19.0(typescript@5.9.3))(typescript@5.9.3))(prisma@6.19.0(typescript@5.9.3))
       '@aws-sdk/client-s3':
         specifier: ^3.927.0
         version: 3.927.0
@@ -208,8 +208,8 @@ packages:
     resolution: {integrity: sha512-ADfbaBsrG8mBF6Mfs+crKA/2ykB8AJI50Cv9tKmZfwcUcyAdmTr+vVvhsBCfvUAEokigSsgqgpYxfkJVxhJYeg==}
     engines: {node: ^18.19.1 || ^20.11.1 || >=22.0.0, npm: ^6.11.0 || ^7.5.6 || >=8.0.0, yarn: '>= 1.13.0'}
 
-  '@atchonk/ai-receptionist@0.1.17':
-    resolution: {integrity: sha512-qlcIryzsbow4CJa9ItpL9ujQbuRQtJtqEzlylyjgE8Kd1DJUju1ZOBPaF4VclwEodvbuDQc/pufvXT+HlfNYbA==}
+  '@atchonk/ai-receptionist@0.1.18':
+    resolution: {integrity: sha512-zAnSZ65twR2pxNmXIM71AytmJleTdID1U9dKDbS9rwdR7c3WB6PGryaUgEs2p2IILbW93348pfmD1dtR5umU2g==}
 
   '@aws-crypto/crc32@5.2.0':
     resolution: {integrity: sha512-nLbCWqQNgUiwwtFsen1AdzAtvuLRsQS8rYgMuxCrdKf9kOssamGLuPwyTY9wyYblNr9+1XM8v6zoDTPPSIeANg==}
@@ -4553,7 +4553,7 @@ snapshots:
     transitivePeerDependencies:
       - chokidar
 
-  '@atchonk/ai-receptionist@0.1.17(@prisma/client@6.19.0(prisma@6.19.0(typescript@5.9.3))(typescript@5.9.3))(prisma@6.19.0(typescript@5.9.3))':
+  '@atchonk/ai-receptionist@0.1.18(@prisma/client@6.19.0(prisma@6.19.0(typescript@5.9.3))(typescript@5.9.3))(prisma@6.19.0(typescript@5.9.3))':
     dependencies:
       google-auth-library: 9.15.1
       googleapis: 134.0.0
