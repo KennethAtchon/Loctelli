@@ -1,24 +1,25 @@
 import { ApiClient } from '../client';
 import { User, CreateUserDto } from '@/types';
 
-export class UsersApi extends ApiClient {
+export class UsersApi {
+  constructor(private client: ApiClient) {}
   async getUsers(): Promise<User[]> {
-    return this.get<User[]>('/user');
+    return this.client.get<User[]>('/user');
   }
 
   async getUser(id: number): Promise<User> {
-    return this.get<User>(`/user/${id}`);
+    return this.client.get<User>(`/user/${id}`);
   }
 
   async createUser(data: CreateUserDto): Promise<User> {
-    return this.post<User>('/user', data);
+    return this.client.post<User>('/user', data);
   }
 
   async updateUser(id: number, data: Partial<CreateUserDto>): Promise<User> {
-    return this.patch<User>(`/user/${id}`, data);
+    return this.client.patch<User>(`/user/${id}`, data);
   }
 
   async deleteUser(id: number): Promise<void> {
-    return this.delete<void>(`/user/${id}`);
+    return this.client.delete<void>(`/user/${id}`);
   }
 } 

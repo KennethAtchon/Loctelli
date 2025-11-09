@@ -8,7 +8,8 @@ import {
   ContactStats
 } from '@/types';
 
-export class ContactsApi extends ApiClient {
+export class ContactsApi {
+  constructor(private client: ApiClient) {}
   async getContacts(filters?: ContactFiltersDto): Promise<ContactSubmission[]> {
     const queryParams = new URLSearchParams();
     if (filters?.status) {
@@ -21,26 +22,26 @@ export class ContactsApi extends ApiClient {
       queryParams.append('assignedToId', filters.assignedToId);
     }
     const queryString = queryParams.toString();
-    return this.get<ContactSubmission[]>(`/contacts${queryString ? `?${queryString}` : ''}`);
+    return this.client.get<ContactSubmission[]>(`/contacts${queryString ? `?${queryString}` : ''}`);
   }
 
   async getContact(id: string): Promise<ContactSubmission> {
-    return this.get<ContactSubmission>(`/contacts/${id}`);
+    return this.client.get<ContactSubmission>(`/contacts/${id}`);
   }
 
   async createContact(data: CreateContactSubmissionDto): Promise<ContactSubmission> {
-    return this.post<ContactSubmission>('/contacts', data);
+    return this.client.post<ContactSubmission>('/contacts', data);
   }
 
   async updateContact(id: string, data: UpdateContactSubmissionDto): Promise<ContactSubmission> {
-    return this.patch<ContactSubmission>(`/contacts/${id}`, data);
+    return this.client.patch<ContactSubmission>(`/contacts/${id}`, data);
   }
 
   async addNote(contactId: string, data: CreateContactNoteDto): Promise<ContactSubmission> {
-    return this.post<ContactSubmission>(`/contacts/${contactId}/notes`, data);
+    return this.client.post<ContactSubmission>(`/contacts/${contactId}/notes`, data);
   }
 
   async getStats(): Promise<ContactStats> {
-    return this.get<ContactStats>('/contacts/stats');
+    return this.client.get<ContactStats>('/contacts/stats');
   }
 }

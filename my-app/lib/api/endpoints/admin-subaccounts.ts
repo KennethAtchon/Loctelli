@@ -66,24 +66,26 @@ export interface UpdateSubAccountDto {
   settings?: Record<string, unknown>;
 }
 
-export class AdminSubAccountsApi extends ApiClient {
+export class AdminSubAccountsApi {
+  constructor(private client: ApiClient) {}
+  
   async getAllSubAccounts(): Promise<SubAccount[]> {
-    return this.get('/admin/subaccounts');
+    return this.client.get('/admin/subaccounts');
   }
 
   async getSubAccount(id: number): Promise<DetailedSubAccount> {
-    return this.get(`/admin/subaccounts/${id}`);
+    return this.client.get(`/admin/subaccounts/${id}`);
   }
 
   async createSubAccount(data: CreateSubAccountDto): Promise<SubAccount> {
-    return this.post('/admin/subaccounts', data);
+    return this.client.post('/admin/subaccounts', data);
   }
 
   async updateSubAccount(id: number, data: UpdateSubAccountDto): Promise<SubAccount> {
-    return this.patch(`/admin/subaccounts/${id}`, data);
+    return this.client.patch(`/admin/subaccounts/${id}`, data);
   }
 
   async deleteSubAccount(id: number): Promise<{ message: string }> {
-    return this.delete(`/admin/subaccounts/${id}`);
+    return this.client.delete(`/admin/subaccounts/${id}`);
   }
 } 

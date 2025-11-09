@@ -17,12 +17,16 @@ const mockPut = jest.fn();
 const mockPatch = jest.fn();
 const mockDelete = jest.fn();
 
+let mockClient: ApiClient;
+
 beforeAll(() => {
-  ApiClient.prototype.get = mockGet;
-  ApiClient.prototype.post = mockPost;
-  ApiClient.prototype.put = mockPut;
-  ApiClient.prototype.patch = mockPatch;
-  ApiClient.prototype.delete = mockDelete;
+  mockClient = {
+    get: mockGet,
+    post: mockPost,
+    put: mockPut,
+    patch: mockPatch,
+    delete: mockDelete,
+  } as unknown as ApiClient;
 });
 
 beforeEach(() => {
@@ -34,7 +38,7 @@ describe('StrategiesApi', () => {
 
   beforeEach(() => {
     // Create a new instance
-    strategiesApi = new StrategiesApi()
+    strategiesApi = new StrategiesApi(mockClient)
   })
 
   describe('getStrategies', () => {

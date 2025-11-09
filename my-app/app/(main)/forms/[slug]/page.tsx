@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { FormTemplate, FormField, FormsApi } from '@/lib/api';
+import { FormTemplate, FormField, api } from '@/lib/api';
 import logger from '@/lib/logger';
 import { Navigation } from '@/components/version2/navigation';
 import { Footer } from '@/components/version2/footer';
@@ -32,7 +32,7 @@ export default function PublicFormPage() {
 
   // Wake-up mechanism
   const [wakeUpInterval, setWakeUpInterval] = useState<NodeJS.Timeout | null>(null);
-  const formsApi = useMemo(() => new FormsApi(), []);
+  const formsApi = api.forms;
 
   const wakeUpDatabase = useCallback(async () => {
     try {
@@ -41,7 +41,7 @@ export default function PublicFormPage() {
     } catch (error) {
       logger.error('Database wake-up failed:', error);
     }
-  }, [formsApi]);
+  }, []);
 
   const loadForm = useCallback(async () => {
     // Prevent loading reserved slugs
@@ -84,7 +84,7 @@ export default function PublicFormPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [slug, wakeUpDatabase, formsApi]);
+  }, [slug, wakeUpDatabase]);
 
   const handleInputChange = (fieldId: string, value: any) => {
     setFormData(prev => ({

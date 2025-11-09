@@ -12,16 +12,18 @@ export interface SystemStatus {
   };
 }
 
-export class StatusApi extends ApiClient {
+export class StatusApi {
+  constructor(private client: ApiClient) {}
+  
   async getStatus(): Promise<SystemStatus> {
-    return this.get<SystemStatus>('/status');
+    return this.client.get<SystemStatus>('/status');
   }
 
   async getHealth(): Promise<{ status: string }> {
-    return this.get<{ status: string }>('/status/health');
+    return this.client.get<{ status: string }>('/status/health');
   }
 
   async getVersion(): Promise<{ version: string }> {
-    return this.get<{ version: string }>('/status/version');
+    return this.client.get<{ version: string }>('/status/version');
   }
 } 

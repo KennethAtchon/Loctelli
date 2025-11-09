@@ -101,6 +101,18 @@ export class AgentFactoryService implements OnModuleInit {
             this.leadManagementTools.createUpdateConversationStateTool()
           ]
         },
+        logger: {
+          level: (process.env.LOG_LEVEL as 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'NONE') || 'NONE',
+          enableTimestamps: true,
+          // Ignore verbose tags - can be configured via environment variable
+          // Supports comma-separated list: LOGGER_IGNORE_TAGS="MemoryManager,DatabaseStorage"
+          ignoreTags: process.env.LOGGER_IGNORE_TAGS
+            ? process.env.LOGGER_IGNORE_TAGS.split(',').map(tag => tag.trim())
+            : [
+                'MemoryManager', // Ignore memory storage logs
+                'DatabaseStorage', // Ignore database storage logs
+              ]
+        } as any, // Type assertion until package types are regenerated with ignoreTags
         debug: process.env.DEBUG === 'true'
       };
 

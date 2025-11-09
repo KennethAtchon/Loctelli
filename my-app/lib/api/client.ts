@@ -29,8 +29,11 @@ export class ApiClient {
   private cleanupFailedRequests(): void {
     // Clear failed requests after 5 minutes to allow retry
     // This prevents permanent blocking of endpoints
+    const hadFailures = this.failedRequests.size > 0;
     this.failedRequests.clear();
-    logger.debug('🧹 Cleaned up failed requests cache');
+    if (hadFailures) {
+      logger.debug('🧹 Cleaned up failed requests cache');
+    }
   }
 
   protected async request<T = unknown>(
@@ -216,11 +219,11 @@ export class ApiClient {
   }
 
 
-  protected async get<T>(endpoint: string, options?: ApiRequestOptions): Promise<T> {
+  public async get<T>(endpoint: string, options?: ApiRequestOptions): Promise<T> {
     return this.request<T>(endpoint, { method: 'GET', ...options });
   }
 
-  protected async post<T>(endpoint: string, data?: unknown, options?: ApiRequestOptions): Promise<T> {
+  public async post<T>(endpoint: string, data?: unknown, options?: ApiRequestOptions): Promise<T> {
     logger.debug('📤 POST Request:', {
       endpoint,
       data: data ? JSON.stringify(data, null, 2) : 'No data'
@@ -233,7 +236,7 @@ export class ApiClient {
     });
   }
 
-  protected async patch<T>(endpoint: string, data?: unknown, options?: ApiRequestOptions): Promise<T> {
+  public async patch<T>(endpoint: string, data?: unknown, options?: ApiRequestOptions): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'PATCH',
       body: data ? JSON.stringify(data) : undefined,
@@ -241,11 +244,11 @@ export class ApiClient {
     });
   }
 
-  protected async delete<T>(endpoint: string, options?: ApiRequestOptions): Promise<T> {
+  public async delete<T>(endpoint: string, options?: ApiRequestOptions): Promise<T> {
     return this.request<T>(endpoint, { method: 'DELETE', ...options });
   }
 
-  protected async put<T>(endpoint: string, data?: unknown, options?: ApiRequestOptions): Promise<T> {
+  public async put<T>(endpoint: string, data?: unknown, options?: ApiRequestOptions): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'PUT',
       body: data ? JSON.stringify(data) : undefined,
@@ -253,7 +256,7 @@ export class ApiClient {
     });
   }
 
-  protected async uploadFile<T>(endpoint: string, formData: FormData, options?: ApiRequestOptions): Promise<T> {
+  public async uploadFile<T>(endpoint: string, formData: FormData, options?: ApiRequestOptions): Promise<T> {
     // Use the main request method but with special handling for FormData
     return this.request<T>(endpoint, {
       method: 'POST',
@@ -268,7 +271,7 @@ export class ApiClient {
   }
 
   // Helper method to build query strings
-  protected buildQueryString(params: Record<string, unknown>): string {
+  public buildQueryString(params: Record<string, unknown>): string {
     const searchParams = new URLSearchParams();
     
     for (const [key, value] of Object.entries(params)) {

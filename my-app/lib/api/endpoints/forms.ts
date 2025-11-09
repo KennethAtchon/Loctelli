@@ -132,7 +132,9 @@ export interface FormStats {
   completed: number;
 }
 
-export class FormsApi extends ApiClient {
+export class FormsApi {
+  constructor(private client: ApiClient) {}
+  
   // Form Templates
   async getFormTemplates(subAccountId?: number): Promise<FormTemplate[]> {
     const queryParams = new URLSearchParams();
@@ -140,40 +142,40 @@ export class FormsApi extends ApiClient {
       queryParams.append('subAccountId', subAccountId.toString());
     }
     const queryString = queryParams.toString();
-    return this.get<FormTemplate[]>(`/forms/templates${queryString ? `?${queryString}` : ''}`);
+    return this.client.get<FormTemplate[]>(`/forms/templates${queryString ? `?${queryString}` : ''}`);
   }
 
   async getFormTemplate(id: string): Promise<FormTemplate> {
-    return this.get<FormTemplate>(`/forms/templates/${id}`);
+    return this.client.get<FormTemplate>(`/forms/templates/${id}`);
   }
 
   async createFormTemplate(data: CreateFormTemplateDto): Promise<FormTemplate> {
-    return this.post<FormTemplate>('/forms/templates', data);
+    return this.client.post<FormTemplate>('/forms/templates', data);
   }
 
   async updateFormTemplate(id: string, data: UpdateFormTemplateDto): Promise<FormTemplate> {
-    return this.patch<FormTemplate>(`/forms/templates/${id}`, data);
+    return this.client.patch<FormTemplate>(`/forms/templates/${id}`, data);
   }
 
   async deleteFormTemplate(id: string): Promise<void> {
-    return this.delete(`/forms/templates/${id}`);
+    return this.client.delete(`/forms/templates/${id}`);
   }
 
   // Public form access
   async getPublicForm(slug: string): Promise<FormTemplate> {
-    return this.get<FormTemplate>(`/forms/public/${slug}`);
+    return this.client.get<FormTemplate>(`/forms/public/${slug}`);
   }
 
   async submitPublicForm(slug: string, data: any): Promise<FormSubmission> {
-    return this.post<FormSubmission>(`/forms/public/${slug}/submit`, data);
+    return this.client.post<FormSubmission>(`/forms/public/${slug}/submit`, data);
   }
 
   async wakeUpDatabase(): Promise<{ status: string; timestamp: string }> {
-    return this.get<{ status: string; timestamp: string }>('/forms/public/wake-up');
+    return this.client.get<{ status: string; timestamp: string }>('/forms/public/wake-up');
   }
 
   async uploadFormFile(slug: string, formData: FormData): Promise<any> {
-    return this.uploadFile<any>(`/forms/public/${slug}/upload`, formData);
+    return this.client.uploadFile<any>(`/forms/public/${slug}/upload`, formData);
   }
 
   // Form Submissions
@@ -193,22 +195,22 @@ export class FormsApi extends ApiClient {
       queryParams.append('status', status);
     }
     const queryString = queryParams.toString();
-    return this.get<FormSubmission[]>(`/forms/submissions${queryString ? `?${queryString}` : ''}`);
+    return this.client.get<FormSubmission[]>(`/forms/submissions${queryString ? `?${queryString}` : ''}`);
   }
 
   async getFormSubmission(id: string): Promise<FormSubmission> {
-    return this.get<FormSubmission>(`/forms/submissions/${id}`);
+    return this.client.get<FormSubmission>(`/forms/submissions/${id}`);
   }
 
   async updateFormSubmission(id: string, data: UpdateFormSubmissionDto): Promise<FormSubmission> {
-    return this.patch<FormSubmission>(`/forms/submissions/${id}`, data);
+    return this.client.patch<FormSubmission>(`/forms/submissions/${id}`, data);
   }
 
   async deleteFormSubmission(id: string): Promise<void> {
-    return this.delete(`/forms/submissions/${id}`);
+    return this.client.delete(`/forms/submissions/${id}`);
   }
 
   async getFormStats(): Promise<FormStats> {
-    return this.get<FormStats>('/forms/submissions/stats');
+    return this.client.get<FormStats>('/forms/submissions/stats');
   }
 }

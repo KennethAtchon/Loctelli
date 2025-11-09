@@ -46,38 +46,40 @@ export interface CreateIntegrationTemplateDto {
 
 export type UpdateIntegrationTemplateDto = Partial<CreateIntegrationTemplateDto>;
 
-export class IntegrationTemplatesApi extends ApiClient {
+export class IntegrationTemplatesApi {
+  constructor(private client: ApiClient) {}
+  
   async getAll(): Promise<IntegrationTemplate[]> {
-    return this.get<IntegrationTemplate[]>('/admin/integration-templates');
+    return this.client.get<IntegrationTemplate[]>('/admin/integration-templates');
   }
 
   async getById(id: number): Promise<IntegrationTemplate> {
-    return this.get<IntegrationTemplate>(`/admin/integration-templates/${id}`);
+    return this.client.get<IntegrationTemplate>(`/admin/integration-templates/${id}`);
   }
 
   async getActive(): Promise<IntegrationTemplate[]> {
-    return this.get<IntegrationTemplate[]>('/admin/integration-templates/active');
+    return this.client.get<IntegrationTemplate[]>('/admin/integration-templates/active');
   }
 
   async getByCategory(category: string): Promise<IntegrationTemplate[]> {
-    return this.get<IntegrationTemplate[]>(`/admin/integration-templates/category/${category}`);
+    return this.client.get<IntegrationTemplate[]>(`/admin/integration-templates/category/${category}`);
   }
 
   async create(data: CreateIntegrationTemplateDto): Promise<IntegrationTemplate> {
     console.log('API: Creating integration template with data:', data);
-    const result = await this.post<IntegrationTemplate>('/admin/integration-templates', data);
+    const result = await this.client.post<IntegrationTemplate>('/admin/integration-templates', data);
     console.log('API: Integration template created successfully:', result);
     return result;
   }
 
   async update(id: number, data: UpdateIntegrationTemplateDto): Promise<IntegrationTemplate> {
     console.log('API: Updating integration template with data:', { id, data });
-    const result = await this.patch<IntegrationTemplate>(`/admin/integration-templates/${id}`, data);
+    const result = await this.client.patch<IntegrationTemplate>(`/admin/integration-templates/${id}`, data);
     console.log('API: Integration template updated successfully:', result);
     return result;
   }
 
   async deleteTemplate(id: number): Promise<void> {
-    return this.delete<void>(`/admin/integration-templates/${id}`);
+    return this.client.delete<void>(`/admin/integration-templates/${id}`);
   }
 } 

@@ -35,22 +35,23 @@ export class Api extends ApiClient {
   constructor(baseUrl?: string) {
     super(baseUrl);
     
-    // Initialize all endpoint APIs
-    this.auth = new AuthApi(baseUrl);
-    this.adminAuth = new AdminAuthApi(baseUrl);
-    this.adminSubAccounts = new AdminSubAccountsApi(baseUrl);
-    this.users = new UsersApi(baseUrl);
-    this.leads = new LeadsApi(baseUrl);
-    this.strategies = new StrategiesApi(baseUrl);
-    this.bookings = new BookingsApi(baseUrl);
-    this.chat = new ChatApi(baseUrl);
-    this.promptTemplates = new PromptTemplatesApi(baseUrl);
-    this.integrationTemplates = new IntegrationTemplatesApi(baseUrl);
-    this.integrations = new IntegrationsApi(baseUrl);
-    this.status = new StatusApi(baseUrl);
-    this.general = new GeneralApi(baseUrl);
-    this.contacts = new ContactsApi(baseUrl);
-    this.forms = new FormsApi(baseUrl);
+    // Initialize all endpoint APIs with shared client instance
+    // This ensures single AuthService, single cleanup interval, and shared state
+    this.auth = new AuthApi(this);
+    this.adminAuth = new AdminAuthApi(this);
+    this.adminSubAccounts = new AdminSubAccountsApi(this);
+    this.users = new UsersApi(this);
+    this.leads = new LeadsApi(this);
+    this.strategies = new StrategiesApi(this);
+    this.bookings = new BookingsApi(this);
+    this.chat = new ChatApi(this);
+    this.promptTemplates = new PromptTemplatesApi(this);
+    this.integrationTemplates = new IntegrationTemplatesApi(this);
+    this.integrations = new IntegrationsApi(this);
+    this.status = new StatusApi(this);
+    this.general = new GeneralApi(this);
+    this.contacts = new ContactsApi(this);
+    this.forms = new FormsApi(this);
   }
 }
 

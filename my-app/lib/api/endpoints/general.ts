@@ -25,8 +25,10 @@ export interface SchemaResponse {
   details?: string;
 }
 
-export class GeneralApi extends ApiClient {
+export class GeneralApi {
+  constructor(private client: ApiClient) {}
+  
   async getDatabaseSchema(): Promise<SchemaResponse> {
-    return this.get<SchemaResponse>('/general/schema');
+    return this.client.get<SchemaResponse>('/general/schema');
   }
 } 
