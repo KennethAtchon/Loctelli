@@ -35,9 +35,20 @@ export class AgentFactoryService implements OnModuleInit {
       // Initialize database connection for memory storage
       const databaseUrl = this.configService.get<string>('DATABASE_URL');
       if (databaseUrl) {
+        this.logger.log('Creating database connection for AI-receptionist memory storage...');
         const pool = new Pool({ connectionString: databaseUrl });
         this.db = drizzle(pool);
-        this.logger.log('Database connection established for AI-receptionist memory storage');
+        
+        // Test the connection
+        try {
+          await pool.query('SELECT 1');
+          this.logger.log('✅ Database connection test successful for AI-receptionist memory storage');
+        } catch (error) {
+          this.logger.error('❌ Database connection test failed:', error);
+          throw error;
+        }
+      } else {
+        this.logger.warn('⚠️ DATABASE_URL not found - AI-receptionist will use in-memory storage only');
       }
 
       // Create factory configuration (agent config is optional for factory)
@@ -93,6 +104,14 @@ export class AgentFactoryService implements OnModuleInit {
         debug: process.env.DEBUG === 'true'
       };
 
+      // Log storage configuration
+      this.logger.log('Storage configuration:', {
+        hasDb: !!this.db,
+        storageType: factoryConfig.storage?.type,
+        hasDatabaseConfig: !!(factoryConfig.storage && 'database' in factoryConfig.storage),
+        autoMigrate: factoryConfig.storage && 'database' in factoryConfig.storage ? factoryConfig.storage.database?.autoMigrate : undefined
+      });
+
       // Initialize factory
       this.factory = await AIReceptionistFactory.create(factoryConfig);
       this.logger.log('✅ AI Receptionist Factory initialized successfully');
@@ -120,9 +139,21 @@ export class AgentFactoryService implements OnModuleInit {
     // Check cache first
     if (this.agentCache.has(cacheKey)) {
       const cached = this.agentCache.get(cacheKey)!;
-      this.logger.debug(`Using cached agent for userId=${userId}, leadId=${leadId}, rebuilding prompt`);
+      this.logger.debug(`Using cached agent for userId=${userId}, leadId=${leadId}, updating config`);
       
-      // Always rebuild the prompt to ensure it's up to date with any config changes
+      // Update agent configuration with new config using withAgentConfig()
+      // This will rebuild components and prompt as needed
+      // Note: Type assertion needed until package types are regenerated
+      (cached.agent as any).withAgentConfig({
+        identity: agentConfig.identity,
+        personality: agentConfig.personality,
+        knowledge: agentConfig.knowledge,
+        goals: agentConfig.goals,
+        memory: agentConfig.memory,
+        customSystemPrompt: agentConfig.customSystemPrompt
+      });
+      
+      // Rebuild prompt if it was marked for rebuild
       await cached.agent.rebuildSystemPrompt();
       
       // Always log the full system prompt

@@ -53,7 +53,10 @@ export class AgentConfigService {
       knowledge: this.mapper.mapKnowledge(strategy, promptTemplate),
       goals: this.mapper.mapGoals(strategy, promptTemplate),
       memory: {
-        contextWindow: promptTemplate?.maxTokens ? Math.floor(promptTemplate.maxTokens / 50) : 20
+        contextWindow: promptTemplate?.maxTokens ? Math.floor(promptTemplate.maxTokens / 50) : 20,
+        autoPersist: {
+          persistAll: true // Always persist all memories on server
+        }
       }
     };
 

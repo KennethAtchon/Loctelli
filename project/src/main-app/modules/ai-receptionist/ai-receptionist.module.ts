@@ -12,6 +12,7 @@ import { LeadManagementTools } from './custom-tools/lead-management-tools';
 import { GoogleCalendarConfigService } from './config/google-calendar-config.service';
 import { AIReceptionistWebhookController } from './webhook.controller';
 import { WebhookSecurityMiddleware } from './webhook-security.middleware';
+import { AIReceptionistDevController } from './dev.controller';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { WebhookSecurityMiddleware } from './webhook-security.middleware';
     BookingsModule,
     ConfigModule
   ],
-  controllers: [AIReceptionistWebhookController],
+  controllers: [AIReceptionistWebhookController, AIReceptionistDevController],
   providers: [
     AIReceptionistService,
     AgentFactoryService,

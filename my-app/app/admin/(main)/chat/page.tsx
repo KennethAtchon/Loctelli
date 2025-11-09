@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useTenant } from '@/contexts/tenant-context';
 import { cn } from '@/lib/utils';
 import ChatInterface, { type Message as ChatInterfaceMessage, type ChatInterfaceConfig, type ChatInterfaceRef } from '@/components/chat/chat-interface';
+import AgentInfoModal from '@/components/admin/agent-info-modal';
 
 interface ChatMessage {
   id: string;
@@ -64,6 +65,7 @@ export default function ChatPage() {
   const [isLoadingLeads, setIsLoadingLeads] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const chatInterfaceRef = useRef<ChatInterfaceRef>(null);
+  const [isAgentInfoModalOpen, setIsAgentInfoModalOpen] = useState(false);
   
   const { toast } = useToast();
 
@@ -682,17 +684,26 @@ export default function ChatPage() {
                 </div>
               )}
               {leadProfile && (
-                <ChatInterface
-                  ref={chatInterfaceRef}
-                  messages={chatInterfaceMessages}
-                  onSendMessage={handleChatInterfaceSendMessage}
-                  onStreamingMessage={handleStreamingMessageComplete}
-                  isStreaming={isTyping}
-                  config={chatInterfaceConfig}
-                  disabled={!leadProfile}
-                  loading={isLoading}
-                  className="h-full"
-                />
+                <>
+                  <ChatInterface
+                    ref={chatInterfaceRef}
+                    messages={chatInterfaceMessages}
+                    onSendMessage={handleChatInterfaceSendMessage}
+                    onStreamingMessage={handleStreamingMessageComplete}
+                    isStreaming={isTyping}
+                    config={chatInterfaceConfig}
+                    disabled={!leadProfile}
+                    loading={isLoading}
+                    className="h-full"
+                    onAgentInfoClick={() => setIsAgentInfoModalOpen(true)}
+                  />
+                  <AgentInfoModal
+                    open={isAgentInfoModalOpen}
+                    onOpenChange={setIsAgentInfoModalOpen}
+                    userId={leadProfile.regularUserId}
+                    leadId={parseInt(selectedLeadId, 10)}
+                  />
+                </>
               )}
             </div>
           )}

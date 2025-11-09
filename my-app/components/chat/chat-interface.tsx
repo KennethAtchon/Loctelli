@@ -13,6 +13,8 @@ import {
   ThumbsDown,
   Image,
   X,
+  Info,
+  InfoIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -68,6 +70,7 @@ export interface ChatInterfaceProps {
   config?: ChatInterfaceConfig
   disabled?: boolean
   loading?: boolean
+  onAgentInfoClick?: () => void
 }
 
 interface MessageSection {
@@ -95,7 +98,8 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
   className,
   config = {},
   disabled = false,
-  loading = false
+  loading = false,
+  onAgentInfoClick
 }, ref) => {
   // Default configuration
   const defaultConfig: Required<ChatInterfaceConfig> = {
@@ -652,17 +656,30 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
             {finalConfig.showActionButtons && (
               <div className="absolute bottom-3 left-3 right-3">
                 <div className="flex items-center justify-between">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={handlePhotoButtonClick}
-                    className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100"
-                    disabled={isStreaming || disabled || loading}
-                  >
-                    <Image className="h-4 w-4 text-gray-500" />
-                    <span className="sr-only">Upload photo</span>
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={handlePhotoButtonClick}
+                      className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100"
+                      disabled={isStreaming || disabled || loading}
+                    >
+                      <Image className="h-4 w-4 text-gray-500" />
+                      <span className="sr-only">Upload photo</span>
+                    </Button>                    
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={onAgentInfoClick}
+                      className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100"
+                      disabled={isStreaming || disabled || loading}
+                    >
+                      <InfoIcon className="h-4 w-4 text-gray-500" />
+                      <span className="sr-only">Agent info</span>
+                    </Button>
+                  </div>
                   <Button
                     type="submit"
                     variant="outline"
@@ -683,17 +700,30 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
             {/* Always show buttons even when action buttons are hidden */}
             {!finalConfig.showActionButtons && (
               <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={handlePhotoButtonClick}
-                  className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100"
-                  disabled={isStreaming || disabled || loading}
-                >
-                  <Image className="h-4 w-4 text-gray-500" />
-                  <span className="sr-only">Upload photo</span>
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={handlePhotoButtonClick}
+                    className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100"
+                    disabled={isStreaming || disabled || loading}
+                  >
+                    <Image className="h-4 w-4 text-gray-500" />
+                    <span className="sr-only">Upload photo</span>
+                  </Button>                    
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={onAgentInfoClick}
+                    className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100"
+                    disabled={isStreaming || disabled || loading}
+                  >
+                    <InfoIcon className="h-4 w-4 text-gray-500" />
+                    <span className="sr-only">Agent info</span>
+                  </Button>
+                </div>
                 <Button
                   type="submit"
                   variant="outline"

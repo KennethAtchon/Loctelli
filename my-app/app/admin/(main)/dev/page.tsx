@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import DatabaseSchema from '@/components/admin/database-schema';
+import SDKTables from '@/components/admin/sdk-tables';
 
 export default function DevPage() {
   const router = useRouter();
@@ -137,6 +138,12 @@ export default function DevPage() {
       <div className="space-y-4">
         <h2 className="text-2xl font-semibold text-gray-800">Database Schema</h2>
         <DatabaseSchema />
+      </div>
+
+      {/* SDK Tables */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-semibold text-gray-800">SDK Tables</h2>
+        <SDKTables />
       </div>
 
       {/* API Debug Console */}
