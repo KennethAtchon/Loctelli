@@ -1,5 +1,6 @@
 import { AuthCookies } from '../cookies';
 import logger from '@/lib/logger';
+import { API_CONFIG } from '../utils/envUtils';
 
 export interface AuthHeaders {
   [key: string]: string;
@@ -16,7 +17,7 @@ export class AuthService {
   private refreshPromise: Promise<void> | null = null;
   private isRefreshRequest = false;
 
-  constructor(baseUrl: string) {
+  constructor(baseUrl: string = API_CONFIG.BASE_URL) {
     this.baseUrl = baseUrl;
   }
 

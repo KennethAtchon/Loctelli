@@ -5,6 +5,8 @@ import { api } from '@/lib/api';
 import { AuthCookies } from '@/lib/cookies';
 import type { UserProfile, AdminProfile, LoginDto, AdminLoginDto, RegisterDto, AdminRegisterDto, AuthResponse, AdminAuthResponse } from '@/lib/api';
 import logger from '@/lib/logger';
+import { AuthService } from '@/lib/api/auth-service';
+import { useRouter } from 'next/navigation';
 
 type AccountType = 'user' | 'admin';
 
@@ -55,9 +57,9 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
   const [account, setAccount] = useState<UnifiedAccount | null>(null);
   const [accountType, setAccountType] = useState<AccountType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  const authService = new AuthService();
   const isAuthenticated = !!account && !!accountType;
-
+  const router = useRouter();
   // Check for existing tokens and auto-login on mount
   useEffect(() => {
     let isMounted = true; // Track if component is still mounted
@@ -89,8 +91,32 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
             if (!isMounted) return;
 
             logger.error('❌ Admin profile request failed:', error);
-            if (error instanceof Error && (error.message.includes('401') || error.message.includes('Unauthorized'))) {
-              logger.debug('🔒 Auth error detected, clearing admin tokens');
+            // Try to refresh tokens and retry if it's a 401 error
+            if (error instanceof Error && (
+              error.message.includes('401') || 
+              error.message.includes('Authentication required') ||
+              error.message.includes('Unauthorized') ||
+              error.message.includes('Authentication')
+            )) {
+              logger.debug('🔒 Auth error detected, attempting token refresh...');
+              try {
+                await authService.refreshTokens();
+                // Retry the profile request after successful refresh
+                logger.debug('🔄 Retrying admin profile request after token refresh...');
+                const profile = await api.adminAuth.getAdminProfile();
+                if (!isMounted) return;
+                
+                logger.debug('✅ Admin profile retrieved successfully after refresh:', profile.email);
+                setAccount(normalizeAdminProfile(profile));
+                setAccountType('admin');
+              } catch (refreshError) {
+                if (!isMounted) return;
+                logger.error('❌ Token refresh failed, clearing admin tokens:', refreshError);
+                AuthCookies.clearAdminTokens();
+              }
+            } else {
+              // For non-401 errors, clear tokens
+              logger.debug('🔒 Non-auth error, clearing admin tokens');
               AuthCookies.clearAdminTokens();
             }
           }
@@ -109,8 +135,32 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
             if (!isMounted) return;
 
             logger.error('❌ User profile request failed:', error);
-            if (error instanceof Error && (error.message.includes('401') || error.message.includes('Unauthorized'))) {
-              logger.debug('🔒 Auth error detected, clearing user tokens');
+            // Try to refresh tokens and retry if it's a 401 error
+            if (error instanceof Error && (
+              error.message.includes('401') || 
+              error.message.includes('Authentication Required') ||
+              error.message.includes('Unauthorized') ||
+              error.message.includes('Authentication')
+            )) {
+              logger.debug('🔒 Auth error detected, attempting token refresh...');
+              try {
+                await authService.refreshTokens();
+                // Retry the profile request after successful refresh
+                logger.debug('🔄 Retrying user profile request after token refresh...');
+                const profile = await api.auth.getProfile();
+                if (!isMounted) return;
+                
+                logger.debug('✅ User profile retrieved successfully after refresh:', profile.email);
+                setAccount(normalizeUserProfile(profile));
+                setAccountType('user');
+              } catch (refreshError) {
+                if (!isMounted) return;
+                logger.error('❌ Token refresh failed, clearing user tokens:', refreshError);
+                AuthCookies.clearUserTokens();
+              }
+            } else {
+              // For non-401 errors, clear tokens
+              logger.debug('🔒 Non-auth error, clearing user tokens');
               AuthCookies.clearUserTokens();
             }
           }
@@ -240,9 +290,32 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
       }
     } catch (error) {
       logger.error('❌ Account refresh failed:', error);
-      setAccount(null);
-      setAccountType(null);
-      AuthCookies.clearAll();
+      // Try to refresh tokens before giving up
+      if (error instanceof Error && (error.message.includes('401') || error.message.includes('Authentication'))) {
+        logger.debug('🔒 Auth error during refresh, attempting token refresh...');
+        try {
+          await authService.refreshTokens();
+          // Retry the profile request after successful refresh
+          if (accountType === 'admin') {
+            const profile = await api.adminAuth.getAdminProfile();
+            setAccount(normalizeAdminProfile(profile));
+            logger.debug('✅ Admin profile refreshed successfully after token refresh');
+          } else if (accountType === 'user') {
+            const profile = await api.auth.getProfile();
+            setAccount(normalizeUserProfile(profile));
+            logger.debug('✅ User profile refreshed successfully after token refresh');
+          }
+        } catch (refreshError) {
+          logger.error('❌ Token refresh failed during account refresh:', refreshError);
+          // Only clear tokens and logout if refresh also fails
+          setAccount(null);
+          setAccountType(null);
+          AuthCookies.clearAll();
+        }
+      } else {
+        // For non-auth errors, don't logout - just log the error
+        logger.error('❌ Non-auth error during account refresh, keeping session:', error);
+      }
     }
   };
 

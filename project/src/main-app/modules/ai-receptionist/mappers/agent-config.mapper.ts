@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { AgentInstanceConfig } from '@atchonk/ai-receptionist';
-import type { Strategy, PromptTemplate } from '@prisma/client';
+import type { Strategy, PromptTemplate, Lead, User } from '@prisma/client';
 
 /**
  * Maps database entities (Strategy, PromptTemplate) to AI-receptionist agent configuration
@@ -84,12 +84,14 @@ export class AgentConfigMapper {
    */
   mapKnowledge(
     strategy: Strategy | null,
-    promptTemplate: PromptTemplate | null
+    promptTemplate: PromptTemplate | null,
+    user: User | null,
+    lead: Lead | null
   ): AgentInstanceConfig['knowledge'] {
     const domain = strategy?.industryContext || promptTemplate?.category || this.DEFAULT_DOMAIN;
     const expertise = this.extractExpertise(strategy);
     const industries = this.extractIndustries(strategy, promptTemplate);
-    const knownDomains = this.extractKnownDomains(strategy, promptTemplate, domain);
+    const knownDomains = this.extractKnownDomains(strategy, promptTemplate, domain, user, lead);
     const limitations = this.extractLimitations(strategy);
 
     return {
@@ -248,7 +250,9 @@ export class AgentConfigMapper {
   private extractKnownDomains(
     strategy: Strategy | null,
     promptTemplate: PromptTemplate | null,
-    baseDomain: string
+    baseDomain: string,
+    user: User | null,
+    lead: Lead | null
   ): string[] {
     const knownDomains: string[] = [baseDomain];
 
@@ -259,7 +263,76 @@ export class AgentConfigMapper {
       knownDomains.push(promptTemplate.category);
     }
 
+    // Critical information about the lead
+    if(lead){
+      const criticalLeadInfo = this.extractCriticalLeadInfo(lead);
+      if (criticalLeadInfo) {
+        knownDomains.push(`!IMPORTANT!: This is everything you know about the person you're talking to: ${criticalLeadInfo}`);
+      }
+    }
+
+    // Critical information about the user (boss)
+    if(user){
+      const criticalUserInfo = this.extractCriticalUserInfo(user);
+      if (criticalUserInfo) {
+        knownDomains.push(`!IMPORTANT!: This is everything you know about the user, THIS IS YOUR BOSS: ${criticalUserInfo}`);
+      }
+    }
+
     return knownDomains;
+  }
+
+  /**
+   * Extract critical information from lead (only fields needed for conversation)
+   */
+  private extractCriticalLeadInfo(lead: Lead): string | null {
+    const parts: string[] = [];
+    
+    if (lead.name) parts.push(`Name: ${lead.name}`);
+    if (lead.email) parts.push(`Email: ${lead.email}`);
+    if (lead.phone) parts.push(`Phone: ${lead.phone}`);
+    if (lead.company) parts.push(`Company: ${lead.company}`);
+    if (lead.position) parts.push(`Position: ${lead.position}`);
+    if (lead.customId) parts.push(`Custom ID: ${lead.customId}`);
+    if (lead.timezone) parts.push(`Timezone: ${lead.timezone}`);
+    if (lead.status) parts.push(`Status: ${lead.status}`);
+    if (lead.notes) parts.push(`Notes: ${lead.notes}`);
+    
+    // Return null if no critical fields found
+    if (parts.length === 0) {
+      return null;
+    }
+    
+    return parts.join(', ');
+  }
+
+  /**
+   * Extract critical information from user (only fields needed for conversation)
+   */
+  private extractCriticalUserInfo(user: User & { subAccount?: { name: string } }): string | null {
+    const parts: string[] = [];
+    
+    if (user.name) parts.push(`Name: ${user.name}`);
+    if (user.email) parts.push(`Email: ${user.email}`);
+    if (user.company) parts.push(`Company: ${user.company}`);
+    if (user.timezone) parts.push(`Timezone: ${user.timezone}`);
+    if (user.bookingEnabled !== undefined) {
+      parts.push(`Booking Enabled: ${user.bookingEnabled === 1 ? 'Yes' : 'No'}`);
+    }
+    if (user.bookingsTime) {
+      const slotsInfo = Array.isArray(user.bookingsTime) 
+        ? `${user.bookingsTime.length} time slots configured`
+        : 'Available booking slots configured';
+      parts.push(`Available Booking Slots: ${slotsInfo}`);
+    }
+    if (user.subAccount?.name) parts.push(`SubAccount: ${user.subAccount.name}`);
+    
+    // Return null if no critical fields found
+    if (parts.length === 0) {
+      return null;
+    }
+    
+    return parts.join(', ');
   }
 
   /**

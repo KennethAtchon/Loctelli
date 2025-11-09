@@ -43,6 +43,8 @@ export class AgentConfigService {
     if (!lead) {
       throw new NotFoundException(`Lead with ID ${leadId} not found`);
     }
+    // User and Lead
+    //this.logger.log( "User and Lead: " + JSON.stringify({ user, lead }) );
 
     const strategy = lead.strategy;
 
@@ -50,7 +52,7 @@ export class AgentConfigService {
     const agentConfig: AgentInstanceConfig = {
       identity: this.mapper.mapIdentity(strategy, promptTemplate),
       personality: this.mapper.mapPersonality(strategy),
-      knowledge: this.mapper.mapKnowledge(strategy, promptTemplate),
+      knowledge: this.mapper.mapKnowledge(strategy, promptTemplate, user, lead),
       goals: this.mapper.mapGoals(strategy, promptTemplate),
       memory: {
         contextWindow: promptTemplate?.maxTokens ? Math.floor(promptTemplate.maxTokens / 50) : 20,

@@ -37,12 +37,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     
     if (err) {
       this.logger.warn(`❌ JWT authentication error for route: ${route}`, err.stack);
-      throw new UnauthorizedException('Authentication required');
+      throw new UnauthorizedException('401: Authentication required');
     }
     
     if (!user) {
       this.logger.warn(`❌ No user found in JWT for route: ${route}`);
-      throw new UnauthorizedException('Authentication required');
+      throw new UnauthorizedException('401: Authentication required');
     }
     
     this.logger.debug(`✅ JWT authentication successful for user: ${user.email} (ID: ${user.userId}) on route: ${route}`);

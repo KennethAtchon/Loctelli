@@ -1,10 +1,10 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AIReceptionistFactory, type AgentInstance, type AIReceptionistConfig } from '@atchonk/ai-receptionist';
+import { AIReceptionistFactory, configureLogger, type AgentInstance, type AIReceptionistConfig } from '@atchonk/ai-receptionist';
 import { DatabaseStorage } from '@atchonk/ai-receptionist';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
-import type { AgentInstanceConfig } from '@atchonk/ai-receptionist';
+import type { AgentInstanceConfig, LoggerConfig } from '@atchonk/ai-receptionist';
 import { GoogleCalendarConfigService } from './config/google-calendar-config.service';
 import { BookingTools } from './custom-tools/booking-tools';
 import { LeadManagementTools } from './custom-tools/lead-management-tools';
@@ -58,7 +58,7 @@ export class AgentFactoryService implements OnModuleInit {
           apiKey: this.configService.get<string>('OPENAI_API_KEY')!,
           model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
           temperature: 0.7,
-          maxTokens: 500
+          maxTokens: 7000
         },
         providers: {
           communication: this.configService.get<string>('TWILIO_ACCOUNT_SID') ? {
@@ -102,19 +102,23 @@ export class AgentFactoryService implements OnModuleInit {
           ]
         },
         logger: {
-          level: (process.env.LOG_LEVEL as 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'NONE') || 'NONE',
+          level: (process.env.LOG_LEVEL as 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'NONE') || 'INFO',
           enableTimestamps: true,
           // Ignore verbose tags - can be configured via environment variable
           // Supports comma-separated list: LOGGER_IGNORE_TAGS="MemoryManager,DatabaseStorage"
           ignoreTags: process.env.LOGGER_IGNORE_TAGS
             ? process.env.LOGGER_IGNORE_TAGS.split(',').map(tag => tag.trim())
             : [
-                'MemoryManager', // Ignore memory storage logs
+                '*Memory*', // Ignore memory storage logs
                 'DatabaseStorage', // Ignore database storage logs
+                'OpenAIProvider',
+
               ]
         } as any, // Type assertion until package types are regenerated with ignoreTags
         debug: process.env.DEBUG === 'true'
       };
+
+      configureLogger(factoryConfig.logger as LoggerConfig);
 
       // Log storage configuration
       this.logger.log('Storage configuration:', {
@@ -147,7 +151,7 @@ export class AgentFactoryService implements OnModuleInit {
     agentConfig: AgentInstanceConfig
   ): Promise<AgentInstance> {
     const cacheKey = `${userId}-${leadId}`;
-
+    
     // Check cache first
     if (this.agentCache.has(cacheKey)) {
       const cached = this.agentCache.get(cacheKey)!;
@@ -170,7 +174,7 @@ export class AgentFactoryService implements OnModuleInit {
       
       // Always log the full system prompt
       const fullPrompt = cached.agent.getSystemPrompt();
-      this.logger.log(`[FULL SYSTEM PROMPT] userId=${userId}, leadId=${leadId}\n${fullPrompt}`);
+      // this.logger.log(`[FULL SYSTEM PROMPT] userId=${userId}, leadId=${leadId}\n${fullPrompt}`);
       
       return cached;
     }
@@ -185,7 +189,7 @@ export class AgentFactoryService implements OnModuleInit {
 
     // Always log the full system prompt for new agents
     const fullPrompt = agent.agent.getSystemPrompt();
-    this.logger.log(`[FULL SYSTEM PROMPT] userId=${userId}, leadId=${leadId}\n${fullPrompt}`);
+    // this.logger.log(`[FULL SYSTEM PROMPT] userId=${userId}, leadId=${leadId}\n${fullPrompt}`);
 
     // Cache the agent
     this.agentCache.set(cacheKey, agent);
