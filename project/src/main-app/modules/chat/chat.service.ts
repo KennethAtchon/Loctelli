@@ -33,9 +33,19 @@ export class ChatService {
     };
 
     // Generate AI response using AI-receptionist service
+    // Pass image data if present in metadata
+    const imageData = metadata?.hasImage && metadata?.imageBase64 
+      ? {
+          imageBase64: metadata.imageBase64,
+          imageName: metadata.imageName,
+          imageType: metadata.imageType
+        }
+      : undefined;
+
     const aiResponse = await this.aiReceptionistService.generateTextResponse({
       leadId,
       message: content,
+      imageData,
       context: {
         userId: lead.regularUserId,
         strategyId: lead.strategyId,

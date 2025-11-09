@@ -26,9 +26,11 @@ interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  imageUrl?: string;
   metadata?: {
     leadId?: number;
     leadName?: string;
+    imageBase64?: string;
   };
 }
 
@@ -67,9 +69,14 @@ export default function ChatPage() {
 
   // Convert ChatMessage to ChatInterfaceMessage
   const convertToInterfaceMessage = (message: ChatMessage): ChatInterfaceMessage => {
+    let content = message.content;
+    // If message has an image, include it in the content
+    if (message.imageUrl) {
+      content = `${content}\n![Image](${message.imageUrl})`;
+    }
     return {
       id: message.id,
-      content: message.content,
+      content: content,
       type: message.role === 'user' ? 'user' : 'system',
       completed: true
     };
@@ -297,6 +304,99 @@ export default function ChatPage() {
         });
       }
     }
+  };
+
+  // Handle image upload from ChatInterface
+  const handleImageUpload = async (file: File) => {
+    if (!selectedLeadId.trim()) {
+      setError('Please select a lead first');
+      return;
+    }
+
+    // Convert image to base64
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64String = reader.result as string;
+      
+      setIsLoading(true);
+      setError(null);
+
+      // Create a message with image
+      const imageMessage: ChatMessage = {
+        id: `${Date.now()}-user-image`,
+        role: 'user',
+        content: `[Image: ${file.name}]`,
+        imageUrl: base64String,
+        timestamp: new Date(),
+        metadata: {
+          leadId: parseInt(selectedLeadId, 10),
+          leadName: leadProfile?.name,
+          imageBase64: base64String,
+          imageName: file.name,
+          imageType: file.type
+        }
+      };
+
+      // Add image message to chat immediately
+      setMessages(prev => [...prev, imageMessage]);
+
+      // Start typing indicator
+      setIsTyping(true);
+
+      try {
+        // Send message with image to API
+        const response = await api.chat.sendMessage({
+          leadId: parseInt(selectedLeadId, 10),
+          content: `User sent an image: ${file.name}`,
+          role: 'user',
+          metadata: {
+            imageBase64: base64String,
+            imageName: file.name,
+            imageType: file.type,
+            hasImage: true
+          }
+        }) as ChatApiResponse;
+
+        logger.debug('Chat API response with image:', response);
+
+        // Create AI message with empty content first
+        const aiMessageId = `${Date.now()}-ai`;
+        const aiMessage: ChatMessage = {
+          id: aiMessageId,
+          role: 'assistant',
+          content: '',
+          timestamp: new Date(),
+          metadata: {
+            leadId: parseInt(selectedLeadId, 10),
+            leadName: leadProfile?.name
+          }
+        };
+
+        // Add AI message placeholder to chat
+        setMessages(prev => [...prev, aiMessage]);
+
+        // Stop the typing indicator and start streaming the AI response
+        setIsTyping(false);
+        const aiContent = response.aiMessage?.content || 'No response received';
+        if (chatInterfaceRef.current) {
+          await chatInterfaceRef.current.startStreamingMessage(aiMessageId, aiContent);
+        }
+
+      } catch (err) {
+        logger.error('Failed to send image:', err);
+        setError('Failed to send image. Please try again.');
+        setIsTyping(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    reader.onerror = () => {
+      setError('Failed to read image file');
+      setIsLoading(false);
+    };
+
+    reader.readAsDataURL(file);
   };
 
   // Handle message sending from ChatInterface
@@ -633,6 +733,7 @@ export default function ChatPage() {
                   ref={chatInterfaceRef}
                   messages={chatInterfaceMessages}
                   onSendMessage={handleChatInterfaceSendMessage}
+                  onImageUpload={handleImageUpload}
                   onStreamingMessage={handleStreamingMessageComplete}
                   isStreaming={isTyping}
                   config={chatInterfaceConfig}

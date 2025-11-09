@@ -27,9 +27,9 @@ export class AIReceptionistService {
    * Generate a text response for a lead message
    */
   async generateTextResponse(request: GenerateTextRequestDto): Promise<string> {
-    const { leadId, message, context } = request;
+    const { leadId, message, imageData, context } = request;
 
-    this.logger.debug(`Generating text response for leadId=${leadId}`);
+    this.logger.debug(`Generating text response for leadId=${leadId}${imageData ? ' with image' : ''}`);
 
     try {
       // Get lead and user information
@@ -67,9 +67,20 @@ export class AIReceptionistService {
       // Load conversation history into agent memory
       await this.loadConversationHistory(agent, leadId);
 
+      // Build prompt - include image reference if present
+      let prompt = message;
+      if (imageData) {
+        // Include image in the prompt for vision-capable models
+        // The image is already base64 encoded, we'll pass it in metadata
+        // and the SDK should handle it if it supports vision
+        prompt = imageData.imageName 
+          ? `${message}\n\n[User attached an image: ${imageData.imageName}]`
+          : `${message}\n\n[User attached an image]`;
+      }
+
       // Generate response using AI-receptionist text resource
       const response = await agent.text.generate({
-        prompt: message,
+        prompt: prompt,
         conversationId: `lead-${leadId}`,
         metadata: {
           leadId,
@@ -80,7 +91,15 @@ export class AIReceptionistService {
             email: lead.email,
             phone: lead.phone,
             company: lead.company
-          }
+          },
+          // Include image data in metadata for vision processing
+          ...(imageData && {
+            image: {
+              base64: imageData.imageBase64,
+              type: imageData.imageType || 'image/jpeg',
+              name: imageData.imageName
+            }
+          })
         }
       });
 

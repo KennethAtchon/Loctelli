@@ -9,6 +9,14 @@ export class GenerateTextRequestDto {
 
   @IsOptional()
   @IsObject()
+  imageData?: {
+    imageBase64: string;
+    imageName?: string;
+    imageType?: string;
+  };
+
+  @IsOptional()
+  @IsObject()
   context?: {
     userId?: number;
     strategyId?: number;

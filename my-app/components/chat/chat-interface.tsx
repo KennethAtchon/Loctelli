@@ -11,6 +11,7 @@ import {
   Share2,
   ThumbsUp,
   ThumbsDown,
+  Image,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -61,6 +62,7 @@ export interface ChatInterfaceProps {
   messages?: Message[]
   onSendMessage?: (message: string) => void
   onStreamingMessage?: (messageId: string, content: string) => void
+  onImageUpload?: (file: File) => void
   isStreaming?: boolean
   className?: string
   config?: ChatInterfaceConfig
@@ -89,6 +91,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
   messages: externalMessages = [], 
   onSendMessage, 
   onStreamingMessage,
+  onImageUpload,
   isStreaming: externalIsStreaming = false,
   className,
   config = {},
@@ -129,6 +132,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
   const [completedMessages, setCompletedMessages] = useState<Set<string>>(new Set())
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null)
   const inputContainerRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const shouldFocusAfterStreamingRef = useRef(false)
   // Store selection state
   const selectionStateRef = useRef<{ start: number | null; end: number | null }>({ start: null, end: null })
@@ -399,6 +403,26 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
     }
   }
 
+  const handlePhotoButtonClick = () => {
+    if (fileInputRef.current && !isStreaming && !disabled && !loading) {
+      fileInputRef.current.click()
+    }
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file && file.type.startsWith('image/')) {
+      // Call the image upload callback if provided
+      if (onImageUpload) {
+        onImageUpload(file)
+      }
+      // Reset the input so the same file can be selected again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
   const toggleButton = (button: ActiveButton) => {
     if (!isStreaming && !disabled && !loading) {
       // Save the current selection state before toggling
@@ -431,6 +455,11 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
 
   const renderMessage = (message: Message) => {
     const isCompleted = completedMessages.has(message.id)
+    
+    // Check if message contains an image (base64 data URL)
+    const imageMatch = message.content.match(/!\[Image\]\((data:image\/[^)]+)\)/)
+    const hasImage = imageMatch && imageMatch[1]
+    const textContent = hasImage ? message.content.replace(/!\[Image\]\([^)]+\)\n?/g, '').trim() : message.content
 
     return (
       <div key={message.id} className={cn("flex flex-col", message.type === "user" ? "items-end" : "items-start")}>
@@ -440,10 +469,21 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
             message.type === "user" ? "bg-white border border-gray-200 rounded-br-none" : "text-gray-900",
           )}
         >
+          {/* Render image if present */}
+          {hasImage && (
+            <div className="mb-2">
+              <img 
+                src={imageMatch[1]} 
+                alt="Uploaded image" 
+                className="max-w-full max-h-64 rounded-lg object-contain"
+              />
+            </div>
+          )}
+
           {/* For user messages or completed system messages, render without animation */}
-          {message.content && (
+          {textContent && (
             <span className={message.type === "system" && !isCompleted ? "animate-fade-in" : ""}>
-              {message.content}
+              {textContent}
             </span>
           )}
 
@@ -542,9 +582,29 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
               />
             </div>
 
+            {/* Hidden file input for photo uploads */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+
             {finalConfig.showActionButtons && (
               <div className="absolute bottom-3 left-3 right-3">
                 <div className="flex items-center justify-between">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={handlePhotoButtonClick}
+                    className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100"
+                    disabled={isStreaming || disabled || loading}
+                  >
+                    <Image className="h-4 w-4 text-gray-500" />
+                    <span className="sr-only">Upload photo</span>
+                  </Button>
                   <Button
                     type="submit"
                     variant="outline"
@@ -562,9 +622,20 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(({
               </div>
             )}
             
-            {/* Always show submit button even when action buttons are hidden */}
+            {/* Always show buttons even when action buttons are hidden */}
             {!finalConfig.showActionButtons && (
-              <div className="absolute bottom-3 right-3">
+              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={handlePhotoButtonClick}
+                  className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100"
+                  disabled={isStreaming || disabled || loading}
+                >
+                  <Image className="h-4 w-4 text-gray-500" />
+                  <span className="sr-only">Upload photo</span>
+                </Button>
                 <Button
                   type="submit"
                   variant="outline"

@@ -51,7 +51,8 @@ export function isSuperAdmin(user: UserWithAccountType | null | undefined): bool
  * if (isAdminOrSuperAdmin(null, user.role)) { ... }
  */
 export function isAdminOrSuperAdmin(user: UserWithAccountType | null | undefined, role?: string): boolean {
-  if (!isAdminAccount(user)) {
+  // Only use the user object to determine if the user is an admin account type if it is not null or undefined
+  if (user !== null && user !== undefined && !isAdminAccount(user)) {
     return false;
   }
   

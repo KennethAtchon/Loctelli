@@ -48,8 +48,8 @@ export class AgentConfigService {
 
     // Build agent configuration using mapper
     const agentConfig: AgentInstanceConfig = {
-      identity: this.mapper.mapIdentity(strategy, promptTemplate, user),
-      personality: this.mapper.mapPersonality(strategy, promptTemplate),
+      identity: this.mapper.mapIdentity(strategy, promptTemplate),
+      personality: this.mapper.mapPersonality(strategy),
       knowledge: this.mapper.mapKnowledge(strategy, promptTemplate),
       goals: this.mapper.mapGoals(strategy, promptTemplate),
       memory: {
