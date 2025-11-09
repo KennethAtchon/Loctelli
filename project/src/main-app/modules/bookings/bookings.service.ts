@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/commo
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
+import { isAdminOrSuperAdmin } from '../../../shared/utils';
 
 @Injectable()
 export class BookingsService {
@@ -64,7 +65,7 @@ export class BookingsService {
     }
 
     // Check if user has permission to access this booking
-    if (userRole !== 'admin' && userRole !== 'super_admin' && booking.regularUserId !== userId) {
+    if (!isAdminOrSuperAdmin(null, userRole) && booking.regularUserId !== userId) {
       throw new ForbiddenException('Access denied');
     }
 
@@ -93,7 +94,7 @@ export class BookingsService {
     }
 
     // Check if user has permission to access this lead's bookings
-    if (userRole !== 'admin' && userRole !== 'super_admin' && lead.regularUserId !== userId) {
+    if (!isAdminOrSuperAdmin(null, userRole) && lead.regularUserId !== userId) {
       throw new ForbiddenException('Access denied');
     }
 
@@ -116,7 +117,7 @@ export class BookingsService {
     }
 
     // Check if user has permission to update this booking
-    if (userRole !== 'admin' && userRole !== 'super_admin' && booking.regularUserId !== userId) {
+    if (!isAdminOrSuperAdmin(null, userRole) && booking.regularUserId !== userId) {
       throw new ForbiddenException('Access denied');
     }
 
@@ -153,7 +154,7 @@ export class BookingsService {
     }
 
     // Check if user has permission to delete this booking
-    if (userRole !== 'admin' && userRole !== 'super_admin' && booking.regularUserId !== userId) {
+    if (!isAdminOrSuperAdmin(null, userRole) && booking.regularUserId !== userId) {
       throw new ForbiddenException('Access denied');
     }
 

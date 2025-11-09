@@ -1,6 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ADMIN_KEY } from '../decorators/admin.decorator';
+import { isAdminOrSuperAdmin } from '../utils';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
@@ -34,7 +35,7 @@ export class AdminGuard implements CanActivate {
       }
     } else {
       // Default admin role check (admin or super_admin)
-      if (user.role && !['admin', 'super_admin'].includes(user.role)) {
+      if (!isAdminOrSuperAdmin(user)) {
         throw new ForbiddenException('Insufficient admin privileges');
       }
     }

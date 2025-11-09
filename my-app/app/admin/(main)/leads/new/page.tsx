@@ -161,7 +161,7 @@ export default function NewLeadPage() {
               {/* Basic Information */}
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="userId">Assign to User *</Label>
+                  <Label htmlFor="regularUserId">Assign to User *</Label>
                   <Select
                     value={selectedUserId.toString()}
                     onValueChange={(value) => {

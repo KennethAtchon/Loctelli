@@ -29,7 +29,7 @@ export default function EditStrategyPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [promptTemplates, setPromptTemplates] = useState<PromptTemplate[]>([]);
   const [formData, setFormData] = useState<CreateStrategyDto>({
-    userId: 0,
+    regularUserId: 0,
     promptTemplateId: 0,
     name: '',
     description: '',
@@ -73,7 +73,7 @@ export default function EditStrategyPage() {
 
         // Populate form with existing data
         setFormData({
-          userId: strategyData.regularUserId,
+          regularUserId: strategyData.regularUserId,
           promptTemplateId: strategyData.promptTemplateId,
           name: strategyData.name,
           description: strategyData.description || '',
@@ -136,7 +136,7 @@ export default function EditStrategyPage() {
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'userId' || name === 'promptTemplateId' ? parseInt(value) || 0 : value,
+      [name]: name === 'regularUserId' || name === 'promptTemplateId' ? parseInt(value) || 0 : value,
     }));
   };
 
@@ -206,10 +206,10 @@ export default function EditStrategyPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="userId">Assign to User *</Label>
+                  <Label htmlFor="regularUserId">Assign to User *</Label>
                   <Select
-                    value={formData.userId?.toString() || ''}
-                    onValueChange={(value) => handleSelectChange('userId', value)}
+                    value={formData.regularUserId?.toString() || ''}
+                    onValueChange={(value) => handleSelectChange('regularUserId', value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a user" />

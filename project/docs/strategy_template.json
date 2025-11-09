@@ -1,0 +1,20 @@
+{
+    "name": "name",
+    "description": "description",
+    "tag": "tag",
+    "industryContext": "industryContext",
+    "aiName": "aiName",
+    "aiRole": "aiRole",
+    "companyBackground": "companyBackground",
+    "conversationTone": "conversationTone",
+    "communicationStyle": "communicationStyle",
+    "qualificationQuestions": "qualificationQuestions",
+    "disqualificationRules": "disqualificationRules",
+    "objectionHandling": "objectionHandling",
+    "closingStrategy": "closingStrategy",
+    "bookingInstructions": "bookingInstructions",
+    "outputGuidelines": "outputGuidelines",
+    "prohibitedBehaviors": "prohibitedBehaviors",
+    "delayMin": "delayMin",
+    "delayMax": "delayMax"
+  }

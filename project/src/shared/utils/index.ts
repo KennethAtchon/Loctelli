@@ -1,5 +1,7 @@
 // Common utilities used across main-app and website-builder
 
+export * from './user-helpers';
+
 export function generateId(): string {
   return Math.random().toString(36).substring(2) + Date.now().toString(36);
 }

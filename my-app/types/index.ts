@@ -157,7 +157,7 @@ export interface CreateUserDto {
 }
 
 export interface CreateStrategyDto {
-  userId: number;
+  regularUserId: number;
   promptTemplateId: number;
 
   // Core Identity
@@ -214,7 +214,7 @@ export interface CreateLeadDto {
   customId?: string;
   status?: string;
   notes?: string;
-  messages?: any;
+  messageHistory?: any;
   lastMessage?: string;
   lastMessageDate?: string;
 }

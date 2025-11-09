@@ -5,6 +5,7 @@ import { UpdateLeadDto } from './dto/update-lead.dto';
 import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { Admin } from '../../../shared/decorators/admin.decorator';
 import { AdminGuard } from '../../../shared/guards/admin.guard';
+import { isAdminAccount } from '../../../shared/utils';
 
 @Controller('lead')
 @UseGuards(AdminGuard)
@@ -16,14 +17,14 @@ export class LeadsController {
   @Post()
   @Admin()
   async create(@Body() createLeadDto: CreateLeadDto, @CurrentUser() user) {
-    this.logger.log(`📝 Lead creation attempt by user: ${user.email} (ID: ${user.userId}, type: ${user.type})`);
+    this.logger.log(`📝 Lead creation attempt by user: ${user.email} (ID: ${user.userId}, accountType: ${user.accountType})`);
     this.logger.debug(`Lead creation data: ${JSON.stringify(createLeadDto)}`);
     
     try {
       let result;
       
       // Admin users can create leads for any regular user within their SubAccounts
-      if (user.type === 'admin') {
+      if (isAdminAccount(user)) {
         // For admin users, subAccountId should be provided in the DTO
         if (!createLeadDto.subAccountId) {
           this.logger.warn(`Lead creation failed - subAccountId missing for admin user: ${user.email}`);
@@ -49,7 +50,7 @@ export class LeadsController {
   @Get()
   @Admin()
   async findAll(@CurrentUser() user, @Query('userId') userId?: string, @Query('strategyId') strategyId?: string, @Query('subAccountId') subAccountId?: string) {
-    this.logger.log(`🔍 Lead search request by user: ${user.email} (ID: ${user.userId}, type: ${user.type})`);
+    this.logger.log(`🔍 Lead search request by user: ${user.email} (ID: ${user.userId}, accountType: ${user.accountType})`);
     this.logger.debug(`Search parameters: userId=${userId}, strategyId=${strategyId}, subAccountId=${subAccountId}`);
     
     try {
@@ -73,7 +74,7 @@ export class LeadsController {
         result = await this.leadsService.findByStrategyId(parsedStrategyId, user.userId, user.role);
       } else {
         // Handle SubAccount filtering
-        if (user.type === 'admin') {
+        if (isAdminAccount(user)) {
           // Admin can view leads in specific SubAccount or all their SubAccounts
           const parsedSubAccountId = subAccountId ? parseInt(subAccountId, 10) : undefined;
           if (parsedSubAccountId) {

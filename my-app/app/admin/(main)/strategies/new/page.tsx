@@ -30,7 +30,7 @@ export default function NewStrategyPage() {
   const [showJsonImport, setShowJsonImport] = useState(false);
   const [jsonInput, setJsonInput] = useState('');
   const [formData, setFormData] = useState<CreateStrategyDto>({
-    userId: 0,
+    regularUserId: 0,
     promptTemplateId: 0,
     name: '',
     description: '',
@@ -85,7 +85,7 @@ export default function NewStrategyPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.userId || formData.userId === 0) {
+    if (!formData.regularUserId || formData.regularUserId === 0) {
       setError('Please select a user for this strategy');
       return;
     }
@@ -135,17 +135,33 @@ export default function NewStrategyPage() {
 
     try {
       // Get the selected user to determine the subaccount
-      const selectedUser = users.find(user => user.id === formData.userId);
+      const selectedUser = users.find(user => user.id === formData.regularUserId);
       if (!selectedUser) {
         setError('Selected user not found');
         return;
       }
 
+      // Validate that the selected user has a subAccountId
+      if (selectedUser.subAccountId === undefined || selectedUser.subAccountId === null) {
+        console.error('Selected user missing subAccountId:', selectedUser);
+        setError(`Selected user (${selectedUser.name}) does not have a valid subAccountId. Please select a different user or contact support.`);
+        return;
+      }
+
       // Create strategy with the user's subaccount
-      await api.strategies.createStrategy({
+      const strategyData = {
         ...formData,
         subAccountId: selectedUser.subAccountId,
+      };
+      
+      console.log('Creating strategy with data:', {
+        ...strategyData,
+        // Don't log sensitive fields
+        qualificationQuestions: strategyData.qualificationQuestions?.substring(0, 50) + '...',
+        objectionHandling: strategyData.objectionHandling?.substring(0, 50) + '...',
       });
+
+      await api.strategies.createStrategy(strategyData);
       router.push('/admin/strategies');
     } catch (error) {
       console.error('Strategy creation error:', error);
@@ -170,7 +186,7 @@ export default function NewStrategyPage() {
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'userId' || name === 'promptTemplateId' ? parseInt(value) || 0 : value,
+      [name]: name === 'regularUserId' || name === 'promptTemplateId' ? parseInt(value) || 0 : value,
     }));
   };
 
@@ -186,12 +202,12 @@ export default function NewStrategyPage() {
     try {
       const parsed = JSON.parse(jsonInput);
 
-      // Merge with existing formData, keeping userId and promptTemplateId
+      // Merge with existing formData, keeping regularUserId and promptTemplateId
       setFormData(prev => ({
         ...prev,
         ...parsed,
         // Preserve critical fields that shouldn't be overwritten
-        userId: prev.userId || parsed.userId || 0,
+        regularUserId: prev.regularUserId || parsed.regularUserId || parsed.userId || 0, // Support old userId for backwards compatibility
         promptTemplateId: prev.promptTemplateId || parsed.promptTemplateId || 0,
       }));
 
@@ -211,7 +227,7 @@ export default function NewStrategyPage() {
   };
 
   const handleExportJson = () => {
-    // Export current form data (excluding userId and promptTemplateId for reusability)
+    // Export current form data (excluding regularUserId and promptTemplateId for reusability)
     const exportData = {
       name: formData.name,
       description: formData.description,
@@ -477,10 +493,10 @@ URGENCY REINFORCEMENT:
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="userId">Assign to User *</Label>
+                  <Label htmlFor="regularUserId">Assign to User *</Label>
                   <Select
-                    value={formData.userId?.toString() || ''}
-                    onValueChange={(value) => handleSelectChange('userId', value)}
+                    value={formData.regularUserId?.toString() || ''}
+                    onValueChange={(value) => handleSelectChange('regularUserId', value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a user" />

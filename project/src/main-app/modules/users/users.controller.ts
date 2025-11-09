@@ -6,6 +6,7 @@ import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../../shared/auth/auth.guard';
 import { RolesGuard } from '../../../shared/guards/roles.guard';
 import { Roles } from '../../../shared/decorators/roles.decorator';
+import { isAdminAccount, isAdminOrSuperAdmin } from '../../../shared/utils';
 
 @Controller('user')
 @UseGuards(JwtAuthGuard)
@@ -18,7 +19,7 @@ export class UsersController {
   create(@Body() createUserDto: CreateUserDto, @CurrentUser() user) {
     // For admin users, subAccountId should be provided in the DTO
     // For regular users, they can only create users in their own SubAccount
-    if (user.type === 'admin') {
+    if (isAdminAccount(user)) {
       if (!createUserDto.subAccountId) {
         throw new HttpException('subAccountId is required for admin user creation', HttpStatus.BAD_REQUEST);
       }
@@ -38,14 +39,14 @@ export class UsersController {
         throw new HttpException('Invalid userId parameter', HttpStatus.BAD_REQUEST);
       }
       // Only allow viewing own data unless admin
-      if (user.role !== 'admin' && user.role !== 'super_admin' && user.userId !== parsedUserId) {
+      if (!isAdminOrSuperAdmin(user) && user.userId !== parsedUserId) {
         throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
       }
       return this.usersService.findOne(parsedUserId);
     }
     
     // Handle SubAccount filtering
-    if (user.type === 'admin') {
+    if (isAdminAccount(user)) {
       // Admin can view users in specific SubAccount or all their SubAccounts
       const parsedSubAccountId = subAccountId ? parseInt(subAccountId, 10) : undefined;
       if (parsedSubAccountId) {
@@ -63,7 +64,7 @@ export class UsersController {
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user) {
     // Only allow viewing own data unless admin
-    if (user.role !== 'admin' && user.role !== 'super_admin' && user.userId !== id) {
+    if (!isAdminOrSuperAdmin(user) && user.userId !== id) {
       throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
     }
     return this.usersService.findOne(id);
@@ -76,7 +77,7 @@ export class UsersController {
     @CurrentUser() user
   ) {
     // Only allow updating own data unless admin
-    if (user.role !== 'admin' && user.role !== 'super_admin' && user.userId !== id) {
+    if (!isAdminOrSuperAdmin(user) && user.userId !== id) {
       throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
     }
     return this.usersService.update(id, updateUserDto);
@@ -85,7 +86,7 @@ export class UsersController {
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user) {
     // Only allow deleting own data unless admin
-    if (user.role !== 'admin' && user.role !== 'super_admin' && user.userId !== id) {
+    if (!isAdminOrSuperAdmin(user) && user.userId !== id) {
       throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
     }
     return this.usersService.remove(id);

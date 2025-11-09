@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/commo
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { UpdateLeadDto } from './dto/update-lead.dto';
+import { isAdminOrSuperAdmin } from '../../../shared/utils';
 
 @Injectable()
 export class LeadsService {
@@ -69,7 +70,7 @@ export class LeadsService {
     }
 
     // Check if user has permission to access this lead
-    if (userRole !== 'admin' && userRole !== 'super_admin' && lead.regularUserId !== userId) {
+    if (!isAdminOrSuperAdmin(null, userRole) && lead.regularUserId !== userId) {
       throw new ForbiddenException('Access denied');
     }
 
@@ -97,7 +98,7 @@ export class LeadsService {
     }
 
     // Check if user has permission to access this strategy's leads
-    if (userRole !== 'admin' && userRole !== 'super_admin' && strategy.regularUserId !== userId) {
+    if (!isAdminOrSuperAdmin(null, userRole) && strategy.regularUserId !== userId) {
       throw new ForbiddenException('Access denied');
     }
 
@@ -121,7 +122,7 @@ export class LeadsService {
     }
 
     // Check if user has permission to update this lead
-    if (userRole !== 'admin' && userRole !== 'super_admin' && lead.regularUserId !== userId) {
+    if (!isAdminOrSuperAdmin(null, userRole) && lead.regularUserId !== userId) {
       throw new ForbiddenException('Access denied');
     }
 
@@ -173,7 +174,7 @@ export class LeadsService {
     }
 
     // Check if user has permission to delete this lead
-    if (userRole !== 'admin' && userRole !== 'super_admin' && lead.regularUserId !== userId) {
+    if (!isAdminOrSuperAdmin(null, userRole) && lead.regularUserId !== userId) {
       throw new ForbiddenException('Access denied');
     }
 

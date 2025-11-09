@@ -3,6 +3,7 @@ import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { CreateStrategyDto } from './dto/create-strategy.dto';
 import { UpdateStrategyDto } from './dto/update-strategy.dto';
 import { PromptTemplatesService } from '../prompt-templates/prompt-templates.service';
+import { isAdminOrSuperAdmin } from '../../../shared/utils';
 
 @Injectable()
 export class StrategiesService {
@@ -147,7 +148,7 @@ export class StrategiesService {
       }
 
       // Check if user has permission to access this strategy
-      if (userRole !== 'admin' && userRole !== 'super_admin' && strategy.regularUserId !== userId) {
+      if (!isAdminOrSuperAdmin(null, userRole) && strategy.regularUserId !== userId) {
         this.logger.warn(`User ${userId} attempted to access strategy ${id} owned by user ${strategy.regularUserId}`);
         throw new ForbiddenException('Access denied');
       }
@@ -195,7 +196,7 @@ export class StrategiesService {
     }
 
     // Check if user has permission to update this strategy
-    if (userRole !== 'admin' && userRole !== 'super_admin' && strategy.regularUserId !== userId) {
+    if (!isAdminOrSuperAdmin(null, userRole) && strategy.regularUserId !== userId) {
       this.logger.warn(`User ${userId} attempted to update strategy ${id} owned by user ${strategy.regularUserId}`);
       throw new ForbiddenException('Access denied');
     }
@@ -203,12 +204,12 @@ export class StrategiesService {
     this.logger.debug(`Strategy ${id} found: ${strategy.name}, owned by user ${strategy.regularUserId}`);
 
     // Check authorization for sensitive fields
-    if (updateStrategyDto.regularUserId !== undefined && userRole !== 'admin' && userRole !== 'super_admin') {
+    if (updateStrategyDto.regularUserId !== undefined && !isAdminOrSuperAdmin(null, userRole)) {
       this.logger.warn(`User ${userId} attempted to change strategy ${id} ownership`);
       throw new ForbiddenException('Only admins can change strategy ownership');
     }
 
-    if (updateStrategyDto.subAccountId !== undefined && userRole !== 'admin' && userRole !== 'super_admin') {
+    if (updateStrategyDto.subAccountId !== undefined && !isAdminOrSuperAdmin(null, userRole)) {
       this.logger.warn(`User ${userId} attempted to change strategy ${id} subAccount`);
       throw new ForbiddenException('Only admins can change strategy subAccount');
     }
@@ -246,7 +247,7 @@ export class StrategiesService {
     }
 
     // Check if user has permission to delete this strategy
-    if (userRole !== 'admin' && userRole !== 'super_admin' && strategy.regularUserId !== userId) {
+    if (!isAdminOrSuperAdmin(null, userRole) && strategy.regularUserId !== userId) {
       this.logger.warn(`User ${userId} attempted to delete strategy ${id} owned by user ${strategy.regularUserId}`);
       throw new ForbiddenException('Access denied');
     }
@@ -282,7 +283,7 @@ export class StrategiesService {
     }
 
     // Check if user has permission to duplicate this strategy
-    if (userRole !== 'admin' && userRole !== 'super_admin' && strategy.regularUserId !== userId) {
+    if (!isAdminOrSuperAdmin(null, userRole) && strategy.regularUserId !== userId) {
       this.logger.warn(`User ${userId} attempted to duplicate strategy ${id} owned by user ${strategy.regularUserId}`);
       throw new ForbiddenException('Access denied');
     }
@@ -315,10 +316,22 @@ export class StrategiesService {
       isActive: strategy.isActive,
     };
 
-    // DTO fields now match Prisma schema exactly - just add subAccountId
+    // Extract relation IDs and use relation connect syntax
+    // Exclude subAccountId from DTO since we're using relation connect syntax
+    const { regularUserId, promptTemplateId, subAccountId: dtoSubAccountId, ...restDto } = duplicateData;
+
+    // DTO fields now match Prisma schema exactly - use relation connect syntax
     const strategyData = {
-      ...duplicateData,
-      subAccountId: strategy.subAccountId,
+      ...restDto,
+      regularUser: {
+        connect: { id: regularUserId },
+      },
+      subAccount: {
+        connect: { id: strategy.subAccountId },
+      },
+      promptTemplate: {
+        connect: { id: promptTemplateId },
+      },
     };
 
     try {

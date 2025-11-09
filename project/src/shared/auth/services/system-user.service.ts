@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { isAdminAccount } from 'src/shared/utils/user-helpers';
 
 @Injectable()
 export class SystemUserService {
@@ -102,9 +103,10 @@ export class SystemUserService {
 
   /**
    * Check if a user object represents an admin user
+   * @deprecated Use isAdminAccount from '../../../utils' instead
    */
   isAdminUser(user: any): boolean {
-    return user && user.type === 'admin';
+    return isAdminAccount(user);
   }
 
   /**

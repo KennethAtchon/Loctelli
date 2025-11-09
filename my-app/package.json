@@ -11,7 +11,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:ci": "jest --ci --coverage --watchAll=false"
+    "test:ci": "jest --ci --coverage --watchAll=false",
+    "audit:types": "npx tsx scripts/audit-types.ts"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",

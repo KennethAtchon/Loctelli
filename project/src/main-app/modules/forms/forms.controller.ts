@@ -27,6 +27,7 @@ import { JwtAuthGuard } from '../../../shared/auth/auth.guard';
 import { AdminGuard } from '../../../shared/guards/admin.guard';
 import { Public } from '../../../shared/decorators/public.decorator';
 import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
+import { isAdminAccount } from '../../../shared/utils';
 
 @Controller('forms')
 export class FormsController {
@@ -171,7 +172,7 @@ export class FormsController {
     // Regular users can only view their own subAccount submissions
     let subAccountIdNum: number | undefined;
 
-    if (user.type === 'admin') {
+    if (isAdminAccount(user)) {
       // Admin can optionally filter by subAccountId, or see all if no filter
       subAccountIdNum = subAccountId ? parseInt(subAccountId, 10) : undefined;
     } else {

@@ -5,6 +5,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { isAdminOrSuperAdmin } from '../../../shared/utils';
 
 @Injectable()
 export class UsersService {
@@ -223,7 +224,7 @@ export class UsersService {
       }
 
       // Admin permission check (simplified - can be enhanced based on your auth requirements)
-      if (currentUserRole !== 'admin' && currentUserRole !== 'super_admin') {
+      if (!isAdminOrSuperAdmin(null, currentUserRole)) {
         throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
       }
 
@@ -280,7 +281,7 @@ export class UsersService {
       }
 
       // Admin permission check (simplified - can be enhanced based on your auth requirements)
-      if (currentUserRole !== 'admin' && currentUserRole !== 'super_admin') {
+      if (!isAdminOrSuperAdmin(null, currentUserRole)) {
         throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
       }
 

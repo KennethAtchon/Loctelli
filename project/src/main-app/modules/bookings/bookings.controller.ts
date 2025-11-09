@@ -6,6 +6,7 @@ import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { Admin } from '../../../shared/decorators/admin.decorator';
 import { AdminGuard } from '../../../shared/guards/admin.guard';
 import { FreeSlotCronService } from '../../background/bgprocess/free-slot-cron.service';
+import { isAdminAccount } from '../../../shared/utils';
 
 @Controller('booking')
 @UseGuards(AdminGuard)
@@ -19,7 +20,7 @@ export class BookingsController {
   @Admin()
   create(@Body() createBookingDto: CreateBookingDto, @CurrentUser() user) {
     // Admin users can create bookings for any regular user within their SubAccounts
-    if (user.type === 'admin') {
+    if (isAdminAccount(user)) {
       // For admin users, subAccountId should be provided in the DTO
       if (!createBookingDto.subAccountId) {
         throw new HttpException('subAccountId is required for booking creation', HttpStatus.BAD_REQUEST);
@@ -52,7 +53,7 @@ export class BookingsController {
     }
     
     // Handle SubAccount filtering
-    if (user.type === 'admin') {
+    if (isAdminAccount(user)) {
       // Admin can view bookings in specific SubAccount or all their SubAccounts
       const parsedSubAccountId = subAccountId ? parseInt(subAccountId, 10) : undefined;
       if (parsedSubAccountId) {
