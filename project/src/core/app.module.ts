@@ -89,6 +89,7 @@ export class AppModule implements NestModule {
     consumer
       .apply(ApiKeyMiddleware)
       .exclude(
+        { path: '', method: RequestMethod.GET },
         { path: 'status/health', method: RequestMethod.GET },
         { path: 'debug/redis/(.*)', method: RequestMethod.GET },
         { path: 'debug/redis/(.*)', method: RequestMethod.POST },

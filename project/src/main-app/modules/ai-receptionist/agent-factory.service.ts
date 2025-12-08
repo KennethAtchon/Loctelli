@@ -226,11 +226,11 @@ export class AgentFactoryService implements OnModuleInit {
    * Start periodic cache cleanup to prevent memory leaks
    */
   private startCacheCleanup(): void {
-    setInterval(() => {
-      this.logger.debug(`Cache cleanup: ${this.agentCache.size} agents cached`);
-      // In a production system, you might want to implement LRU eviction here
-      // For now, we'll just log the cache size
-    }, this.cacheTimeout);
+    // setInterval(() => {
+    //   this.logger.debug(`Cache cleanup: ${this.agentCache.size} agents cached`);
+    //   // In a production system, you might want to implement LRU eviction here
+    //   // For now, we'll just log the cache size
+    // }, this.cacheTimeout);
   }
 
   /**
