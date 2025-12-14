@@ -1,9 +1,18 @@
-import { ApiClient } from '../client';
+import { ApiClient } from "../client";
 
 // Form Template types
 export interface FormField {
   id: string;
-  type: 'text' | 'email' | 'phone' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'file' | 'image';
+  type:
+    | "text"
+    | "email"
+    | "phone"
+    | "textarea"
+    | "select"
+    | "checkbox"
+    | "radio"
+    | "file"
+    | "image";
   label: string;
   placeholder?: string;
   options?: string[];
@@ -50,7 +59,7 @@ export interface FormSubmission {
   userAgent?: string;
   source: string;
   status: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   assignedToId?: number;
   notes?: Array<{
     content: string;
@@ -120,7 +129,7 @@ export interface CreateFormSubmissionDto {
 
 export interface UpdateFormSubmissionDto {
   status?: string;
-  priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   assignedToId?: number;
   notes?: Record<string, any>;
 }
@@ -134,15 +143,17 @@ export interface FormStats {
 
 export class FormsApi {
   constructor(private client: ApiClient) {}
-  
+
   // Form Templates
   async getFormTemplates(subAccountId?: number): Promise<FormTemplate[]> {
     const queryParams = new URLSearchParams();
     if (subAccountId) {
-      queryParams.append('subAccountId', subAccountId.toString());
+      queryParams.append("subAccountId", subAccountId.toString());
     }
     const queryString = queryParams.toString();
-    return this.client.get<FormTemplate[]>(`/forms/templates${queryString ? `?${queryString}` : ''}`);
+    return this.client.get<FormTemplate[]>(
+      `/forms/templates${queryString ? `?${queryString}` : ""}`
+    );
   }
 
   async getFormTemplate(id: string): Promise<FormTemplate> {
@@ -150,10 +161,13 @@ export class FormsApi {
   }
 
   async createFormTemplate(data: CreateFormTemplateDto): Promise<FormTemplate> {
-    return this.client.post<FormTemplate>('/forms/templates', data);
+    return this.client.post<FormTemplate>("/forms/templates", data);
   }
 
-  async updateFormTemplate(id: string, data: UpdateFormTemplateDto): Promise<FormTemplate> {
+  async updateFormTemplate(
+    id: string,
+    data: UpdateFormTemplateDto
+  ): Promise<FormTemplate> {
     return this.client.patch<FormTemplate>(`/forms/templates/${id}`, data);
   }
 
@@ -167,15 +181,23 @@ export class FormsApi {
   }
 
   async submitPublicForm(slug: string, data: any): Promise<FormSubmission> {
-    return this.client.post<FormSubmission>(`/forms/public/${slug}/submit`, data);
+    return this.client.post<FormSubmission>(
+      `/forms/public/${slug}/submit`,
+      data
+    );
   }
 
   async wakeUpDatabase(): Promise<{ status: string; timestamp: string }> {
-    return this.client.get<{ status: string; timestamp: string }>('/forms/public/wake-up');
+    return this.client.get<{ status: string; timestamp: string }>(
+      "/forms/public/wake-up"
+    );
   }
 
   async uploadFormFile(slug: string, formData: FormData): Promise<any> {
-    return this.client.uploadFile<any>(`/forms/public/${slug}/upload`, formData);
+    return this.client.uploadFile<any>(
+      `/forms/public/${slug}/upload`,
+      formData
+    );
   }
 
   // Form Submissions
@@ -186,23 +208,28 @@ export class FormsApi {
   ): Promise<FormSubmission[]> {
     const queryParams = new URLSearchParams();
     if (subAccountId) {
-      queryParams.append('subAccountId', subAccountId.toString());
+      queryParams.append("subAccountId", subAccountId.toString());
     }
     if (formTemplateId) {
-      queryParams.append('formTemplateId', formTemplateId);
+      queryParams.append("formTemplateId", formTemplateId);
     }
     if (status) {
-      queryParams.append('status', status);
+      queryParams.append("status", status);
     }
     const queryString = queryParams.toString();
-    return this.client.get<FormSubmission[]>(`/forms/submissions${queryString ? `?${queryString}` : ''}`);
+    return this.client.get<FormSubmission[]>(
+      `/forms/submissions${queryString ? `?${queryString}` : ""}`
+    );
   }
 
   async getFormSubmission(id: string): Promise<FormSubmission> {
     return this.client.get<FormSubmission>(`/forms/submissions/${id}`);
   }
 
-  async updateFormSubmission(id: string, data: UpdateFormSubmissionDto): Promise<FormSubmission> {
+  async updateFormSubmission(
+    id: string,
+    data: UpdateFormSubmissionDto
+  ): Promise<FormSubmission> {
     return this.client.patch<FormSubmission>(`/forms/submissions/${id}`, data);
   }
 
@@ -211,6 +238,6 @@ export class FormsApi {
   }
 
   async getFormStats(): Promise<FormStats> {
-    return this.client.get<FormStats>('/forms/submissions/stats');
+    return this.client.get<FormStats>("/forms/submissions/stats");
   }
 }

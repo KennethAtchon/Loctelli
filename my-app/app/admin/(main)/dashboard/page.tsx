@@ -1,18 +1,49 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { api } from '@/lib/api';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Users, Target, Calendar, RefreshCw, Plus, Eye, Building, Globe, Code, TrendingUp, TrendingDown, Activity, Zap } from 'lucide-react';
-import { DashboardStats, SystemStatus, DetailedLead } from '@/lib/api/endpoints/admin-auth';
-import Link from 'next/link';
-import logger from '@/lib/logger';
-import { useTenant } from '@/contexts/tenant-context';
-import { LeadDetailsContent } from '@/components/admin/lead-details-content';
+import { useState, useEffect, useCallback } from "react";
+import { api } from "@/lib/api";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Users,
+  Target,
+  Calendar,
+  RefreshCw,
+  Plus,
+  Eye,
+  Building,
+  Globe,
+  Code,
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  Zap,
+} from "lucide-react";
+import {
+  DashboardStats,
+  SystemStatus,
+  DetailedLead,
+} from "@/lib/api/endpoints/admin-auth";
+import Link from "next/link";
+import logger from "@/lib/logger";
+import { useTenant } from "@/contexts/tenant-context";
+import { LeadDetailsContent } from "@/components/admin/lead-details-content";
 
 interface DetailedUser {
   id: number;
@@ -73,19 +104,19 @@ export default function AdminDashboardPage() {
       setError(null);
 
       // Use tenant context - adminFilter is compatible with the API
-      logger.debug('Loading dashboard with tenant filter:', adminFilter);
+      logger.debug("Loading dashboard with tenant filter:", adminFilter);
 
       const [dashboardStats, status, leads] = await Promise.all([
         api.adminAuth.getDashboardStats(adminFilter ?? undefined),
         api.adminAuth.getSystemStatus(),
-        api.adminAuth.getRecentLeads(adminFilter ?? undefined)
+        api.adminAuth.getRecentLeads(adminFilter ?? undefined),
       ]);
       setStats(dashboardStats);
       setSystemStatus(status);
       setRecentLeads(leads);
     } catch (error) {
-      logger.error('Failed to load dashboard data:', error);
-      setError('Failed to load dashboard data');
+      logger.error("Failed to load dashboard data:", error);
+      setError("Failed to load dashboard data");
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -108,7 +139,7 @@ export default function AdminDashboardPage() {
       const user = await api.adminAuth.getDetailedUser(userId);
       setSelectedUser(user);
     } catch (error) {
-      logger.error('Failed to load user details:', error);
+      logger.error("Failed to load user details:", error);
     }
   };
 
@@ -117,41 +148,41 @@ export default function AdminDashboardPage() {
       const lead = await api.adminAuth.getDetailedLead(leadId);
       setSelectedLead(lead);
     } catch (error) {
-      logger.error('Failed to load lead details:', error);
+      logger.error("Failed to load lead details:", error);
     }
   };
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'healthy':
-      case 'online':
-      case 'connected':
-      case 'available':
-        return 'default';
-      case 'error':
-      case 'disconnected':
-        return 'destructive';
+      case "healthy":
+      case "online":
+      case "connected":
+      case "available":
+        return "default";
+      case "error":
+      case "disconnected":
+        return "destructive";
       default:
-        return 'secondary';
+        return "secondary";
     }
   };
 
   const formatDate = (dateInput: string | Date) => {
-    if (!dateInput) return 'N/A';
+    if (!dateInput) return "N/A";
 
     const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
 
     // Check if the date is valid
     if (isNaN(date.getTime())) {
-      return 'Invalid Date';
+      return "Invalid Date";
     }
 
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -182,8 +213,8 @@ export default function AdminDashboardPage() {
         <Alert variant="destructive">
           <AlertDescription>
             {error}
-            <Button 
-              variant="link" 
+            <Button
+              variant="link"
               className="p-0 h-auto text-destructive underline ml-2"
               onClick={loadDashboardData}
             >
@@ -192,7 +223,7 @@ export default function AdminDashboardPage() {
           </AlertDescription>
         </Alert>
       )}
-      
+
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6">
         <div className="space-y-2">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -218,20 +249,21 @@ export default function AdminDashboardPage() {
           </div>
           <p className="text-gray-600 dark:text-gray-300 text-lg">
             {isGlobalView
-              ? 'Comprehensive overview of all subaccounts and system metrics'
-              : `Detailed insights for ${getCurrentSubaccount?.()?.name} subaccount`
-            }
+              ? "Comprehensive overview of all subaccounts and system metrics"
+              : `Detailed insights for ${getCurrentSubaccount?.()?.name} subaccount`}
           </p>
         </div>
         <div className="flex justify-start lg:justify-end">
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={loadDashboardData}
             disabled={isRefreshing}
             className="bg-white/80 dark:bg-slate-700/50 backdrop-blur-sm hover:bg-blue-50 dark:hover:bg-slate-600 border-gray-200/60 dark:border-slate-600/60 transition-all duration-200 dark:text-gray-200"
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin text-blue-600" : ""}`}
+            />
             <span className="hidden sm:inline">Refresh</span>
           </Button>
         </div>
@@ -239,98 +271,146 @@ export default function AdminDashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-        <Card className="group relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-50/50 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800/50 border-blue-200/60 dark:border-slate-600/60 hover:shadow-xl hover:shadow-blue-100/50 dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer" onClick={() => window.location.href = '/admin/users'}>
+        <Card
+          className="group relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-50/50 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800/50 border-blue-200/60 dark:border-slate-600/60 hover:shadow-xl hover:shadow-blue-100/50 dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+          onClick={() => (window.location.href = "/admin/users")}
+        >
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Total Users</CardTitle>
+            <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
+              Total Users
+            </CardTitle>
             <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
               <Users className="h-5 w-5 text-blue-600" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{stats.totalUsers}</div>
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+              {stats.totalUsers}
+            </div>
             <div className="flex items-center gap-1">
               {stats.growthRates.users >= 0 ? (
                 <TrendingUp className="h-4 w-4 text-green-500" />
               ) : (
                 <TrendingDown className="h-4 w-4 text-red-500" />
               )}
-              <span className={`text-sm font-medium ${stats.growthRates.users >= 0 ? "text-green-600" : "text-red-600"}`}>
-                {stats.growthRates.users >= 0 ? "+" : ""}{stats.growthRates.users}%
+              <span
+                className={`text-sm font-medium ${stats.growthRates.users >= 0 ? "text-green-600" : "text-red-600"}`}
+              >
+                {stats.growthRates.users >= 0 ? "+" : ""}
+                {stats.growthRates.users}%
               </span>
-              <span className="text-sm text-gray-500 dark:text-gray-400">from last month</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                from last month
+              </span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-emerald-50/50 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800/50 border-emerald-200/60 dark:border-slate-600/60 hover:shadow-xl hover:shadow-emerald-100/50 dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer" onClick={() => window.location.href = '/admin/users'}>
+        <Card
+          className="group relative overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-emerald-50/50 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800/50 border-emerald-200/60 dark:border-slate-600/60 hover:shadow-xl hover:shadow-emerald-100/50 dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+          onClick={() => (window.location.href = "/admin/users")}
+        >
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">Active Users</CardTitle>
+            <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
+              Active Users
+            </CardTitle>
             <div className="p-2 bg-emerald-100 rounded-lg group-hover:bg-emerald-200 transition-colors">
               <Zap className="h-5 w-5 text-emerald-600" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{stats.activeUsers}</div>
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+              {stats.activeUsers}
+            </div>
             <div className="flex items-center gap-1">
               {stats.growthRates.activeUsers >= 0 ? (
                 <TrendingUp className="h-4 w-4 text-green-500" />
               ) : (
                 <TrendingDown className="h-4 w-4 text-red-500" />
               )}
-              <span className={`text-sm font-medium ${stats.growthRates.activeUsers >= 0 ? "text-green-600" : "text-red-600"}`}>
-                {stats.growthRates.activeUsers >= 0 ? "+" : ""}{stats.growthRates.activeUsers}%
+              <span
+                className={`text-sm font-medium ${stats.growthRates.activeUsers >= 0 ? "text-green-600" : "text-red-600"}`}
+              >
+                {stats.growthRates.activeUsers >= 0 ? "+" : ""}
+                {stats.growthRates.activeUsers}%
               </span>
-              <span className="text-sm text-gray-500 dark:text-gray-400">from last month</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                from last month
+              </span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden bg-gradient-to-br from-purple-50 via-white to-purple-50/50 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800/50 border-purple-200/60 dark:border-slate-600/60 hover:shadow-xl hover:shadow-purple-100/50 dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer" onClick={() => window.location.href = '/admin/strategies'}>
+        <Card
+          className="group relative overflow-hidden bg-gradient-to-br from-purple-50 via-white to-purple-50/50 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800/50 border-purple-200/60 dark:border-slate-600/60 hover:shadow-xl hover:shadow-purple-100/50 dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+          onClick={() => (window.location.href = "/admin/strategies")}
+        >
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-purple-700 dark:group-hover:text-purple-400 transition-colors">Total Strategies</CardTitle>
+            <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-purple-700 dark:group-hover:text-purple-400 transition-colors">
+              Total Strategies
+            </CardTitle>
             <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
               <Target className="h-5 w-5 text-purple-600" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{stats.totalStrategies}</div>
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+              {stats.totalStrategies}
+            </div>
             <div className="flex items-center gap-1">
               {stats.growthRates.strategies >= 0 ? (
                 <TrendingUp className="h-4 w-4 text-green-500" />
               ) : (
                 <TrendingDown className="h-4 w-4 text-red-500" />
               )}
-              <span className={`text-sm font-medium ${stats.growthRates.strategies >= 0 ? "text-green-600" : "text-red-600"}`}>
-                {stats.growthRates.strategies >= 0 ? "+" : ""}{stats.growthRates.strategies}%
+              <span
+                className={`text-sm font-medium ${stats.growthRates.strategies >= 0 ? "text-green-600" : "text-red-600"}`}
+              >
+                {stats.growthRates.strategies >= 0 ? "+" : ""}
+                {stats.growthRates.strategies}%
               </span>
-              <span className="text-sm text-gray-500 dark:text-gray-400">from last month</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                from last month
+              </span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden bg-gradient-to-br from-orange-50 via-white to-orange-50/50 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800/50 border-orange-200/60 dark:border-slate-600/60 hover:shadow-xl hover:shadow-orange-100/50 dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer" onClick={() => window.location.href = '/admin/bookings'}>
+        <Card
+          className="group relative overflow-hidden bg-gradient-to-br from-orange-50 via-white to-orange-50/50 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800/50 border-orange-200/60 dark:border-slate-600/60 hover:shadow-xl hover:shadow-orange-100/50 dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+          onClick={() => (window.location.href = "/admin/bookings")}
+        >
           <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-orange-700 dark:group-hover:text-orange-400 transition-colors">Total Bookings</CardTitle>
+            <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-orange-700 dark:group-hover:text-orange-400 transition-colors">
+              Total Bookings
+            </CardTitle>
             <div className="p-2 bg-orange-100 rounded-lg group-hover:bg-orange-200 transition-colors">
               <Calendar className="h-5 w-5 text-orange-600" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{stats.totalBookings}</div>
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+              {stats.totalBookings}
+            </div>
             <div className="flex items-center gap-1">
               {stats.growthRates.bookings >= 0 ? (
                 <TrendingUp className="h-4 w-4 text-green-500" />
               ) : (
                 <TrendingDown className="h-4 w-4 text-red-500" />
               )}
-              <span className={`text-sm font-medium ${stats.growthRates.bookings >= 0 ? "text-green-600" : "text-red-600"}`}>
-                {stats.growthRates.bookings >= 0 ? "+" : ""}{stats.growthRates.bookings}%
+              <span
+                className={`text-sm font-medium ${stats.growthRates.bookings >= 0 ? "text-green-600" : "text-red-600"}`}
+              >
+                {stats.growthRates.bookings >= 0 ? "+" : ""}
+                {stats.growthRates.bookings}%
               </span>
-              <span className="text-sm text-gray-500 dark:text-gray-400">from last month</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                from last month
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -350,7 +430,11 @@ export default function AdminDashboardPage() {
               </CardDescription>
             </div>
             <Link href="/admin/users">
-              <Button variant="outline" size="sm" className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors">
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Add User
               </Button>
@@ -360,27 +444,43 @@ export default function AdminDashboardPage() {
             <div className="space-y-4">
               {stats.recentUsers.length > 0 ? (
                 stats.recentUsers.map((user) => (
-                  <div key={user.id} className="flex items-center space-x-4 p-3 rounded-xl hover:bg-blue-50/50 transition-all duration-200 border border-transparent hover:border-blue-100">
+                  <div
+                    key={user.id}
+                    className="flex items-center space-x-4 p-3 rounded-xl hover:bg-blue-50/50 transition-all duration-200 border border-transparent hover:border-blue-100"
+                  >
                     <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
                       <span className="text-sm font-bold text-white">
                         {user.name.charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.name}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {user.name}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {user.email}
+                      </p>
                       {user.company && (
-                        <p className="text-xs text-gray-400 dark:text-gray-500">{user.company}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">
+                          {user.company}
+                        </p>
                       )}
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge variant={user.isActive ? "default" : "secondary"} className={user.isActive ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-gray-100 text-gray-600"}>
+                      <Badge
+                        variant={user.isActive ? "default" : "secondary"}
+                        className={
+                          user.isActive
+                            ? "bg-green-100 text-green-700 hover:bg-green-200"
+                            : "bg-gray-100 text-gray-600"
+                        }
+                      >
                         {user.isActive ? "Active" : "Inactive"}
                       </Badge>
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={() => loadDetailedUser(user.id)}
                           >
@@ -389,7 +489,9 @@ export default function AdminDashboardPage() {
                         </DialogTrigger>
                         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                           <DialogHeader>
-                            <DialogTitle>User Details - {user.name}</DialogTitle>
+                            <DialogTitle>
+                              User Details - {user.name}
+                            </DialogTitle>
                             <DialogDescription>
                               Complete user information and related data
                             </DialogDescription>
@@ -398,52 +500,116 @@ export default function AdminDashboardPage() {
                             <div className="space-y-6">
                               {/* Basic Information */}
                               <div>
-                                <h3 className="font-semibold mb-3">Basic Information</h3>
+                                <h3 className="font-semibold mb-3">
+                                  Basic Information
+                                </h3>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
-                                  <div><strong>ID:</strong> {selectedUser.id}</div>
-                                  <div><strong>Name:</strong> {selectedUser.name}</div>
-                                  <div><strong>Email:</strong> {selectedUser.email}</div>
-                                  <div><strong>Role:</strong> {selectedUser.role}</div>
-                                  <div><strong>Status:</strong> 
-                                    <Badge variant={selectedUser.isActive ? "default" : "secondary"} className="ml-2">
-                                      {selectedUser.isActive ? "Active" : "Inactive"}
+                                  <div>
+                                    <strong>ID:</strong> {selectedUser.id}
+                                  </div>
+                                  <div>
+                                    <strong>Name:</strong> {selectedUser.name}
+                                  </div>
+                                  <div>
+                                    <strong>Email:</strong> {selectedUser.email}
+                                  </div>
+                                  <div>
+                                    <strong>Role:</strong> {selectedUser.role}
+                                  </div>
+                                  <div>
+                                    <strong>Status:</strong>
+                                    <Badge
+                                      variant={
+                                        selectedUser.isActive
+                                          ? "default"
+                                          : "secondary"
+                                      }
+                                      className="ml-2"
+                                    >
+                                      {selectedUser.isActive
+                                        ? "Active"
+                                        : "Inactive"}
                                     </Badge>
                                   </div>
-                                  <div><strong>Company:</strong> {selectedUser.company || 'N/A'}</div>
-                                  <div><strong>Budget:</strong> {selectedUser.budget || 'N/A'}</div>
-                                  <div><strong>Booking Enabled:</strong> {selectedUser.bookingEnabled ? 'Yes' : 'No'}</div>
+                                  <div>
+                                    <strong>Company:</strong>{" "}
+                                    {selectedUser.company || "N/A"}
+                                  </div>
+                                  <div>
+                                    <strong>Budget:</strong>{" "}
+                                    {selectedUser.budget || "N/A"}
+                                  </div>
+                                  <div>
+                                    <strong>Booking Enabled:</strong>{" "}
+                                    {selectedUser.bookingEnabled ? "Yes" : "No"}
+                                  </div>
                                 </div>
                               </div>
 
                               {/* Integration Details */}
                               <div>
-                                <h3 className="font-semibold mb-3">Integration Details</h3>
+                                <h3 className="font-semibold mb-3">
+                                  Integration Details
+                                </h3>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
-                                  <div><strong>Calendar ID:</strong> {selectedUser.calendarId || 'N/A'}</div>
-                                  <div><strong>Location ID:</strong> {selectedUser.locationId || 'N/A'}</div>
-                                  <div><strong>Assigned User ID:</strong> {selectedUser.assignedUserId || 'N/A'}</div>
+                                  <div>
+                                    <strong>Calendar ID:</strong>{" "}
+                                    {selectedUser.calendarId || "N/A"}
+                                  </div>
+                                  <div>
+                                    <strong>Location ID:</strong>{" "}
+                                    {selectedUser.locationId || "N/A"}
+                                  </div>
+                                  <div>
+                                    <strong>Assigned User ID:</strong>{" "}
+                                    {selectedUser.assignedUserId || "N/A"}
+                                  </div>
                                 </div>
                               </div>
 
                               {/* Timestamps */}
                               <div>
-                                <h3 className="font-semibold mb-3">Timestamps</h3>
+                                <h3 className="font-semibold mb-3">
+                                  Timestamps
+                                </h3>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
-                                  <div><strong>Created:</strong> {formatDate(selectedUser.createdAt)}</div>
-                                  <div><strong>Updated:</strong> {formatDate(selectedUser.updatedAt)}</div>
-                                  <div><strong>Last Login:</strong> {selectedUser.lastLoginAt ? formatDate(selectedUser.lastLoginAt) : 'Never'}</div>
+                                  <div>
+                                    <strong>Created:</strong>{" "}
+                                    {formatDate(selectedUser.createdAt)}
+                                  </div>
+                                  <div>
+                                    <strong>Updated:</strong>{" "}
+                                    {formatDate(selectedUser.updatedAt)}
+                                  </div>
+                                  <div>
+                                    <strong>Last Login:</strong>{" "}
+                                    {selectedUser.lastLoginAt
+                                      ? formatDate(selectedUser.lastLoginAt)
+                                      : "Never"}
+                                  </div>
                                 </div>
                               </div>
 
                               {/* Created By Admin */}
                               <div>
-                                <h3 className="font-semibold mb-3">Created By Admin</h3>
+                                <h3 className="font-semibold mb-3">
+                                  Created By Admin
+                                </h3>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                   {selectedUser.createdByAdmin ? (
                                     <>
-                                      <div><strong>Admin ID:</strong> {selectedUser.createdByAdmin.id}</div>
-                                      <div><strong>Admin Name:</strong> {selectedUser.createdByAdmin.name}</div>
-                                      <div><strong>Admin Email:</strong> {selectedUser.createdByAdmin.email}</div>
+                                      <div>
+                                        <strong>Admin ID:</strong>{" "}
+                                        {selectedUser.createdByAdmin.id}
+                                      </div>
+                                      <div>
+                                        <strong>Admin Name:</strong>{" "}
+                                        {selectedUser.createdByAdmin.name}
+                                      </div>
+                                      <div>
+                                        <strong>Admin Email:</strong>{" "}
+                                        {selectedUser.createdByAdmin.email}
+                                      </div>
                                     </>
                                   ) : (
                                     <div className="col-span-2 text-gray-500 italic">
@@ -454,55 +620,85 @@ export default function AdminDashboardPage() {
                               </div>
 
                               {/* Strategies */}
-                              {selectedUser.strategies && selectedUser.strategies.length > 0 && (
-                                <div>
-                                  <h3 className="font-semibold mb-3">Strategies ({selectedUser.strategies.length})</h3>
-                                  <div className="space-y-2">
-                                    {selectedUser.strategies.map((strategy) => (
-                                      <div key={strategy.id} className="p-2 border rounded">
-                                        <div className="font-medium">{strategy.name}</div>
-                                        <div className="text-sm text-gray-600">
-                                          Tag: {strategy.tag || 'N/A'} | Tone: {strategy.tone || 'N/A'}
-                                        </div>
-                                      </div>
-                                    ))}
+                              {selectedUser.strategies &&
+                                selectedUser.strategies.length > 0 && (
+                                  <div>
+                                    <h3 className="font-semibold mb-3">
+                                      Strategies (
+                                      {selectedUser.strategies.length})
+                                    </h3>
+                                    <div className="space-y-2">
+                                      {selectedUser.strategies.map(
+                                        (strategy) => (
+                                          <div
+                                            key={strategy.id}
+                                            className="p-2 border rounded"
+                                          >
+                                            <div className="font-medium">
+                                              {strategy.name}
+                                            </div>
+                                            <div className="text-sm text-gray-600">
+                                              Tag: {strategy.tag || "N/A"} |
+                                              Tone: {strategy.tone || "N/A"}
+                                            </div>
+                                          </div>
+                                        )
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              )}
+                                )}
 
                               {/* Leads */}
-                              {selectedUser.leads && selectedUser.leads.length > 0 && (
-                                <div>
-                                  <h3 className="font-semibold mb-3">Leads ({selectedUser.leads.length})</h3>
-                                  <div className="space-y-2">
-                                    {selectedUser.leads.map((lead) => (
-                                      <div key={lead.id} className="p-2 border rounded">
-                                        <div className="font-medium">{lead.name}</div>
-                                        <div className="text-sm text-gray-600">
-                                          Email: {lead.email || 'N/A'} | Status: {lead.status}
+                              {selectedUser.leads &&
+                                selectedUser.leads.length > 0 && (
+                                  <div>
+                                    <h3 className="font-semibold mb-3">
+                                      Leads ({selectedUser.leads.length})
+                                    </h3>
+                                    <div className="space-y-2">
+                                      {selectedUser.leads.map((lead) => (
+                                        <div
+                                          key={lead.id}
+                                          className="p-2 border rounded"
+                                        >
+                                          <div className="font-medium">
+                                            {lead.name}
+                                          </div>
+                                          <div className="text-sm text-gray-600">
+                                            Email: {lead.email || "N/A"} |
+                                            Status: {lead.status}
+                                          </div>
                                         </div>
-                                      </div>
-                                    ))}
+                                      ))}
+                                    </div>
                                   </div>
-                                </div>
-                              )}
+                                )}
 
                               {/* Bookings */}
-                              {selectedUser.bookings && selectedUser.bookings.length > 0 && (
-                                <div>
-                                  <h3 className="font-semibold mb-3">Bookings ({selectedUser.bookings.length})</h3>
-                                  <div className="space-y-2">
-                                    {selectedUser.bookings.map((booking) => (
-                                      <div key={booking.id} className="p-2 border rounded">
-                                        <div className="font-medium">{booking.bookingType}</div>
-                                        <div className="text-sm text-gray-600">
-                                          Status: {booking.status} | Created: {formatDate(booking.createdAt)}
+                              {selectedUser.bookings &&
+                                selectedUser.bookings.length > 0 && (
+                                  <div>
+                                    <h3 className="font-semibold mb-3">
+                                      Bookings ({selectedUser.bookings.length})
+                                    </h3>
+                                    <div className="space-y-2">
+                                      {selectedUser.bookings.map((booking) => (
+                                        <div
+                                          key={booking.id}
+                                          className="p-2 border rounded"
+                                        >
+                                          <div className="font-medium">
+                                            {booking.bookingType}
+                                          </div>
+                                          <div className="text-sm text-gray-600">
+                                            Status: {booking.status} | Created:{" "}
+                                            {formatDate(booking.createdAt)}
+                                          </div>
                                         </div>
-                                      </div>
-                                    ))}
+                                      ))}
+                                    </div>
                                   </div>
-                                </div>
-                              )}
+                                )}
                             </div>
                           )}
                         </DialogContent>
@@ -511,7 +707,9 @@ export default function AdminDashboardPage() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-gray-500 dark:text-gray-400">No recent users</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  No recent users
+                </p>
               )}
             </div>
           </CardContent>
@@ -529,7 +727,11 @@ export default function AdminDashboardPage() {
               </CardDescription>
             </div>
             <Link href="/admin/leads">
-              <Button variant="outline" size="sm" className="bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 transition-colors">
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 transition-colors"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Lead
               </Button>
@@ -539,23 +741,37 @@ export default function AdminDashboardPage() {
             <div className="space-y-4">
               {recentLeads.length > 0 ? (
                 recentLeads.map((lead) => (
-                  <div key={lead.id} className="flex items-center space-x-4 p-3 rounded-xl hover:bg-emerald-50/50 transition-all duration-200 border border-transparent hover:border-emerald-100">
+                  <div
+                    key={lead.id}
+                    className="flex items-center space-x-4 p-3 rounded-xl hover:bg-emerald-50/50 transition-all duration-200 border border-transparent hover:border-emerald-100"
+                  >
                     <div className="h-10 w-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm">
                       <Building className="h-5 w-5 text-white" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{lead.name}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{lead.email || 'No email'}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {lead.name}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {lead.email || "No email"}
+                      </p>
                       {lead.company && (
-                        <p className="text-xs text-gray-400 dark:text-gray-500">{lead.company}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">
+                          {lead.company}
+                        </p>
                       )}
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge variant="outline" className="border-emerald-200 text-emerald-700 bg-emerald-50">{lead.status}</Badge>
+                      <Badge
+                        variant="outline"
+                        className="border-emerald-200 text-emerald-700 bg-emerald-50"
+                      >
+                        {lead.status}
+                      </Badge>
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={() => loadDetailedLead(lead.id)}
                           >
@@ -567,7 +783,7 @@ export default function AdminDashboardPage() {
                             <LeadDetailsContent
                               lead={selectedLead}
                               formatDate={formatDate}
-                              getStatusBadgeVariant={() => 'outline' as const}
+                              getStatusBadgeVariant={() => "outline" as const}
                             />
                           )}
                         </DialogContent>
@@ -576,7 +792,9 @@ export default function AdminDashboardPage() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-gray-500 dark:text-gray-400">No recent leads</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  No recent leads
+                </p>
               )}
             </div>
           </CardContent>
@@ -601,13 +819,18 @@ export default function AdminDashboardPage() {
                 <div className="p-2 bg-blue-100 rounded-lg">
                   <Code className="h-4 w-4 text-blue-600" />
                 </div>
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Database</span>
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  Database
+                </span>
               </div>
-              <Badge variant={getStatusBadgeVariant(systemStatus.database)} className={`${
-                systemStatus.database.toLowerCase() === 'healthy' 
-                  ? 'bg-green-100 text-green-700 border-green-200' 
-                  : 'bg-red-100 text-red-700 border-red-200'
-              }`}>
+              <Badge
+                variant={getStatusBadgeVariant(systemStatus.database)}
+                className={`${
+                  systemStatus.database.toLowerCase() === "healthy"
+                    ? "bg-green-100 text-green-700 border-green-200"
+                    : "bg-red-100 text-red-700 border-red-200"
+                }`}
+              >
                 {systemStatus.database}
               </Badge>
             </div>
@@ -616,13 +839,18 @@ export default function AdminDashboardPage() {
                 <div className="p-2 bg-emerald-100 rounded-lg">
                   <Globe className="h-4 w-4 text-emerald-600" />
                 </div>
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">API Server</span>
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  API Server
+                </span>
               </div>
-              <Badge variant={getStatusBadgeVariant(systemStatus.apiServer)} className={`${
-                systemStatus.apiServer.toLowerCase() === 'healthy' 
-                  ? 'bg-green-100 text-green-700 border-green-200' 
-                  : 'bg-red-100 text-red-700 border-red-200'
-              }`}>
+              <Badge
+                variant={getStatusBadgeVariant(systemStatus.apiServer)}
+                className={`${
+                  systemStatus.apiServer.toLowerCase() === "healthy"
+                    ? "bg-green-100 text-green-700 border-green-200"
+                    : "bg-red-100 text-red-700 border-red-200"
+                }`}
+              >
                 {systemStatus.apiServer}
               </Badge>
             </div>
@@ -631,13 +859,18 @@ export default function AdminDashboardPage() {
                 <div className="p-2 bg-orange-100 rounded-lg">
                   <Zap className="h-4 w-4 text-orange-600" />
                 </div>
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Redis Cache</span>
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  Redis Cache
+                </span>
               </div>
-              <Badge variant={getStatusBadgeVariant(systemStatus.redisCache)} className={`${
-                systemStatus.redisCache.toLowerCase() === 'healthy' 
-                  ? 'bg-green-100 text-green-700 border-green-200' 
-                  : 'bg-red-100 text-red-700 border-red-200'
-              }`}>
+              <Badge
+                variant={getStatusBadgeVariant(systemStatus.redisCache)}
+                className={`${
+                  systemStatus.redisCache.toLowerCase() === "healthy"
+                    ? "bg-green-100 text-green-700 border-green-200"
+                    : "bg-red-100 text-red-700 border-red-200"
+                }`}
+              >
                 {systemStatus.redisCache}
               </Badge>
             </div>
@@ -646,13 +879,18 @@ export default function AdminDashboardPage() {
                 <div className="p-2 bg-purple-100 rounded-lg">
                   <Building className="h-4 w-4 text-purple-600" />
                 </div>
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">File Storage</span>
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  File Storage
+                </span>
               </div>
-              <Badge variant={getStatusBadgeVariant(systemStatus.fileStorage)} className={`${
-                systemStatus.fileStorage.toLowerCase() === 'healthy' 
-                  ? 'bg-green-100 text-green-700 border-green-200' 
-                  : 'bg-red-100 text-red-700 border-red-200'
-              }`}>
+              <Badge
+                variant={getStatusBadgeVariant(systemStatus.fileStorage)}
+                className={`${
+                  systemStatus.fileStorage.toLowerCase() === "healthy"
+                    ? "bg-green-100 text-green-700 border-green-200"
+                    : "bg-red-100 text-red-700 border-red-200"
+                }`}
+              >
                 {systemStatus.fileStorage}
               </Badge>
             </div>
@@ -661,4 +899,4 @@ export default function AdminDashboardPage() {
       </Card>
     </div>
   );
-} 
+}

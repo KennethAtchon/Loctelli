@@ -1,7 +1,7 @@
-import '@testing-library/jest-dom'
+import "@testing-library/jest-dom";
 
 // Mock Next.js router
-jest.mock('next/navigation', () => ({
+jest.mock("next/navigation", () => ({
   useRouter() {
     return {
       push: jest.fn(),
@@ -10,29 +10,29 @@ jest.mock('next/navigation', () => ({
       back: jest.fn(),
       forward: jest.fn(),
       refresh: jest.fn(),
-    }
+    };
   },
   useSearchParams() {
-    return new URLSearchParams()
+    return new URLSearchParams();
   },
   usePathname() {
-    return '/'
+    return "/";
   },
-}))
+}));
 
 // Mock Next.js image component
-jest.mock('next/image', () => ({
+jest.mock("next/image", () => ({
   __esModule: true,
   default: (props) => {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img {...props} />
+    return <img {...props} />;
   },
-}))
+}));
 
 // Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: jest.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -42,7 +42,7 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: jest.fn(),
     dispatchEvent: jest.fn(),
   })),
-})
+});
 
 // Mock IntersectionObserver
 global.IntersectionObserver = class IntersectionObserver {
@@ -50,7 +50,7 @@ global.IntersectionObserver = class IntersectionObserver {
   disconnect() {}
   observe() {}
   unobserve() {}
-}
+};
 
 // Mock ResizeObserver
 global.ResizeObserver = class ResizeObserver {
@@ -58,34 +58,34 @@ global.ResizeObserver = class ResizeObserver {
   disconnect() {}
   observe() {}
   unobserve() {}
-}
+};
 
 // Mock console methods to reduce noise in tests
-const originalError = console.error
-const originalWarn = console.warn
+const originalError = console.error;
+const originalWarn = console.warn;
 
 beforeAll(() => {
   console.error = (...args) => {
     if (
-      typeof args[0] === 'string' &&
-      args[0].includes('Warning: ReactDOM.render is no longer supported')
+      typeof args[0] === "string" &&
+      args[0].includes("Warning: ReactDOM.render is no longer supported")
     ) {
-      return
+      return;
     }
-    originalError.call(console, ...args)
-  }
+    originalError.call(console, ...args);
+  };
   console.warn = (...args) => {
     if (
-      typeof args[0] === 'string' &&
-      args[0].includes('Warning: componentWillReceiveProps has been renamed')
+      typeof args[0] === "string" &&
+      args[0].includes("Warning: componentWillReceiveProps has been renamed")
     ) {
-      return
+      return;
     }
-    originalWarn.call(console, ...args)
-  }
-})
+    originalWarn.call(console, ...args);
+  };
+});
 
 afterAll(() => {
-  console.error = originalError
-  console.warn = originalWarn
-}) 
+  console.error = originalError;
+  console.warn = originalWarn;
+});

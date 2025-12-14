@@ -1,16 +1,37 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Eye, Edit, Trash2, RefreshCw, Building, Users, Target, Calendar, Activity } from 'lucide-react';
-import { toast } from 'sonner';
-import { api } from '@/lib/api';
-import type { SubAccount, CreateSubAccountDto, UpdateSubAccountDto } from '@/lib/api';
-import { CreateSubAccountDialog } from './create-subaccount-dialog';
-import { EditSubAccountDialog } from './edit-subaccount-dialog';
-import { useTenant } from '@/contexts/tenant-context';
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Plus,
+  Eye,
+  Edit,
+  Trash2,
+  RefreshCw,
+  Building,
+  Users,
+  Target,
+  Calendar,
+  Activity,
+} from "lucide-react";
+import { toast } from "sonner";
+import { api } from "@/lib/api";
+import type {
+  SubAccount,
+  CreateSubAccountDto,
+  UpdateSubAccountDto,
+} from "@/lib/api";
+import { CreateSubAccountDialog } from "./create-subaccount-dialog";
+import { EditSubAccountDialog } from "./edit-subaccount-dialog";
+import { useTenant } from "@/contexts/tenant-context";
 
 export default function SubAccountsPage() {
   const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
@@ -18,7 +39,9 @@ export default function SubAccountsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingSubAccount, setEditingSubAccount] = useState<SubAccount | null>(null);
+  const [editingSubAccount, setEditingSubAccount] = useState<SubAccount | null>(
+    null
+  );
   const { setSubAccountId, refreshSubaccounts } = useTenant();
 
   const loadSubAccounts = async () => {
@@ -27,7 +50,7 @@ export default function SubAccountsPage() {
       const data = await api.adminSubAccounts.getAllSubAccounts();
       setSubAccounts(data);
     } catch {
-      toast.error('Failed to load SubAccounts');
+      toast.error("Failed to load SubAccounts");
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -41,38 +64,45 @@ export default function SubAccountsPage() {
   const handleCreateSubAccount = async (formData: CreateSubAccountDto) => {
     try {
       await api.adminSubAccounts.createSubAccount(formData);
-      toast.success('SubAccount created successfully');
+      toast.success("SubAccount created successfully");
       setIsCreateDialogOpen(false);
       await loadSubAccounts();
       await refreshSubaccounts?.(); // Refresh the subaccount context
     } catch {
-      toast.error('Failed to create SubAccount');
+      toast.error("Failed to create SubAccount");
     }
   };
 
-  const handleUpdateSubAccount = async (id: number, formData: UpdateSubAccountDto) => {
+  const handleUpdateSubAccount = async (
+    id: number,
+    formData: UpdateSubAccountDto
+  ) => {
     try {
       await api.adminSubAccounts.updateSubAccount(id, formData);
-      toast.success('SubAccount updated successfully');
+      toast.success("SubAccount updated successfully");
       setIsEditDialogOpen(false);
       setEditingSubAccount(null);
       loadSubAccounts();
     } catch {
-      toast.error('Failed to update SubAccount');
+      toast.error("Failed to update SubAccount");
     }
   };
 
   const handleDeleteSubAccount = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this SubAccount? This action cannot be undone.')) {
+    if (
+      !confirm(
+        "Are you sure you want to delete this SubAccount? This action cannot be undone."
+      )
+    ) {
       return;
     }
 
     try {
       await api.adminSubAccounts.deleteSubAccount(id);
-      toast.success('SubAccount deleted successfully');
+      toast.success("SubAccount deleted successfully");
       loadSubAccounts();
     } catch {
-      toast.error('Failed to delete SubAccount');
+      toast.error("Failed to delete SubAccount");
     }
   };
 
@@ -113,17 +143,19 @@ export default function SubAccountsPage() {
           </p>
         </div>
         <div className="flex gap-3 justify-start lg:justify-end">
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={loadSubAccounts}
             disabled={isRefreshing}
             className="bg-white/80 dark:bg-slate-700/50 backdrop-blur-sm hover:bg-blue-50 dark:hover:bg-slate-600 border-gray-200/60 dark:border-slate-600/60 transition-all duration-200 dark:text-gray-200"
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin text-blue-600" : ""}`}
+            />
             <span className="hidden sm:inline">Refresh</span>
           </Button>
-          <Button 
+          <Button
             onClick={() => setIsCreateDialogOpen(true)}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
           >
@@ -136,7 +168,10 @@ export default function SubAccountsPage() {
       {/* SubAccounts Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
         {subAccounts.map((subAccount) => (
-          <Card key={subAccount.id} className="group relative overflow-hidden bg-gradient-to-br from-white via-white to-blue-50/30 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800/50 border-gray-200/60 dark:border-slate-600/60 hover:shadow-xl hover:shadow-blue-100/50 dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300">
+          <Card
+            key={subAccount.id}
+            className="group relative overflow-hidden bg-gradient-to-br from-white via-white to-blue-50/30 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800/50 border-gray-200/60 dark:border-slate-600/60 hover:shadow-xl hover:shadow-blue-100/50 dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300"
+          >
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <CardHeader className="relative">
               <CardTitle className="flex justify-between items-start">
@@ -144,42 +179,69 @@ export default function SubAccountsPage() {
                   <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
                     <Building className="h-5 w-5 text-blue-600" />
                   </div>
-                  <span className="text-gray-900 dark:text-gray-100 group-hover:text-blue-900 dark:group-hover:text-blue-300 transition-colors">{subAccount.name}</span>
+                  <span className="text-gray-900 dark:text-gray-100 group-hover:text-blue-900 dark:group-hover:text-blue-300 transition-colors">
+                    {subAccount.name}
+                  </span>
                 </div>
-                <Badge variant={subAccount.isActive ? "default" : "secondary"} className={subAccount.isActive ? "bg-green-100 text-green-700 hover:bg-green-200 border-green-200" : "bg-gray-100 text-gray-600 border-gray-200"}>
+                <Badge
+                  variant={subAccount.isActive ? "default" : "secondary"}
+                  className={
+                    subAccount.isActive
+                      ? "bg-green-100 text-green-700 hover:bg-green-200 border-green-200"
+                      : "bg-gray-100 text-gray-600 border-gray-200"
+                  }
+                >
                   {subAccount.isActive ? "Active" : "Inactive"}
                 </Badge>
               </CardTitle>
-              <CardDescription className="text-gray-600 dark:text-gray-400 mt-2">{subAccount.description}</CardDescription>
+              <CardDescription className="text-gray-600 dark:text-gray-400 mt-2">
+                {subAccount.description}
+              </CardDescription>
             </CardHeader>
             <CardContent className="relative">
               <div className="grid grid-cols-2 gap-4 text-sm mb-6">
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50/50 border border-blue-100/60">
                   <Users className="h-4 w-4 text-blue-600" />
                   <div>
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">Users:</span>
-                    <div className="text-lg font-bold text-blue-600">{subAccount._count.users}</div>
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">
+                      Users:
+                    </span>
+                    <div className="text-lg font-bold text-blue-600">
+                      {subAccount._count.users}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-purple-50/50 border border-purple-100/60">
                   <Target className="h-4 w-4 text-purple-600" />
                   <div>
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">Strategies:</span>
-                    <div className="text-lg font-bold text-purple-600">{subAccount._count.strategies}</div>
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">
+                      Strategies:
+                    </span>
+                    <div className="text-lg font-bold text-purple-600">
+                      {subAccount._count.strategies}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-50/50 border border-emerald-100/60">
                   <Building className="h-4 w-4 text-emerald-600" />
                   <div>
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">Leads:</span>
-                    <div className="text-lg font-bold text-emerald-600">{subAccount._count.leads}</div>
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">
+                      Leads:
+                    </span>
+                    <div className="text-lg font-bold text-emerald-600">
+                      {subAccount._count.leads}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-orange-50/50 border border-orange-100/60">
                   <Calendar className="h-4 w-4 text-orange-600" />
                   <div>
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">Bookings:</span>
-                    <div className="text-lg font-bold text-orange-600">{subAccount._count.bookings}</div>
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">
+                      Bookings:
+                    </span>
+                    <div className="text-lg font-bold text-orange-600">
+                      {subAccount._count.bookings}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -224,10 +286,15 @@ export default function SubAccountsPage() {
               <div className="mx-auto h-20 w-20 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center mb-4">
                 <Building className="h-10 w-10 text-blue-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">No SubAccounts found</h3>
-              <p className="text-gray-600 dark:text-gray-400">Get started by creating your first subaccount to organize your clients and data.</p>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                No SubAccounts found
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Get started by creating your first subaccount to organize your
+                clients and data.
+              </p>
             </div>
-            <Button 
+            <Button
               onClick={() => setIsCreateDialogOpen(true)}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
             >
@@ -244,7 +311,7 @@ export default function SubAccountsPage() {
         onOpenChange={setIsCreateDialogOpen}
         onSubmit={handleCreateSubAccount}
       />
-      
+
       <EditSubAccountDialog
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
@@ -253,4 +320,4 @@ export default function SubAccountsPage() {
       />
     </div>
   );
-} 
+}

@@ -1,5 +1,5 @@
-import { ApiClient } from '../client';
-import { ChatMessage } from '@/types';
+import { ApiClient } from "../client";
+import { ChatMessage } from "@/types";
 
 export interface ChatMessageDto {
   leadId: number;
@@ -10,9 +10,15 @@ export interface ChatMessageDto {
 
 export class ChatApi {
   constructor(private client: ApiClient) {}
-  
-  async sendMessage(data: ChatMessageDto): Promise<{ userMessage: unknown; aiMessage: unknown; lead: unknown }> {
-    return this.client.post<{ userMessage: unknown; aiMessage: unknown; lead: unknown }>('/chat/send', data);
+
+  async sendMessage(
+    data: ChatMessageDto
+  ): Promise<{ userMessage: unknown; aiMessage: unknown; lead: unknown }> {
+    return this.client.post<{
+      userMessage: unknown;
+      aiMessage: unknown;
+      lead: unknown;
+    }>("/chat/send", data);
   }
 
   async getChatHistory(leadId: number): Promise<ChatMessage[]> {
@@ -20,11 +26,13 @@ export class ChatApi {
   }
 
   async getChatHistoryByDateRange(
-    leadId: number, 
-    startDate: string, 
+    leadId: number,
+    startDate: string,
     endDate: string
   ): Promise<ChatMessage[]> {
-    return this.client.get<ChatMessage[]>(`/chat/messages/${leadId}?startDate=${startDate}&endDate=${endDate}`);
+    return this.client.get<ChatMessage[]>(
+      `/chat/messages/${leadId}?startDate=${startDate}&endDate=${endDate}`
+    );
   }
 
   async markMessageAsRead(messageId: string): Promise<void> {
@@ -47,7 +55,13 @@ export class ChatApi {
     return this.client.delete<void>(`/chat/messages/lead/${leadId}`);
   }
 
-  async initiateConversation(leadId: number): Promise<{ success: boolean; message: string; leadId: number }> {
-    return this.client.post<{ success: boolean; message: string; leadId: number }>(`/chat/initiate/${leadId}`, {});
+  async initiateConversation(
+    leadId: number
+  ): Promise<{ success: boolean; message: string; leadId: number }> {
+    return this.client.post<{
+      success: boolean;
+      message: string;
+      leadId: number;
+    }>(`/chat/initiate/${leadId}`, {});
   }
-} 
+}

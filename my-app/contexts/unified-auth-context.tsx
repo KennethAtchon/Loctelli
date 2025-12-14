@@ -1,14 +1,23 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { api } from '@/lib/api';
-import { AuthCookies } from '@/lib/cookies';
-import type { UserProfile, AdminProfile, LoginDto, AdminLoginDto, RegisterDto, AdminRegisterDto, AuthResponse, AdminAuthResponse } from '@/lib/api';
-import logger from '@/lib/logger';
-import { AuthService } from '@/lib/api/auth-service';
-import { useRouter } from 'next/navigation';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { api } from "@/lib/api";
+import { AuthCookies } from "@/lib/cookies";
+import type {
+  UserProfile,
+  AdminProfile,
+  LoginDto,
+  AdminLoginDto,
+  RegisterDto,
+  AdminRegisterDto,
+  AuthResponse,
+  AdminAuthResponse,
+} from "@/lib/api";
+import logger from "@/lib/logger";
+import { AuthService } from "@/lib/api/auth-service";
+import { useRouter } from "next/navigation";
 
-type AccountType = 'user' | 'admin';
+type AccountType = "user" | "admin";
 
 interface UnifiedAccount {
   id: number;
@@ -51,9 +60,15 @@ interface UnifiedAuthContextType {
   isAdmin: () => boolean;
 }
 
-const UnifiedAuthContext = createContext<UnifiedAuthContextType | undefined>(undefined);
+const UnifiedAuthContext = createContext<UnifiedAuthContextType | undefined>(
+  undefined
+);
 
-export function UnifiedAuthProvider({ children }: { children: React.ReactNode }) {
+export function UnifiedAuthProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [account, setAccount] = useState<UnifiedAccount | null>(null);
   const [accountType, setAccountType] = useState<AccountType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,12 +81,14 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
     let timeoutId: NodeJS.Timeout | null = null;
 
     const checkAuth = async () => {
-      logger.debug('🔍 Checking unified authentication...');
+      logger.debug("🔍 Checking unified authentication...");
 
       // Set a safety timeout
       timeoutId = setTimeout(() => {
         if (isMounted) {
-          logger.warn('⚠️ Unified auth check timeout - forcing loading to false');
+          logger.warn(
+            "⚠️ Unified auth check timeout - forcing loading to false"
+          );
           setIsLoading(false);
         }
       }, 10000);
@@ -79,101 +96,129 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
       try {
         // Check admin tokens first (admin takes precedence)
         if (AuthCookies.hasAdminTokens()) {
-          logger.debug('✅ Found admin tokens, attempting to get profile...');
+          logger.debug("✅ Found admin tokens, attempting to get profile...");
           try {
             const profile = await api.adminAuth.getAdminProfile();
             if (!isMounted) return; // Component unmounted, don't update state
 
-            logger.debug('✅ Admin profile retrieved successfully:', profile.email);
+            logger.debug(
+              "✅ Admin profile retrieved successfully:",
+              profile.email
+            );
             setAccount(normalizeAdminProfile(profile));
-            setAccountType('admin');
+            setAccountType("admin");
           } catch (error) {
             if (!isMounted) return;
 
-            logger.error('❌ Admin profile request failed:', error);
+            logger.error("❌ Admin profile request failed:", error);
             // Try to refresh tokens and retry if it's a 401 error
-            if (error instanceof Error && (
-              error.message.includes('401') || 
-              error.message.includes('Authentication required') ||
-              error.message.includes('Unauthorized') ||
-              error.message.includes('Authentication')
-            )) {
-              logger.debug('🔒 Auth error detected, attempting token refresh...');
+            if (
+              error instanceof Error &&
+              (error.message.includes("401") ||
+                error.message.includes("Authentication required") ||
+                error.message.includes("Unauthorized") ||
+                error.message.includes("Authentication"))
+            ) {
+              logger.debug(
+                "🔒 Auth error detected, attempting token refresh..."
+              );
               try {
                 await authService.refreshTokens();
                 // Retry the profile request after successful refresh
-                logger.debug('🔄 Retrying admin profile request after token refresh...');
+                logger.debug(
+                  "🔄 Retrying admin profile request after token refresh..."
+                );
                 const profile = await api.adminAuth.getAdminProfile();
                 if (!isMounted) return;
-                
-                logger.debug('✅ Admin profile retrieved successfully after refresh:', profile.email);
+
+                logger.debug(
+                  "✅ Admin profile retrieved successfully after refresh:",
+                  profile.email
+                );
                 setAccount(normalizeAdminProfile(profile));
-                setAccountType('admin');
+                setAccountType("admin");
               } catch (refreshError) {
                 if (!isMounted) return;
-                logger.error('❌ Token refresh failed, clearing admin tokens:', refreshError);
+                logger.error(
+                  "❌ Token refresh failed, clearing admin tokens:",
+                  refreshError
+                );
                 AuthCookies.clearAdminTokens();
               }
             } else {
               // For non-401 errors, clear tokens
-              logger.debug('🔒 Non-auth error, clearing admin tokens');
+              logger.debug("🔒 Non-auth error, clearing admin tokens");
               AuthCookies.clearAdminTokens();
             }
           }
         }
         // Check user tokens if no admin session
         else if (AuthCookies.hasUserTokens()) {
-          logger.debug('✅ Found user tokens, attempting to get profile...');
+          logger.debug("✅ Found user tokens, attempting to get profile...");
           try {
             const profile = await api.auth.getProfile();
             if (!isMounted) return; // Component unmounted, don't update state
 
-            logger.debug('✅ User profile retrieved successfully:', profile.email);
+            logger.debug(
+              "✅ User profile retrieved successfully:",
+              profile.email
+            );
             setAccount(normalizeUserProfile(profile));
-            setAccountType('user');
+            setAccountType("user");
           } catch (error) {
             if (!isMounted) return;
 
-            logger.error('❌ User profile request failed:', error);
+            logger.error("❌ User profile request failed:", error);
             // Try to refresh tokens and retry if it's a 401 error
-            if (error instanceof Error && (
-              error.message.includes('401') || 
-              error.message.includes('Authentication Required') ||
-              error.message.includes('Unauthorized') ||
-              error.message.includes('Authentication')
-            )) {
-              logger.debug('🔒 Auth error detected, attempting token refresh...');
+            if (
+              error instanceof Error &&
+              (error.message.includes("401") ||
+                error.message.includes("Authentication Required") ||
+                error.message.includes("Unauthorized") ||
+                error.message.includes("Authentication"))
+            ) {
+              logger.debug(
+                "🔒 Auth error detected, attempting token refresh..."
+              );
               try {
                 await authService.refreshTokens();
                 // Retry the profile request after successful refresh
-                logger.debug('🔄 Retrying user profile request after token refresh...');
+                logger.debug(
+                  "🔄 Retrying user profile request after token refresh..."
+                );
                 const profile = await api.auth.getProfile();
                 if (!isMounted) return;
-                
-                logger.debug('✅ User profile retrieved successfully after refresh:', profile.email);
+
+                logger.debug(
+                  "✅ User profile retrieved successfully after refresh:",
+                  profile.email
+                );
                 setAccount(normalizeUserProfile(profile));
-                setAccountType('user');
+                setAccountType("user");
               } catch (refreshError) {
                 if (!isMounted) return;
-                logger.error('❌ Token refresh failed, clearing user tokens:', refreshError);
+                logger.error(
+                  "❌ Token refresh failed, clearing user tokens:",
+                  refreshError
+                );
                 AuthCookies.clearUserTokens();
               }
             } else {
               // For non-401 errors, clear tokens
-              logger.debug('🔒 Non-auth error, clearing user tokens');
+              logger.debug("🔒 Non-auth error, clearing user tokens");
               AuthCookies.clearUserTokens();
             }
           }
         } else {
-          logger.debug('❌ No tokens found');
+          logger.debug("❌ No tokens found");
         }
       } catch (error) {
         if (!isMounted) return;
-        logger.error('❌ Unified auth check failed:', error);
+        logger.error("❌ Unified auth check failed:", error);
       } finally {
         if (timeoutId) clearTimeout(timeoutId);
         if (isMounted) {
-          logger.debug('🏁 Unified auth check completed');
+          logger.debug("🏁 Unified auth check completed");
           setIsLoading(false);
         }
       }
@@ -205,10 +250,10 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
       };
 
       setAccount(normalizeUserProfile(userProfile));
-      setAccountType('user');
-      logger.log('✅ User login successful:', response.user.email);
+      setAccountType("user");
+      logger.log("✅ User login successful:", response.user.email);
     } catch (error) {
-      logger.error('❌ User login failed:', error);
+      logger.error("❌ User login failed:", error);
       throw error;
     }
   };
@@ -223,24 +268,25 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
         password: data.password,
       });
     } catch (error) {
-      logger.error('❌ User registration failed:', error);
+      logger.error("❌ User registration failed:", error);
       throw error;
     }
   };
 
   const loginAdmin = async (credentials: AdminLoginDto) => {
     try {
-      const response: AdminAuthResponse = await api.adminAuth.adminLogin(credentials);
+      const response: AdminAuthResponse =
+        await api.adminAuth.adminLogin(credentials);
 
       // Store admin tokens in cookies
       AuthCookies.setAdminAccessToken(response.access_token);
       AuthCookies.setAdminRefreshToken(response.refresh_token);
 
       setAccount(normalizeAdminProfile(response.admin));
-      setAccountType('admin');
-      logger.log('✅ Admin login successful:', response.admin.email);
+      setAccountType("admin");
+      logger.log("✅ Admin login successful:", response.admin.email);
     } catch (error) {
-      logger.error('❌ Admin login failed:', error);
+      logger.error("❌ Admin login failed:", error);
       throw error;
     }
   };
@@ -255,58 +301,71 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
         password: data.password,
       });
     } catch (error) {
-      logger.error('❌ Admin registration failed:', error);
+      logger.error("❌ Admin registration failed:", error);
       throw error;
     }
   };
 
   const logout = async () => {
     try {
-      if (accountType === 'admin') {
+      if (accountType === "admin") {
         await api.adminAuth.adminLogout();
         AuthCookies.clearAdminTokens();
-      } else if (accountType === 'user') {
+      } else if (accountType === "user") {
         await api.auth.logout();
         AuthCookies.clearUserTokens();
       }
     } catch (error) {
-      logger.error('❌ Logout API call failed:', error);
+      logger.error("❌ Logout API call failed:", error);
     }
 
     // Clear state
     setAccount(null);
     setAccountType(null);
-    logger.log('✅ Logout successful');
+    logger.log("✅ Logout successful");
   };
 
   const refreshAccount = async () => {
     try {
-      if (accountType === 'admin') {
+      if (accountType === "admin") {
         const profile = await api.adminAuth.getAdminProfile();
         setAccount(normalizeAdminProfile(profile));
-      } else if (accountType === 'user') {
+      } else if (accountType === "user") {
         const profile = await api.auth.getProfile();
         setAccount(normalizeUserProfile(profile));
       }
     } catch (error) {
-      logger.error('❌ Account refresh failed:', error);
+      logger.error("❌ Account refresh failed:", error);
       // Try to refresh tokens before giving up
-      if (error instanceof Error && (error.message.includes('401') || error.message.includes('Authentication'))) {
-        logger.debug('🔒 Auth error during refresh, attempting token refresh...');
+      if (
+        error instanceof Error &&
+        (error.message.includes("401") ||
+          error.message.includes("Authentication"))
+      ) {
+        logger.debug(
+          "🔒 Auth error during refresh, attempting token refresh..."
+        );
         try {
           await authService.refreshTokens();
           // Retry the profile request after successful refresh
-          if (accountType === 'admin') {
+          if (accountType === "admin") {
             const profile = await api.adminAuth.getAdminProfile();
             setAccount(normalizeAdminProfile(profile));
-            logger.debug('✅ Admin profile refreshed successfully after token refresh');
-          } else if (accountType === 'user') {
+            logger.debug(
+              "✅ Admin profile refreshed successfully after token refresh"
+            );
+          } else if (accountType === "user") {
             const profile = await api.auth.getProfile();
             setAccount(normalizeUserProfile(profile));
-            logger.debug('✅ User profile refreshed successfully after token refresh');
+            logger.debug(
+              "✅ User profile refreshed successfully after token refresh"
+            );
           }
         } catch (refreshError) {
-          logger.error('❌ Token refresh failed during account refresh:', refreshError);
+          logger.error(
+            "❌ Token refresh failed during account refresh:",
+            refreshError
+          );
           // Only clear tokens and logout if refresh also fails
           setAccount(null);
           setAccountType(null);
@@ -314,13 +373,16 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
         }
       } else {
         // For non-auth errors, don't logout - just log the error
-        logger.error('❌ Non-auth error during account refresh, keeping session:', error);
+        logger.error(
+          "❌ Non-auth error during account refresh, keeping session:",
+          error
+        );
       }
     }
   };
 
-  const isUser = () => accountType === 'user';
-  const isAdmin = () => accountType === 'admin';
+  const isUser = () => accountType === "user";
+  const isAdmin = () => accountType === "admin";
 
   const value: UnifiedAuthContextType = {
     account,
@@ -347,7 +409,7 @@ export function UnifiedAuthProvider({ children }: { children: React.ReactNode })
 export function useUnifiedAuth() {
   const context = useContext(UnifiedAuthContext);
   if (context === undefined) {
-    throw new Error('useUnifiedAuth must be used within a UnifiedAuthProvider');
+    throw new Error("useUnifiedAuth must be used within a UnifiedAuthProvider");
   }
   return context;
 }
@@ -386,7 +448,7 @@ export function useAuth() {
   const context = useUnifiedAuth();
 
   return {
-    user: context.isUser() ? context.account as UserProfile : null,
+    user: context.isUser() ? (context.account as UserProfile) : null,
     isLoading: context.isLoading,
     isAuthenticated: context.isAuthenticated && context.isUser(),
     login: context.loginUser,
@@ -400,7 +462,7 @@ export function useAdminAuth() {
   const context = useUnifiedAuth();
 
   return {
-    admin: context.isAdmin() ? context.account as AdminProfile : null,
+    admin: context.isAdmin() ? (context.account as AdminProfile) : null,
     isLoading: context.isLoading,
     isAuthenticated: context.isAuthenticated && context.isAdmin(),
     adminLogin: context.loginAdmin,

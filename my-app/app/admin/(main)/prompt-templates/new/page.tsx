@@ -1,38 +1,47 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Save, Plus, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
-import { useToast } from '@/hooks/use-toast';
-import { api } from '@/lib/api';
-import type { CreatePromptTemplateDto } from '@/lib/api/endpoints/prompt-templates';
-import { Badge } from '@/components/ui/badge';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Save, Plus, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { useToast } from "@/hooks/use-toast";
+import { api } from "@/lib/api";
+import type { CreatePromptTemplateDto } from "@/lib/api/endpoints/prompt-templates";
+import { Badge } from "@/components/ui/badge";
 
 export default function NewPromptTemplatePage() {
   const [formData, setFormData] = useState<CreatePromptTemplateDto>({
-    name: '',
-    description: '',
-    category: '',
-    baseSystemPrompt: '',
+    name: "",
+    description: "",
+    category: "",
+    baseSystemPrompt: "",
     temperature: 0.7,
     maxTokens: undefined,
     isActive: false,
     tags: [],
   });
-  const [tagInput, setTagInput] = useState('');
+  const [tagInput, setTagInput] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleInputChange = (field: keyof CreatePromptTemplateDto, value: string | number | boolean | undefined | string[]) => {
-    setFormData(prev => ({
+  const handleInputChange = (
+    field: keyof CreatePromptTemplateDto,
+    value: string | number | boolean | undefined | string[]
+  ) => {
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -41,14 +50,14 @@ export default function NewPromptTemplatePage() {
   const handleAddTag = () => {
     if (tagInput.trim() && !formData.tags?.includes(tagInput.trim())) {
       const newTags = [...(formData.tags || []), tagInput.trim()];
-      handleInputChange('tags', newTags);
-      setTagInput('');
+      handleInputChange("tags", newTags);
+      setTagInput("");
     }
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
-    const newTags = (formData.tags || []).filter(tag => tag !== tagToRemove);
-    handleInputChange('tags', newTags);
+    const newTags = (formData.tags || []).filter((tag) => tag !== tagToRemove);
+    handleInputChange("tags", newTags);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -56,9 +65,9 @@ export default function NewPromptTemplatePage() {
 
     if (!formData.name.trim() || !formData.baseSystemPrompt.trim()) {
       toast({
-        title: 'Validation Error',
-        description: 'Name and Base System Prompt are required',
-        variant: 'destructive',
+        title: "Validation Error",
+        description: "Name and Base System Prompt are required",
+        variant: "destructive",
       });
       return;
     }
@@ -78,20 +87,20 @@ export default function NewPromptTemplatePage() {
         tags: formData.tags || [],
       };
 
-      console.log('Creating prompt template with data:', submitData);
+      console.log("Creating prompt template with data:", submitData);
       const result = await api.promptTemplates.create(submitData);
-      console.log('Template created successfully:', result);
+      console.log("Template created successfully:", result);
       toast({
-        title: 'Success',
-        description: 'Template created successfully',
+        title: "Success",
+        description: "Template created successfully",
       });
-      router.push('/admin/prompt-templates');
+      router.push("/admin/prompt-templates");
     } catch (error) {
-      console.error('Failed to create template:', error);
+      console.error("Failed to create template:", error);
       toast({
-        title: 'Error',
-        description: `Failed to create template: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        variant: 'destructive',
+        title: "Error",
+        description: `Failed to create template: ${error instanceof Error ? error.message : "Unknown error"}`,
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -102,16 +111,14 @@ export default function NewPromptTemplatePage() {
     <div className="container mx-auto py-6">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.back()}
-        >
+        <Button variant="outline" size="sm" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">New Prompt Template</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            New Prompt Template
+          </h1>
           <p className="text-gray-600 mt-2">
             Create a new AI prompt template with a minimal base system prompt
           </p>
@@ -136,7 +143,7 @@ export default function NewPromptTemplatePage() {
                   <Input
                     id="name"
                     value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
                     placeholder="e.g., Sales Agent, Support Bot, Scheduler"
                     required
                   />
@@ -147,7 +154,9 @@ export default function NewPromptTemplatePage() {
                   <Textarea
                     id="description"
                     value={formData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("description", e.target.value)
+                    }
                     placeholder="Describe the purpose and style of this template"
                     rows={3}
                   />
@@ -158,7 +167,9 @@ export default function NewPromptTemplatePage() {
                   <Input
                     id="category"
                     value={formData.category}
-                    onChange={(e) => handleInputChange('category', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("category", e.target.value)
+                    }
                     placeholder="e.g., sales, support, scheduling"
                   />
                 </div>
@@ -170,20 +181,26 @@ export default function NewPromptTemplatePage() {
               <CardHeader>
                 <CardTitle>Base System Prompt *</CardTitle>
                 <CardDescription>
-                  ONE simple sentence that defines the AI's core behavior. Keep it minimal - strategies will add detailed persona and instructions.
+                  ONE simple sentence that defines the AI's core behavior. Keep
+                  it minimal - strategies will add detailed persona and
+                  instructions.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Textarea
                   value={formData.baseSystemPrompt}
-                  onChange={(e) => handleInputChange('baseSystemPrompt', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("baseSystemPrompt", e.target.value)
+                  }
                   placeholder="You are a helpful AI assistant that guides conversations professionally."
                   rows={4}
                   className="font-mono text-sm"
                   required
                 />
                 <p className="text-xs text-gray-500 mt-2">
-                  Keep this short and simple. Detailed instructions, persona, and conversation style will be defined in individual strategies.
+                  Keep this short and simple. Detailed instructions, persona,
+                  and conversation style will be defined in individual
+                  strategies.
                 </p>
               </CardContent>
             </Card>
@@ -202,7 +219,7 @@ export default function NewPromptTemplatePage() {
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
+                      if (e.key === "Enter") {
                         e.preventDefault();
                         handleAddTag();
                       }
@@ -222,7 +239,11 @@ export default function NewPromptTemplatePage() {
                 {formData.tags && formData.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {formData.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                      <Badge
+                        key={tag}
+                        variant="secondary"
+                        className="flex items-center gap-1"
+                      >
                         {tag}
                         <button
                           type="button"
@@ -255,11 +276,14 @@ export default function NewPromptTemplatePage() {
                     Temperature: {formData.temperature}
                   </Label>
                   <p className="text-xs text-gray-500 mb-2">
-                    Controls randomness. Lower = more focused, Higher = more creative
+                    Controls randomness. Lower = more focused, Higher = more
+                    creative
                   </p>
                   <Slider
                     value={[formData.temperature || 0.7]}
-                    onValueChange={(value) => handleInputChange('temperature', value[0])}
+                    onValueChange={(value) =>
+                      handleInputChange("temperature", value[0])
+                    }
                     max={2}
                     min={0}
                     step={0.1}
@@ -275,8 +299,13 @@ export default function NewPromptTemplatePage() {
                   <Input
                     id="maxTokens"
                     type="number"
-                    value={formData.maxTokens || ''}
-                    onChange={(e) => handleInputChange('maxTokens', e.target.value ? parseInt(e.target.value) : undefined)}
+                    value={formData.maxTokens || ""}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "maxTokens",
+                        e.target.value ? parseInt(e.target.value) : undefined
+                      )
+                    }
                     placeholder="e.g., 1000"
                     min={1}
                   />
@@ -288,22 +317,23 @@ export default function NewPromptTemplatePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Template Settings</CardTitle>
-                <CardDescription>
-                  Configure template behavior
-                </CardDescription>
+                <CardDescription>Configure template behavior</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="isActive">Set as Active</Label>
                     <p className="text-sm text-gray-500">
-                      This template will be used as the default choice for new strategies
+                      This template will be used as the default choice for new
+                      strategies
                     </p>
                   </div>
                   <Switch
                     id="isActive"
                     checked={formData.isActive}
-                    onCheckedChange={(checked) => handleInputChange('isActive', checked)}
+                    onCheckedChange={(checked) =>
+                      handleInputChange("isActive", checked)
+                    }
                   />
                 </div>
               </CardContent>
@@ -313,13 +343,9 @@ export default function NewPromptTemplatePage() {
             <Card>
               <CardContent className="pt-6">
                 <div className="space-y-3">
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={loading}
-                  >
+                  <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? (
-                      'Creating...'
+                      "Creating..."
                     ) : (
                       <>
                         <Save className="h-4 w-4 mr-2" />

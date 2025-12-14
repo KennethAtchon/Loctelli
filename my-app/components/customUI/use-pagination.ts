@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from "react";
 
 export interface UsePaginationOptions {
   pageSize?: number;
@@ -32,7 +32,7 @@ export function usePagination<T>(
   options: UsePaginationOptions = {}
 ): UsePaginationReturn<T> {
   const { pageSize = 10, initialPage = 1 } = options;
-  
+
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [currentPageSize, setCurrentPageSize] = useState(pageSize);
   const [totalItems, setTotalItems] = useState(data.length);
@@ -108,4 +108,4 @@ export function usePagination<T>(
     hasNextPage: currentPage < pagination.totalPages,
     hasPreviousPage: currentPage > 1,
   };
-} 
+}

@@ -1,31 +1,37 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useUnifiedAuth } from '@/contexts/unified-auth-context';
-import type { LoginDto } from '@/lib/api';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import logger from '@/lib/logger';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useUnifiedAuth } from "@/contexts/unified-auth-context";
+import type { LoginDto } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import logger from "@/lib/logger";
 
 export default function LoginPage() {
   const router = useRouter();
   const { loginUser, isAuthenticated, isLoading, isAdmin } = useUnifiedAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   // Debug error state changes
   useEffect(() => {
-    logger.debug('🔍 Error state changed:', error);
+    logger.debug("🔍 Error state changed:", error);
   }, [error]);
 
   const [formData, setFormData] = useState<LoginDto>({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
 
   // Redirect if already authenticated
@@ -33,9 +39,9 @@ export default function LoginPage() {
     if (!isLoading && isAuthenticated) {
       // Check if user is admin via the auth context
       if (isAdmin()) {
-        router.push('/admin/dashboard');
+        router.push("/admin/dashboard");
       } else {
-        router.push('/account');
+        router.push("/account");
       }
     }
   }, [isAuthenticated, isLoading, isAdmin, router]);
@@ -44,7 +50,7 @@ export default function LoginPage() {
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (isLoading) {
-        logger.warn('Auth loading timeout - forcing loading state to false');
+        logger.warn("Auth loading timeout - forcing loading state to false");
         // Force loading to false after 10 seconds to prevent infinite loading
         // This is a fallback in case the auth contexts get stuck
       }
@@ -58,7 +64,7 @@ export default function LoginPage() {
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (isLoading) {
-        logger.warn('Forcing form display after 15 seconds');
+        logger.warn("Forcing form display after 15 seconds");
         setForceShowForm(true);
       }
     }, 15000);
@@ -71,32 +77,37 @@ export default function LoginPage() {
     e.stopPropagation();
 
     const timestamp = new Date().toISOString();
-    logger.debug(`🔐 Login form submitted at ${timestamp}:`, { email: formData.email });
+    logger.debug(`🔐 Login form submitted at ${timestamp}:`, {
+      email: formData.email,
+    });
 
     // Prevent multiple submissions
     if (isSubmitting) {
-      logger.debug('🚫 Form already submitting, ignoring');
+      logger.debug("🚫 Form already submitting, ignoring");
       return;
     }
 
     setIsSubmitting(true);
-    setError('');
+    setError("");
 
     try {
-      logger.debug('🧪 Testing login with credentials...');
+      logger.debug("🧪 Testing login with credentials...");
       await loginUser(formData);
-      logger.debug('✅ Login successful, redirecting...');
+      logger.debug("✅ Login successful, redirecting...");
       // Redirect to account page (useEffect will handle admin redirect if needed)
-      router.push('/account');
+      router.push("/account");
     } catch (error) {
-      logger.error('❌ Login failed:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Login failed. Please try again.';
+      logger.error("❌ Login failed:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Login failed. Please try again.";
       setError(errorMessage);
-      logger.debug('📝 Set error message:', errorMessage);
+      logger.debug("📝 Set error message:", errorMessage);
 
       // Force a small delay to ensure the error state is set
       setTimeout(() => {
-        logger.debug('⏰ Error state should be visible now');
+        logger.debug("⏰ Error state should be visible now");
       }, 100);
     } finally {
       setIsSubmitting(false);
@@ -105,7 +116,12 @@ export default function LoginPage() {
 
   // Debug form state changes
   useEffect(() => {
-    logger.debug('🔄 Form state changed:', { isSubmitting, error, isAuthenticated, isLoading });
+    logger.debug("🔄 Form state changed:", {
+      isSubmitting,
+      error,
+      isAuthenticated,
+      isLoading,
+    });
   }, [isSubmitting, error, isAuthenticated, isLoading]);
 
   // Show loading state while checking authentication
@@ -115,7 +131,9 @@ export default function LoginPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto mb-4"></div>
           <p className="text-gray-600">Checking authentication...</p>
-          <p className="text-sm text-gray-500 mt-2">This may take a few moments</p>
+          <p className="text-sm text-gray-500 mt-2">
+            This may take a few moments
+          </p>
         </div>
       </div>
     );
@@ -134,8 +152,11 @@ export default function LoginPage() {
             Sign in to your account
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Or{' '}
-            <Link href="/auth/register" className="font-medium text-blue-600 hover:text-blue-500">
+            Or{" "}
+            <Link
+              href="/auth/register"
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
               create a new account
             </Link>
           </p>
@@ -149,13 +170,13 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form 
-              onSubmit={handleSubmit} 
-              className="space-y-4" 
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-4"
               noValidate
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  logger.debug('🔑 Enter key pressed');
+                if (e.key === "Enter") {
+                  logger.debug("🔑 Enter key pressed");
                 }
               }}
             >
@@ -164,7 +185,9 @@ export default function LoginPage() {
                   <AlertDescription>
                     {error}
                     <br />
-                    <small className="text-xs opacity-75">Debug: Error state is active</small>
+                    <small className="text-xs opacity-75">
+                      Debug: Error state is active
+                    </small>
                   </AlertDescription>
                 </Alert>
               )}
@@ -175,7 +198,9 @@ export default function LoginPage() {
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
                   required
                   placeholder="Enter your email"
                   disabled={isSubmitting}
@@ -188,7 +213,9 @@ export default function LoginPage() {
                   id="password"
                   type="password"
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
                   required
                   placeholder="Enter your password"
                   disabled={isSubmitting}
@@ -196,7 +223,7 @@ export default function LoginPage() {
               </div>
 
               <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? 'Signing in...' : 'Sign in'}
+                {isSubmitting ? "Signing in..." : "Sign in"}
               </Button>
             </form>
           </CardContent>
@@ -204,4 +231,4 @@ export default function LoginPage() {
       </div>
     </div>
   );
-} 
+}

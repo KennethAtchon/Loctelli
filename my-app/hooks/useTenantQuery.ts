@@ -1,6 +1,13 @@
-import { useQuery, useMutation, useQueryClient, UseQueryOptions, UseMutationOptions, Query } from '@tanstack/react-query';
-import { useTenant } from '@/contexts/tenant-context';
-import logger from '@/lib/logger';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  UseQueryOptions,
+  UseMutationOptions,
+  Query,
+} from "@tanstack/react-query";
+import { useTenant } from "@/contexts/tenant-context";
+import logger from "@/lib/logger";
 
 /**
  * Tenant-aware query hook that automatically includes tenant filtering
@@ -35,7 +42,7 @@ export function useTenantQuery<TData = unknown, TError = Error>(
     queryKey: readonly unknown[];
     queryFn: (context: { subAccountId: number | null }) => Promise<TData>;
     enabled?: boolean;
-  } & Omit<UseQueryOptions<TData, TError>, 'queryKey' | 'queryFn'>
+  } & Omit<UseQueryOptions<TData, TError>, "queryKey" | "queryFn">
 ) {
   const { subAccountId, mode, validateTenantAccess } = useTenant();
 
@@ -79,13 +86,18 @@ export function useTenantMutation<
   TData = unknown,
   TError = Error,
   TVariables = void,
-  TContext = unknown
+  TContext = unknown,
 >(
   options: {
-    mutationFn: (variables: TVariables & { subAccountId: number | null }) => Promise<TData>;
+    mutationFn: (
+      variables: TVariables & { subAccountId: number | null }
+    ) => Promise<TData>;
     invalidateQueries?: readonly (readonly unknown[])[];
     requireSubAccount?: boolean; // If true, throws error if subAccountId is null
-  } & Omit<UseMutationOptions<TData, TError, TVariables, TContext>, 'mutationFn'>
+  } & Omit<
+    UseMutationOptions<TData, TError, TVariables, TContext>,
+    "mutationFn"
+  >
 ) {
   const { subAccountId, mode, validateTenantAccess } = useTenant();
   const queryClient = useQueryClient();
@@ -95,7 +107,7 @@ export function useTenantMutation<
     mutationFn: async (variables: TVariables) => {
       // Validate requirement
       if (options.requireSubAccount && !subAccountId) {
-        throw new Error('SubAccount required for this operation');
+        throw new Error("SubAccount required for this operation");
       }
 
       // Validate tenant access
@@ -103,12 +115,14 @@ export function useTenantMutation<
         validateTenantAccess(subAccountId);
       }
 
-      logger.debug('Tenant mutation', {
+      logger.debug("Tenant mutation", {
         mode,
         subAccountId,
       });
 
-      return options.mutationFn({ ...variables, subAccountId } as TVariables & { subAccountId: number | null });
+      return options.mutationFn({ ...variables, subAccountId } as TVariables & {
+        subAccountId: number | null;
+      });
     },
     onSuccess: (data, variables, context) => {
       // Invalidate specified queries
@@ -171,7 +185,7 @@ export function useInvalidateTenantQueries() {
 
   return {
     invalidateAllTenantQueries: () => {
-      logger.debug('Invalidating all tenant queries', { mode, subAccountId });
+      logger.debug("Invalidating all tenant queries", { mode, subAccountId });
 
       queryClient.invalidateQueries({
         predicate: (query: Query) => {
@@ -181,8 +195,8 @@ export function useInvalidateTenantQueries() {
           // Check if query key includes our tenant context
           return (
             lastItem &&
-            typeof lastItem === 'object' &&
-            'tenantMode' in lastItem &&
+            typeof lastItem === "object" &&
+            "tenantMode" in lastItem &&
             lastItem.tenantMode === mode &&
             lastItem.subAccountId === subAccountId
           );
@@ -214,17 +228,18 @@ export function useInvalidateTenantQueries() {
  *   getNextPageParam: (lastPage) => lastPage.nextCursor,
  * });
  */
-export function useTenantInfiniteQuery<TData = unknown, TError = Error>(
-  options: {
-    queryKey: readonly unknown[];
-    queryFn: (context: {
-      pageParam?: any;
-      subAccountId: number | null;
-    }) => Promise<TData>;
-    getNextPageParam: (lastPage: TData) => unknown | undefined;
-    enabled?: boolean;
-  }
-) {
+export function useTenantInfiniteQuery<
+  TData = unknown,
+  TError = Error,
+>(options: {
+  queryKey: readonly unknown[];
+  queryFn: (context: {
+    pageParam?: any;
+    subAccountId: number | null;
+  }) => Promise<TData>;
+  getNextPageParam: (lastPage: TData) => unknown | undefined;
+  enabled?: boolean;
+}) {
   const { subAccountId, mode, validateTenantAccess } = useTenant();
 
   // Include tenant context in query key

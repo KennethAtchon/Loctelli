@@ -5,7 +5,8 @@
 
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/proxy',
+  BASE_URL:
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/proxy",
   // Note: API_KEY is now server-side only and handled by the proxy
 } as const;
 
@@ -16,9 +17,9 @@ export const AUTH_CONFIG = {
 
 // Environment Configuration
 export const ENV_CONFIG = {
-  NODE_ENV: process.env.NODE_ENV || 'development',
-  IS_PRODUCTION: process.env.NODE_ENV === 'production',
-  IS_DEVELOPMENT: process.env.NODE_ENV === 'development',
+  NODE_ENV: process.env.NODE_ENV || "development",
+  IS_PRODUCTION: process.env.NODE_ENV === "production",
+  IS_DEVELOPMENT: process.env.NODE_ENV === "development",
 } as const;
 
 // Validation function to ensure required environment variables are set
@@ -31,13 +32,18 @@ export function validateEnvironmentVariables(): void {
   const missingVars = requiredVars.filter(({ value }) => !value);
 
   if (missingVars.length > 0) {
-    const missingVarNames = missingVars.map(({ name }) => name).join(', ');
-    throw new Error(`Missing required environment variables: ${missingVarNames}`);
+    const missingVarNames = missingVars.map(({ name }) => name).join(", ");
+    throw new Error(
+      `Missing required environment variables: ${missingVarNames}`
+    );
   }
 }
 
 // Helper function to get environment variable with type safety
-export function getEnvVar(key: string, defaultValue?: string): string | undefined {
+export function getEnvVar(
+  key: string,
+  defaultValue?: string
+): string | undefined {
   return process.env[key] || defaultValue;
 }
 
@@ -46,4 +52,4 @@ export const env = {
   api: API_CONFIG,
   auth: AUTH_CONFIG,
   env: ENV_CONFIG,
-} as const; 
+} as const;

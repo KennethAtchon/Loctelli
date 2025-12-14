@@ -1,24 +1,30 @@
-'use client';
+"use client";
 
-import { Plus, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { FormField } from '@/lib/api/endpoints/forms';
+import { Plus, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { FormField } from "@/lib/api/endpoints/forms";
 
 const fieldTypes = [
-  { value: 'text', label: 'Text Input' },
-  { value: 'email', label: 'Email' },
-  { value: 'phone', label: 'Phone' },
-  { value: 'textarea', label: 'Text Area' },
-  { value: 'select', label: 'Select Dropdown' },
-  { value: 'checkbox', label: 'Checkbox' },
-  { value: 'radio', label: 'Radio Buttons' },
-  { value: 'file', label: 'File Upload' },
-  { value: 'image', label: 'Image Upload' },
+  { value: "text", label: "Text Input" },
+  { value: "email", label: "Email" },
+  { value: "phone", label: "Phone" },
+  { value: "textarea", label: "Text Area" },
+  { value: "select", label: "Select Dropdown" },
+  { value: "checkbox", label: "Checkbox" },
+  { value: "radio", label: "Radio Buttons" },
+  { value: "file", label: "File Upload" },
+  { value: "image", label: "Image Upload" },
 ];
 
 interface FormFieldEditorProps {
@@ -28,15 +34,22 @@ interface FormFieldEditorProps {
   onRemove: () => void;
 }
 
-export function FormFieldEditor({ field, index, onUpdate, onRemove }: FormFieldEditorProps) {
+export function FormFieldEditor({
+  field,
+  index,
+  onUpdate,
+  onRemove,
+}: FormFieldEditorProps) {
   const addOption = () => {
     const options = field.options || [];
-    onUpdate({ options: [...options, ''] });
+    onUpdate({ options: [...options, ""] });
   };
 
   const updateOption = (optionIndex: number, value: string) => {
     const options = field.options || [];
-    const updatedOptions = options.map((opt, i) => i === optionIndex ? value : opt);
+    const updatedOptions = options.map((opt, i) =>
+      i === optionIndex ? value : opt
+    );
     onUpdate({ options: updatedOptions });
   };
 
@@ -67,13 +80,15 @@ export function FormFieldEditor({ field, index, onUpdate, onRemove }: FormFieldE
             <Label>Field Type</Label>
             <Select
               value={field.type}
-              onValueChange={(value) => onUpdate({ type: value as FormField['type'] })}
+              onValueChange={(value) =>
+                onUpdate({ type: value as FormField["type"] })
+              }
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {fieldTypes.map(type => (
+                {fieldTypes.map((type) => (
                   <SelectItem key={type.value} value={type.value}>
                     {type.label}
                   </SelectItem>
@@ -95,7 +110,7 @@ export function FormFieldEditor({ field, index, onUpdate, onRemove }: FormFieldE
           <div>
             <Label>Placeholder Text</Label>
             <Input
-              value={field.placeholder || ''}
+              value={field.placeholder || ""}
               onChange={(e) => onUpdate({ placeholder: e.target.value })}
               placeholder="Enter placeholder text"
             />
@@ -109,7 +124,7 @@ export function FormFieldEditor({ field, index, onUpdate, onRemove }: FormFieldE
           </div>
         </div>
 
-        {(field.type === 'select' || field.type === 'radio') && (
+        {(field.type === "select" || field.type === "radio") && (
           <div>
             <Label>Options</Label>
             <div className="space-y-2">

@@ -1,31 +1,43 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { api } from '@/lib/api';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
-import Link from 'next/link';
-import { Lead, CreateLeadDto, Strategy } from '@/types';
-import type { UserProfile } from '@/lib/api/endpoints/admin-auth';
-import logger from '@/lib/logger';
-import { useTenant } from '@/contexts/tenant-context';
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { api } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { Lead, CreateLeadDto, Strategy } from "@/types";
+import type { UserProfile } from "@/lib/api/endpoints/admin-auth";
+import logger from "@/lib/logger";
+import { useTenant } from "@/contexts/tenant-context";
 
 export default function EditLeadPage() {
   const router = useRouter();
   const params = useParams();
   const { adminFilter, subAccountId } = useTenant();
   const leadId = parseInt(params.id as string);
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingLead, setIsLoadingLead] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [lead, setLead] = useState<Lead | null>(null);
@@ -33,14 +45,14 @@ export default function EditLeadPage() {
   const [formData, setFormData] = useState<CreateLeadDto>({
     regularUserId: 0,
     strategyId: 0,
-    name: '',
-    email: '',
-    phone: '',
-    company: '',
-    position: '',
-    customId: '',
-    status: 'lead',
-    notes: '',
+    name: "",
+    email: "",
+    phone: "",
+    company: "",
+    position: "",
+    customId: "",
+    status: "lead",
+    notes: "",
     subAccountId: 0,
   });
 
@@ -51,18 +63,20 @@ export default function EditLeadPage() {
         setIsLoadingLead(true);
         const [leadData, usersData] = await Promise.all([
           api.leads.getLead(leadId),
-          api.adminAuth.getAllUsers(adminFilter ?? undefined)
+          api.adminAuth.getAllUsers(adminFilter ?? undefined),
         ]);
 
         setLead(leadData);
         setSelectedUserId(leadData.regularUserId);
 
         // Filter out admin users, only show regular users
-        const regularUsers = usersData.filter(user => user.role !== 'admin');
+        const regularUsers = usersData.filter((user) => user.role !== "admin");
         setUsers(regularUsers);
 
         // Load strategies for the selected user
-        const strategiesData = await api.strategies.getStrategiesByUser(leadData.regularUserId);
+        const strategiesData = await api.strategies.getStrategiesByUser(
+          leadData.regularUserId
+        );
         setStrategies(strategiesData);
 
         // Populate form with existing data
@@ -70,18 +84,18 @@ export default function EditLeadPage() {
           regularUserId: leadData.regularUserId,
           strategyId: leadData.strategyId,
           name: leadData.name,
-          email: leadData.email || '',
-          phone: leadData.phone || '',
-          company: leadData.company || '',
-          position: leadData.position || '',
-          customId: leadData.customId || '',
+          email: leadData.email || "",
+          phone: leadData.phone || "",
+          company: leadData.company || "",
+          position: leadData.position || "",
+          customId: leadData.customId || "",
           status: leadData.status,
-          notes: leadData.notes || '',
+          notes: leadData.notes || "",
           subAccountId: subAccountId || leadData.subAccountId || 0,
         });
       } catch (error) {
-        logger.error('Failed to load lead data:', error);
-        setError('Failed to load lead data');
+        logger.error("Failed to load lead data:", error);
+        setError("Failed to load lead data");
       } finally {
         setIsLoadingLead(false);
       }
@@ -95,30 +109,37 @@ export default function EditLeadPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       await api.leads.updateLead(leadId, formData);
-      router.push('/admin/leads');
+      router.push("/admin/leads");
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to update lead');
+      setError(
+        error instanceof Error ? error.message : "Failed to update lead"
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: name === 'strategyId' || name === 'regularUserId' ? parseInt(value) || 0 : value,
+      [name]:
+        name === "strategyId" || name === "regularUserId"
+          ? parseInt(value) || 0
+          : value,
     }));
   };
 
@@ -163,7 +184,8 @@ export default function EditLeadPage() {
         <CardHeader>
           <CardTitle>Lead Information</CardTitle>
           <CardDescription>
-            Update the lead's details below. All fields marked with * are required.
+            Update the lead's details below. All fields marked with * are
+            required.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -184,13 +206,20 @@ export default function EditLeadPage() {
                     onValueChange={(value) => {
                       const userId = parseInt(value);
                       setSelectedUserId(userId);
-                      setFormData(prev => ({ ...prev, regularUserId: userId, strategyId: 0 }));
+                      setFormData((prev) => ({
+                        ...prev,
+                        regularUserId: userId,
+                        strategyId: 0,
+                      }));
                       // Reload strategies for the new user
-                      api.strategies.getStrategiesByUser(userId).then(strategiesData => {
-                        setStrategies(strategiesData);
-                      }).catch(error => {
-                        logger.error('Failed to load strategies:', error);
-                      });
+                      api.strategies
+                        .getStrategiesByUser(userId)
+                        .then((strategiesData) => {
+                          setStrategies(strategiesData);
+                        })
+                        .catch((error) => {
+                          logger.error("Failed to load strategies:", error);
+                        });
                     }}
                   >
                     <SelectTrigger>
@@ -210,14 +239,19 @@ export default function EditLeadPage() {
                   <Label htmlFor="strategyId">Assign Strategy *</Label>
                   <Select
                     value={formData.strategyId.toString()}
-                    onValueChange={(value) => handleSelectChange('strategyId', value)}
+                    onValueChange={(value) =>
+                      handleSelectChange("strategyId", value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a strategy" />
                     </SelectTrigger>
                     <SelectContent>
                       {strategies.map((strategy) => (
-                        <SelectItem key={strategy.id} value={strategy.id.toString()}>
+                        <SelectItem
+                          key={strategy.id}
+                          value={strategy.id.toString()}
+                        >
                           {strategy.name} {strategy.tag && `(${strategy.tag})`}
                         </SelectItem>
                       ))}
@@ -305,7 +339,9 @@ export default function EditLeadPage() {
                   <Label htmlFor="status">Status</Label>
                   <Select
                     value={formData.status}
-                    onValueChange={(value) => handleSelectChange('status', value)}
+                    onValueChange={(value) =>
+                      handleSelectChange("status", value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />
@@ -359,4 +395,4 @@ export default function EditLeadPage() {
       </Card>
     </div>
   );
-} 
+}

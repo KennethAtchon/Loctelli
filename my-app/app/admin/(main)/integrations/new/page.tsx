@@ -1,36 +1,49 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Save, TestTube, CheckCircle, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { api } from '@/lib/api';
-import type { IntegrationTemplate, CreateIntegrationDto } from '@/lib/api';
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  ArrowLeft,
+  Save,
+  TestTube,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { api } from "@/lib/api";
+import type { IntegrationTemplate, CreateIntegrationDto } from "@/lib/api";
 
 export default function NewIntegrationPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
-  
+
   const [templates, setTemplates] = useState<IntegrationTemplate[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<IntegrationTemplate | null>(null);
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<IntegrationTemplate | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
-  
+
   // Form state
   const [formData, setFormData] = useState<CreateIntegrationDto>({
     subAccountId: 1, // Default subaccount - should be dynamic
     integrationTemplateId: 0,
-    name: '',
-    description: '',
+    name: "",
+    description: "",
     isActive: false,
     config: {},
   });
@@ -41,11 +54,11 @@ export default function NewIntegrationPage() {
       const data = await api.integrationTemplates.getActive();
       setTemplates(data);
     } catch (error) {
-      console.error('Failed to load templates:', error);
+      console.error("Failed to load templates:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load integration templates',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load integration templates",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -58,12 +71,12 @@ export default function NewIntegrationPage() {
 
   useEffect(() => {
     // If template is pre-selected via URL param
-    const templateId = searchParams.get('template');
+    const templateId = searchParams.get("template");
     if (templateId && templates.length > 0) {
-      const template = templates.find(t => t.id === parseInt(templateId));
+      const template = templates.find((t) => t.id === parseInt(templateId));
       if (template) {
         setSelectedTemplate(template);
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           integrationTemplateId: template.id,
           name: template.displayName,
@@ -74,7 +87,7 @@ export default function NewIntegrationPage() {
 
   const handleTemplateSelect = (template: IntegrationTemplate) => {
     setSelectedTemplate(template);
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       integrationTemplateId: template.id,
       name: template.displayName,
@@ -83,7 +96,7 @@ export default function NewIntegrationPage() {
   };
 
   const handleConfigChange = (key: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       config: {
         ...prev.config,
@@ -95,18 +108,18 @@ export default function NewIntegrationPage() {
   const validateForm = (): boolean => {
     if (!selectedTemplate) {
       toast({
-        title: 'Error',
-        description: 'Please select an integration template',
-        variant: 'destructive',
+        title: "Error",
+        description: "Please select an integration template",
+        variant: "destructive",
       });
       return false;
     }
 
     if (!formData.name.trim()) {
       toast({
-        title: 'Error',
-        description: 'Please enter an integration name',
-        variant: 'destructive',
+        title: "Error",
+        description: "Please enter an integration name",
+        variant: "destructive",
       });
       return false;
     }
@@ -114,11 +127,14 @@ export default function NewIntegrationPage() {
     // Validate required config fields
     const requiredFields = selectedTemplate.configSchema.required || [];
     for (const field of requiredFields) {
-      if (!formData.config[field] || formData.config[field].toString().trim() === '') {
+      if (
+        !formData.config[field] ||
+        formData.config[field].toString().trim() === ""
+      ) {
         toast({
-          title: 'Error',
+          title: "Error",
           description: `Please fill in the required field: ${field}`,
-          variant: 'destructive',
+          variant: "destructive",
         });
         return false;
       }
@@ -134,15 +150,15 @@ export default function NewIntegrationPage() {
       setTesting(true);
       // For now, we'll just show a success message since the backend test is mocked
       toast({
-        title: 'Success',
-        description: 'Connection test successful!',
+        title: "Success",
+        description: "Connection test successful!",
       });
     } catch (error) {
-      console.error('Connection test failed:', error);
+      console.error("Connection test failed:", error);
       toast({
-        title: 'Error',
-        description: 'Connection test failed',
-        variant: 'destructive',
+        title: "Error",
+        description: "Connection test failed",
+        variant: "destructive",
       });
     } finally {
       setTesting(false);
@@ -156,29 +172,35 @@ export default function NewIntegrationPage() {
       setSaving(true);
       await api.integrations.create(formData);
       toast({
-        title: 'Success',
-        description: 'Integration created successfully',
+        title: "Success",
+        description: "Integration created successfully",
       });
-      router.push('/admin/integrations');
+      router.push("/admin/integrations");
     } catch (error) {
-      console.error('Failed to create integration:', error);
+      console.error("Failed to create integration:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to create integration',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to create integration",
+        variant: "destructive",
       });
     } finally {
       setSaving(false);
     }
   };
 
-  const renderConfigField = (key: string, schema: { type: string; title?: string; description?: string }) => {
-    const value = (formData.config[key] as string) || '';
+  const renderConfigField = (
+    key: string,
+    schema: { type: string; title?: string; description?: string }
+  ) => {
+    const value = (formData.config[key] as string) || "";
     const isRequired = selectedTemplate?.configSchema.required?.includes(key);
 
     switch (schema.type) {
-      case 'string':
-        if (schema.title?.toLowerCase().includes('key') || schema.title?.toLowerCase().includes('token')) {
+      case "string":
+        if (
+          schema.title?.toLowerCase().includes("key") ||
+          schema.title?.toLowerCase().includes("token")
+        ) {
           return (
             <div key={key} className="space-y-2">
               <Label htmlFor={key} className="flex items-center gap-2">
@@ -255,16 +277,14 @@ export default function NewIntegrationPage() {
     <div className="container mx-auto py-6">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.back()}
-        >
+        <Button variant="outline" size="sm" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Setup Integration</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Setup Integration
+          </h1>
           <p className="text-gray-600 mt-2">
             Configure a new integration for your subaccount
           </p>
@@ -287,15 +307,17 @@ export default function NewIntegrationPage() {
                   key={template.id}
                   className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                     selectedTemplate?.id === template.id
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-200 hover:border-gray-300"
                   }`}
                   onClick={() => handleTemplateSelect(template)}
                 >
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-medium">{template.displayName}</h3>
-                      <p className="text-sm text-gray-600">{template.description}</p>
+                      <p className="text-sm text-gray-600">
+                        {template.description}
+                      </p>
                       <Badge variant="outline" className="mt-1">
                         {template.category}
                       </Badge>
@@ -324,13 +346,18 @@ export default function NewIntegrationPage() {
                 {/* Basic Info */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Basic Information</h3>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="name">Integration Name</Label>
                     <Input
                       id="name"
                       value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          name: e.target.value,
+                        }))
+                      }
                       placeholder="Enter a name for this integration"
                     />
                   </div>
@@ -339,8 +366,13 @@ export default function NewIntegrationPage() {
                     <Label htmlFor="description">Description (Optional)</Label>
                     <Textarea
                       id="description"
-                      value={formData.description || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                      value={formData.description || ""}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          description: e.target.value,
+                        }))
+                      }
                       placeholder="Enter a description for this integration"
                       rows={3}
                     />
@@ -350,19 +382,32 @@ export default function NewIntegrationPage() {
                     <Switch
                       id="isActive"
                       checked={formData.isActive}
-                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked }))}
+                      onCheckedChange={(checked) =>
+                        setFormData((prev) => ({ ...prev, isActive: checked }))
+                      }
                     />
-                    <Label htmlFor="isActive">Activate immediately after setup</Label>
+                    <Label htmlFor="isActive">
+                      Activate immediately after setup
+                    </Label>
                   </div>
                 </div>
 
                 {/* Configuration Fields */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Configuration</h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Object.entries(selectedTemplate.configSchema.properties || {}).map(([key, schema]: [string, unknown]) => 
-                      renderConfigField(key, schema as { type: string; title?: string; description?: string })
+                    {Object.entries(
+                      selectedTemplate.configSchema.properties || {}
+                    ).map(([key, schema]: [string, unknown]) =>
+                      renderConfigField(
+                        key,
+                        schema as {
+                          type: string;
+                          title?: string;
+                          description?: string;
+                        }
+                      )
                     )}
                   </div>
                 </div>
@@ -389,15 +434,12 @@ export default function NewIntegrationPage() {
                     disabled={testing}
                   >
                     <TestTube className="h-4 w-4 mr-2" />
-                    {testing ? 'Testing...' : 'Test Connection'}
+                    {testing ? "Testing..." : "Test Connection"}
                   </Button>
-                  
-                  <Button
-                    onClick={handleSave}
-                    disabled={saving}
-                  >
+
+                  <Button onClick={handleSave} disabled={saving}>
                     <Save className="h-4 w-4 mr-2" />
-                    {saving ? 'Saving...' : 'Save Integration'}
+                    {saving ? "Saving..." : "Save Integration"}
                   </Button>
                 </div>
               </CardContent>
@@ -416,4 +458,4 @@ export default function NewIntegrationPage() {
       </div>
     </div>
   );
-} 
+}

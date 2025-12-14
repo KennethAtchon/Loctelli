@@ -1,6 +1,6 @@
-import { ApiClient } from './client';
-import { ApiRequestOptions } from './types';
-import logger from '@/lib/logger';
+import { ApiClient } from "./client";
+import { ApiRequestOptions } from "./types";
+import logger from "@/lib/logger";
 
 /**
  * Tenant-aware API client that automatically includes tenant headers
@@ -13,16 +13,19 @@ import logger from '@/lib/logger';
 export class TenantAwareApiClient extends ApiClient {
   private tenantContext: {
     subAccountId: number | null;
-    mode: 'USER_SCOPED' | 'ADMIN_GLOBAL' | 'ADMIN_FILTERED';
+    mode: "USER_SCOPED" | "ADMIN_GLOBAL" | "ADMIN_FILTERED";
   } | null = null;
 
   /**
    * Set the tenant context for subsequent requests
    * This should be called from components using useTenant()
    */
-  setTenantContext(subAccountId: number | null, mode: 'USER_SCOPED' | 'ADMIN_GLOBAL' | 'ADMIN_FILTERED') {
+  setTenantContext(
+    subAccountId: number | null,
+    mode: "USER_SCOPED" | "ADMIN_GLOBAL" | "ADMIN_FILTERED"
+  ) {
     this.tenantContext = { subAccountId, mode };
-    logger.debug('🏢 Tenant context set:', this.tenantContext);
+    logger.debug("🏢 Tenant context set:", this.tenantContext);
   }
 
   /**
@@ -30,7 +33,7 @@ export class TenantAwareApiClient extends ApiClient {
    */
   clearTenantContext() {
     this.tenantContext = null;
-    logger.debug('🏢 Tenant context cleared');
+    logger.debug("🏢 Tenant context cleared");
   }
 
   /**
@@ -42,8 +45,8 @@ export class TenantAwareApiClient extends ApiClient {
     }
 
     return {
-      'X-SubAccount-Id': this.tenantContext.subAccountId.toString(),
-      'X-Tenant-Mode': this.tenantContext.mode,
+      "X-SubAccount-Id": this.tenantContext.subAccountId.toString(),
+      "X-Tenant-Mode": this.tenantContext.mode,
     };
   }
 
@@ -66,7 +69,7 @@ export class TenantAwareApiClient extends ApiClient {
     };
 
     if (Object.keys(tenantHeaders).length > 0) {
-      logger.debug('🏢 Including tenant headers:', tenantHeaders);
+      logger.debug("🏢 Including tenant headers:", tenantHeaders);
     }
 
     return super.request<T>(endpoint, enhancedOptions);
@@ -75,7 +78,9 @@ export class TenantAwareApiClient extends ApiClient {
   /**
    * Helper to build query params with optional tenant filtering
    */
-  buildTenantQueryParams(additionalParams: Record<string, unknown> = {}): string {
+  buildTenantQueryParams(
+    additionalParams: Record<string, unknown> = {}
+  ): string {
     const params: Record<string, unknown> = { ...additionalParams };
 
     // Add subAccountId to query params if in user scope or admin filtered mode
@@ -89,7 +94,11 @@ export class TenantAwareApiClient extends ApiClient {
   /**
    * Get a resource with automatic tenant filtering
    */
-  async getTenantScoped<T>(endpoint: string, params?: Record<string, unknown>, options?: ApiRequestOptions): Promise<T> {
+  async getTenantScoped<T>(
+    endpoint: string,
+    params?: Record<string, unknown>,
+    options?: ApiRequestOptions
+  ): Promise<T> {
     const queryString = this.buildTenantQueryParams(params);
     const url = queryString ? `${endpoint}?${queryString}` : endpoint;
 
@@ -99,7 +108,11 @@ export class TenantAwareApiClient extends ApiClient {
   /**
    * Create a resource with automatic tenant context
    */
-  async postTenantScoped<T>(endpoint: string, data: Record<string, unknown>, options?: ApiRequestOptions): Promise<T> {
+  async postTenantScoped<T>(
+    endpoint: string,
+    data: Record<string, unknown>,
+    options?: ApiRequestOptions
+  ): Promise<T> {
     // Add subAccountId to the data if in tenant scope
     const enhancedData = { ...data };
     if (this.tenantContext?.subAccountId && !enhancedData.subAccountId) {

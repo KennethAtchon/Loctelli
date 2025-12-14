@@ -3,9 +3,9 @@
  * Works without React Query - uses native React hooks
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { useTenant } from '@/contexts/tenant-context';
-import logger from '@/lib/logger';
+import { useState, useEffect, useCallback } from "react";
+import { useTenant } from "@/contexts/tenant-context";
+import logger from "@/lib/logger";
 
 interface UseTenantDataOptions<T> {
   queryKey: string;
@@ -43,7 +43,7 @@ export function useTenantData<T>(options: UseTenantDataOptions<T>) {
       const result = await options.queryFn({ subAccountId });
       setData(result);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error'));
+      setError(err instanceof Error ? err : new Error("Unknown error"));
       logger.error(`Tenant data fetch failed: ${options.queryKey}`, err);
     } finally {
       setIsLoading(false);
@@ -65,8 +65,13 @@ export function useTenantData<T>(options: UseTenantDataOptions<T>) {
 /**
  * Simplified tenant-aware mutation
  */
-export function useTenantMutation<TData, TVariables extends Record<string, any>>(options: {
-  mutationFn: (variables: TVariables & { subAccountId: number | null }) => Promise<TData>;
+export function useTenantMutation<
+  TData,
+  TVariables extends Record<string, any>,
+>(options: {
+  mutationFn: (
+    variables: TVariables & { subAccountId: number | null }
+  ) => Promise<TData>;
   requireSubAccount?: boolean;
   onSuccess?: (data: TData) => void;
   onError?: (error: Error) => void;
@@ -75,43 +80,46 @@ export function useTenantMutation<TData, TVariables extends Record<string, any>>
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const mutate = useCallback(async (variables: TVariables) => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  const mutate = useCallback(
+    async (variables: TVariables) => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-      // Validate requirement
-      if (options.requireSubAccount && !subAccountId) {
-        throw new Error('SubAccount required for this operation');
+        // Validate requirement
+        if (options.requireSubAccount && !subAccountId) {
+          throw new Error("SubAccount required for this operation");
+        }
+
+        // Validate tenant access
+        if (subAccountId) {
+          validateTenantAccess(subAccountId);
+        }
+
+        logger.debug("Tenant mutation", { mode, subAccountId });
+
+        const result = await options.mutationFn({ ...variables, subAccountId });
+
+        if (options.onSuccess) {
+          options.onSuccess(result);
+        }
+
+        return result;
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error("Unknown error");
+        setError(error);
+
+        if (options.onError) {
+          options.onError(error);
+        }
+
+        throw error;
+      } finally {
+        setIsLoading(false);
       }
-
-      // Validate tenant access
-      if (subAccountId) {
-        validateTenantAccess(subAccountId);
-      }
-
-      logger.debug('Tenant mutation', { mode, subAccountId });
-
-      const result = await options.mutationFn({ ...variables, subAccountId });
-
-      if (options.onSuccess) {
-        options.onSuccess(result);
-      }
-
-      return result;
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Unknown error');
-      setError(error);
-
-      if (options.onError) {
-        options.onError(error);
-      }
-
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [subAccountId, mode, options]);
+    },
+    [subAccountId, mode, options]
+  );
 
   return {
     mutate,

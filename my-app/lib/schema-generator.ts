@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
 interface Field {
   name: string;
@@ -8,7 +8,7 @@ interface Field {
   isId: boolean;
   isUnique: boolean;
   isRelation: boolean;
-  relationType?: 'one-to-many' | 'many-to-one' | 'one-to-one';
+  relationType?: "one-to-many" | "many-to-one" | "one-to-one";
   relationTarget?: string;
 }
 
@@ -17,15 +17,17 @@ interface Model {
   fields: Field[];
 }
 
-export function generateMermaidERD(schemaPath: string = '../project/prisma/schema.prisma'): string {
+export function generateMermaidERD(
+  schemaPath: string = "../project/prisma/schema.prisma"
+): string {
   try {
     const fullPath = path.resolve(__dirname, schemaPath);
-    const schemaContent = fs.readFileSync(fullPath, 'utf-8');
-    
+    const schemaContent = fs.readFileSync(fullPath, "utf-8");
+
     const models = parsePrismaSchema(schemaContent);
     return convertToMermaid(models);
   } catch (error) {
-    console.error('Error generating Mermaid ERD:', error);
+    console.error("Error generating Mermaid ERD:", error);
     return generateFallbackERD();
   }
 }
@@ -39,10 +41,10 @@ function parsePrismaSchema(content: string): Model[] {
     const modelName = match[1];
     const modelContent = match[2];
     const fields = parseModelFields(modelContent);
-    
+
     models.push({
       name: modelName,
-      fields
+      fields,
     });
   }
 
@@ -51,27 +53,33 @@ function parsePrismaSchema(content: string): Model[] {
 
 function parseModelFields(modelContent: string): Field[] {
   const fields: Field[] = [];
-  const lines = modelContent.split('\n');
+  const lines = modelContent.split("\n");
 
   for (const line of lines) {
     const trimmedLine = line.trim();
-    if (!trimmedLine || trimmedLine.startsWith('//') || trimmedLine.includes('@relation')) {
+    if (
+      !trimmedLine ||
+      trimmedLine.startsWith("//") ||
+      trimmedLine.includes("@relation")
+    ) {
       continue;
     }
 
-    const fieldMatch = trimmedLine.match(/^(\w+)\s+(\w+(?:\[\])?)\s*(\?)?\s*(.*)$/);
+    const fieldMatch = trimmedLine.match(
+      /^(\w+)\s+(\w+(?:\[\])?)\s*(\?)?\s*(.*)$/
+    );
     if (fieldMatch) {
       const [, name, type, optional, attributes] = fieldMatch;
-      
+
       const field: Field = {
         name,
-        type: type.replace('[]', ''),
+        type: type.replace("[]", ""),
         isRequired: !optional,
-        isId: attributes.includes('@id'),
-        isUnique: attributes.includes('@unique'),
-        isRelation: type.includes('[]') || attributes.includes('@relation'),
-        relationType: type.includes('[]') ? 'one-to-many' : 'many-to-one',
-        relationTarget: extractRelationTarget(attributes)
+        isId: attributes.includes("@id"),
+        isUnique: attributes.includes("@unique"),
+        isRelation: type.includes("[]") || attributes.includes("@relation"),
+        relationType: type.includes("[]") ? "one-to-many" : "many-to-one",
+        relationTarget: extractRelationTarget(attributes),
       };
 
       fields.push(field);
@@ -92,31 +100,31 @@ function extractRelationTarget(attributes: string): string | undefined {
 }
 
 function convertToMermaid(models: Model[]): string {
-  let mermaid = 'erDiagram\n';
-  
+  let mermaid = "erDiagram\n";
+
   // Add entities
   for (const model of models) {
     mermaid += `    ${model.name} {\n`;
-    
+
     for (const field of model.fields) {
       if (!field.isRelation) {
         const type = getMermaidType(field.type);
-        const required = field.isRequired ? '' : ' nullable';
-        const unique = field.isUnique ? ' unique' : '';
-        const id = field.isId ? ' PK' : '';
-        
+        const required = field.isRequired ? "" : " nullable";
+        const unique = field.isUnique ? " unique" : "";
+        const id = field.isId ? " PK" : "";
+
         mermaid += `        ${type}${required}${unique}${id} ${field.name}\n`;
       }
     }
-    
-    mermaid += '    }\n';
+
+    mermaid += "    }\n";
   }
 
   // Add relationships
   for (const model of models) {
     for (const field of model.fields) {
       if (field.isRelation && field.relationTarget) {
-        const relation = getRelationSymbol(field.relationType || 'many-to-one');
+        const relation = getRelationSymbol(field.relationType || "many-to-one");
         mermaid += `    ${model.name} ${relation} ${field.relationTarget} : "${field.name}"\n`;
       }
     }
@@ -127,30 +135,30 @@ function convertToMermaid(models: Model[]): string {
 
 function getMermaidType(prismaType: string): string {
   const typeMap: Record<string, string> = {
-    'Int': 'int',
-    'String': 'string',
-    'Boolean': 'boolean',
-    'DateTime': 'datetime',
-    'Json': 'json',
-    'Float': 'float',
-    'Decimal': 'decimal',
-    'BigInt': 'bigint',
-    'Bytes': 'bytes'
+    Int: "int",
+    String: "string",
+    Boolean: "boolean",
+    DateTime: "datetime",
+    Json: "json",
+    Float: "float",
+    Decimal: "decimal",
+    BigInt: "bigint",
+    Bytes: "bytes",
   };
-  
-  return typeMap[prismaType] || 'string';
+
+  return typeMap[prismaType] || "string";
 }
 
 function getRelationSymbol(relationType: string): string {
   switch (relationType) {
-    case 'one-to-many':
-      return '||--o{';
-    case 'many-to-one':
-      return '}o--||';
-    case 'one-to-one':
-      return '||--||';
+    case "one-to-many":
+      return "||--o{";
+    case "many-to-one":
+      return "}o--||";
+    case "one-to-one":
+      return "||--||";
     default:
-      return '}o--o{';
+      return "}o--o{";
   }
 }
 
@@ -241,4 +249,4 @@ function generateFallbackERD(): string {
     User ||--o{ Booking : "bookings"
     Strategy ||--o{ Lead : "leads"
     Lead }o--o{ Booking : "bookings"`;
-} 
+}

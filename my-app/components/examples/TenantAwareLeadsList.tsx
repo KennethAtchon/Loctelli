@@ -7,20 +7,24 @@
  * - Admins (filtered): See leads for selected subAccount
  */
 
-'use client';
+"use client";
 
-import { useTenantData } from '@/hooks/useTenantData';
-import { useTenant } from '@/contexts/tenant-context';
-import { api } from '@/lib/api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useTenantData } from "@/hooks/useTenantData";
+import { useTenant } from "@/contexts/tenant-context";
+import { api } from "@/lib/api";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export function TenantAwareLeadsList() {
   const { mode, isGlobalView, subAccountId } = useTenant();
 
   // Automatic tenant filtering! No need to manually pass subAccountId
-  const { data: leads, isLoading, error } = useTenantData({
-    queryKey: 'leads',
+  const {
+    data: leads,
+    isLoading,
+    error,
+  } = useTenantData({
+    queryKey: "leads",
     queryFn: async ({ subAccountId }) => {
       // subAccountId is automatically provided based on tenant context
       if (subAccountId) {
@@ -36,7 +40,9 @@ export function TenantAwareLeadsList() {
   }
 
   if (error) {
-    return <div className="text-red-600">Error loading leads: {error.message}</div>;
+    return (
+      <div className="text-red-600">Error loading leads: {error.message}</div>
+    );
   }
 
   return (
@@ -44,8 +50,8 @@ export function TenantAwareLeadsList() {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Leads</span>
-          <Badge variant={isGlobalView ? 'default' : 'outline'}>
-            {isGlobalView ? 'All Tenants' : `SubAccount ${subAccountId}`}
+          <Badge variant={isGlobalView ? "default" : "outline"}>
+            {isGlobalView ? "All Tenants" : `SubAccount ${subAccountId}`}
           </Badge>
         </CardTitle>
       </CardHeader>

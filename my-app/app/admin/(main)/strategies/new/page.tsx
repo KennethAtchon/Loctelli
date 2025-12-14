@@ -1,53 +1,73 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save, Loader2, Upload, Download, ChevronDown, ChevronUp } from 'lucide-react';
-import Link from 'next/link';
-import { CreateStrategyDto } from '@/types';
-import type { UserProfile } from '@/lib/api/endpoints/admin-auth';
-import type { PromptTemplate } from '@/lib/api/endpoints/prompt-templates';
-import logger from '@/lib/logger';
-import { useTenant } from '@/contexts/tenant-context';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  ArrowLeft,
+  Save,
+  Loader2,
+  Upload,
+  Download,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import Link from "next/link";
+import { CreateStrategyDto } from "@/types";
+import type { UserProfile } from "@/lib/api/endpoints/admin-auth";
+import type { PromptTemplate } from "@/lib/api/endpoints/prompt-templates";
+import logger from "@/lib/logger";
+import { useTenant } from "@/contexts/tenant-context";
+import { useToast } from "@/hooks/use-toast";
 
 export default function NewStrategyPage() {
   const router = useRouter();
   const { adminFilter } = useTenant();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [promptTemplates, setPromptTemplates] = useState<PromptTemplate[]>([]);
   const [showJsonImport, setShowJsonImport] = useState(false);
-  const [jsonInput, setJsonInput] = useState('');
+  const [jsonInput, setJsonInput] = useState("");
   const [formData, setFormData] = useState<CreateStrategyDto>({
     regularUserId: 0,
     promptTemplateId: 0,
-    name: '',
-    description: '',
-    tag: '',
-    industryContext: '',
-    aiName: '',
-    aiRole: '',
-    companyBackground: '',
-    conversationTone: '',
-    communicationStyle: '',
-    qualificationQuestions: '',
-    disqualificationRules: '',
-    objectionHandling: '',
-    closingStrategy: '',
-    bookingInstructions: '',
-    outputGuidelines: '',
-    prohibitedBehaviors: '',
+    name: "",
+    description: "",
+    tag: "",
+    industryContext: "",
+    aiName: "",
+    aiRole: "",
+    companyBackground: "",
+    conversationTone: "",
+    communicationStyle: "",
+    qualificationQuestions: "",
+    disqualificationRules: "",
+    objectionHandling: "",
+    closingStrategy: "",
+    bookingInstructions: "",
+    outputGuidelines: "",
+    prohibitedBehaviors: "",
     metadata: undefined,
     delayMin: 30,
     delayMax: 120,
@@ -61,22 +81,25 @@ export default function NewStrategyPage() {
       try {
         const [usersData, templatesData] = await Promise.all([
           api.adminAuth.getAllUsers(adminFilter ?? undefined),
-          api.promptTemplates.getAll()
+          api.promptTemplates.getAll(),
         ]);
 
         // Filter out admin users, only show regular users
-        const regularUsers = usersData.filter(user => user.role !== 'admin');
+        const regularUsers = usersData.filter((user) => user.role !== "admin");
         setUsers(regularUsers);
         setPromptTemplates(templatesData);
 
         // Set active prompt template as default selection if available
         if (templatesData.length > 0) {
-          const activeTemplate = templatesData.find(t => t.isActive);
+          const activeTemplate = templatesData.find((t) => t.isActive);
           const fallbackTemplate = activeTemplate || templatesData[0];
-          setFormData(prev => ({ ...prev, promptTemplateId: fallbackTemplate.id }));
+          setFormData((prev) => ({
+            ...prev,
+            promptTemplateId: fallbackTemplate.id,
+          }));
         }
       } catch (error) {
-        logger.error('Failed to load data:', error);
+        logger.error("Failed to load data:", error);
       }
     };
     loadData();
@@ -86,65 +109,72 @@ export default function NewStrategyPage() {
     e.preventDefault();
 
     if (!formData.regularUserId || formData.regularUserId === 0) {
-      setError('Please select a user for this strategy');
+      setError("Please select a user for this strategy");
       return;
     }
 
     if (!formData.promptTemplateId) {
-      setError('Please select a prompt template for this strategy');
+      setError("Please select a prompt template for this strategy");
       return;
     }
 
     if (!formData.name.trim()) {
-      setError('Please enter a strategy name');
+      setError("Please enter a strategy name");
       return;
     }
 
     if (!formData.aiName?.trim()) {
-      setError('Please enter an AI name');
+      setError("Please enter an AI name");
       return;
     }
 
     if (!formData.aiRole?.trim()) {
-      setError('Please enter an AI role');
+      setError("Please enter an AI role");
       return;
     }
 
     if (!formData.conversationTone?.trim()) {
-      setError('Please enter a conversation tone');
+      setError("Please enter a conversation tone");
       return;
     }
 
     if (!formData.qualificationQuestions?.trim()) {
-      setError('Please enter qualification questions');
+      setError("Please enter qualification questions");
       return;
     }
 
     if (!formData.objectionHandling?.trim()) {
-      setError('Please enter objection handling guidelines');
+      setError("Please enter objection handling guidelines");
       return;
     }
 
     if (!formData.closingStrategy?.trim()) {
-      setError('Please enter a closing strategy');
+      setError("Please enter a closing strategy");
       return;
     }
 
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       // Get the selected user to determine the subaccount
-      const selectedUser = users.find(user => user.id === formData.regularUserId);
+      const selectedUser = users.find(
+        (user) => user.id === formData.regularUserId
+      );
       if (!selectedUser) {
-        setError('Selected user not found');
+        setError("Selected user not found");
         return;
       }
 
       // Validate that the selected user has a subAccountId
-      if (selectedUser.subAccountId === undefined || selectedUser.subAccountId === null) {
-        console.error('Selected user missing subAccountId:', selectedUser);
-        setError(`Selected user (${selectedUser.name}) does not have a valid subAccountId. Please select a different user or contact support.`);
+      if (
+        selectedUser.subAccountId === undefined ||
+        selectedUser.subAccountId === null
+      ) {
+        console.error("Selected user missing subAccountId:", selectedUser);
+        setError(
+          `Selected user (${selectedUser.name}) does not have a valid subAccountId. Please select a different user or contact support.`
+        );
         return;
       }
 
@@ -153,46 +183,55 @@ export default function NewStrategyPage() {
         ...formData,
         subAccountId: selectedUser.subAccountId,
       };
-      
-      console.log('Creating strategy with data:', {
+
+      console.log("Creating strategy with data:", {
         ...strategyData,
         // Don't log sensitive fields
-        qualificationQuestions: strategyData.qualificationQuestions?.substring(0, 50) + '...',
-        objectionHandling: strategyData.objectionHandling?.substring(0, 50) + '...',
+        qualificationQuestions:
+          strategyData.qualificationQuestions?.substring(0, 50) + "...",
+        objectionHandling:
+          strategyData.objectionHandling?.substring(0, 50) + "...",
       });
 
       await api.strategies.createStrategy(strategyData);
-      router.push('/admin/strategies');
+      router.push("/admin/strategies");
     } catch (error) {
-      console.error('Strategy creation error:', error);
+      console.error("Strategy creation error:", error);
       if (error instanceof Error) {
         setError(`Failed to create strategy: ${error.message}`);
       } else {
-        setError('Failed to create strategy. Please check your input and try again.');
+        setError(
+          "Failed to create strategy. Please check your input and try again."
+        );
       }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: name === 'regularUserId' || name === 'promptTemplateId' ? parseInt(value) || 0 : value,
+      [name]:
+        name === "regularUserId" || name === "promptTemplateId"
+          ? parseInt(value) || 0
+          : value,
     }));
   };
 
   const handleNumberChange = (name: string, value: string) => {
     const numValue = parseInt(value) || 0;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: numValue,
     }));
@@ -203,25 +242,26 @@ export default function NewStrategyPage() {
       const parsed = JSON.parse(jsonInput);
 
       // Merge with existing formData, keeping regularUserId and promptTemplateId
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         ...parsed,
         // Preserve critical fields that shouldn't be overwritten
-        regularUserId: prev.regularUserId || parsed.regularUserId || parsed.userId || 0, // Support old userId for backwards compatibility
+        regularUserId:
+          prev.regularUserId || parsed.regularUserId || parsed.userId || 0, // Support old userId for backwards compatibility
         promptTemplateId: prev.promptTemplateId || parsed.promptTemplateId || 0,
       }));
 
       toast({
-        title: 'Success',
-        description: 'Strategy data imported successfully',
+        title: "Success",
+        description: "Strategy data imported successfully",
       });
-      setJsonInput('');
+      setJsonInput("");
       setShowJsonImport(false);
     } catch (error) {
       toast({
-        title: 'Import Error',
-        description: 'Invalid JSON format. Please check your input.',
-        variant: 'destructive',
+        title: "Import Error",
+        description: "Invalid JSON format. Please check your input.",
+        variant: "destructive",
       });
     }
   };
@@ -255,19 +295,19 @@ export default function NewStrategyPage() {
     navigator.clipboard.writeText(jsonStr);
 
     // Download as file
-    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const blob = new Blob([jsonStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `strategy-${formData.name || 'export'}.json`;
+    a.download = `strategy-${formData.name || "export"}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
     toast({
-      title: 'Exported',
-      description: 'Strategy data copied to clipboard and downloaded',
+      title: "Exported",
+      description: "Strategy data copied to clipboard and downloaded",
     });
   };
 
@@ -291,7 +331,8 @@ export default function NewStrategyPage() {
         <CardHeader>
           <CardTitle>Strategy Information</CardTitle>
           <CardDescription>
-            Configure your AI conversation strategy. All fields marked with * are required.
+            Configure your AI conversation strategy. All fields marked with *
+            are required.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -336,7 +377,7 @@ export default function NewStrategyPage() {
                   <Textarea
                     value={jsonInput}
                     onChange={(e) => setJsonInput(e.target.value)}
-                    placeholder='Paste JSON here... (see example below)'
+                    placeholder="Paste JSON here... (see example below)"
                     rows={10}
                     className="font-mono text-sm"
                   />
@@ -357,19 +398,25 @@ export default function NewStrategyPage() {
                       onClick={() => {
                         const exampleJson = {
                           // === CORE IDENTITY ===
-                          name: 'Mike - Roofing Storm Damage Lead Qualifier',  // Strategy display name - be specific about industry & purpose
-                          description: 'Assertive sales strategy for qualifying roofing storm damage leads and booking inspections. Focuses on urgency and insurance claim assistance.',  // Brief description of strategy purpose
-                          tag: 'roofing',  // Category tag for filtering (e.g., 'roofing', 'hvac', 'solar', 'remodeling')
-                          industryContext: 'Roofing - Storm Damage & Insurance Claims',  // Industry/niche context - helps AI understand the business vertical
+                          name: "Mike - Roofing Storm Damage Lead Qualifier", // Strategy display name - be specific about industry & purpose
+                          description:
+                            "Assertive sales strategy for qualifying roofing storm damage leads and booking inspections. Focuses on urgency and insurance claim assistance.", // Brief description of strategy purpose
+                          tag: "roofing", // Category tag for filtering (e.g., 'roofing', 'hvac', 'solar', 'remodeling')
+                          industryContext:
+                            "Roofing - Storm Damage & Insurance Claims", // Industry/niche context - helps AI understand the business vertical
 
                           // === PERSONA DETAILS ===
-                          aiName: 'Mike',  // AI agent's first name - keep it simple and professional
-                          aiRole: 'Senior Roofing Consultant with 15 years of experience specializing in storm damage assessment, insurance claims navigation, and emergency roof repairs. GAF Master Elite certified with extensive knowledge of local building codes and insurance requirements.',  // AI agent's professional role, credentials, and expertise
-                          companyBackground: 'We are a family-owned roofing company with 15+ years in business, GAF Master Elite Certified (top 3% of roofers nationwide), BBB A+ Rating, fully licensed and insured. We have successfully helped over 500 homeowners navigate insurance claims for storm damage repairs, with an average claim approval rate of 92%. Our team specializes in both emergency repairs and full roof replacements.',  // Company history, certifications, achievements, and value propositions
+                          aiName: "Mike", // AI agent's first name - keep it simple and professional
+                          aiRole:
+                            "Senior Roofing Consultant with 15 years of experience specializing in storm damage assessment, insurance claims navigation, and emergency roof repairs. GAF Master Elite certified with extensive knowledge of local building codes and insurance requirements.", // AI agent's professional role, credentials, and expertise
+                          companyBackground:
+                            "We are a family-owned roofing company with 15+ years in business, GAF Master Elite Certified (top 3% of roofers nationwide), BBB A+ Rating, fully licensed and insured. We have successfully helped over 500 homeowners navigate insurance claims for storm damage repairs, with an average claim approval rate of 92%. Our team specializes in both emergency repairs and full roof replacements.", // Company history, certifications, achievements, and value propositions
 
                           // === CONVERSATION STYLE ===
-                          conversationTone: 'Assertive yet empathetic, direct but not pushy. Create urgency around potential water damage and insurance claim deadlines. Use phrases like "Let me be straight with you", "Here\'s the reality", and "I\'ve seen this hundreds of times". Balance urgency with genuine concern for their home and family safety. Be confident without being arrogant.',  // How AI speaks - tone, phrases, urgency level, emotional approach
-                          communicationStyle: 'Take control of the conversation naturally by asking pointed questions. Be empathetic about their situation (acknowledge stress of storm damage) but be honest about the risks of delaying repairs. Use storytelling to share similar cases. Guide them toward a decision rather than waiting for them to decide. Mirror their communication style but stay professional.',  // Approach to conversation (assertive, consultative, educational, etc)
+                          conversationTone:
+                            'Assertive yet empathetic, direct but not pushy. Create urgency around potential water damage and insurance claim deadlines. Use phrases like "Let me be straight with you", "Here\'s the reality", and "I\'ve seen this hundreds of times". Balance urgency with genuine concern for their home and family safety. Be confident without being arrogant.', // How AI speaks - tone, phrases, urgency level, emotional approach
+                          communicationStyle:
+                            "Take control of the conversation naturally by asking pointed questions. Be empathetic about their situation (acknowledge stress of storm damage) but be honest about the risks of delaying repairs. Use storytelling to share similar cases. Guide them toward a decision rather than waiting for them to decide. Mirror their communication style but stay professional.", // Approach to conversation (assertive, consultative, educational, etc)
 
                           // === QUALIFICATION & DISCOVERY ===
                           qualificationQuestions: `1. What type of damage did you notice? (missing shingles, leaks, dents, etc.)
@@ -379,13 +426,13 @@ export default function NewStrategyPage() {
 5. What\'s your address? (to verify we service your area)
 6. Have you noticed any interior damage like water stains or leaks?
 7. Is this an emergency situation, or can it wait for a scheduled inspection?
-8. What\'s your timeline for getting this addressed?`,  // Numbered list of questions to qualify leads - be specific and sequential
+8. What\'s your timeline for getting this addressed?`, // Numbered list of questions to qualify leads - be specific and sequential
                           disqualificationRules: `- Budget under $5,000 without insurance involvement: Politely refer to handyman services or DIY resources
 - Outside our service area (we serve within 50 miles of headquarters): Provide referral to trusted local roofer if possible
 - Commercial properties: Transfer to commercial division
 - Renters without landlord approval: Ask them to get landlord involved first
 - DIY-focused leads who just want free advice: Offer paid consultation service ($150) or politely disengage
-- Not the decision maker and unwilling to loop in decision maker: Schedule follow-up when decision maker is available`,  // When to disqualify or refer out - be specific about criteria and next steps
+- Not the decision maker and unwilling to loop in decision maker: Schedule follow-up when decision maker is available`, // When to disqualify or refer out - be specific about criteria and next steps
 
                           // === OBJECTION HANDLING ===
                           objectionHandling: `PRICE OBJECTION: "I completely understand - a new roof is a significant investment. Here's the reality though: cutting corners on roofing almost always leads to water damage, mold, and structural issues that cost 3-4x more to fix later. The good news is, if this is storm damage, your insurance will likely cover 80-100% of the cost. We can work with your insurance adjuster to ensure you get a fair settlement."
@@ -396,7 +443,7 @@ MULTIPLE QUOTES OBJECTION: "That's actually smart - you should get multiple quot
 
 INSURANCE CONCERN: "Great question. Here's how it typically works: We do a free inspection, document all storm damage with photos and measurements, then we can either guide you through filing the claim yourself, or we can help manage the entire process for you. Most of our clients' claims are approved because we know exactly what adjusters look for. There's no upfront cost for the inspection."
 
-"I NEED TO THINK ABOUT IT": "Absolutely - this is a big decision. What specific concerns do you have? Is it the cost, the timeline, or something else? Let me address those directly so you have all the info you need."`,  // How to handle common objections - use actual scripts with examples
+"I NEED TO THINK ABOUT IT": "Absolutely - this is a big decision. What specific concerns do you have? Is it the cost, the timeline, or something else? Let me address those directly so you have all the info you need."`, // How to handle common objections - use actual scripts with examples
 
                           // === CLOSING & BOOKING ===
                           closingStrategy: `Use assumptive close after confirming: (1) they have storm damage, (2) they're the homeowner, (3) they're in our service area, and (4) they want to move forward.
@@ -407,14 +454,14 @@ ASSUMPTIVE CLOSE EXAMPLE:
 If they hesitate: "The inspection is completely free and there's no obligation. Worst case, you get a professional assessment of your roof's condition. Best case, we help you get a new roof paid for by insurance. Fair enough?"
 
 URGENCY REINFORCEMENT:
-"Just so you know, we're heading into our busy season and spots are filling up fast. I want to make sure we can get to you before the next storm hits."`,  // How to close the deal - scripts and techniques
+"Just so you know, we're heading into our busy season and spots are filling up fast. I want to make sure we can get to you before the next storm hits."`, // How to close the deal - scripts and techniques
                           bookingInstructions: `- Always offer 2-3 specific time slots (creates choice and urgency)
 - Ask for their preferred contact method (call, text, or email) for appointment reminders
 - Confirm their full address and any access instructions (gate codes, dogs, etc.)
 - Create urgency with phrases like "limited availability this week" or "storm season is our busy time"
 - Send immediate confirmation via text or email with: date, time, what to expect, and inspector's name
 - Set expectation: "The inspection typically takes 30-45 minutes. I'll need access to your attic if possible, and I'll take photos and measurements of the exterior."
-- Ask if there's anything specific they want the inspector to look at`,  // How to schedule appointments - process and best practices
+- Ask if there's anything specific they want the inspector to look at`, // How to schedule appointments - process and best practices
 
                           // === OUTPUT RULES ===
                           outputGuidelines: `- Keep responses concise: 2-4 sentences maximum per response
@@ -423,7 +470,7 @@ URGENCY REINFORCEMENT:
 - Be conversational but maintain professional credibility
 - Use their name occasionally to build rapport
 - Acknowledge their concerns before redirecting
-- When providing options, limit to 2-3 choices (avoid overwhelming them)`,  // Response format rules - how to structure messages
+- When providing options, limit to 2-3 choices (avoid overwhelming them)`, // Response format rules - how to structure messages
                           prohibitedBehaviors: `- DON'T be pushy, aggressive, or use high-pressure sales tactics
 - DON'T badmouth competitors by name (focus on what makes us better instead)
 - DON'T make specific guarantees about insurance claim approvals (too many variables)
@@ -431,11 +478,11 @@ URGENCY REINFORCEMENT:
 - DON'T provide exact pricing without inspection (too many variables)
 - DON'T use technical jargon without explaining it
 - DON'T ignore their stated concerns or preferences
-- DON'T make promises about timelines without checking crew availability`,  // What NOT to do - critical boundaries
+- DON'T make promises about timelines without checking crew availability`, // What NOT to do - critical boundaries
 
                           // === BEHAVIORAL SETTINGS ===
-                          delayMin: 30,  // Minimum seconds before responding (simulates human typing/thinking time)
-                          delayMax: 120  // Maximum seconds before responding (longer for complex responses)
+                          delayMin: 30, // Minimum seconds before responding (simulates human typing/thinking time)
+                          delayMax: 120, // Maximum seconds before responding (longer for complex responses)
                         };
                         setJsonInput(JSON.stringify(exampleJson, null, 2));
                       }}
@@ -444,7 +491,9 @@ URGENCY REINFORCEMENT:
                     </Button>
                   </div>
                   <div className="text-xs text-gray-600 bg-white p-3 rounded border">
-                    <p className="font-semibold mb-1">Example JSON Structure (with inline comments):</p>
+                    <p className="font-semibold mb-1">
+                      Example JSON Structure (with inline comments):
+                    </p>
                     <code className="text-xs whitespace-pre-wrap">
                       {`{
   // === CORE IDENTITY ===
@@ -489,14 +538,18 @@ URGENCY REINFORCEMENT:
 
             {/* Core Identity Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold border-b pb-2">Core Identity</h3>
+              <h3 className="text-lg font-semibold border-b pb-2">
+                Core Identity
+              </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="regularUserId">Assign to User *</Label>
                   <Select
-                    value={formData.regularUserId?.toString() || ''}
-                    onValueChange={(value) => handleSelectChange('regularUserId', value)}
+                    value={formData.regularUserId?.toString() || ""}
+                    onValueChange={(value) =>
+                      handleSelectChange("regularUserId", value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a user" />
@@ -514,16 +567,21 @@ URGENCY REINFORCEMENT:
                 <div className="space-y-2">
                   <Label htmlFor="promptTemplateId">Prompt Template *</Label>
                   <Select
-                    value={formData.promptTemplateId?.toString() || ''}
-                    onValueChange={(value) => handleSelectChange('promptTemplateId', value)}
+                    value={formData.promptTemplateId?.toString() || ""}
+                    onValueChange={(value) =>
+                      handleSelectChange("promptTemplateId", value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a prompt template" />
                     </SelectTrigger>
                     <SelectContent>
                       {promptTemplates.map((template) => (
-                        <SelectItem key={template.id} value={template.id.toString()}>
-                          {template.name} {template.isActive && '(Active)'}
+                        <SelectItem
+                          key={template.id}
+                          value={template.id.toString()}
+                        >
+                          {template.name} {template.isActive && "(Active)"}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -585,7 +643,9 @@ URGENCY REINFORCEMENT:
 
             {/* Persona Details Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold border-b pb-2">Persona Details</h3>
+              <h3 className="text-lg font-semibold border-b pb-2">
+                Persona Details
+              </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
@@ -630,7 +690,9 @@ URGENCY REINFORCEMENT:
 
             {/* Conversation Style Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold border-b pb-2">Conversation Style</h3>
+              <h3 className="text-lg font-semibold border-b pb-2">
+                Conversation Style
+              </h3>
 
               <div className="space-y-2">
                 <Label htmlFor="conversationTone">Conversation Tone *</Label>
@@ -660,10 +722,14 @@ URGENCY REINFORCEMENT:
 
             {/* Qualification & Discovery Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold border-b pb-2">Qualification & Discovery</h3>
+              <h3 className="text-lg font-semibold border-b pb-2">
+                Qualification & Discovery
+              </h3>
 
               <div className="space-y-2">
-                <Label htmlFor="qualificationQuestions">Qualification Questions *</Label>
+                <Label htmlFor="qualificationQuestions">
+                  Qualification Questions *
+                </Label>
                 <Textarea
                   id="qualificationQuestions"
                   name="qualificationQuestions"
@@ -676,7 +742,9 @@ URGENCY REINFORCEMENT:
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="disqualificationRules">Disqualification Rules</Label>
+                <Label htmlFor="disqualificationRules">
+                  Disqualification Rules
+                </Label>
                 <Textarea
                   id="disqualificationRules"
                   name="disqualificationRules"
@@ -690,7 +758,9 @@ URGENCY REINFORCEMENT:
 
             {/* Objection Handling Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold border-b pb-2">Objection Handling</h3>
+              <h3 className="text-lg font-semibold border-b pb-2">
+                Objection Handling
+              </h3>
 
               <div className="space-y-2">
                 <Label htmlFor="objectionHandling">Objection Handling *</Label>
@@ -708,7 +778,9 @@ URGENCY REINFORCEMENT:
 
             {/* Closing & Booking Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold border-b pb-2">Closing & Booking</h3>
+              <h3 className="text-lg font-semibold border-b pb-2">
+                Closing & Booking
+              </h3>
 
               <div className="space-y-2">
                 <Label htmlFor="closingStrategy">Closing Strategy *</Label>
@@ -724,7 +796,9 @@ URGENCY REINFORCEMENT:
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bookingInstructions">Booking Instructions</Label>
+                <Label htmlFor="bookingInstructions">
+                  Booking Instructions
+                </Label>
                 <Textarea
                   id="bookingInstructions"
                   name="bookingInstructions"
@@ -738,7 +812,9 @@ URGENCY REINFORCEMENT:
 
             {/* Output Rules Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold border-b pb-2">Output Rules</h3>
+              <h3 className="text-lg font-semibold border-b pb-2">
+                Output Rules
+              </h3>
 
               <div className="space-y-2">
                 <Label htmlFor="outputGuidelines">Output Guidelines</Label>
@@ -753,7 +829,9 @@ URGENCY REINFORCEMENT:
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="prohibitedBehaviors">Prohibited Behaviors</Label>
+                <Label htmlFor="prohibitedBehaviors">
+                  Prohibited Behaviors
+                </Label>
                 <Textarea
                   id="prohibitedBehaviors"
                   name="prohibitedBehaviors"
@@ -767,7 +845,9 @@ URGENCY REINFORCEMENT:
 
             {/* Behavioral Settings Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold border-b pb-2">Behavioral Settings</h3>
+              <h3 className="text-lg font-semibold border-b pb-2">
+                Behavioral Settings
+              </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
@@ -778,7 +858,9 @@ URGENCY REINFORCEMENT:
                     type="number"
                     min="0"
                     value={formData.delayMin}
-                    onChange={(e) => handleNumberChange('delayMin', e.target.value)}
+                    onChange={(e) =>
+                      handleNumberChange("delayMin", e.target.value)
+                    }
                     placeholder="30"
                   />
                 </div>
@@ -791,7 +873,9 @@ URGENCY REINFORCEMENT:
                     type="number"
                     min="0"
                     value={formData.delayMax}
-                    onChange={(e) => handleNumberChange('delayMax', e.target.value)}
+                    onChange={(e) =>
+                      handleNumberChange("delayMax", e.target.value)
+                    }
                     placeholder="120"
                   />
                 </div>
@@ -800,11 +884,7 @@ URGENCY REINFORCEMENT:
 
             {/* Form Actions */}
             <div className="flex gap-4 pt-4">
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="flex-1"
-              >
+              <Button type="submit" disabled={isLoading} className="flex-1">
                 {isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />

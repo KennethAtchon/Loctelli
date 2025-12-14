@@ -1,16 +1,22 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { api } from '@/lib/api';
-import { DataTable, Column, Filter, StatCard } from '@/components/customUI';
-import { usePagination } from '@/components/customUI';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Calendar, Clock, User, Building, Eye, Edit } from 'lucide-react';
-import { Booking } from '@/types';
-import logger from '@/lib/logger';
-import { useTenant } from '@/contexts/tenant-context';
+import { useState, useEffect, useCallback } from "react";
+import { api } from "@/lib/api";
+import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
+import { usePagination } from "@/components/customUI";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Calendar, Clock, User, Building, Eye, Edit } from "lucide-react";
+import { Booking } from "@/types";
+import logger from "@/lib/logger";
+import { useTenant } from "@/contexts/tenant-context";
 
 export default function BookingsPage() {
   const { getTenantQueryParams } = useTenant();
@@ -25,49 +31,47 @@ export default function BookingsPage() {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
 
   // Use the pagination hook
-  const {
-    pagination,
-    paginatedData,
-    setCurrentPage,
-    setTotalItems,
-  } = usePagination(filteredBookings, { pageSize: 10 });
+  const { pagination, paginatedData, setCurrentPage, setTotalItems } =
+    usePagination(filteredBookings, { pageSize: 10 });
 
   // Calculate stats
   const stats: StatCard[] = [
     {
-      title: 'Total Bookings',
+      title: "Total Bookings",
       value: bookings.length,
       icon: <Calendar className="h-8 w-8" />,
-      color: 'text-blue-600',
+      color: "text-blue-600",
     },
     {
-      title: 'Confirmed',
-      value: bookings.filter(b => b.status === 'confirmed').length,
+      title: "Confirmed",
+      value: bookings.filter((b) => b.status === "confirmed").length,
       icon: <Calendar className="h-8 w-8" />,
-      color: 'text-green-600',
+      color: "text-green-600",
     },
     {
-      title: 'Pending',
-      value: bookings.filter(b => b.status === 'pending').length,
+      title: "Pending",
+      value: bookings.filter((b) => b.status === "pending").length,
       icon: <Clock className="h-8 w-8" />,
-      color: 'text-yellow-600',
+      color: "text-yellow-600",
     },
     {
-      title: 'Cancelled',
-      value: bookings.filter(b => b.status === 'cancelled').length,
+      title: "Cancelled",
+      value: bookings.filter((b) => b.status === "cancelled").length,
       icon: <Calendar className="h-8 w-8" />,
-      color: 'text-red-600',
+      color: "text-red-600",
     },
   ];
 
   // Define columns
   const columns: Column<Booking>[] = [
     {
-      key: 'lead',
-      header: 'Lead',
+      key: "lead",
+      header: "Lead",
       render: (booking) => (
         <div>
-          <div className="font-medium">{booking.lead?.name || 'Unknown Lead'}</div>
+          <div className="font-medium">
+            {booking.lead?.name || "Unknown Lead"}
+          </div>
           <div className="text-sm text-gray-500">{booking.lead?.email}</div>
           {booking.lead?.company && (
             <div className="text-xs text-gray-400 flex items-center">
@@ -79,8 +83,8 @@ export default function BookingsPage() {
       ),
     },
     {
-      key: 'bookingType',
-      header: 'Type',
+      key: "bookingType",
+      header: "Type",
       render: (booking) => (
         <Badge variant={getTypeBadgeVariant(booking.bookingType)}>
           {booking.bookingType}
@@ -88,8 +92,8 @@ export default function BookingsPage() {
       ),
     },
     {
-      key: 'status',
-      header: 'Status',
+      key: "status",
+      header: "Status",
       render: (booking) => (
         <Badge variant={getStatusBadgeVariant(booking.status)}>
           {booking.status}
@@ -97,18 +101,18 @@ export default function BookingsPage() {
       ),
     },
     {
-      key: 'user',
-      header: 'User',
+      key: "user",
+      header: "User",
       render: (booking) => (
         <div className="flex items-center">
           <User className="h-4 w-4 mr-2 text-gray-400" />
-          <span>{booking.user?.name || 'Unassigned'}</span>
+          <span>{booking.user?.name || "Unassigned"}</span>
         </div>
       ),
     },
     {
-      key: 'createdAt',
-      header: 'Created',
+      key: "createdAt",
+      header: "Created",
       render: (booking) => formatDate(booking.createdAt),
     },
   ];
@@ -116,23 +120,23 @@ export default function BookingsPage() {
   // Define filters
   const filters: Filter[] = [
     {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
+      key: "status",
+      label: "Status",
+      type: "select",
       options: [
-        { value: 'confirmed', label: 'Confirmed' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'cancelled', label: 'Cancelled' },
+        { value: "confirmed", label: "Confirmed" },
+        { value: "pending", label: "Pending" },
+        { value: "cancelled", label: "Cancelled" },
       ],
     },
     {
-      key: 'type',
-      label: 'Type',
-      type: 'select',
+      key: "type",
+      label: "Type",
+      type: "select",
       options: [
-        { value: 'consultation', label: 'Consultation' },
-        { value: 'meeting', label: 'Meeting' },
-        { value: 'demo', label: 'Demo' },
+        { value: "consultation", label: "Consultation" },
+        { value: "meeting", label: "Meeting" },
+        { value: "demo", label: "Demo" },
       ],
     },
   ];
@@ -144,15 +148,15 @@ export default function BookingsPage() {
 
       // Use tenant context for automatic filtering
       const queryParams = getTenantQueryParams();
-      logger.debug('Loading bookings with tenant params:', queryParams);
+      logger.debug("Loading bookings with tenant params:", queryParams);
 
       const bookingsData = await api.bookings.getBookings(queryParams);
       setBookings(bookingsData);
       setFilteredBookings(bookingsData);
       setTotalItems(bookingsData.length);
     } catch (error) {
-      logger.error('Failed to load bookings:', error);
-      setError('Failed to load bookings');
+      logger.error("Failed to load bookings:", error);
+      setError("Failed to load bookings");
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -161,12 +165,13 @@ export default function BookingsPage() {
 
   // Handle search
   const handleSearch = (term: string) => {
-    const filtered = bookings.filter(booking =>
-      booking.lead?.name.toLowerCase().includes(term.toLowerCase()) ||
-      booking.lead?.email?.toLowerCase().includes(term.toLowerCase()) ||
-      booking.lead?.company?.toLowerCase().includes(term.toLowerCase()) ||
-      booking.user?.name.toLowerCase().includes(term.toLowerCase()) ||
-      booking.bookingType.toLowerCase().includes(term.toLowerCase())
+    const filtered = bookings.filter(
+      (booking) =>
+        booking.lead?.name.toLowerCase().includes(term.toLowerCase()) ||
+        booking.lead?.email?.toLowerCase().includes(term.toLowerCase()) ||
+        booking.lead?.company?.toLowerCase().includes(term.toLowerCase()) ||
+        booking.user?.name.toLowerCase().includes(term.toLowerCase()) ||
+        booking.bookingType.toLowerCase().includes(term.toLowerCase())
     );
     setFilteredBookings(filtered);
     setTotalItems(filtered.length);
@@ -177,12 +182,12 @@ export default function BookingsPage() {
   const handleFilter = (key: string, value: string) => {
     let filtered = bookings;
 
-    if (key === 'status' && value !== 'all') {
-      filtered = filtered.filter(booking => booking.status === value);
+    if (key === "status" && value !== "all") {
+      filtered = filtered.filter((booking) => booking.status === value);
     }
 
-    if (key === 'type' && value !== 'all') {
-      filtered = filtered.filter(booking => booking.bookingType === value);
+    if (key === "type" && value !== "all") {
+      filtered = filtered.filter((booking) => booking.bookingType === value);
     }
 
     setFilteredBookings(filtered);
@@ -206,19 +211,19 @@ export default function BookingsPage() {
       setUpdatingStatus(bookingId);
       setError(null);
       await api.bookings.updateBookingStatus(bookingId, newStatus);
-      
+
       // Update local state
-      setBookings(prev => prev.map(booking => 
-        booking.id === bookingId 
-          ? { ...booking, status: newStatus }
-          : booking
-      ));
-      
-      setSuccess('Booking status updated successfully');
+      setBookings((prev) =>
+        prev.map((booking) =>
+          booking.id === bookingId ? { ...booking, status: newStatus } : booking
+        )
+      );
+
+      setSuccess("Booking status updated successfully");
       setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
-      logger.error('Failed to update booking status:', error);
-      setError('Failed to update booking status');
+      logger.error("Failed to update booking status:", error);
+      setError("Failed to update booking status");
     } finally {
       setUpdatingStatus(null);
     }
@@ -230,63 +235,64 @@ export default function BookingsPage() {
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'confirmed':
-        return 'default';
-      case 'pending':
-        return 'secondary';
-      case 'cancelled':
-        return 'destructive';
+      case "confirmed":
+        return "default";
+      case "pending":
+        return "secondary";
+      case "cancelled":
+        return "destructive";
       default:
-        return 'outline';
+        return "outline";
     }
   };
 
   const getTypeBadgeVariant = (type: string) => {
     switch (type.toLowerCase()) {
-      case 'consultation':
-        return 'default';
-      case 'meeting':
-        return 'secondary';
-      case 'demo':
-        return 'outline';
+      case "consultation":
+        return "default";
+      case "meeting":
+        return "secondary";
+      case "demo":
+        return "outline";
       default:
-        return 'secondary';
+        return "secondary";
     }
   };
 
   const formatDate = (dateInput: string | Date) => {
-    if (!dateInput) return 'N/A';
-    
-    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
-    
+    if (!dateInput) return "N/A";
+
+    const date =
+      typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+
     if (isNaN(date.getTime())) {
-      return 'Invalid Date';
+      return "Invalid Date";
     }
-    
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const formatBookingDetails = (details: Record<string, unknown>) => {
-    if (!details) return 'No details available';
-    
+    if (!details) return "No details available";
+
     try {
-      if (typeof details === 'string') {
+      if (typeof details === "string") {
         const parsed = JSON.parse(details);
         return Object.entries(parsed)
           .map(([key, value]) => `${key}: ${value}`)
-          .join(', ');
+          .join(", ");
       }
       return Object.entries(details)
         .map(([key, value]) => `${key}: ${value}`)
-        .join(', ');
+        .join(", ");
     } catch {
-      return 'Invalid details format';
+      return "Invalid details format";
     }
   };
 
@@ -337,21 +343,33 @@ export default function BookingsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3">
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Booking ID</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Booking ID
+                    </label>
                     <p className="text-sm">{selectedBooking.id}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Type</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Type
+                    </label>
                     <p className="text-sm">
-                      <Badge variant={getTypeBadgeVariant(selectedBooking.bookingType)}>
+                      <Badge
+                        variant={getTypeBadgeVariant(
+                          selectedBooking.bookingType
+                        )}
+                      >
                         {selectedBooking.bookingType}
                       </Badge>
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Status</label>
+                    <label className="text-sm font-medium text-gray-500">
+                      Status
+                    </label>
                     <p className="text-sm">
-                      <Badge variant={getStatusBadgeVariant(selectedBooking.status)}>
+                      <Badge
+                        variant={getStatusBadgeVariant(selectedBooking.status)}
+                      >
                         {selectedBooking.status}
                       </Badge>
                     </p>
@@ -359,12 +377,20 @@ export default function BookingsPage() {
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Created</label>
-                    <p className="text-sm">{formatDate(selectedBooking.createdAt)}</p>
+                    <label className="text-sm font-medium text-gray-500">
+                      Created
+                    </label>
+                    <p className="text-sm">
+                      {formatDate(selectedBooking.createdAt)}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Last Updated</label>
-                    <p className="text-sm">{formatDate(selectedBooking.updatedAt)}</p>
+                    <label className="text-sm font-medium text-gray-500">
+                      Last Updated
+                    </label>
+                    <p className="text-sm">
+                      {formatDate(selectedBooking.updatedAt)}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -379,29 +405,49 @@ export default function BookingsPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-3">
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Name</label>
+                        <label className="text-sm font-medium text-gray-500">
+                          Name
+                        </label>
                         <p className="text-sm">{selectedBooking.lead.name}</p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Email</label>
-                        <p className="text-sm">{selectedBooking.lead.email || 'N/A'}</p>
+                        <label className="text-sm font-medium text-gray-500">
+                          Email
+                        </label>
+                        <p className="text-sm">
+                          {selectedBooking.lead.email || "N/A"}
+                        </p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Phone</label>
-                        <p className="text-sm">{selectedBooking.lead.phone || 'N/A'}</p>
+                        <label className="text-sm font-medium text-gray-500">
+                          Phone
+                        </label>
+                        <p className="text-sm">
+                          {selectedBooking.lead.phone || "N/A"}
+                        </p>
                       </div>
                     </div>
                     <div className="space-y-3">
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Company</label>
-                        <p className="text-sm">{selectedBooking.lead.company || 'N/A'}</p>
+                        <label className="text-sm font-medium text-gray-500">
+                          Company
+                        </label>
+                        <p className="text-sm">
+                          {selectedBooking.lead.company || "N/A"}
+                        </p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Position</label>
-                        <p className="text-sm">{selectedBooking.lead.position || 'N/A'}</p>
+                        <label className="text-sm font-medium text-gray-500">
+                          Position
+                        </label>
+                        <p className="text-sm">
+                          {selectedBooking.lead.position || "N/A"}
+                        </p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Status</label>
+                        <label className="text-sm font-medium text-gray-500">
+                          Status
+                        </label>
                         <p className="text-sm">{selectedBooking.lead.status}</p>
                       </div>
                     </div>
@@ -419,21 +465,31 @@ export default function BookingsPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-3">
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Name</label>
+                        <label className="text-sm font-medium text-gray-500">
+                          Name
+                        </label>
                         <p className="text-sm">{selectedBooking.user.name}</p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Email</label>
+                        <label className="text-sm font-medium text-gray-500">
+                          Email
+                        </label>
                         <p className="text-sm">{selectedBooking.user.email}</p>
                       </div>
                     </div>
                     <div className="space-y-3">
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Company</label>
-                        <p className="text-sm">{selectedBooking.user.company || 'N/A'}</p>
+                        <label className="text-sm font-medium text-gray-500">
+                          Company
+                        </label>
+                        <p className="text-sm">
+                          {selectedBooking.user.company || "N/A"}
+                        </p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Role</label>
+                        <label className="text-sm font-medium text-gray-500">
+                          Role
+                        </label>
                         <p className="text-sm">{selectedBooking.user.role}</p>
                       </div>
                     </div>
@@ -481,4 +537,4 @@ export default function BookingsPage() {
       </Dialog>
     </>
   );
-} 
+}

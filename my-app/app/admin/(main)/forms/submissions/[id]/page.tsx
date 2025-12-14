@@ -1,17 +1,44 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Edit, Calendar, User, Mail, Phone, Building, AlertCircle, CheckCircle, Clock, FileText } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { api } from '@/lib/api';
-import type { FormSubmission, UpdateFormSubmissionDto } from '@/lib/api/endpoints/forms';
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import {
+  ArrowLeft,
+  Edit,
+  Calendar,
+  User,
+  Mail,
+  Phone,
+  Building,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  FileText,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { api } from "@/lib/api";
+import type {
+  FormSubmission,
+  UpdateFormSubmissionDto,
+} from "@/lib/api/endpoints/forms";
 
 export default function FormSubmissionDetailPage() {
   const params = useParams();
@@ -38,13 +65,13 @@ export default function FormSubmissionDetailPage() {
         assignedToId: submissionData.assignedToId,
       });
     } catch (error: any) {
-      console.error('Failed to load submission:', error);
+      console.error("Failed to load submission:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load form submission',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load form submission",
+        variant: "destructive",
       });
-      router.push('/admin/forms/submissions');
+      router.push("/admin/forms/submissions");
     } finally {
       setInitialLoading(false);
     }
@@ -55,19 +82,22 @@ export default function FormSubmissionDetailPage() {
 
     setLoading(true);
     try {
-      const updatedSubmission = await api.forms.updateFormSubmission(submissionId, updateData);
+      const updatedSubmission = await api.forms.updateFormSubmission(
+        submissionId,
+        updateData
+      );
       setSubmission(updatedSubmission);
       setIsEditing(false);
       toast({
-        title: 'Success',
-        description: 'Form submission updated successfully',
+        title: "Success",
+        description: "Form submission updated successfully",
       });
     } catch (error: any) {
-      console.error('Failed to update submission:', error);
+      console.error("Failed to update submission:", error);
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update form submission',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to update form submission",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -76,71 +106,77 @@ export default function FormSubmissionDetailPage() {
 
   // Helper function to format date
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   // Helper function to get status color
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'new':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'reviewed':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'contacted':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'processed':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'archived':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+      case "new":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      case "reviewed":
+        return "bg-purple-100 text-purple-800 border-purple-200";
+      case "contacted":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "processed":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "archived":
+        return "bg-gray-100 text-gray-800 border-gray-200";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
   // Helper function to get priority color
   const getPriorityColor = (priority: string) => {
     switch (priority.toLowerCase()) {
-      case 'urgent':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'high':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'low':
-        return 'bg-green-100 text-green-800 border-green-200';
+      case "urgent":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "high":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "low":
+        return "bg-green-100 text-green-800 border-green-200";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
   // Helper function to render form field value
   const renderFieldValue = (field: any, value: any) => {
-    if (!value && value !== false && value !== 0) return 'N/A';
+    if (!value && value !== false && value !== 0) return "N/A";
 
     switch (field?.type) {
-      case 'email':
+      case "email":
         return (
-          <a href={`mailto:${value}`} className="text-blue-600 hover:text-blue-800">
+          <a
+            href={`mailto:${value}`}
+            className="text-blue-600 hover:text-blue-800"
+          >
             {value}
           </a>
         );
-      case 'phone':
+      case "phone":
         return (
-          <a href={`tel:${value}`} className="text-blue-600 hover:text-blue-800">
+          <a
+            href={`tel:${value}`}
+            className="text-blue-600 hover:text-blue-800"
+          >
             {value}
           </a>
         );
-      case 'checkbox':
-        return value ? 'Yes' : 'No';
-      case 'file':
-      case 'image':
-        if (typeof value === 'object' && value.url) {
+      case "checkbox":
+        return value ? "Yes" : "No";
+      case "file":
+      case "image":
+        if (typeof value === "object" && value.url) {
           return (
             <a
               href={value.url}
@@ -148,7 +184,7 @@ export default function FormSubmissionDetailPage() {
               rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-800"
             >
-              {value.originalName || 'View File'}
+              {value.originalName || "View File"}
             </a>
           );
         }
@@ -177,7 +213,7 @@ export default function FormSubmissionDetailPage() {
         <div className="text-center py-12">
           <p className="text-gray-500">Form submission not found</p>
           <Button
-            onClick={() => router.push('/admin/forms/submissions')}
+            onClick={() => router.push("/admin/forms/submissions")}
             className="mt-4"
           >
             Back to Submissions
@@ -187,7 +223,7 @@ export default function FormSubmissionDetailPage() {
     );
   }
 
-  const schema = submission.formTemplate?.schema as any[] || [];
+  const schema = (submission.formTemplate?.schema as any[]) || [];
 
   return (
     <div className="space-y-6">
@@ -195,7 +231,7 @@ export default function FormSubmissionDetailPage() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => router.push('/admin/forms/submissions')}
+          onClick={() => router.push("/admin/forms/submissions")}
           className="flex items-center gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -210,11 +246,15 @@ export default function FormSubmissionDetailPage() {
             </Button>
           ) : (
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setIsEditing(false)} size="sm">
+              <Button
+                variant="outline"
+                onClick={() => setIsEditing(false)}
+                size="sm"
+              >
                 Cancel
               </Button>
               <Button onClick={handleUpdate} disabled={loading} size="sm">
-                {loading ? 'Saving...' : 'Save Changes'}
+                {loading ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           )}
@@ -258,7 +298,9 @@ export default function FormSubmissionDetailPage() {
                   <div className="col-span-2">
                     <span className="font-medium">User Agent:</span>
                     <br />
-                    <span className="text-gray-600 text-xs">{submission.userAgent}</span>
+                    <span className="text-gray-600 text-xs">
+                      {submission.userAgent}
+                    </span>
                   </div>
                 )}
               </div>
@@ -275,10 +317,15 @@ export default function FormSubmissionDetailPage() {
                 schema.map((field) => {
                   const value = submission.data[field.id];
                   return (
-                    <div key={field.id} className="border-b border-gray-100 pb-3 last:border-b-0">
+                    <div
+                      key={field.id}
+                      className="border-b border-gray-100 pb-3 last:border-b-0"
+                    >
                       <Label className="text-sm font-medium text-gray-700">
                         {field.label}
-                        {field.required && <span className="text-red-500 ml-1">*</span>}
+                        {field.required && (
+                          <span className="text-red-500 ml-1">*</span>
+                        )}
                       </Label>
                       <div className="mt-1 text-sm">
                         {renderFieldValue(field, value)}
@@ -305,25 +352,34 @@ export default function FormSubmissionDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {Object.entries(submission.files).map(([fieldId, fileInfo]: [string, any]) => (
-                    <div key={fieldId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <div className="font-medium">{fileInfo.originalName || 'Unknown File'}</div>
-                        <div className="text-sm text-gray-500">
-                          {fileInfo.size ? `${Math.round(fileInfo.size / 1024)} KB` : 'Unknown size'}
+                  {Object.entries(submission.files).map(
+                    ([fieldId, fileInfo]: [string, any]) => (
+                      <div
+                        key={fieldId}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div>
+                          <div className="font-medium">
+                            {fileInfo.originalName || "Unknown File"}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {fileInfo.size
+                              ? `${Math.round(fileInfo.size / 1024)} KB`
+                              : "Unknown size"}
+                          </div>
                         </div>
+                        {fileInfo.url && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(fileInfo.url, "_blank")}
+                          >
+                            View File
+                          </Button>
+                        )}
                       </div>
-                      {fileInfo.url && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => window.open(fileInfo.url, '_blank')}
-                        >
-                          View File
-                        </Button>
-                      )}
-                    </div>
-                  ))}
+                    )
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -344,7 +400,9 @@ export default function FormSubmissionDetailPage() {
                     <Label>Status</Label>
                     <Select
                       value={updateData.status}
-                      onValueChange={(value) => setUpdateData(prev => ({ ...prev, status: value }))}
+                      onValueChange={(value) =>
+                        setUpdateData((prev) => ({ ...prev, status: value }))
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -362,7 +420,12 @@ export default function FormSubmissionDetailPage() {
                     <Label>Priority</Label>
                     <Select
                       value={updateData.priority}
-                      onValueChange={(value) => setUpdateData(prev => ({ ...prev, priority: value as any }))}
+                      onValueChange={(value) =>
+                        setUpdateData((prev) => ({
+                          ...prev,
+                          priority: value as any,
+                        }))
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -382,14 +445,18 @@ export default function FormSubmissionDetailPage() {
                     <Label className="text-sm text-gray-500">Status</Label>
                     <div className="mt-1">
                       <Badge className={getStatusColor(submission.status)}>
-                        {submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
+                        {submission.status.charAt(0).toUpperCase() +
+                          submission.status.slice(1)}
                       </Badge>
                     </div>
                   </div>
                   <div>
                     <Label className="text-sm text-gray-500">Priority</Label>
                     <div className="mt-1">
-                      <Badge variant="outline" className={getPriorityColor(submission.priority)}>
+                      <Badge
+                        variant="outline"
+                        className={getPriorityColor(submission.priority)}
+                      >
                         {submission.priority}
                       </Badge>
                     </div>
@@ -423,7 +490,7 @@ export default function FormSubmissionDetailPage() {
                   <Label className="text-sm text-gray-500">Sub-Account</Label>
                   <div className="mt-1 flex items-center gap-2">
                     <Building className="h-4 w-4 text-gray-400" />
-                    <span>{submission.subAccount?.name || 'Global'}</span>
+                    <span>{submission.subAccount?.name || "Global"}</span>
                   </div>
                 </div>
               </div>
@@ -441,7 +508,9 @@ export default function FormSubmissionDetailPage() {
                   <Calendar className="h-4 w-4 text-gray-400" />
                   <div>
                     <div className="font-medium">Submitted</div>
-                    <div className="text-gray-500">{formatDate(submission.submittedAt)}</div>
+                    <div className="text-gray-500">
+                      {formatDate(submission.submittedAt)}
+                    </div>
                   </div>
                 </div>
                 {submission.reviewedAt && (
@@ -449,7 +518,9 @@ export default function FormSubmissionDetailPage() {
                     <CheckCircle className="h-4 w-4 text-purple-500" />
                     <div>
                       <div className="font-medium">Reviewed</div>
-                      <div className="text-gray-500">{formatDate(submission.reviewedAt)}</div>
+                      <div className="text-gray-500">
+                        {formatDate(submission.reviewedAt)}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -458,7 +529,9 @@ export default function FormSubmissionDetailPage() {
                     <Mail className="h-4 w-4 text-green-500" />
                     <div>
                       <div className="font-medium">Contacted</div>
-                      <div className="text-gray-500">{formatDate(submission.contactedAt)}</div>
+                      <div className="text-gray-500">
+                        {formatDate(submission.contactedAt)}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -466,7 +539,9 @@ export default function FormSubmissionDetailPage() {
                   <Clock className="h-4 w-4 text-gray-400" />
                   <div>
                     <div className="font-medium">Last Updated</div>
-                    <div className="text-gray-500">{formatDate(submission.updatedAt)}</div>
+                    <div className="text-gray-500">
+                      {formatDate(submission.updatedAt)}
+                    </div>
                   </div>
                 </div>
               </div>

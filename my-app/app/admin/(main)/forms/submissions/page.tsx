@@ -1,29 +1,51 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
-import { DataTable, Column, Filter, StatCard } from '@/components/customUI';
-import { usePagination } from '@/components/customUI';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { FormSubmission } from '@/lib/api';
-import { Eye, ArrowLeft, FileText, Users, Clock, CheckCircle, AlertCircle } from 'lucide-react';
-import logger from '@/lib/logger';
-import { useTenant } from '@/contexts/tenant-context';
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
+import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
+import { usePagination } from "@/components/customUI";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { FormSubmission } from "@/lib/api";
+import {
+  Eye,
+  ArrowLeft,
+  FileText,
+  Users,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
+import logger from "@/lib/logger";
+import { useTenant } from "@/contexts/tenant-context";
 
 export default function FormSubmissionsPage() {
   const router = useRouter();
   const { subAccountId } = useTenant();
   const [submissions, setSubmissions] = useState<FormSubmission[]>([]);
-  const [filteredSubmissions, setFilteredSubmissions] = useState<FormSubmission[]>([]);
-  const [stats, setStats] = useState({ total: 0, new: 0, reviewed: 0, contacted: 0 });
+  const [filteredSubmissions, setFilteredSubmissions] = useState<
+    FormSubmission[]
+  >([]);
+  const [stats, setStats] = useState({
+    total: 0,
+    new: 0,
+    reviewed: 0,
+    contacted: 0,
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [selectedSubmission, setSelectedSubmission] = useState<FormSubmission | null>(null);
+  const [selectedSubmission, setSelectedSubmission] =
+    useState<FormSubmission | null>(null);
 
   // Use the pagination hook
   const {
@@ -36,146 +58,152 @@ export default function FormSubmissionsPage() {
   // Calculate stats cards
   const statsCards: StatCard[] = [
     {
-      title: 'Total Submissions',
+      title: "Total Submissions",
       value: stats.total,
       icon: <FileText className="h-8 w-8" />,
-      color: 'text-blue-600',
+      color: "text-blue-600",
     },
     {
-      title: 'New Submissions',
+      title: "New Submissions",
       value: stats.new,
       icon: <AlertCircle className="h-8 w-8" />,
-      color: 'text-orange-600',
+      color: "text-orange-600",
     },
     {
-      title: 'Reviewed',
+      title: "Reviewed",
       value: stats.reviewed,
       icon: <Eye className="h-8 w-8" />,
-      color: 'text-purple-600',
+      color: "text-purple-600",
     },
     {
-      title: 'Contacted',
+      title: "Contacted",
       value: stats.contacted,
       icon: <CheckCircle className="h-8 w-8" />,
-      color: 'text-green-600',
+      color: "text-green-600",
     },
   ];
 
   // Helper function to format date
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   // Helper function to get status color
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'new':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'reviewed':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'contacted':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'processed':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'archived':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+      case "new":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      case "reviewed":
+        return "bg-purple-100 text-purple-800 border-purple-200";
+      case "contacted":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "processed":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "archived":
+        return "bg-gray-100 text-gray-800 border-gray-200";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
   // Helper function to get priority color
   const getPriorityColor = (priority: string) => {
     switch (priority.toLowerCase()) {
-      case 'urgent':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'high':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'low':
-        return 'bg-green-100 text-green-800 border-green-200';
+      case "urgent":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "high":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "low":
+        return "bg-green-100 text-green-800 border-green-200";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
   // Define columns for submissions
   const submissionColumns: Column<FormSubmission>[] = [
     {
-      key: 'formTemplate',
-      header: 'Form',
+      key: "formTemplate",
+      header: "Form",
       render: (submission) => (
         <div>
           <div className="font-medium">{submission.formTemplate?.name}</div>
-          <div className="text-sm text-gray-500">{submission.formTemplate?.title}</div>
+          <div className="text-sm text-gray-500">
+            {submission.formTemplate?.title}
+          </div>
         </div>
       ),
     },
     {
-      key: 'submittedAt',
-      header: 'Submitted',
+      key: "submittedAt",
+      header: "Submitted",
       render: (submission) => formatDate(submission.submittedAt),
     },
     {
-      key: 'status',
-      header: 'Status',
+      key: "status",
+      header: "Status",
       render: (submission) => (
         <Badge className={getStatusColor(submission.status)}>
-          {submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
+          {submission.status.charAt(0).toUpperCase() +
+            submission.status.slice(1)}
         </Badge>
       ),
     },
     {
-      key: 'priority',
-      header: 'Priority',
+      key: "priority",
+      header: "Priority",
       render: (submission) => (
-        <Badge variant="outline" className={getPriorityColor(submission.priority)}>
+        <Badge
+          variant="outline"
+          className={getPriorityColor(submission.priority)}
+        >
           {submission.priority}
         </Badge>
       ),
     },
     {
-      key: 'assignedTo',
-      header: 'Assigned To',
-      render: (submission) => submission.assignedTo?.name || 'Unassigned',
+      key: "assignedTo",
+      header: "Assigned To",
+      render: (submission) => submission.assignedTo?.name || "Unassigned",
     },
     {
-      key: 'subAccount',
-      header: 'Sub-Account',
-      render: (submission) => submission.subAccount?.name || 'Global',
+      key: "subAccount",
+      header: "Sub-Account",
+      render: (submission) => submission.subAccount?.name || "Global",
     },
   ];
 
   // Define filters for submissions
   const submissionFilters: Filter[] = [
     {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
+      key: "status",
+      label: "Status",
+      type: "select",
       options: [
-        { value: 'new', label: 'New' },
-        { value: 'reviewed', label: 'Reviewed' },
-        { value: 'contacted', label: 'Contacted' },
-        { value: 'processed', label: 'Processed' },
-        { value: 'archived', label: 'Archived' },
+        { value: "new", label: "New" },
+        { value: "reviewed", label: "Reviewed" },
+        { value: "contacted", label: "Contacted" },
+        { value: "processed", label: "Processed" },
+        { value: "archived", label: "Archived" },
       ],
     },
     {
-      key: 'priority',
-      label: 'Priority',
-      type: 'select',
+      key: "priority",
+      label: "Priority",
+      type: "select",
       options: [
-        { value: 'urgent', label: 'Urgent' },
-        { value: 'high', label: 'High' },
-        { value: 'medium', label: 'Medium' },
-        { value: 'low', label: 'Low' },
+        { value: "urgent", label: "Urgent" },
+        { value: "high", label: "High" },
+        { value: "medium", label: "Medium" },
+        { value: "low", label: "Low" },
       ],
     },
   ];
@@ -185,16 +213,24 @@ export default function FormSubmissionsPage() {
       setIsRefreshing(true);
       setError(null);
 
-      const submissionsData = await api.forms.getFormSubmissions(subAccountId ?? undefined);
+      const submissionsData = await api.forms.getFormSubmissions(
+        subAccountId ?? undefined
+      );
 
       setSubmissions(submissionsData);
       setFilteredSubmissions(submissionsData);
       setTotalItems(submissionsData.length);
 
       // Calculate stats
-      const newSubmissions = submissionsData.filter(s => s.status === 'new').length;
-      const reviewedSubmissions = submissionsData.filter(s => s.status === 'reviewed').length;
-      const contactedSubmissions = submissionsData.filter(s => s.status === 'contacted').length;
+      const newSubmissions = submissionsData.filter(
+        (s) => s.status === "new"
+      ).length;
+      const reviewedSubmissions = submissionsData.filter(
+        (s) => s.status === "reviewed"
+      ).length;
+      const contactedSubmissions = submissionsData.filter(
+        (s) => s.status === "contacted"
+      ).length;
 
       setStats({
         total: submissionsData.length,
@@ -203,8 +239,8 @@ export default function FormSubmissionsPage() {
         contacted: contactedSubmissions,
       });
     } catch (error) {
-      logger.error('Failed to load form submissions:', error);
-      setError('Failed to load form submissions');
+      logger.error("Failed to load form submissions:", error);
+      setError("Failed to load form submissions");
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -213,11 +249,16 @@ export default function FormSubmissionsPage() {
 
   // Handle search for submissions
   const handleSubmissionSearch = (term: string) => {
-    const filtered = submissions.filter(submission =>
-      submission.formTemplate?.name?.toLowerCase().includes(term.toLowerCase()) ||
-      submission.formTemplate?.title?.toLowerCase().includes(term.toLowerCase()) ||
-      submission.status.toLowerCase().includes(term.toLowerCase()) ||
-      submission.assignedTo?.name?.toLowerCase().includes(term.toLowerCase())
+    const filtered = submissions.filter(
+      (submission) =>
+        submission.formTemplate?.name
+          ?.toLowerCase()
+          .includes(term.toLowerCase()) ||
+        submission.formTemplate?.title
+          ?.toLowerCase()
+          .includes(term.toLowerCase()) ||
+        submission.status.toLowerCase().includes(term.toLowerCase()) ||
+        submission.assignedTo?.name?.toLowerCase().includes(term.toLowerCase())
     );
     setFilteredSubmissions(filtered);
     setTotalItems(filtered.length);
@@ -228,12 +269,14 @@ export default function FormSubmissionsPage() {
   const handleSubmissionFilter = (key: string, value: string) => {
     let filtered = submissions;
 
-    if (key === 'status' && value !== 'all') {
-      filtered = filtered.filter(submission => submission.status === value);
+    if (key === "status" && value !== "all") {
+      filtered = filtered.filter((submission) => submission.status === value);
     }
 
-    if (key === 'priority' && value !== 'all') {
-      filtered = filtered.filter(submission => submission.priority.toLowerCase() === value);
+    if (key === "priority" && value !== "all") {
+      filtered = filtered.filter(
+        (submission) => submission.priority.toLowerCase() === value
+      );
     }
 
     setFilteredSubmissions(filtered);
@@ -272,7 +315,7 @@ export default function FormSubmissionsPage() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => router.push('/admin/forms')}
+          onClick={() => router.push("/admin/forms")}
           className="flex items-center gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -300,7 +343,7 @@ export default function FormSubmissionsPage() {
         onRefresh={loadData}
         stats={statsCards}
         searchPlaceholder="Search submissions..."
-        onCreateClick={() => router.push('/admin/forms')}
+        onCreateClick={() => router.push("/admin/forms")}
       />
     </div>
   );

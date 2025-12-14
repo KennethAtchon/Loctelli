@@ -1,16 +1,22 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { api } from '@/lib/api';
-import { useAdminAuth } from '@/contexts/unified-auth-context';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { User, Lock, Save, Shield, Trash2, Eye, EyeOff } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
+import { useAdminAuth } from "@/contexts/unified-auth-context";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { User, Lock, Save, Shield, Trash2, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -18,7 +24,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,7 +35,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
 
 interface AdminAccount {
   id: number;
@@ -43,19 +49,19 @@ interface AdminAccount {
 
 export default function AdminSettingsPage() {
   const { admin, refreshAdmin } = useAdminAuth();
-  
+
   // Profile management state
   const [profileData, setProfileData] = useState({
-    name: '',
-    email: '',
+    name: "",
+    email: "",
   });
   const [isProfileLoading, setIsProfileLoading] = useState(false);
-  
+
   // Password change state
   const [passwordData, setPasswordData] = useState({
-    oldPassword: '',
-    newPassword: '',
-    confirmPassword: '',
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
   const [showPasswords, setShowPasswords] = useState({
     old: false,
@@ -72,12 +78,12 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     if (admin) {
       setProfileData({
-        name: admin.name || '',
-        email: admin.email || '',
+        name: admin.name || "",
+        email: admin.email || "",
       });
     }
-    
-    if (admin?.role === 'super_admin') {
+
+    if (admin?.role === "super_admin") {
       loadAdminAccounts();
     }
   }, [admin]);
@@ -88,7 +94,7 @@ export default function AdminSettingsPage() {
       const accounts = await api.adminAuth.getAllAdminAccounts();
       setAdminAccounts(accounts);
     } catch {
-      toast.error('Failed to load admin accounts');
+      toast.error("Failed to load admin accounts");
     } finally {
       setIsLoadingAdmins(false);
     }
@@ -101,9 +107,11 @@ export default function AdminSettingsPage() {
     try {
       await api.adminAuth.updateAdminProfile(profileData);
       await refreshAdmin(); // Refresh the admin context
-      toast.success('Profile updated successfully');
+      toast.success("Profile updated successfully");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to update profile');
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update profile"
+      );
     } finally {
       setIsProfileLoading(false);
     }
@@ -111,14 +119,14 @@ export default function AdminSettingsPage() {
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error('New passwords do not match');
+      toast.error("New passwords do not match");
       return;
     }
 
     if (passwordData.newPassword.length < 12) {
-      toast.error('New password must be at least 12 characters long');
+      toast.error("New password must be at least 12 characters long");
       return;
     }
 
@@ -129,17 +137,19 @@ export default function AdminSettingsPage() {
         oldPassword: passwordData.oldPassword,
         newPassword: passwordData.newPassword,
       });
-      
+
       // Clear password fields
       setPasswordData({
-        oldPassword: '',
-        newPassword: '',
-        confirmPassword: '',
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
       });
-      
-      toast.success('Password changed successfully');
+
+      toast.success("Password changed successfully");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to change password');
+      toast.error(
+        error instanceof Error ? error.message : "Failed to change password"
+      );
     } finally {
       setIsPasswordLoading(false);
     }
@@ -147,32 +157,36 @@ export default function AdminSettingsPage() {
 
   const handleDeleteAdmin = async (adminId: number) => {
     if (adminId === admin?.id) {
-      toast.error('You cannot delete your own account');
+      toast.error("You cannot delete your own account");
       return;
     }
 
     try {
       setIsDeletingAdmin(adminId);
       await api.adminAuth.deleteAdminAccount(adminId);
-      toast.success('Admin account deleted successfully');
+      toast.success("Admin account deleted successfully");
       loadAdminAccounts(); // Refresh the list
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to delete admin account');
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete admin account"
+      );
     } finally {
       setIsDeletingAdmin(null);
     }
   };
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Never';
-    
+    if (!dateString) return "Never";
+
     const date = new Date(dateString);
-    
+
     // Check if the date is valid
     if (isNaN(date.getTime())) {
-      return 'Invalid Date';
+      return "Invalid Date";
     }
-    
+
     return date.toLocaleDateString();
   };
 
@@ -180,14 +194,20 @@ export default function AdminSettingsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Admin Settings</h1>
-        <p className="text-gray-600">Manage admin settings and configurations</p>
+        <p className="text-gray-600">
+          Manage admin settings and configurations
+        </p>
         {admin && (
           <div className="mt-2 flex items-center gap-2">
-            <Badge variant={admin.role === 'super_admin' ? 'default' : 'secondary'}>
-              {admin.role === 'super_admin' ? 'Super Admin' : 'Admin'}
+            <Badge
+              variant={admin.role === "super_admin" ? "default" : "secondary"}
+            >
+              {admin.role === "super_admin" ? "Super Admin" : "Admin"}
             </Badge>
             <span className="text-sm text-gray-500">
-              {admin.role === 'super_admin' ? 'Full system access' : 'Standard admin access'}
+              {admin.role === "super_admin"
+                ? "Full system access"
+                : "Standard admin access"}
             </span>
           </div>
         )}
@@ -212,7 +232,12 @@ export default function AdminSettingsPage() {
                 <Input
                   id="name"
                   value={profileData.name}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(e) =>
+                    setProfileData((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }))
+                  }
                   placeholder="Enter your name"
                   required
                 />
@@ -223,7 +248,12 @@ export default function AdminSettingsPage() {
                   id="email"
                   type="email"
                   value={profileData.email}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                  onChange={(e) =>
+                    setProfileData((prev) => ({
+                      ...prev,
+                      email: e.target.value,
+                    }))
+                  }
                   placeholder="Enter your email"
                   required
                 />
@@ -259,69 +289,106 @@ export default function AdminSettingsPage() {
               <div className="relative">
                 <Input
                   id="oldPassword"
-                  type={showPasswords.old ? 'text' : 'password'}
+                  type={showPasswords.old ? "text" : "password"}
                   value={passwordData.oldPassword}
-                  onChange={(e) => setPasswordData(prev => ({ ...prev, oldPassword: e.target.value }))}
+                  onChange={(e) =>
+                    setPasswordData((prev) => ({
+                      ...prev,
+                      oldPassword: e.target.value,
+                    }))
+                  }
                   placeholder="Enter current password"
                   required
                 />
                 <button
                   type="button"
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  onClick={() => setShowPasswords(prev => ({ ...prev, old: !prev.old }))}
+                  onClick={() =>
+                    setShowPasswords((prev) => ({ ...prev, old: !prev.old }))
+                  }
                 >
-                  {showPasswords.old ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPasswords.old ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="newPassword">New Password</Label>
                 <div className="relative">
                   <Input
                     id="newPassword"
-                    type={showPasswords.new ? 'text' : 'password'}
+                    type={showPasswords.new ? "text" : "password"}
                     value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                    onChange={(e) =>
+                      setPasswordData((prev) => ({
+                        ...prev,
+                        newPassword: e.target.value,
+                      }))
+                    }
                     placeholder="Enter new password"
                     required
                   />
                   <button
                     type="button"
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))}
+                    onClick={() =>
+                      setShowPasswords((prev) => ({ ...prev, new: !prev.new }))
+                    }
                   >
-                    {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPasswords.new ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
                 <p className="text-xs text-gray-500">
-                  Must be at least 12 characters with uppercase, lowercase, number, and special character
+                  Must be at least 12 characters with uppercase, lowercase,
+                  number, and special character
                 </p>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm New Password</Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
-                    type={showPasswords.confirm ? 'text' : 'password'}
+                    type={showPasswords.confirm ? "text" : "password"}
                     value={passwordData.confirmPassword}
-                    onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    onChange={(e) =>
+                      setPasswordData((prev) => ({
+                        ...prev,
+                        confirmPassword: e.target.value,
+                      }))
+                    }
                     placeholder="Confirm new password"
                     required
                   />
                   <button
                     type="button"
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
+                    onClick={() =>
+                      setShowPasswords((prev) => ({
+                        ...prev,
+                        confirm: !prev.confirm,
+                      }))
+                    }
                   >
-                    {showPasswords.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPasswords.confirm ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
             </div>
-            
+
             <Button type="submit" disabled={isPasswordLoading}>
               {isPasswordLoading ? (
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
@@ -335,10 +402,10 @@ export default function AdminSettingsPage() {
       </Card>
 
       {/* Super Admin Only Section */}
-      {admin?.role === 'super_admin' && (
+      {admin?.role === "super_admin" && (
         <>
           <Separator />
-          
+
           {/* Admin Accounts Management */}
           <Card>
             <CardHeader>
@@ -374,19 +441,35 @@ export default function AdminSettingsPage() {
                     <TableBody>
                       {adminAccounts.map((account) => (
                         <TableRow key={account.id}>
-                          <TableCell className="font-medium">{account.name}</TableCell>
+                          <TableCell className="font-medium">
+                            {account.name}
+                          </TableCell>
                           <TableCell>{account.email}</TableCell>
                           <TableCell>
-                            <Badge variant={account.role === 'super_admin' ? 'default' : 'secondary'}>
-                              {account.role === 'super_admin' ? 'Super Admin' : 'Admin'}
+                            <Badge
+                              variant={
+                                account.role === "super_admin"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                            >
+                              {account.role === "super_admin"
+                                ? "Super Admin"
+                                : "Admin"}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge variant={account.isActive ? 'default' : 'destructive'}>
-                              {account.isActive ? 'Active' : 'Inactive'}
+                            <Badge
+                              variant={
+                                account.isActive ? "default" : "destructive"
+                              }
+                            >
+                              {account.isActive ? "Active" : "Inactive"}
                             </Badge>
                           </TableCell>
-                          <TableCell>{formatDate(account.lastLoginAt)}</TableCell>
+                          <TableCell>
+                            {formatDate(account.lastLoginAt)}
+                          </TableCell>
                           <TableCell>{formatDate(account.createdAt)}</TableCell>
                           <TableCell className="text-right">
                             {account.id !== admin?.id && (
@@ -406,19 +489,29 @@ export default function AdminSettingsPage() {
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete Admin Account</AlertDialogTitle>
+                                    <AlertDialogTitle>
+                                      Delete Admin Account
+                                    </AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      Are you sure you want to delete the admin account for{' '}
-                                      <strong>{account.name}</strong> ({account.email})?
+                                      Are you sure you want to delete the admin
+                                      account for{" "}
+                                      <strong>{account.name}</strong> (
+                                      {account.email})?
                                       <br />
                                       <br />
-                                      This action cannot be undone and will immediately revoke all access for this admin.
+                                      This action cannot be undone and will
+                                      immediately revoke all access for this
+                                      admin.
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogCancel>
+                                      Cancel
+                                    </AlertDialogCancel>
                                     <AlertDialogAction
-                                      onClick={() => handleDeleteAdmin(account.id)}
+                                      onClick={() =>
+                                        handleDeleteAdmin(account.id)
+                                      }
                                       className="bg-red-600 hover:bg-red-700"
                                     >
                                       Delete Account
@@ -432,7 +525,7 @@ export default function AdminSettingsPage() {
                       ))}
                     </TableBody>
                   </Table>
-                  
+
                   {adminAccounts.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
                       No admin accounts found.
@@ -446,7 +539,7 @@ export default function AdminSettingsPage() {
       )}
 
       {/* Regular Admin Information */}
-      {admin?.role !== 'super_admin' && (
+      {admin?.role !== "super_admin" && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -461,8 +554,10 @@ export default function AdminSettingsPage() {
             <div className="space-y-2">
               <h3 className="text-sm font-medium">Your Access Level</h3>
               <p className="text-xs text-gray-600">
-                As a regular admin, you have access to user management, system monitoring, and your own profile settings.
-                System-level configurations and admin account management are restricted to super administrators.
+                As a regular admin, you have access to user management, system
+                monitoring, and your own profile settings. System-level
+                configurations and admin account management are restricted to
+                super administrators.
               </p>
             </div>
 
@@ -480,8 +575,10 @@ export default function AdminSettingsPage() {
             <div className="space-y-2">
               <h3 className="text-sm font-medium">Need More Access?</h3>
               <p className="text-xs text-gray-600">
-                If you need access to system-level configurations or admin account management, please contact a super administrator.
-                Super admins can manage admin accounts and perform system-wide administrative tasks.
+                If you need access to system-level configurations or admin
+                account management, please contact a super administrator. Super
+                admins can manage admin accounts and perform system-wide
+                administrative tasks.
               </p>
             </div>
           </CardContent>
@@ -489,4 +586,4 @@ export default function AdminSettingsPage() {
       )}
     </div>
   );
-} 
+}

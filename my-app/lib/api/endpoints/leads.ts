@@ -1,22 +1,28 @@
-import { ApiClient } from '../client';
-import { Lead, CreateLeadDto } from '@/types';
+import { ApiClient } from "../client";
+import { Lead, CreateLeadDto } from "@/types";
 
 export class LeadsApi {
   constructor(private client: ApiClient) {}
-  
-  async getLeads(params?: { subAccountId?: number; userId?: number; strategyId?: number }): Promise<Lead[]> {
+
+  async getLeads(params?: {
+    subAccountId?: number;
+    userId?: number;
+    strategyId?: number;
+  }): Promise<Lead[]> {
     const queryParams = new URLSearchParams();
     if (params?.subAccountId) {
-      queryParams.append('subAccountId', params.subAccountId.toString());
+      queryParams.append("subAccountId", params.subAccountId.toString());
     }
     if (params?.userId !== undefined && params?.userId !== null) {
-      queryParams.append('userId', params.userId.toString());
+      queryParams.append("userId", params.userId.toString());
     }
     if (params?.strategyId) {
-      queryParams.append('strategyId', params.strategyId.toString());
+      queryParams.append("strategyId", params.strategyId.toString());
     }
     const queryString = queryParams.toString();
-    return this.client.get<Lead[]>(`/lead${queryString ? `?${queryString}` : ''}`);
+    return this.client.get<Lead[]>(
+      `/lead${queryString ? `?${queryString}` : ""}`
+    );
   }
 
   async getLead(id: number): Promise<Lead> {
@@ -24,7 +30,7 @@ export class LeadsApi {
   }
 
   async createLead(data: CreateLeadDto): Promise<Lead> {
-    return this.client.post<Lead>('/lead', data);
+    return this.client.post<Lead>("/lead", data);
   }
 
   async updateLead(id: number, data: Partial<CreateLeadDto>): Promise<Lead> {
@@ -42,4 +48,4 @@ export class LeadsApi {
   async getLeadsByStrategy(strategyId: number): Promise<Lead[]> {
     return this.client.get<Lead[]>(`/lead?strategyId=${strategyId}`);
   }
-} 
+}

@@ -1,78 +1,98 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { api } from '@/lib/api';
-import { DataTable, Column, Filter, StatCard } from '@/components/customUI';
-import { usePagination } from '@/components/customUI';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Mail, Phone, Eye, Edit, MessageSquare, User, Calendar } from 'lucide-react';
-import { ContactSubmission, CreateContactNoteDto } from '@/types';
-import logger from '@/lib/logger';
-import { useTenant } from '@/contexts/tenant-context';
+import { useState, useEffect, useCallback } from "react";
+import { api } from "@/lib/api";
+import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
+import { usePagination } from "@/components/customUI";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Mail,
+  Phone,
+  Eye,
+  Edit,
+  MessageSquare,
+  User,
+  Calendar,
+} from "lucide-react";
+import { ContactSubmission, CreateContactNoteDto } from "@/types";
+import logger from "@/lib/logger";
+import { useTenant } from "@/contexts/tenant-context";
 
 export default function ContactsPage() {
   // Tenant filtering is handled automatically via headers in the API client
-  const { } = useTenant();
+  const {} = useTenant();
   const [contacts, setContacts] = useState<ContactSubmission[]>([]);
-  const [filteredContacts, setFilteredContacts] = useState<ContactSubmission[]>([]);
-  const [stats, setStats] = useState({ total: 0, newCount: 0, inProgress: 0, closed: 0 });
+  const [filteredContacts, setFilteredContacts] = useState<ContactSubmission[]>(
+    []
+  );
+  const [stats, setStats] = useState({
+    total: 0,
+    newCount: 0,
+    inProgress: 0,
+    closed: 0,
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [selectedContact, setSelectedContact] = useState<ContactSubmission | null>(null);
+  const [selectedContact, setSelectedContact] =
+    useState<ContactSubmission | null>(null);
   const [isAddingNote, setIsAddingNote] = useState(false);
-  const [newNote, setNewNote] = useState('');
+  const [newNote, setNewNote] = useState("");
 
   // Use the pagination hook
-  const {
-    pagination,
-    paginatedData,
-    setCurrentPage,
-    setTotalItems,
-  } = usePagination(filteredContacts, { pageSize: 10 });
+  const { pagination, paginatedData, setCurrentPage, setTotalItems } =
+    usePagination(filteredContacts, { pageSize: 10 });
 
   // Calculate stats cards
   const statsCards: StatCard[] = [
     {
-      title: 'Total Contacts',
+      title: "Total Contacts",
       value: stats.total,
       icon: <Mail className="h-8 w-8" />,
-      color: 'text-blue-600',
+      color: "text-blue-600",
     },
     {
-      title: 'New',
+      title: "New",
       value: stats.newCount,
       icon: <User className="h-8 w-8" />,
-      color: 'text-green-600',
+      color: "text-green-600",
     },
     {
-      title: 'In Progress',
+      title: "In Progress",
       value: stats.inProgress,
       icon: <Calendar className="h-8 w-8" />,
-      color: 'text-yellow-600',
+      color: "text-yellow-600",
     },
     {
-      title: 'Closed',
+      title: "Closed",
       value: stats.closed,
       icon: <MessageSquare className="h-8 w-8" />,
-      color: 'text-gray-600',
+      color: "text-gray-600",
     },
   ];
 
   // Define columns
   const columns: Column<ContactSubmission>[] = [
     {
-      key: 'fullName',
-      header: 'Name',
-      render: (contact) => <span className="font-medium">{contact.fullName}</span>,
+      key: "fullName",
+      header: "Name",
+      render: (contact) => (
+        <span className="font-medium">{contact.fullName}</span>
+      ),
     },
     {
-      key: 'contact',
-      header: 'Contact',
+      key: "contact",
+      header: "Contact",
       render: (contact) => (
         <div>
           <div className="text-sm">{contact.email}</div>
@@ -81,22 +101,25 @@ export default function ContactsPage() {
       ),
     },
     {
-      key: 'services',
-      header: 'Services',
+      key: "services",
+      header: "Services",
       render: (contact) => {
         const serviceLabels = {
-          'free-website': 'Free Website',
-          'google-reviews': 'Google Reviews',
-          'customer-reactivation': 'Customer Reactivation',
-          'lead-generation': 'AI Lead Generation',
-          'all-services': 'All Services',
+          "free-website": "Free Website",
+          "google-reviews": "Google Reviews",
+          "customer-reactivation": "Customer Reactivation",
+          "lead-generation": "AI Lead Generation",
+          "all-services": "All Services",
         };
-        return serviceLabels[contact.services as keyof typeof serviceLabels] || contact.services;
+        return (
+          serviceLabels[contact.services as keyof typeof serviceLabels] ||
+          contact.services
+        );
       },
     },
     {
-      key: 'status',
-      header: 'Status',
+      key: "status",
+      header: "Status",
       render: (contact) => (
         <Badge variant={getStatusBadgeVariant(contact.status)}>
           {contact.status}
@@ -104,8 +127,8 @@ export default function ContactsPage() {
       ),
     },
     {
-      key: 'priority',
-      header: 'Priority',
+      key: "priority",
+      header: "Priority",
       render: (contact) => (
         <Badge variant={getPriorityBadgeVariant(contact.priority)}>
           {contact.priority}
@@ -113,13 +136,13 @@ export default function ContactsPage() {
       ),
     },
     {
-      key: 'assignedTo',
-      header: 'Assigned To',
-      render: (contact) => contact.assignedTo?.name || 'Unassigned',
+      key: "assignedTo",
+      header: "Assigned To",
+      render: (contact) => contact.assignedTo?.name || "Unassigned",
     },
     {
-      key: 'submittedAt',
-      header: 'Submitted',
+      key: "submittedAt",
+      header: "Submitted",
       render: (contact) => formatDate(contact.submittedAt),
     },
   ];
@@ -127,28 +150,28 @@ export default function ContactsPage() {
   // Define filters
   const filters: Filter[] = [
     {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
+      key: "status",
+      label: "Status",
+      type: "select",
       options: [
-        { value: 'NEW', label: 'New' },
-        { value: 'CONTACTED', label: 'Contacted' },
-        { value: 'QUALIFIED', label: 'Qualified' },
-        { value: 'PROPOSAL_SENT', label: 'Proposal Sent' },
-        { value: 'CLOSED_WON', label: 'Closed Won' },
-        { value: 'CLOSED_LOST', label: 'Closed Lost' },
-        { value: 'UNRESPONSIVE', label: 'Unresponsive' },
+        { value: "NEW", label: "New" },
+        { value: "CONTACTED", label: "Contacted" },
+        { value: "QUALIFIED", label: "Qualified" },
+        { value: "PROPOSAL_SENT", label: "Proposal Sent" },
+        { value: "CLOSED_WON", label: "Closed Won" },
+        { value: "CLOSED_LOST", label: "Closed Lost" },
+        { value: "UNRESPONSIVE", label: "Unresponsive" },
       ],
     },
     {
-      key: 'priority',
-      label: 'Priority',
-      type: 'select',
+      key: "priority",
+      label: "Priority",
+      type: "select",
       options: [
-        { value: 'LOW', label: 'Low' },
-        { value: 'MEDIUM', label: 'Medium' },
-        { value: 'HIGH', label: 'High' },
-        { value: 'URGENT', label: 'Urgent' },
+        { value: "LOW", label: "Low" },
+        { value: "MEDIUM", label: "Medium" },
+        { value: "HIGH", label: "High" },
+        { value: "URGENT", label: "Urgent" },
       ],
     },
   ];
@@ -159,11 +182,13 @@ export default function ContactsPage() {
       setError(null);
 
       // Tenant filtering is handled automatically via headers in the API client
-      logger.debug('Loading contacts - tenant filtering is automatic via headers');
+      logger.debug(
+        "Loading contacts - tenant filtering is automatic via headers"
+      );
 
       const [contactsData, statsData] = await Promise.all([
         api.contacts.getContacts(),
-        api.contacts.getStats()
+        api.contacts.getStats(),
       ]);
 
       setContacts(contactsData);
@@ -171,8 +196,8 @@ export default function ContactsPage() {
       setStats(statsData);
       setTotalItems(contactsData.length);
     } catch (error) {
-      logger.error('Failed to load contacts:', error);
-      setError('Failed to load contacts');
+      logger.error("Failed to load contacts:", error);
+      setError("Failed to load contacts");
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -181,11 +206,12 @@ export default function ContactsPage() {
 
   // Handle search
   const handleSearch = (term: string) => {
-    const filtered = contacts.filter(contact =>
-      contact.fullName.toLowerCase().includes(term.toLowerCase()) ||
-      contact.email.toLowerCase().includes(term.toLowerCase()) ||
-      contact.phone.toLowerCase().includes(term.toLowerCase()) ||
-      contact.services.toLowerCase().includes(term.toLowerCase())
+    const filtered = contacts.filter(
+      (contact) =>
+        contact.fullName.toLowerCase().includes(term.toLowerCase()) ||
+        contact.email.toLowerCase().includes(term.toLowerCase()) ||
+        contact.phone.toLowerCase().includes(term.toLowerCase()) ||
+        contact.services.toLowerCase().includes(term.toLowerCase())
     );
     setFilteredContacts(filtered);
     setTotalItems(filtered.length);
@@ -196,12 +222,12 @@ export default function ContactsPage() {
   const handleFilter = (key: string, value: string) => {
     let filtered = contacts;
 
-    if (key === 'status' && value !== 'all') {
-      filtered = filtered.filter(contact => contact.status === value);
+    if (key === "status" && value !== "all") {
+      filtered = filtered.filter((contact) => contact.status === value);
     }
-    
-    if (key === 'priority' && value !== 'all') {
-      filtered = filtered.filter(contact => contact.priority === value);
+
+    if (key === "priority" && value !== "all") {
+      filtered = filtered.filter((contact) => contact.priority === value);
     }
 
     setFilteredContacts(filtered);
@@ -220,20 +246,22 @@ export default function ContactsPage() {
 
   const handleAddNote = async () => {
     if (!selectedContact || !newNote.trim()) return;
-    
+
     try {
       setIsAddingNote(true);
-      await api.contacts.addNote(selectedContact.id, { content: newNote.trim() });
-      setNewNote('');
-      setSuccess('Note added successfully');
+      await api.contacts.addNote(selectedContact.id, {
+        content: newNote.trim(),
+      });
+      setNewNote("");
+      setSuccess("Note added successfully");
       // Refresh the selected contact
       const updatedContact = await api.contacts.getContact(selectedContact.id);
       setSelectedContact(updatedContact);
       loadContacts(); // Refresh the list
       setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
-      logger.error('Failed to add note:', error);
-      setError('Failed to add note. Please try again.');
+      logger.error("Failed to add note:", error);
+      setError("Failed to add note. Please try again.");
     } finally {
       setIsAddingNote(false);
     }
@@ -245,55 +273,56 @@ export default function ContactsPage() {
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'NEW':
-        return 'default';
-      case 'CONTACTED':
-        return 'secondary';
-      case 'QUALIFIED':
-        return 'default';
-      case 'PROPOSAL_SENT':
-        return 'secondary';
-      case 'CLOSED_WON':
-        return 'default';
-      case 'CLOSED_LOST':
-        return 'destructive';
-      case 'UNRESPONSIVE':
-        return 'outline';
+      case "NEW":
+        return "default";
+      case "CONTACTED":
+        return "secondary";
+      case "QUALIFIED":
+        return "default";
+      case "PROPOSAL_SENT":
+        return "secondary";
+      case "CLOSED_WON":
+        return "default";
+      case "CLOSED_LOST":
+        return "destructive";
+      case "UNRESPONSIVE":
+        return "outline";
       default:
-        return 'secondary';
+        return "secondary";
     }
   };
 
   const getPriorityBadgeVariant = (priority: string) => {
     switch (priority) {
-      case 'LOW':
-        return 'outline';
-      case 'MEDIUM':
-        return 'secondary';
-      case 'HIGH':
-        return 'default';
-      case 'URGENT':
-        return 'destructive';
+      case "LOW":
+        return "outline";
+      case "MEDIUM":
+        return "secondary";
+      case "HIGH":
+        return "default";
+      case "URGENT":
+        return "destructive";
       default:
-        return 'secondary';
+        return "secondary";
     }
   };
 
   const formatDate = (dateInput: string | Date) => {
-    if (!dateInput) return 'N/A';
-    
-    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
-    
+    if (!dateInput) return "N/A";
+
+    const date =
+      typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+
     if (isNaN(date.getTime())) {
-      return 'Invalid Date';
+      return "Invalid Date";
     }
-    
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -328,10 +357,15 @@ export default function ContactsPage() {
 
       {/* Contact Details Dialog */}
       {selectedContact && (
-        <Dialog open={!!selectedContact} onOpenChange={() => setSelectedContact(null)}>
+        <Dialog
+          open={!!selectedContact}
+          onOpenChange={() => setSelectedContact(null)}
+        >
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Contact Details - {selectedContact.fullName}</DialogTitle>
+              <DialogTitle>
+                Contact Details - {selectedContact.fullName}
+              </DialogTitle>
               <DialogDescription>
                 Complete contact information and follow-up history
               </DialogDescription>
@@ -341,30 +375,57 @@ export default function ContactsPage() {
               <div>
                 <h3 className="font-semibold mb-3">Contact Information</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div><strong>Name:</strong> {selectedContact.fullName}</div>
-                  <div><strong>Email:</strong> 
-                    <a href={`mailto:${selectedContact.email}`} className="ml-2 text-blue-600 hover:underline">
+                  <div>
+                    <strong>Name:</strong> {selectedContact.fullName}
+                  </div>
+                  <div>
+                    <strong>Email:</strong>
+                    <a
+                      href={`mailto:${selectedContact.email}`}
+                      className="ml-2 text-blue-600 hover:underline"
+                    >
                       {selectedContact.email}
                     </a>
                   </div>
-                  <div><strong>Phone:</strong> 
-                    <a href={`tel:${selectedContact.phone}`} className="ml-2 text-blue-600 hover:underline">
+                  <div>
+                    <strong>Phone:</strong>
+                    <a
+                      href={`tel:${selectedContact.phone}`}
+                      className="ml-2 text-blue-600 hover:underline"
+                    >
                       {selectedContact.phone}
                     </a>
                   </div>
-                  <div><strong>Services:</strong> {selectedContact.services}</div>
-                  <div><strong>Source:</strong> {selectedContact.source}</div>
-                  <div><strong>Status:</strong> 
-                    <Badge variant={getStatusBadgeVariant(selectedContact.status)} className="ml-2">
+                  <div>
+                    <strong>Services:</strong> {selectedContact.services}
+                  </div>
+                  <div>
+                    <strong>Source:</strong> {selectedContact.source}
+                  </div>
+                  <div>
+                    <strong>Status:</strong>
+                    <Badge
+                      variant={getStatusBadgeVariant(selectedContact.status)}
+                      className="ml-2"
+                    >
                       {selectedContact.status}
                     </Badge>
                   </div>
-                  <div><strong>Priority:</strong> 
-                    <Badge variant={getPriorityBadgeVariant(selectedContact.priority)} className="ml-2">
+                  <div>
+                    <strong>Priority:</strong>
+                    <Badge
+                      variant={getPriorityBadgeVariant(
+                        selectedContact.priority
+                      )}
+                      className="ml-2"
+                    >
                       {selectedContact.priority}
                     </Badge>
                   </div>
-                  <div><strong>Assigned To:</strong> {selectedContact.assignedTo?.name || 'Unassigned'}</div>
+                  <div>
+                    <strong>Assigned To:</strong>{" "}
+                    {selectedContact.assignedTo?.name || "Unassigned"}
+                  </div>
                 </div>
               </div>
 
@@ -382,10 +443,26 @@ export default function ContactsPage() {
               <div>
                 <h3 className="font-semibold mb-3">Timeline</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div><strong>Submitted:</strong> {formatDate(selectedContact.submittedAt)}</div>
-                  <div><strong>Updated:</strong> {formatDate(selectedContact.updatedAt)}</div>
-                  <div><strong>Followed Up:</strong> {selectedContact.followedUpAt ? formatDate(selectedContact.followedUpAt) : 'Not yet'}</div>
-                  <div><strong>Closed:</strong> {selectedContact.closedAt ? formatDate(selectedContact.closedAt) : 'Not closed'}</div>
+                  <div>
+                    <strong>Submitted:</strong>{" "}
+                    {formatDate(selectedContact.submittedAt)}
+                  </div>
+                  <div>
+                    <strong>Updated:</strong>{" "}
+                    {formatDate(selectedContact.updatedAt)}
+                  </div>
+                  <div>
+                    <strong>Followed Up:</strong>{" "}
+                    {selectedContact.followedUpAt
+                      ? formatDate(selectedContact.followedUpAt)
+                      : "Not yet"}
+                  </div>
+                  <div>
+                    <strong>Closed:</strong>{" "}
+                    {selectedContact.closedAt
+                      ? formatDate(selectedContact.closedAt)
+                      : "Not closed"}
+                  </div>
                 </div>
               </div>
 
@@ -397,7 +474,8 @@ export default function ContactsPage() {
                     selectedContact.notes.map((note, index) => (
                       <div key={index} className="p-3 border rounded">
                         <div className="text-sm text-gray-600 mb-2">
-                          <strong>{note.authorName}</strong> • {formatDate(note.createdAt)}
+                          <strong>{note.authorName}</strong> •{" "}
+                          {formatDate(note.createdAt)}
                         </div>
                         <div className="text-sm">{note.content}</div>
                       </div>
@@ -405,7 +483,7 @@ export default function ContactsPage() {
                   ) : (
                     <div className="text-sm text-gray-500">No notes yet</div>
                   )}
-                  
+
                   {/* Add Note Form */}
                   <div className="mt-4 pt-4 border-t">
                     <div className="space-y-3">
@@ -415,12 +493,12 @@ export default function ContactsPage() {
                         onChange={(e) => setNewNote(e.target.value)}
                         rows={3}
                       />
-                      <Button 
-                        onClick={handleAddNote} 
+                      <Button
+                        onClick={handleAddNote}
                         disabled={!newNote.trim() || isAddingNote}
                         size="sm"
                       >
-                        {isAddingNote ? 'Adding...' : 'Add Note'}
+                        {isAddingNote ? "Adding..." : "Add Note"}
                       </Button>
                     </div>
                   </div>

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { api } from '@/lib/api';
-import type { SubAccount } from '@/lib/api';
-import logger from '@/lib/logger';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { api } from "@/lib/api";
+import type { SubAccount } from "@/lib/api";
+import logger from "@/lib/logger";
 
 interface SubaccountFilterContextType {
   currentFilter: string; // "GLOBAL" or subaccount ID
@@ -17,11 +17,19 @@ interface SubaccountFilterContextType {
   refreshFilter: () => void;
 }
 
-const SubaccountFilterContext = createContext<SubaccountFilterContextType | undefined>(undefined);
+const SubaccountFilterContext = createContext<
+  SubaccountFilterContextType | undefined
+>(undefined);
 
-export function SubaccountFilterProvider({ children }: { children: React.ReactNode }) {
-  const [currentFilter, setCurrentFilter] = useState<string>('GLOBAL');
-  const [availableSubaccounts, setAvailableSubaccounts] = useState<SubAccount[]>([]);
+export function SubaccountFilterProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [currentFilter, setCurrentFilter] = useState<string>("GLOBAL");
+  const [availableSubaccounts, setAvailableSubaccounts] = useState<
+    SubAccount[]
+  >([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubaccountsLoading, setIsSubaccountsLoading] = useState(true);
 
@@ -32,7 +40,7 @@ export function SubaccountFilterProvider({ children }: { children: React.ReactNo
 
   // Load saved filter from localStorage
   useEffect(() => {
-    const savedFilter = localStorage.getItem('admin-subaccount-filter');
+    const savedFilter = localStorage.getItem("admin-subaccount-filter");
     if (savedFilter) {
       setCurrentFilter(savedFilter);
     }
@@ -43,9 +51,9 @@ export function SubaccountFilterProvider({ children }: { children: React.ReactNo
       setIsSubaccountsLoading(true);
       const subaccounts = await api.adminSubAccounts.getAllSubAccounts();
       setAvailableSubaccounts(subaccounts);
-      logger.debug('Loaded subaccounts:', subaccounts.length);
+      logger.debug("Loaded subaccounts:", subaccounts.length);
     } catch (error) {
-      logger.error('Failed to load subaccounts:', error);
+      logger.error("Failed to load subaccounts:", error);
       setAvailableSubaccounts([]);
     } finally {
       setIsSubaccountsLoading(false);
@@ -54,20 +62,20 @@ export function SubaccountFilterProvider({ children }: { children: React.ReactNo
 
   const setFilter = (filter: string) => {
     setCurrentFilter(filter);
-    localStorage.setItem('admin-subaccount-filter', filter);
-    logger.debug('Subaccount filter changed to:', filter);
+    localStorage.setItem("admin-subaccount-filter", filter);
+    logger.debug("Subaccount filter changed to:", filter);
   };
 
   // Listen for subaccount changes and refresh the list
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'admin-subaccount-filter' && e.newValue) {
+      if (e.key === "admin-subaccount-filter" && e.newValue) {
         setCurrentFilter(e.newValue);
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   const refreshSubaccounts = async () => {
@@ -75,18 +83,21 @@ export function SubaccountFilterProvider({ children }: { children: React.ReactNo
   };
 
   const getCurrentSubaccount = (): SubAccount | null => {
-    if (currentFilter === 'GLOBAL') return null;
-    return availableSubaccounts.find(sa => sa.id.toString() === currentFilter) || null;
+    if (currentFilter === "GLOBAL") return null;
+    return (
+      availableSubaccounts.find((sa) => sa.id.toString() === currentFilter) ||
+      null
+    );
   };
 
   const isGlobalView = (): boolean => {
-    return currentFilter === 'GLOBAL';
+    return currentFilter === "GLOBAL";
   };
 
   const refreshFilter = () => {
     // Force a re-render by updating the filter
     const current = currentFilter;
-    setCurrentFilter('');
+    setCurrentFilter("");
     setTimeout(() => setCurrentFilter(current), 0);
   };
 
@@ -112,7 +123,9 @@ export function SubaccountFilterProvider({ children }: { children: React.ReactNo
 export function useSubaccountFilter() {
   const context = useContext(SubaccountFilterContext);
   if (context === undefined) {
-    throw new Error('useSubaccountFilter must be used within a SubaccountFilterProvider');
+    throw new Error(
+      "useSubaccountFilter must be used within a SubaccountFilterProvider"
+    );
   }
   return context;
-} 
+}

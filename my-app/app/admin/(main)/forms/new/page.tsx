@@ -1,33 +1,41 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Save, Plus, Download } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
-import { api } from '@/lib/api';
-import { useTenant } from '@/contexts/tenant-context';
-import { FormFieldEditor } from '@/components/admin/forms/form-field-editor';
-import { JsonImportDialog } from '@/components/admin/forms/json-import-dialog';
-import type { CreateFormTemplateDto, FormField } from '@/lib/api/endpoints/forms';
-
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Save, Plus, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/hooks/use-toast";
+import { api } from "@/lib/api";
+import { useTenant } from "@/contexts/tenant-context";
+import { FormFieldEditor } from "@/components/admin/forms/form-field-editor";
+import { JsonImportDialog } from "@/components/admin/forms/json-import-dialog";
+import type {
+  CreateFormTemplateDto,
+  FormField,
+} from "@/lib/api/endpoints/forms";
 
 export default function NewFormTemplatePage() {
   const { subAccountId } = useTenant();
   const [formData, setFormData] = useState<CreateFormTemplateDto>({
-    name: '',
-    slug: '',
-    description: '',
+    name: "",
+    slug: "",
+    description: "",
     schema: [],
-    title: '',
-    subtitle: '',
-    submitButtonText: 'Submit',
-    successMessage: 'Thank you for your submission!',
+    title: "",
+    subtitle: "",
+    submitButtonText: "Submit",
+    successMessage: "Thank you for your submission!",
     requiresWakeUp: true,
     wakeUpInterval: 30,
   });
@@ -35,8 +43,11 @@ export default function NewFormTemplatePage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleInputChange = (field: keyof CreateFormTemplateDto, value: string | number | boolean | FormField[] | undefined) => {
-    setFormData(prev => ({
+  const handleInputChange = (
+    field: keyof CreateFormTemplateDto,
+    value: string | number | boolean | FormField[] | undefined
+  ) => {
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -45,92 +56,97 @@ export default function NewFormTemplatePage() {
   const generateSlug = (name: string) => {
     return name
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
   };
 
   const handleNameChange = (name: string) => {
-    handleInputChange('name', name);
+    handleInputChange("name", name);
     if (!formData.slug || formData.slug === generateSlug(formData.name)) {
-      handleInputChange('slug', generateSlug(name));
+      handleInputChange("slug", generateSlug(name));
     }
     if (!formData.title || formData.title === formData.name) {
-      handleInputChange('title', name);
+      handleInputChange("title", name);
     }
   };
 
   const addField = () => {
     const newField: FormField = {
       id: `field_${Date.now()}`,
-      type: 'text',
-      label: '',
+      type: "text",
+      label: "",
       required: false,
     };
-    handleInputChange('schema', [...formData.schema, newField]);
+    handleInputChange("schema", [...formData.schema, newField]);
   };
 
   const updateField = (index: number, updates: Partial<FormField>) => {
     const updatedSchema = formData.schema.map((field, i) =>
       i === index ? { ...field, ...updates } : field
     );
-    handleInputChange('schema', updatedSchema);
+    handleInputChange("schema", updatedSchema);
   };
 
   const removeField = (index: number) => {
     const updatedSchema = formData.schema.filter((_, i) => i !== index);
-    handleInputChange('schema', updatedSchema);
+    handleInputChange("schema", updatedSchema);
   };
-
 
   const exportSchemaToJSON = () => {
     const jsonString = JSON.stringify(formData.schema, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
+    const blob = new Blob([jsonString], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `${formData.slug || 'form-schema'}.json`;
+    a.download = `${formData.slug || "form-schema"}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast({
-      title: 'Success',
-      description: 'Form schema exported successfully',
+      title: "Success",
+      description: "Form schema exported successfully",
     });
   };
 
   const handleImportFields = (fields: FormField[]) => {
-    handleInputChange('schema', fields);
+    handleInputChange("schema", fields);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name.trim() || !formData.slug.trim() || !formData.title.trim()) {
+    if (
+      !formData.name.trim() ||
+      !formData.slug.trim() ||
+      !formData.title.trim()
+    ) {
       toast({
-        title: 'Validation Error',
-        description: 'Name, slug, and title are required',
-        variant: 'destructive',
+        title: "Validation Error",
+        description: "Name, slug, and title are required",
+        variant: "destructive",
       });
       return;
     }
 
     if (formData.schema.length === 0) {
       toast({
-        title: 'Validation Error',
-        description: 'At least one form field is required',
-        variant: 'destructive',
+        title: "Validation Error",
+        description: "At least one form field is required",
+        variant: "destructive",
       });
       return;
     }
 
     // Validate all fields have labels
-    const invalidFields = formData.schema.filter(field => !field.label.trim());
+    const invalidFields = formData.schema.filter(
+      (field) => !field.label.trim()
+    );
     if (invalidFields.length > 0) {
       toast({
-        title: 'Validation Error',
-        description: 'All form fields must have labels',
-        variant: 'destructive',
+        title: "Validation Error",
+        description: "All form fields must have labels",
+        variant: "destructive",
       });
       return;
     }
@@ -145,17 +161,17 @@ export default function NewFormTemplatePage() {
       await api.forms.createFormTemplate(dataToSubmit);
 
       toast({
-        title: 'Success',
-        description: 'Form template created successfully',
+        title: "Success",
+        description: "Form template created successfully",
       });
 
-      router.push('/admin/forms');
+      router.push("/admin/forms");
     } catch (error: any) {
-      console.error('Failed to create form template:', error);
+      console.error("Failed to create form template:", error);
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to create form template',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to create form template",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -202,7 +218,7 @@ export default function NewFormTemplatePage() {
                 <Input
                   id="slug"
                   value={formData.slug}
-                  onChange={(e) => handleInputChange('slug', e.target.value)}
+                  onChange={(e) => handleInputChange("slug", e.target.value)}
                   placeholder="e.g., contact-form"
                 />
               </div>
@@ -212,7 +228,9 @@ export default function NewFormTemplatePage() {
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
                 placeholder="Brief description of this form template"
               />
             </div>
@@ -223,9 +241,7 @@ export default function NewFormTemplatePage() {
         <Card>
           <CardHeader>
             <CardTitle>Form Display Settings</CardTitle>
-            <CardDescription>
-              How the form appears to users
-            </CardDescription>
+            <CardDescription>How the form appears to users</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -233,7 +249,7 @@ export default function NewFormTemplatePage() {
               <Input
                 id="title"
                 value={formData.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
+                onChange={(e) => handleInputChange("title", e.target.value)}
                 placeholder="Title shown to users"
               />
             </div>
@@ -242,7 +258,7 @@ export default function NewFormTemplatePage() {
               <Input
                 id="subtitle"
                 value={formData.subtitle}
-                onChange={(e) => handleInputChange('subtitle', e.target.value)}
+                onChange={(e) => handleInputChange("subtitle", e.target.value)}
                 placeholder="Optional subtitle or description"
               />
             </div>
@@ -252,7 +268,9 @@ export default function NewFormTemplatePage() {
                 <Input
                   id="submitButtonText"
                   value={formData.submitButtonText}
-                  onChange={(e) => handleInputChange('submitButtonText', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("submitButtonText", e.target.value)
+                  }
                   placeholder="Submit"
                 />
               </div>
@@ -261,7 +279,9 @@ export default function NewFormTemplatePage() {
                 <Input
                   id="successMessage"
                   value={formData.successMessage}
-                  onChange={(e) => handleInputChange('successMessage', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("successMessage", e.target.value)
+                  }
                   placeholder="Thank you for your submission!"
                 />
               </div>
@@ -293,7 +313,8 @@ export default function NewFormTemplatePage() {
               </div>
             </CardTitle>
             <CardDescription>
-              Define the fields that users will fill out. Use JSON import for bulk operations.
+              Define the fields that users will fill out. Use JSON import for
+              bulk operations.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -319,27 +340,34 @@ export default function NewFormTemplatePage() {
         <Card>
           <CardHeader>
             <CardTitle>Advanced Settings</CardTitle>
-            <CardDescription>
-              Additional configuration options
-            </CardDescription>
+            <CardDescription>Additional configuration options</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center space-x-2">
               <Switch
                 checked={formData.requiresWakeUp || false}
-                onCheckedChange={(checked) => handleInputChange('requiresWakeUp', checked)}
+                onCheckedChange={(checked) =>
+                  handleInputChange("requiresWakeUp", checked)
+                }
               />
               <Label>Enable Database Wake-up</Label>
             </div>
             {formData.requiresWakeUp && (
               <div>
-                <Label htmlFor="wakeUpInterval">Wake-up Interval (seconds)</Label>
+                <Label htmlFor="wakeUpInterval">
+                  Wake-up Interval (seconds)
+                </Label>
                 <Input
                   id="wakeUpInterval"
                   type="number"
                   min="10"
                   value={formData.wakeUpInterval}
-                  onChange={(e) => handleInputChange('wakeUpInterval', parseInt(e.target.value))}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "wakeUpInterval",
+                      parseInt(e.target.value)
+                    )
+                  }
                 />
               </div>
             )}
@@ -348,16 +376,12 @@ export default function NewFormTemplatePage() {
 
         {/* Submit Button */}
         <div className="flex items-center justify-end gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-          >
+          <Button type="button" variant="outline" onClick={() => router.back()}>
             Cancel
           </Button>
           <Button type="submit" disabled={loading}>
             <Save className="h-4 w-4 mr-2" />
-            {loading ? 'Creating...' : 'Create Form Template'}
+            {loading ? "Creating..." : "Create Form Template"}
           </Button>
         </div>
       </form>

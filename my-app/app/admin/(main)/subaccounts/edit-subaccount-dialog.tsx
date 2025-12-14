@@ -1,14 +1,20 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { toast } from 'sonner';
-import type { SubAccount, UpdateSubAccountDto } from '@/lib/api';
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
+import type { SubAccount, UpdateSubAccountDto } from "@/lib/api";
 
 interface EditSubAccountDialogProps {
   open: boolean;
@@ -17,12 +23,17 @@ interface EditSubAccountDialogProps {
   onSubmit: (id: number, data: UpdateSubAccountDto) => Promise<void>;
 }
 
-export function EditSubAccountDialog({ open, onOpenChange, subAccount, onSubmit }: EditSubAccountDialogProps) {
+export function EditSubAccountDialog({
+  open,
+  onOpenChange,
+  subAccount,
+  onSubmit,
+}: EditSubAccountDialogProps) {
   const [formData, setFormData] = useState<UpdateSubAccountDto>({
-    name: '',
-    description: '',
+    name: "",
+    description: "",
     isActive: true,
-    settings: {}
+    settings: {},
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -30,20 +41,20 @@ export function EditSubAccountDialog({ open, onOpenChange, subAccount, onSubmit 
     if (subAccount) {
       setFormData({
         name: subAccount.name,
-        description: subAccount.description || '',
+        description: subAccount.description || "",
         isActive: subAccount.isActive,
-        settings: subAccount.settings || {}
+        settings: subAccount.settings || {},
       });
     }
   }, [subAccount]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!subAccount) return;
-    
+
     if (!formData.name?.trim()) {
-      toast.error('SubAccount name is required');
+      toast.error("SubAccount name is required");
       return;
     }
 
@@ -57,10 +68,13 @@ export function EditSubAccountDialog({ open, onOpenChange, subAccount, onSubmit 
     }
   };
 
-  const handleInputChange = (field: keyof UpdateSubAccountDto, value: string | boolean) => {
-    setFormData(prev => ({
+  const handleInputChange = (
+    field: keyof UpdateSubAccountDto,
+    value: string | boolean
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -80,8 +94,8 @@ export function EditSubAccountDialog({ open, onOpenChange, subAccount, onSubmit 
             <Label htmlFor="name">Name *</Label>
             <Input
               id="name"
-              value={formData.name || ''}
-              onChange={(e) => handleInputChange('name', e.target.value)}
+              value={formData.name || ""}
+              onChange={(e) => handleInputChange("name", e.target.value)}
               placeholder="Enter SubAccount name"
               required
             />
@@ -90,8 +104,8 @@ export function EditSubAccountDialog({ open, onOpenChange, subAccount, onSubmit 
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
-              value={formData.description || ''}
-              onChange={(e) => handleInputChange('description', e.target.value)}
+              value={formData.description || ""}
+              onChange={(e) => handleInputChange("description", e.target.value)}
               placeholder="Enter description (optional)"
               rows={3}
             />
@@ -100,7 +114,9 @@ export function EditSubAccountDialog({ open, onOpenChange, subAccount, onSubmit 
             <Switch
               id="isActive"
               checked={formData.isActive || false}
-              onCheckedChange={(checked) => handleInputChange('isActive', checked)}
+              onCheckedChange={(checked) =>
+                handleInputChange("isActive", checked)
+              }
             />
             <Label htmlFor="isActive">Active</Label>
           </div>
@@ -114,11 +130,11 @@ export function EditSubAccountDialog({ open, onOpenChange, subAccount, onSubmit 
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Updating...' : 'Update SubAccount'}
+              {isSubmitting ? "Updating..." : "Update SubAccount"}
             </Button>
           </div>
         </form>
       </DialogContent>
     </Dialog>
   );
-} 
+}

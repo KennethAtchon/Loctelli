@@ -1,14 +1,28 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/unified-auth-context';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { User, Mail, Briefcase, Calendar, LogOut, Building, Activity } from 'lucide-react';
-import logger from '@/lib/logger';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/unified-auth-context";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  User,
+  Mail,
+  Briefcase,
+  Calendar,
+  LogOut,
+  Building,
+  Activity,
+} from "lucide-react";
+import logger from "@/lib/logger";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -19,7 +33,7 @@ export default function AccountPage() {
   useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated) {
-        router.push('/auth/login');
+        router.push("/auth/login");
       }
     }
   }, [isAuthenticated, isLoading, router]);
@@ -28,10 +42,10 @@ export default function AccountPage() {
     try {
       setIsLoggingOut(true);
       await logout();
-      logger.log('User logged out successfully');
-      router.push('/auth/login');
+      logger.log("User logged out successfully");
+      router.push("/auth/login");
     } catch (error) {
-      logger.error('Logout failed:', error);
+      logger.error("Logout failed:", error);
     } finally {
       setIsLoggingOut(false);
     }
@@ -55,15 +69,15 @@ export default function AccountPage() {
   }
 
   const formatDate = (dateString?: string | null) => {
-    if (!dateString) return 'Never';
+    if (!dateString) return "Never";
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return 'Invalid Date';
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    if (isNaN(date.getTime())) return "Invalid Date";
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -75,7 +89,9 @@ export default function AccountPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">My Account</h1>
-              <p className="mt-1 text-sm text-gray-600">Manage your account settings and information</p>
+              <p className="mt-1 text-sm text-gray-600">
+                Manage your account settings and information
+              </p>
             </div>
             <Button
               variant="outline"
@@ -84,7 +100,7 @@ export default function AccountPage() {
               className="border-red-200 text-red-600 hover:bg-red-50"
             >
               <LogOut className="h-4 w-4 mr-2" />
-              {isLoggingOut ? 'Logging out...' : 'Logout'}
+              {isLoggingOut ? "Logging out..." : "Logout"}
             </Button>
           </div>
         </div>
@@ -110,7 +126,9 @@ export default function AccountPage() {
                     <User className="h-4 w-4 text-gray-500" />
                     Full Name
                   </label>
-                  <p className="text-lg font-semibold text-gray-900">{user.name}</p>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {user.name}
+                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -134,9 +152,16 @@ export default function AccountPage() {
 
               {/* Account Status */}
               <div className="pt-6 border-t border-gray-200">
-                <h3 className="text-sm font-medium text-gray-700 mb-3">Account Status</h3>
+                <h3 className="text-sm font-medium text-gray-700 mb-3">
+                  Account Status
+                </h3>
                 <div className="flex items-center gap-3">
-                  <Badge variant={user.isActive ? "default" : "secondary"} className={user.isActive ? "bg-green-100 text-green-700" : ""}>
+                  <Badge
+                    variant={user.isActive ? "default" : "secondary"}
+                    className={
+                      user.isActive ? "bg-green-100 text-green-700" : ""
+                    }
+                  >
                     {user.isActive ? "Active" : "Inactive"}
                   </Badge>
                   <Badge variant="outline" className="capitalize">
@@ -147,20 +172,26 @@ export default function AccountPage() {
 
               {/* Timestamps */}
               <div className="pt-6 border-t border-gray-200">
-                <h3 className="text-sm font-medium text-gray-700 mb-3">Activity</h3>
+                <h3 className="text-sm font-medium text-gray-700 mb-3">
+                  Activity
+                </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="flex items-start gap-3">
                     <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
                     <div>
                       <p className="text-xs text-gray-500">Account Created</p>
-                      <p className="text-sm font-medium text-gray-900">{formatDate(user.createdAt)}</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {formatDate(user.createdAt)}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Activity className="h-5 w-5 text-gray-400 mt-0.5" />
                     <div>
                       <p className="text-xs text-gray-500">Last Login</p>
-                      <p className="text-sm font-medium text-gray-900">{formatDate(user.lastLoginAt)}</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {formatDate(user.lastLoginAt)}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -176,15 +207,27 @@ export default function AccountPage() {
                 <CardDescription>Common account actions</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start" disabled>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  disabled
+                >
                   <User className="h-4 w-4 mr-2" />
                   Edit Profile
                 </Button>
-                <Button variant="outline" className="w-full justify-start" disabled>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  disabled
+                >
                   <Mail className="h-4 w-4 mr-2" />
                   Change Email
                 </Button>
-                <Button variant="outline" className="w-full justify-start" disabled>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  disabled
+                >
                   <Activity className="h-4 w-4 mr-2" />
                   Security Settings
                 </Button>

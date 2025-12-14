@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useMemo } from 'react';
-import { useUnifiedAuth } from './unified-auth-context';
-import { useSubaccountFilter } from './subaccount-filter-context';
-import logger from '@/lib/logger';
+import React, { createContext, useContext, useMemo } from "react";
+import { useUnifiedAuth } from "./unified-auth-context";
+import { useSubaccountFilter } from "./subaccount-filter-context";
+import logger from "@/lib/logger";
 
 /**
  * Tenant Mode determines how data filtering works
@@ -11,7 +11,7 @@ import logger from '@/lib/logger';
  * - ADMIN_GLOBAL: Admin viewing all tenants
  * - ADMIN_FILTERED: Admin filtered to specific tenant
  */
-export type TenantMode = 'USER_SCOPED' | 'ADMIN_GLOBAL' | 'ADMIN_FILTERED';
+export type TenantMode = "USER_SCOPED" | "ADMIN_GLOBAL" | "ADMIN_FILTERED";
 
 export interface TenantContextType {
   // Current tenant mode
@@ -51,7 +51,7 @@ export interface TenantContextType {
   getTenantQueryParams: () => { subAccountId?: number };
 
   // Get headers for API calls
-  getTenantHeaders: () => { 'X-SubAccount-Id'?: string };
+  getTenantHeaders: () => { "X-SubAccount-Id"?: string };
 
   // Helper to check if user can access a subAccountId
   canAccessSubAccount: (subAccountId: number) => boolean;
@@ -78,7 +78,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     // Not authenticated - no tenant context
     if (!isAuthenticated || !account) {
       return {
-        mode: 'USER_SCOPED',
+        mode: "USER_SCOPED",
         subAccountId: null,
         shouldFilterByTenant: false,
         isGlobalView: false,
@@ -93,39 +93,51 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         getTenantHeaders: () => ({}),
         canAccessSubAccount: () => false,
         validateTenantAccess: () => {
-          throw new Error('User not authenticated');
+          throw new Error("User not authenticated");
         },
       };
     }
 
     // Admin user
-    if (accountType === 'admin') {
-      const isGlobal = !subaccountFilterContext || subaccountFilterContext.isGlobalView();
+    if (accountType === "admin") {
+      const isGlobal =
+        !subaccountFilterContext || subaccountFilterContext.isGlobalView();
       const currentSubAccount = subaccountFilterContext?.getCurrentSubaccount();
 
       return {
-        mode: isGlobal ? 'ADMIN_GLOBAL' : 'ADMIN_FILTERED',
+        mode: isGlobal ? "ADMIN_GLOBAL" : "ADMIN_FILTERED",
         subAccountId: currentSubAccount?.id || null,
         shouldFilterByTenant: !isGlobal,
         isGlobalView: isGlobal,
-        adminFilter: subaccountFilterContext?.currentFilter || 'GLOBAL',
-        availableSubaccounts: subaccountFilterContext?.availableSubaccounts || [],
+        adminFilter: subaccountFilterContext?.currentFilter || "GLOBAL",
+        availableSubaccounts:
+          subaccountFilterContext?.availableSubaccounts || [],
         setAdminFilter: subaccountFilterContext?.setFilter || null,
-        isSubaccountsLoading: subaccountFilterContext?.isSubaccountsLoading || false,
+        isSubaccountsLoading:
+          subaccountFilterContext?.isSubaccountsLoading || false,
         refreshSubaccounts: subaccountFilterContext?.refreshSubaccounts || null,
-        setSubAccountId: subaccountFilterContext?.setFilter ? (id: number | null) => {
-          subaccountFilterContext.setFilter(id === null ? 'GLOBAL' : id.toString());
-        } : null,
-        getCurrentSubaccount: subaccountFilterContext?.getCurrentSubaccount || null,
+        setSubAccountId: subaccountFilterContext?.setFilter
+          ? (id: number | null) => {
+              subaccountFilterContext.setFilter(
+                id === null ? "GLOBAL" : id.toString()
+              );
+            }
+          : null,
+        getCurrentSubaccount:
+          subaccountFilterContext?.getCurrentSubaccount || null,
 
         getTenantQueryParams: () => {
           if (isGlobal) return {};
-          return currentSubAccount ? { subAccountId: currentSubAccount.id } : {};
+          return currentSubAccount
+            ? { subAccountId: currentSubAccount.id }
+            : {};
         },
 
         getTenantHeaders: () => {
           if (isGlobal) return {};
-          return currentSubAccount ? { 'X-SubAccount-Id': currentSubAccount.id.toString() } : {};
+          return currentSubAccount
+            ? { "X-SubAccount-Id": currentSubAccount.id.toString() }
+            : {};
         },
 
         canAccessSubAccount: (subAccountId: number) => {
@@ -135,7 +147,9 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
         validateTenantAccess: (subAccountId?: number) => {
           // Admins can access anything
-          logger.debug(`Admin accessing ${subAccountId ? `subAccount ${subAccountId}` : 'global view'}`);
+          logger.debug(
+            `Admin accessing ${subAccountId ? `subAccount ${subAccountId}` : "global view"}`
+          );
         },
       };
     }
@@ -144,12 +158,12 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     const userSubAccountId = (account as any).subAccountId;
 
     if (!userSubAccountId) {
-      logger.error('Regular user without subAccountId!', account);
-      throw new Error('User account missing subAccountId');
+      logger.error("Regular user without subAccountId!", account);
+      throw new Error("User account missing subAccountId");
     }
 
     return {
-      mode: 'USER_SCOPED',
+      mode: "USER_SCOPED",
       subAccountId: userSubAccountId,
       shouldFilterByTenant: true,
       isGlobalView: false,
@@ -166,7 +180,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       },
 
       getTenantHeaders: () => {
-        return { 'X-SubAccount-Id': userSubAccountId.toString() };
+        return { "X-SubAccount-Id": userSubAccountId.toString() };
       },
 
       canAccessSubAccount: (subAccountId: number) => {
@@ -178,9 +192,9 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         if (subAccountId && subAccountId !== userSubAccountId) {
           logger.error(
             `Security violation: User ${account.id} (subAccount ${userSubAccountId}) ` +
-            `attempted to access subAccount ${subAccountId}`
+              `attempted to access subAccount ${subAccountId}`
           );
-          throw new Error('Access denied: Cannot access other tenant data');
+          throw new Error("Access denied: Cannot access other tenant data");
         }
         logger.debug(`User accessing subAccount ${userSubAccountId}`);
       },
@@ -188,9 +202,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   }, [account, accountType, isAuthenticated, subaccountFilterContext]);
 
   return (
-    <TenantContext.Provider value={value}>
-      {children}
-    </TenantContext.Provider>
+    <TenantContext.Provider value={value}>{children}</TenantContext.Provider>
   );
 }
 
@@ -214,7 +226,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 export function useTenant() {
   const context = useContext(TenantContext);
   if (context === undefined) {
-    throw new Error('useTenant must be used within a TenantProvider');
+    throw new Error("useTenant must be used within a TenantProvider");
   }
   return context;
 }

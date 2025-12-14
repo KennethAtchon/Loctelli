@@ -1,13 +1,19 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, Plus, Trash2, Copy } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Clock, Plus, Trash2, Copy } from "lucide-react";
+import { toast } from "sonner";
 
 interface TimeSlot {
   date: string;
@@ -20,10 +26,14 @@ interface BookingsTimeEditorProps {
   className?: string;
 }
 
-export function BookingsTimeEditor({ value, onChange, className }: BookingsTimeEditorProps) {
+export function BookingsTimeEditor({
+  value,
+  onChange,
+  className,
+}: BookingsTimeEditorProps) {
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
-  const [newDate, setNewDate] = useState('');
-  const [newTime, setNewTime] = useState('');
+  const [newDate, setNewDate] = useState("");
+  const [newTime, setNewTime] = useState("");
 
   // Parse the value into our internal format
   useEffect(() => {
@@ -34,7 +44,7 @@ export function BookingsTimeEditor({ value, onChange, className }: BookingsTimeE
 
     try {
       let parsedValue = value;
-      if (typeof value === 'string') {
+      if (typeof value === "string") {
         parsedValue = JSON.parse(value);
       }
 
@@ -42,82 +52,84 @@ export function BookingsTimeEditor({ value, onChange, className }: BookingsTimeE
 
       if (Array.isArray(parsedValue)) {
         // Format 1: Array of date objects
-        slots = parsedValue.filter(item => item.date && item.slots);
-      } else if (parsedValue && typeof parsedValue === 'object') {
+        slots = parsedValue.filter((item) => item.date && item.slots);
+      } else if (parsedValue && typeof parsedValue === "object") {
         // Format 2: Direct date keys
         slots = Object.entries(parsedValue)
           .filter(([key, value]) => Array.isArray(value))
           .map(([date, times]) => ({
             date,
-            slots: times as string[]
+            slots: times as string[],
           }));
 
         // Format 3: Nested structures
         if (parsedValue.dates && Array.isArray(parsedValue.dates)) {
-          slots = parsedValue.dates.filter((item: any) => item.date && item.slots);
+          slots = parsedValue.dates.filter(
+            (item: any) => item.date && item.slots
+          );
         }
       }
 
       setTimeSlots(slots.sort((a, b) => a.date.localeCompare(b.date)));
     } catch (error) {
-      console.error('Error parsing bookingsTime:', error);
+      console.error("Error parsing bookingsTime:", error);
       setTimeSlots([]);
     }
   }, [value]);
 
   // Update the parent when our data changes
   const updateParent = (newSlots: TimeSlot[]) => {
-    const formatted = newSlots.map(slot => ({
+    const formatted = newSlots.map((slot) => ({
       date: slot.date,
-      slots: slot.slots.sort()
+      slots: slot.slots.sort(),
     }));
     onChange(formatted);
   };
 
   const addDate = () => {
     if (!newDate) {
-      toast.error('Please select a date');
+      toast.error("Please select a date");
       return;
     }
 
-    if (timeSlots.some(slot => slot.date === newDate)) {
-      toast.error('Date already exists');
+    if (timeSlots.some((slot) => slot.date === newDate)) {
+      toast.error("Date already exists");
       return;
     }
 
     const newSlots = [...timeSlots, { date: newDate, slots: [] }];
     setTimeSlots(newSlots.sort((a, b) => a.date.localeCompare(b.date)));
     updateParent(newSlots);
-    setNewDate('');
+    setNewDate("");
   };
 
   const removeDate = (dateToRemove: string) => {
-    const newSlots = timeSlots.filter(slot => slot.date !== dateToRemove);
+    const newSlots = timeSlots.filter((slot) => slot.date !== dateToRemove);
     setTimeSlots(newSlots);
     updateParent(newSlots);
   };
 
   const addTimeSlot = (date: string) => {
     if (!newTime) {
-      toast.error('Please enter a time');
+      toast.error("Please enter a time");
       return;
     }
 
     // Validate time format
     if (!/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(newTime)) {
-      toast.error('Please enter time in HH:MM format');
+      toast.error("Please enter time in HH:MM format");
       return;
     }
 
-    const newSlots = timeSlots.map(slot => {
+    const newSlots = timeSlots.map((slot) => {
       if (slot.date === date) {
         if (slot.slots.includes(newTime)) {
-          toast.error('Time slot already exists');
+          toast.error("Time slot already exists");
           return slot;
         }
         return {
           ...slot,
-          slots: [...slot.slots, newTime].sort()
+          slots: [...slot.slots, newTime].sort(),
         };
       }
       return slot;
@@ -125,15 +137,15 @@ export function BookingsTimeEditor({ value, onChange, className }: BookingsTimeE
 
     setTimeSlots(newSlots);
     updateParent(newSlots);
-    setNewTime('');
+    setNewTime("");
   };
 
   const removeTimeSlot = (date: string, timeToRemove: string) => {
-    const newSlots = timeSlots.map(slot => {
+    const newSlots = timeSlots.map((slot) => {
       if (slot.date === date) {
         return {
           ...slot,
-          slots: slot.slots.filter(time => time !== timeToRemove)
+          slots: slot.slots.filter((time) => time !== timeToRemove),
         };
       }
       return slot;
@@ -146,15 +158,15 @@ export function BookingsTimeEditor({ value, onChange, className }: BookingsTimeE
   const generateBusinessHours = (date: string) => {
     const businessSlots: string[] = [];
     for (let hour = 9; hour < 17; hour++) {
-      businessSlots.push(`${hour.toString().padStart(2, '0')}:00`);
-      businessSlots.push(`${hour.toString().padStart(2, '0')}:30`);
+      businessSlots.push(`${hour.toString().padStart(2, "0")}:00`);
+      businessSlots.push(`${hour.toString().padStart(2, "0")}:30`);
     }
 
-    const newSlots = timeSlots.map(slot => {
+    const newSlots = timeSlots.map((slot) => {
       if (slot.date === date) {
         return {
           ...slot,
-          slots: businessSlots
+          slots: businessSlots,
         };
       }
       return slot;
@@ -162,22 +174,24 @@ export function BookingsTimeEditor({ value, onChange, className }: BookingsTimeE
 
     setTimeSlots(newSlots);
     updateParent(newSlots);
-    toast.success('Business hours (9 AM - 5 PM) generated');
+    toast.success("Business hours (9 AM - 5 PM) generated");
   };
 
   const copyFromPrevious = (currentDate: string) => {
-    const currentIndex = timeSlots.findIndex(slot => slot.date === currentDate);
+    const currentIndex = timeSlots.findIndex(
+      (slot) => slot.date === currentDate
+    );
     if (currentIndex <= 0) {
-      toast.error('No previous date to copy from');
+      toast.error("No previous date to copy from");
       return;
     }
 
     const previousSlots = timeSlots[currentIndex - 1].slots;
-    const newSlots = timeSlots.map(slot => {
+    const newSlots = timeSlots.map((slot) => {
       if (slot.date === currentDate) {
         return {
           ...slot,
-          slots: [...previousSlots]
+          slots: [...previousSlots],
         };
       }
       return slot;
@@ -185,7 +199,7 @@ export function BookingsTimeEditor({ value, onChange, className }: BookingsTimeE
 
     setTimeSlots(newSlots);
     updateParent(newSlots);
-    toast.success('Copied from previous date');
+    toast.success("Copied from previous date");
   };
 
   const generateNextWeek = () => {
@@ -195,29 +209,31 @@ export function BookingsTimeEditor({ value, onChange, className }: BookingsTimeE
     for (let i = 1; i <= 7; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = date.toISOString().split("T")[0];
 
-      if (!timeSlots.some(slot => slot.date === dateStr)) {
+      if (!timeSlots.some((slot) => slot.date === dateStr)) {
         const businessSlots = [];
         for (let hour = 9; hour < 17; hour++) {
-          businessSlots.push(`${hour.toString().padStart(2, '0')}:00`);
-          businessSlots.push(`${hour.toString().padStart(2, '0')}:30`);
+          businessSlots.push(`${hour.toString().padStart(2, "0")}:00`);
+          businessSlots.push(`${hour.toString().padStart(2, "0")}:30`);
         }
 
         nextWeek.push({
           date: dateStr,
-          slots: businessSlots
+          slots: businessSlots,
         });
       }
     }
 
     if (nextWeek.length > 0) {
-      const newSlots = [...timeSlots, ...nextWeek].sort((a, b) => a.date.localeCompare(b.date));
+      const newSlots = [...timeSlots, ...nextWeek].sort((a, b) =>
+        a.date.localeCompare(b.date)
+      );
       setTimeSlots(newSlots);
       updateParent(newSlots);
       toast.success(`Generated availability for ${nextWeek.length} days`);
     } else {
-      toast.info('Next week already has availability data');
+      toast.info("Next week already has availability data");
     }
   };
 
@@ -259,12 +275,7 @@ export function BookingsTimeEditor({ value, onChange, className }: BookingsTimeE
                 placeholder="Select date"
               />
             </div>
-            <Button
-              type="button"
-              onClick={addDate}
-              className="mt-6"
-              size="sm"
-            >
+            <Button type="button" onClick={addDate} className="mt-6" size="sm">
               <Plus className="h-4 w-4" />
             </Button>
           </div>
@@ -275,7 +286,9 @@ export function BookingsTimeEditor({ value, onChange, className }: BookingsTimeE
               <div className="text-center py-8 text-gray-500">
                 <Calendar className="h-12 w-12 mx-auto mb-2 opacity-50" />
                 <p>No availability set</p>
-                <p className="text-sm">Add dates and time slots to manage booking availability</p>
+                <p className="text-sm">
+                  Add dates and time slots to manage booking availability
+                </p>
               </div>
             ) : (
               timeSlots.map((slot) => (
@@ -283,12 +296,15 @@ export function BookingsTimeEditor({ value, onChange, className }: BookingsTimeE
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-base">
-                        {new Date(slot.date + 'T00:00:00').toLocaleDateString('en-US', {
-                          weekday: 'long',
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
+                        {new Date(slot.date + "T00:00:00").toLocaleDateString(
+                          "en-US",
+                          {
+                            weekday: "long",
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          }
+                        )}
                       </CardTitle>
                       <div className="flex gap-1">
                         <Button
@@ -344,7 +360,9 @@ export function BookingsTimeEditor({ value, onChange, className }: BookingsTimeE
                     {/* Time Slots */}
                     <div className="flex flex-wrap gap-2">
                       {slot.slots.length === 0 ? (
-                        <p className="text-sm text-gray-500 italic">No time slots</p>
+                        <p className="text-sm text-gray-500 italic">
+                          No time slots
+                        </p>
                       ) : (
                         slot.slots.map((time) => (
                           <Badge

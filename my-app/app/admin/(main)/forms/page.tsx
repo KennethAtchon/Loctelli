@@ -1,31 +1,56 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
-import { DataTable, Column, Filter, StatCard } from '@/components/customUI';
-import { usePagination } from '@/components/customUI';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { FormTemplate, FormSubmission } from '@/lib/api';
-import { Eye, Edit, Plus, FileText, Users, Calendar, CheckCircle } from 'lucide-react';
-import logger from '@/lib/logger';
-import { useTenant } from '@/contexts/tenant-context';
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
+import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
+import { usePagination } from "@/components/customUI";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { FormTemplate, FormSubmission } from "@/lib/api";
+import {
+  Eye,
+  Edit,
+  Plus,
+  FileText,
+  Users,
+  Calendar,
+  CheckCircle,
+} from "lucide-react";
+import logger from "@/lib/logger";
+import { useTenant } from "@/contexts/tenant-context";
 
 export default function FormsPage() {
   const router = useRouter();
   const { subAccountId } = useTenant();
   const [templates, setTemplates] = useState<FormTemplate[]>([]);
   const [submissions, setSubmissions] = useState<FormSubmission[]>([]);
-  const [filteredTemplates, setFilteredTemplates] = useState<FormTemplate[]>([]);
-  const [stats, setStats] = useState({ total: 0, active: 0, submissions: 0, newSubmissions: 0 });
+  const [filteredTemplates, setFilteredTemplates] = useState<FormTemplate[]>(
+    []
+  );
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    submissions: 0,
+    newSubmissions: 0,
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState<FormTemplate | null>(null);
-  const [activeTab, setActiveTab] = useState<'templates' | 'submissions'>('templates');
+  const [selectedTemplate, setSelectedTemplate] = useState<FormTemplate | null>(
+    null
+  );
+  const [activeTab, setActiveTab] = useState<"templates" | "submissions">(
+    "templates"
+  );
 
   // Use the pagination hook for templates
   const {
@@ -38,36 +63,36 @@ export default function FormsPage() {
   // Calculate stats cards
   const statsCards: StatCard[] = [
     {
-      title: 'Total Forms',
+      title: "Total Forms",
       value: stats.total,
       icon: <FileText className="h-8 w-8" />,
-      color: 'text-blue-600',
+      color: "text-blue-600",
     },
     {
-      title: 'Active Forms',
+      title: "Active Forms",
       value: stats.active,
       icon: <CheckCircle className="h-8 w-8" />,
-      color: 'text-green-600',
+      color: "text-green-600",
     },
     {
-      title: 'Total Submissions',
+      title: "Total Submissions",
       value: stats.submissions,
       icon: <Users className="h-8 w-8" />,
-      color: 'text-purple-600',
+      color: "text-purple-600",
     },
     {
-      title: 'New Submissions',
+      title: "New Submissions",
       value: stats.newSubmissions,
       icon: <Calendar className="h-8 w-8" />,
-      color: 'text-orange-600',
+      color: "text-orange-600",
     },
   ];
 
   // Define columns for templates
   const templateColumns: Column<FormTemplate>[] = [
     {
-      key: 'name',
-      header: 'Form Name',
+      key: "name",
+      header: "Form Name",
       render: (template) => (
         <div>
           <div className="font-medium">{template.name}</div>
@@ -81,43 +106,43 @@ export default function FormsPage() {
       ),
     },
     {
-      key: 'title',
-      header: 'Display Title',
+      key: "title",
+      header: "Display Title",
       render: (template) => <span>{template.title}</span>,
     },
     {
-      key: 'status',
-      header: 'Status',
+      key: "status",
+      header: "Status",
       render: (template) => (
-        <Badge variant={template.isActive ? 'default' : 'secondary'}>
-          {template.isActive ? 'Active' : 'Inactive'}
+        <Badge variant={template.isActive ? "default" : "secondary"}>
+          {template.isActive ? "Active" : "Inactive"}
         </Badge>
       ),
     },
     {
-      key: 'submissions',
-      header: 'Submissions',
+      key: "submissions",
+      header: "Submissions",
       render: (template) => (
         <span className="font-medium">{template._count?.submissions || 0}</span>
       ),
     },
     {
-      key: 'wakeUp',
-      header: 'Wake-up',
+      key: "wakeUp",
+      header: "Wake-up",
       render: (template) => (
-        <Badge variant={template.requiresWakeUp ? 'outline' : 'secondary'}>
-          {template.requiresWakeUp ? `${template.wakeUpInterval}s` : 'Disabled'}
+        <Badge variant={template.requiresWakeUp ? "outline" : "secondary"}>
+          {template.requiresWakeUp ? `${template.wakeUpInterval}s` : "Disabled"}
         </Badge>
       ),
     },
     {
-      key: 'subAccount',
-      header: 'Sub-Account',
-      render: (template) => template.subAccount?.name || 'Global',
+      key: "subAccount",
+      header: "Sub-Account",
+      render: (template) => template.subAccount?.name || "Global",
     },
     {
-      key: 'createdAt',
-      header: 'Created',
+      key: "createdAt",
+      header: "Created",
       render: (template) => formatDate(template.createdAt),
     },
   ];
@@ -125,21 +150,21 @@ export default function FormsPage() {
   // Define filters for templates
   const templateFilters: Filter[] = [
     {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
+      key: "status",
+      label: "Status",
+      type: "select",
       options: [
-        { value: 'active', label: 'Active' },
-        { value: 'inactive', label: 'Inactive' },
+        { value: "active", label: "Active" },
+        { value: "inactive", label: "Inactive" },
       ],
     },
     {
-      key: 'wakeUp',
-      label: 'Wake-up',
-      type: 'select',
+      key: "wakeUp",
+      label: "Wake-up",
+      type: "select",
       options: [
-        { value: 'enabled', label: 'Enabled' },
-        { value: 'disabled', label: 'Disabled' },
+        { value: "enabled", label: "Enabled" },
+        { value: "disabled", label: "Disabled" },
       ],
     },
   ];
@@ -150,11 +175,11 @@ export default function FormsPage() {
       setError(null);
 
       // Use tenant context for automatic filtering
-      logger.debug('Loading forms with tenant subAccountId:', subAccountId);
+      logger.debug("Loading forms with tenant subAccountId:", subAccountId);
 
       const [templatesData, submissionsData] = await Promise.all([
         api.forms.getFormTemplates(subAccountId || undefined),
-        api.forms.getFormSubmissions(subAccountId || undefined)
+        api.forms.getFormSubmissions(subAccountId || undefined),
       ]);
 
       setTemplates(templatesData);
@@ -163,19 +188,24 @@ export default function FormsPage() {
       setTotalTemplates(templatesData.length);
 
       // Calculate stats
-      const activeTemplates = templatesData.filter(t => t.isActive).length;
-      const totalSubmissions = templatesData.reduce((sum, t) => sum + (t._count?.submissions || 0), 0);
-      const newSubmissions = submissionsData.filter(s => s.status === 'new').length;
+      const activeTemplates = templatesData.filter((t) => t.isActive).length;
+      const totalSubmissions = templatesData.reduce(
+        (sum, t) => sum + (t._count?.submissions || 0),
+        0
+      );
+      const newSubmissions = submissionsData.filter(
+        (s) => s.status === "new"
+      ).length;
 
       setStats({
         total: templatesData.length,
         active: activeTemplates,
         submissions: totalSubmissions,
-        newSubmissions
+        newSubmissions,
       });
     } catch (error) {
-      logger.error('Failed to load forms data:', error);
-      setError('Failed to load forms data');
+      logger.error("Failed to load forms data:", error);
+      setError("Failed to load forms data");
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -184,11 +214,13 @@ export default function FormsPage() {
 
   // Handle search for templates
   const handleTemplateSearch = (term: string) => {
-    const filtered = templates.filter(template =>
-      template.name.toLowerCase().includes(term.toLowerCase()) ||
-      template.title.toLowerCase().includes(term.toLowerCase()) ||
-      template.slug.toLowerCase().includes(term.toLowerCase()) ||
-      (template.description && template.description.toLowerCase().includes(term.toLowerCase()))
+    const filtered = templates.filter(
+      (template) =>
+        template.name.toLowerCase().includes(term.toLowerCase()) ||
+        template.title.toLowerCase().includes(term.toLowerCase()) ||
+        template.slug.toLowerCase().includes(term.toLowerCase()) ||
+        (template.description &&
+          template.description.toLowerCase().includes(term.toLowerCase()))
     );
     setFilteredTemplates(filtered);
     setTotalTemplates(filtered.length);
@@ -199,15 +231,15 @@ export default function FormsPage() {
   const handleTemplateFilter = (key: string, value: string) => {
     let filtered = templates;
 
-    if (key === 'status' && value !== 'all') {
-      filtered = filtered.filter(template =>
-        value === 'active' ? template.isActive : !template.isActive
+    if (key === "status" && value !== "all") {
+      filtered = filtered.filter((template) =>
+        value === "active" ? template.isActive : !template.isActive
       );
     }
 
-    if (key === 'wakeUp' && value !== 'all') {
-      filtered = filtered.filter(template =>
-        value === 'enabled' ? template.requiresWakeUp : !template.requiresWakeUp
+    if (key === "wakeUp" && value !== "all") {
+      filtered = filtered.filter((template) =>
+        value === "enabled" ? template.requiresWakeUp : !template.requiresWakeUp
       );
     }
 
@@ -226,11 +258,11 @@ export default function FormsPage() {
   };
 
   const handleCreate = () => {
-    window.location.href = '/admin/forms/new';
+    window.location.href = "/admin/forms/new";
   };
 
   const handleViewSubmissions = () => {
-    setActiveTab('submissions');
+    setActiveTab("submissions");
   };
 
   useEffect(() => {
@@ -238,26 +270,27 @@ export default function FormsPage() {
   }, [loadData]);
 
   const formatDate = (dateInput: string | Date) => {
-    if (!dateInput) return 'N/A';
+    if (!dateInput) return "N/A";
 
-    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    const date =
+      typeof dateInput === "string" ? new Date(dateInput) : dateInput;
 
     if (isNaN(date.getTime())) {
-      return 'Invalid Date';
+      return "Invalid Date";
     }
 
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
-  if (activeTab === 'submissions') {
+  if (activeTab === "submissions") {
     // Redirect to submissions page (to be created)
-    window.location.href = '/admin/forms/submissions';
+    window.location.href = "/admin/forms/submissions";
     return null;
   }
 
@@ -302,7 +335,10 @@ export default function FormsPage() {
 
       {/* Template Details Dialog */}
       {selectedTemplate && (
-        <Dialog open={!!selectedTemplate} onOpenChange={() => setSelectedTemplate(null)}>
+        <Dialog
+          open={!!selectedTemplate}
+          onOpenChange={() => setSelectedTemplate(null)}
+        >
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Form Details - {selectedTemplate.name}</DialogTitle>
@@ -315,16 +351,34 @@ export default function FormsPage() {
               <div>
                 <h3 className="font-semibold mb-3">Basic Information</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div><strong>Name:</strong> {selectedTemplate.name}</div>
-                  <div><strong>Slug:</strong> /{selectedTemplate.slug}</div>
-                  <div><strong>Title:</strong> {selectedTemplate.title}</div>
-                  <div><strong>Status:</strong>
-                    <Badge variant={selectedTemplate.isActive ? 'default' : 'secondary'} className="ml-2">
-                      {selectedTemplate.isActive ? 'Active' : 'Inactive'}
+                  <div>
+                    <strong>Name:</strong> {selectedTemplate.name}
+                  </div>
+                  <div>
+                    <strong>Slug:</strong> /{selectedTemplate.slug}
+                  </div>
+                  <div>
+                    <strong>Title:</strong> {selectedTemplate.title}
+                  </div>
+                  <div>
+                    <strong>Status:</strong>
+                    <Badge
+                      variant={
+                        selectedTemplate.isActive ? "default" : "secondary"
+                      }
+                      className="ml-2"
+                    >
+                      {selectedTemplate.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </div>
-                  <div><strong>Submissions:</strong> {selectedTemplate._count?.submissions || 0}</div>
-                  <div><strong>Sub-Account:</strong> {selectedTemplate.subAccount?.name || 'Global'}</div>
+                  <div>
+                    <strong>Submissions:</strong>{" "}
+                    {selectedTemplate._count?.submissions || 0}
+                  </div>
+                  <div>
+                    <strong>Sub-Account:</strong>{" "}
+                    {selectedTemplate.subAccount?.name || "Global"}
+                  </div>
                 </div>
               </div>
 
@@ -342,16 +396,30 @@ export default function FormsPage() {
               <div>
                 <h3 className="font-semibold mb-3">Form Configuration</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div><strong>Submit Button:</strong> {selectedTemplate.submitButtonText}</div>
-                  <div><strong>Success Message:</strong> {selectedTemplate.successMessage}</div>
-                  <div><strong>Wake-up Required:</strong> {selectedTemplate.requiresWakeUp ? 'Yes' : 'No'}</div>
-                  <div><strong>Wake-up Interval:</strong> {selectedTemplate.wakeUpInterval}s</div>
+                  <div>
+                    <strong>Submit Button:</strong>{" "}
+                    {selectedTemplate.submitButtonText}
+                  </div>
+                  <div>
+                    <strong>Success Message:</strong>{" "}
+                    {selectedTemplate.successMessage}
+                  </div>
+                  <div>
+                    <strong>Wake-up Required:</strong>{" "}
+                    {selectedTemplate.requiresWakeUp ? "Yes" : "No"}
+                  </div>
+                  <div>
+                    <strong>Wake-up Interval:</strong>{" "}
+                    {selectedTemplate.wakeUpInterval}s
+                  </div>
                 </div>
               </div>
 
               {/* Form Fields */}
               <div>
-                <h3 className="font-semibold mb-3">Form Fields ({selectedTemplate.schema.length})</h3>
+                <h3 className="font-semibold mb-3">
+                  Form Fields ({selectedTemplate.schema.length})
+                </h3>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {selectedTemplate.schema.map((field, index) => (
                     <div key={field.id} className="p-3 border rounded">
@@ -360,14 +428,16 @@ export default function FormsPage() {
                           <div className="font-medium">{field.label}</div>
                           <div className="text-sm text-gray-600">
                             Type: {field.type} • ID: {field.id}
-                            {field.required && ' • Required'}
+                            {field.required && " • Required"}
                           </div>
                           {field.placeholder && (
-                            <div className="text-xs text-gray-500">Placeholder: {field.placeholder}</div>
+                            <div className="text-xs text-gray-500">
+                              Placeholder: {field.placeholder}
+                            </div>
                           )}
                           {field.options && field.options.length > 0 && (
                             <div className="text-xs text-gray-500">
-                              Options: {field.options.join(', ')}
+                              Options: {field.options.join(", ")}
                             </div>
                           )}
                         </div>
@@ -395,9 +465,18 @@ export default function FormsPage() {
               <div>
                 <h3 className="font-semibold mb-3">Timestamps</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div><strong>Created:</strong> {formatDate(selectedTemplate.createdAt)}</div>
-                  <div><strong>Updated:</strong> {formatDate(selectedTemplate.updatedAt)}</div>
-                  <div><strong>Created by:</strong> {selectedTemplate.createdByAdmin?.name}</div>
+                  <div>
+                    <strong>Created:</strong>{" "}
+                    {formatDate(selectedTemplate.createdAt)}
+                  </div>
+                  <div>
+                    <strong>Updated:</strong>{" "}
+                    {formatDate(selectedTemplate.updatedAt)}
+                  </div>
+                  <div>
+                    <strong>Created by:</strong>{" "}
+                    {selectedTemplate.createdByAdmin?.name}
+                  </div>
                 </div>
               </div>
             </div>

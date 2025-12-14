@@ -1,17 +1,30 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Save, Mail, Phone, Calendar } from 'lucide-react';
-import { ContactSubmission, UpdateContactSubmissionDto, User } from '@/types';
-import logger from '@/lib/logger';
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { ArrowLeft, Save, Mail, Phone, Calendar } from "lucide-react";
+import { ContactSubmission, UpdateContactSubmissionDto, User } from "@/types";
+import logger from "@/lib/logger";
 
 interface ContactEditPageProps {
   params: Promise<{ id: string }>;
@@ -19,14 +32,16 @@ interface ContactEditPageProps {
 
 export default function ContactEditPage({ params }: ContactEditPageProps) {
   const router = useRouter();
-  const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(null);
+  const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(
+    null
+  );
   const [contact, setContact] = useState<ContactSubmission | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [newNote, setNewNote] = useState('');
+  const [newNote, setNewNote] = useState("");
   const [isAddingNote, setIsAddingNote] = useState(false);
 
   // Form state
@@ -37,7 +52,7 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
   });
 
   useEffect(() => {
-    params.then(p => setResolvedParams(p));
+    params.then((p) => setResolvedParams(p));
   }, [params]);
 
   const loadContact = useCallback(async () => {
@@ -49,7 +64,7 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
 
       const [contactData, usersData] = await Promise.all([
         api.contacts.getContact(resolvedParams.id),
-        api.users.getUsers() // Assuming this exists
+        api.users.getUsers(), // Assuming this exists
       ]);
 
       setContact(contactData);
@@ -62,8 +77,8 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
         assignedToId: contactData.assignedToId?.toString(),
       });
     } catch (error) {
-      logger.error('Failed to load contact:', error);
-      setError('Failed to load contact details');
+      logger.error("Failed to load contact:", error);
+      setError("Failed to load contact details");
     } finally {
       setIsLoading(false);
     }
@@ -71,28 +86,28 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
 
   const handleSave = async () => {
     if (!contact) return;
-    
+
     try {
       setIsSaving(true);
       setError(null);
-      
+
       const updateData = { ...formData };
-      
+
       // Set follow-up date if status changed to CONTACTED and wasn't already set
-      if (formData.status === 'CONTACTED' && contact.status !== 'CONTACTED') {
+      if (formData.status === "CONTACTED" && contact.status !== "CONTACTED") {
         updateData.followedUpAt = new Date().toISOString();
       }
-      
+
       await api.contacts.updateContact(contact.id, updateData);
-      setSuccess('Contact updated successfully');
-      
+      setSuccess("Contact updated successfully");
+
       // Reload contact data
       loadContact();
-      
+
       setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
-      logger.error('Failed to update contact:', error);
-      setError('Failed to update contact. Please try again.');
+      logger.error("Failed to update contact:", error);
+      setError("Failed to update contact. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -100,18 +115,18 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
 
   const handleAddNote = async () => {
     if (!contact || !newNote.trim()) return;
-    
+
     try {
       setIsAddingNote(true);
       await api.contacts.addNote(contact.id, { content: newNote.trim() });
-      setNewNote('');
-      setSuccess('Note added successfully');
+      setNewNote("");
+      setSuccess("Note added successfully");
       // Reload contact data
       loadContact();
       setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
-      logger.error('Failed to add note:', error);
-      setError('Failed to add note. Please try again.');
+      logger.error("Failed to add note:", error);
+      setError("Failed to add note. Please try again.");
     } finally {
       setIsAddingNote(false);
     }
@@ -122,56 +137,57 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
   }, [loadContact]);
 
   const formatDate = (dateInput: string | Date) => {
-    if (!dateInput) return 'N/A';
-    
-    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
-    
+    if (!dateInput) return "N/A";
+
+    const date =
+      typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+
     if (isNaN(date.getTime())) {
-      return 'Invalid Date';
+      return "Invalid Date";
     }
-    
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'NEW':
-        return 'default';
-      case 'CONTACTED':
-        return 'secondary';
-      case 'QUALIFIED':
-        return 'default';
-      case 'PROPOSAL_SENT':
-        return 'secondary';
-      case 'CLOSED_WON':
-        return 'default';
-      case 'CLOSED_LOST':
-        return 'destructive';
-      case 'UNRESPONSIVE':
-        return 'outline';
+      case "NEW":
+        return "default";
+      case "CONTACTED":
+        return "secondary";
+      case "QUALIFIED":
+        return "default";
+      case "PROPOSAL_SENT":
+        return "secondary";
+      case "CLOSED_WON":
+        return "default";
+      case "CLOSED_LOST":
+        return "destructive";
+      case "UNRESPONSIVE":
+        return "outline";
       default:
-        return 'secondary';
+        return "secondary";
     }
   };
 
   const getPriorityBadgeVariant = (priority: string) => {
     switch (priority) {
-      case 'LOW':
-        return 'outline';
-      case 'MEDIUM':
-        return 'secondary';
-      case 'HIGH':
-        return 'default';
-      case 'URGENT':
-        return 'destructive';
+      case "LOW":
+        return "outline";
+      case "MEDIUM":
+        return "secondary";
+      case "HIGH":
+        return "default";
+      case "URGENT":
+        return "destructive";
       default:
-        return 'secondary';
+        return "secondary";
     }
   };
 
@@ -221,7 +237,7 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
         </div>
         <Button onClick={handleSave} disabled={isSaving}>
           <Save className="w-4 h-4 mr-2" />
-          {isSaving ? 'Saving...' : 'Save Changes'}
+          {isSaving ? "Saving..." : "Save Changes"}
         </Button>
       </div>
 
@@ -257,7 +273,10 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
                 <div>
                   <Label className="font-medium">Email</Label>
                   <div className="mt-1">
-                    <a href={`mailto:${contact.email}`} className="text-blue-600 hover:underline text-sm">
+                    <a
+                      href={`mailto:${contact.email}`}
+                      className="text-blue-600 hover:underline text-sm"
+                    >
                       {contact.email}
                     </a>
                   </div>
@@ -265,7 +284,10 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
                 <div>
                   <Label className="font-medium">Phone</Label>
                   <div className="mt-1">
-                    <a href={`tel:${contact.phone}`} className="text-blue-600 hover:underline text-sm">
+                    <a
+                      href={`tel:${contact.phone}`}
+                      className="text-blue-600 hover:underline text-sm"
+                    >
                       {contact.phone}
                     </a>
                   </div>
@@ -280,10 +302,12 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
                 </div>
                 <div>
                   <Label className="font-medium">Submitted</Label>
-                  <div className="mt-1 text-sm">{formatDate(contact.submittedAt)}</div>
+                  <div className="mt-1 text-sm">
+                    {formatDate(contact.submittedAt)}
+                  </div>
                 </div>
               </div>
-              
+
               {contact.message && (
                 <div>
                   <Label className="font-medium">Initial Message</Label>
@@ -299,15 +323,21 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
           <Card>
             <CardHeader>
               <CardTitle>Follow-up Notes</CardTitle>
-              <CardDescription>Track all interactions and follow-ups</CardDescription>
+              <CardDescription>
+                Track all interactions and follow-ups
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {contact.notes && contact.notes.length > 0 ? (
                 contact.notes.map((note, index) => (
                   <div key={index} className="p-3 border rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-sm">{note.authorName}</span>
-                      <span className="text-xs text-gray-500">{formatDate(note.createdAt)}</span>
+                      <span className="font-medium text-sm">
+                        {note.authorName}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {formatDate(note.createdAt)}
+                      </span>
                     </div>
                     <div className="text-sm text-gray-700">{note.content}</div>
                   </div>
@@ -315,7 +345,7 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
               ) : (
                 <div className="text-sm text-gray-500">No notes yet</div>
               )}
-              
+
               {/* Add Note */}
               <div className="pt-4 border-t">
                 <Label className="font-medium">Add New Note</Label>
@@ -326,12 +356,12 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
                     onChange={(e) => setNewNote(e.target.value)}
                     rows={3}
                   />
-                  <Button 
-                    onClick={handleAddNote} 
+                  <Button
+                    onClick={handleAddNote}
                     disabled={!newNote.trim() || isAddingNote}
                     size="sm"
                   >
-                    {isAddingNote ? 'Adding...' : 'Add Note'}
+                    {isAddingNote ? "Adding..." : "Add Note"}
                   </Button>
                 </div>
               </div>
@@ -345,14 +375,18 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
           <Card>
             <CardHeader>
               <CardTitle>Contact Management</CardTitle>
-              <CardDescription>Update status, priority, and assignment</CardDescription>
+              <CardDescription>
+                Update status, priority, and assignment
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="status">Status</Label>
-                <Select 
-                  value={formData.status} 
-                  onValueChange={(value) => setFormData({...formData, status: value as any})}
+                <Select
+                  value={formData.status}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, status: value as any })
+                  }
                 >
                   <SelectTrigger id="status">
                     <SelectValue placeholder="Select status" />
@@ -368,15 +402,20 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
                   </SelectContent>
                 </Select>
                 <div className="mt-1">
-                  Current: <Badge variant={getStatusBadgeVariant(contact.status)}>{contact.status}</Badge>
+                  Current:{" "}
+                  <Badge variant={getStatusBadgeVariant(contact.status)}>
+                    {contact.status}
+                  </Badge>
                 </div>
               </div>
 
               <div>
                 <Label htmlFor="priority">Priority</Label>
-                <Select 
-                  value={formData.priority} 
-                  onValueChange={(value) => setFormData({...formData, priority: value as any})}
+                <Select
+                  value={formData.priority}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, priority: value as any })
+                  }
                 >
                   <SelectTrigger id="priority">
                     <SelectValue placeholder="Select priority" />
@@ -389,15 +428,20 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
                   </SelectContent>
                 </Select>
                 <div className="mt-1">
-                  Current: <Badge variant={getPriorityBadgeVariant(contact.priority)}>{contact.priority}</Badge>
+                  Current:{" "}
+                  <Badge variant={getPriorityBadgeVariant(contact.priority)}>
+                    {contact.priority}
+                  </Badge>
                 </div>
               </div>
 
               <div>
                 <Label htmlFor="assigned">Assign To</Label>
-                <Select 
-                  value={formData.assignedToId} 
-                  onValueChange={(value) => setFormData({...formData, assignedToId: value})}
+                <Select
+                  value={formData.assignedToId}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, assignedToId: value })
+                  }
                 >
                   <SelectTrigger id="assigned">
                     <SelectValue placeholder="Select user" />
@@ -412,7 +456,7 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
                   </SelectContent>
                 </Select>
                 <div className="mt-1 text-sm text-gray-500">
-                  Current: {contact.assignedTo?.name || 'Unassigned'}
+                  Current: {contact.assignedTo?.name || "Unassigned"}
                 </div>
               </div>
             </CardContent>
@@ -437,11 +481,19 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="font-medium">Followed Up:</span>
-                <span>{contact.followedUpAt ? formatDate(contact.followedUpAt) : 'Not yet'}</span>
+                <span>
+                  {contact.followedUpAt
+                    ? formatDate(contact.followedUpAt)
+                    : "Not yet"}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="font-medium">Closed:</span>
-                <span>{contact.closedAt ? formatDate(contact.closedAt) : 'Not closed'}</span>
+                <span>
+                  {contact.closedAt
+                    ? formatDate(contact.closedAt)
+                    : "Not closed"}
+                </span>
               </div>
             </CardContent>
           </Card>

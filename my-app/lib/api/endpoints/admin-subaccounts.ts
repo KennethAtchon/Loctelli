@@ -1,4 +1,4 @@
-import { ApiClient } from '../client';
+import { ApiClient } from "../client";
 
 export interface SubAccount {
   id: number;
@@ -68,9 +68,9 @@ export interface UpdateSubAccountDto {
 
 export class AdminSubAccountsApi {
   constructor(private client: ApiClient) {}
-  
+
   async getAllSubAccounts(): Promise<SubAccount[]> {
-    return this.client.get('/admin/subaccounts');
+    return this.client.get("/admin/subaccounts");
   }
 
   async getSubAccount(id: number): Promise<DetailedSubAccount> {
@@ -78,14 +78,17 @@ export class AdminSubAccountsApi {
   }
 
   async createSubAccount(data: CreateSubAccountDto): Promise<SubAccount> {
-    return this.client.post('/admin/subaccounts', data);
+    return this.client.post("/admin/subaccounts", data);
   }
 
-  async updateSubAccount(id: number, data: UpdateSubAccountDto): Promise<SubAccount> {
+  async updateSubAccount(
+    id: number,
+    data: UpdateSubAccountDto
+  ): Promise<SubAccount> {
     return this.client.patch(`/admin/subaccounts/${id}`, data);
   }
 
   async deleteSubAccount(id: number): Promise<{ message: string }> {
     return this.client.delete(`/admin/subaccounts/${id}`);
   }
-} 
+}

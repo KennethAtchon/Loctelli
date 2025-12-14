@@ -1,24 +1,30 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useAuth } from '@/contexts/unified-auth-context';
-import type { RegisterDto } from '@/lib/api';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
-import logger from '@/lib/logger';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAuth } from "@/contexts/unified-auth-context";
+import type { RegisterDto } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
+import logger from "@/lib/logger";
 
 export default function RegisterPage() {
   const router = useRouter();
   const { register } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [passwordValidation, setPasswordValidation] = useState({
     hasMinLength: false,
@@ -28,18 +34,18 @@ export default function RegisterPage() {
     hasSpecialChar: false,
   });
   const [formData, setFormData] = useState<RegisterDto>({
-    name: '',
-    email: '',
-    password: '',
-    company: '',
-    budget: '',
+    name: "",
+    email: "",
+    password: "",
+    company: "",
+    budget: "",
   });
 
   // Real-time password validation
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const password = e.target.value;
     setFormData({ ...formData, password });
-    
+
     setPasswordValidation({
       hasMinLength: password.length >= 8,
       hasUppercase: /[A-Z]/.test(password),
@@ -52,36 +58,47 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    logger.debug('🔐 Register form submitted:', { email: formData.email });
-    
+
+    logger.debug("🔐 Register form submitted:", { email: formData.email });
+
     // Prevent multiple submissions
     if (isLoading) {
-      logger.debug('🚫 Form already submitting, ignoring');
+      logger.debug("🚫 Form already submitting, ignoring");
       return;
     }
-    
+
     setIsLoading(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
       await register(formData);
-      logger.debug('✅ Registration successful');
-      setSuccess('Registration successful! You have been automatically logged in.');
+      logger.debug("✅ Registration successful");
+      setSuccess(
+        "Registration successful! You have been automatically logged in."
+      );
 
       // Clear form
-      setFormData({ name: '', email: '', password: '', company: '', budget: '' });
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        company: "",
+        budget: "",
+      });
 
       // Redirect to account page after 2 seconds
       setTimeout(() => {
-        router.push('/account');
+        router.push("/account");
       }, 2000);
     } catch (error) {
-      logger.error('❌ Registration failed:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Registration failed. Please try again.';
+      logger.error("❌ Registration failed:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Registration failed. Please try again.";
       setError(errorMessage);
-      logger.debug('📝 Set error message:', errorMessage);
+      logger.debug("📝 Set error message:", errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -95,8 +112,11 @@ export default function RegisterPage() {
             Create your account
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Or{' '}
-            <Link href="/auth/login" className="font-medium text-blue-600 hover:text-blue-500">
+            Or{" "}
+            <Link
+              href="/auth/login"
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
               sign in to your existing account
             </Link>
           </p>
@@ -116,7 +136,9 @@ export default function RegisterPage() {
                   <AlertDescription>
                     {error}
                     <br />
-                    <small className="text-xs opacity-75">Debug: Error state is active</small>
+                    <small className="text-xs opacity-75">
+                      Debug: Error state is active
+                    </small>
                   </AlertDescription>
                 </Alert>
               )}
@@ -133,7 +155,9 @@ export default function RegisterPage() {
                   id="name"
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   required
                   placeholder="Enter your full name"
                   disabled={isLoading}
@@ -146,7 +170,9 @@ export default function RegisterPage() {
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
                   required
                   placeholder="Enter your email"
                   disabled={isLoading}
@@ -158,7 +184,7 @@ export default function RegisterPage() {
                 <div className="relative">
                   <Input
                     id="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     value={formData.password}
                     onChange={handlePasswordChange}
                     required
@@ -171,33 +197,69 @@ export default function RegisterPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={isLoading}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
-                
+
                 {/* Real-time Password Validation */}
                 {formData.password && (
                   <div className="mt-2 space-y-1">
-                    <p className="text-xs font-medium text-gray-700 mb-2">Password Requirements:</p>
+                    <p className="text-xs font-medium text-gray-700 mb-2">
+                      Password Requirements:
+                    </p>
                     <div className="space-y-1">
-                      <div className={`flex items-center text-xs ${passwordValidation.hasMinLength ? 'text-green-600' : 'text-gray-500'}`}>
-                        {passwordValidation.hasMinLength ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+                      <div
+                        className={`flex items-center text-xs ${passwordValidation.hasMinLength ? "text-green-600" : "text-gray-500"}`}
+                      >
+                        {passwordValidation.hasMinLength ? (
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                        ) : (
+                          <XCircle className="h-3 w-3 mr-1" />
+                        )}
                         At least 8 characters
                       </div>
-                      <div className={`flex items-center text-xs ${passwordValidation.hasUppercase ? 'text-green-600' : 'text-gray-500'}`}>
-                        {passwordValidation.hasUppercase ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+                      <div
+                        className={`flex items-center text-xs ${passwordValidation.hasUppercase ? "text-green-600" : "text-gray-500"}`}
+                      >
+                        {passwordValidation.hasUppercase ? (
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                        ) : (
+                          <XCircle className="h-3 w-3 mr-1" />
+                        )}
                         At least one uppercase letter
                       </div>
-                      <div className={`flex items-center text-xs ${passwordValidation.hasLowercase ? 'text-green-600' : 'text-gray-500'}`}>
-                        {passwordValidation.hasLowercase ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+                      <div
+                        className={`flex items-center text-xs ${passwordValidation.hasLowercase ? "text-green-600" : "text-gray-500"}`}
+                      >
+                        {passwordValidation.hasLowercase ? (
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                        ) : (
+                          <XCircle className="h-3 w-3 mr-1" />
+                        )}
                         At least one lowercase letter
                       </div>
-                      <div className={`flex items-center text-xs ${passwordValidation.hasNumber ? 'text-green-600' : 'text-gray-500'}`}>
-                        {passwordValidation.hasNumber ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+                      <div
+                        className={`flex items-center text-xs ${passwordValidation.hasNumber ? "text-green-600" : "text-gray-500"}`}
+                      >
+                        {passwordValidation.hasNumber ? (
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                        ) : (
+                          <XCircle className="h-3 w-3 mr-1" />
+                        )}
                         At least one number
                       </div>
-                      <div className={`flex items-center text-xs ${passwordValidation.hasSpecialChar ? 'text-green-600' : 'text-gray-500'}`}>
-                        {passwordValidation.hasSpecialChar ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+                      <div
+                        className={`flex items-center text-xs ${passwordValidation.hasSpecialChar ? "text-green-600" : "text-gray-500"}`}
+                      >
+                        {passwordValidation.hasSpecialChar ? (
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                        ) : (
+                          <XCircle className="h-3 w-3 mr-1" />
+                        )}
                         At least one special character
                       </div>
                     </div>
@@ -210,8 +272,10 @@ export default function RegisterPage() {
                 <Input
                   id="company"
                   type="text"
-                  value={formData.company || ''}
-                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                  value={formData.company || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, company: e.target.value })
+                  }
                   placeholder="Enter your company name"
                   disabled={isLoading}
                 />
@@ -222,15 +286,17 @@ export default function RegisterPage() {
                 <Input
                   id="budget"
                   type="text"
-                  value={formData.budget || ''}
-                  onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                  value={formData.budget || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, budget: e.target.value })
+                  }
                   placeholder="Enter your budget range"
                   disabled={isLoading}
                 />
               </div>
 
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Creating account...' : 'Create account'}
+                {isLoading ? "Creating account..." : "Create account"}
               </Button>
             </form>
           </CardContent>
@@ -238,4 +304,4 @@ export default function RegisterPage() {
       </div>
     </div>
   );
-} 
+}

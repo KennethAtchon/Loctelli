@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { useRef } from "react"
-import { motion, useInView } from "framer-motion"
-import { Play, ChevronRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import { Play, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function DemoSection() {
-  const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: true, margin: "-100px" })
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
     <section id="demo" className="py-24 bg-blue-50" ref={ref}>
@@ -24,7 +24,9 @@ export function DemoSection() {
           <motion.div
             className="w-20 h-1 bg-teal-500 mx-auto mb-6"
             initial={{ opacity: 0, width: 0 }}
-            animate={isInView ? { opacity: 1, width: 80 } : { opacity: 0, width: 0 }}
+            animate={
+              isInView ? { opacity: 1, width: 80 } : { opacity: 0, width: 0 }
+            }
             transition={{ duration: 0.5, delay: 0.2 }}
           />
           <motion.p
@@ -33,7 +35,8 @@ export function DemoSection() {
             animate={isInView ? { opacity: 1 } : { opacity: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            Watch our live demo to see how LeadSpark AI can transform your lead generation process
+            Watch our live demo to see how LeadSpark AI can transform your lead
+            generation process
           </motion.p>
         </div>
 
@@ -71,11 +74,12 @@ export function DemoSection() {
 
           <div className="mt-8 text-center">
             <Button className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-6 text-lg rounded-full">
-              Schedule a Personalized Demo <ChevronRight className="ml-2 h-4 w-4" />
+              Schedule a Personalized Demo{" "}
+              <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </motion.div>
       </div>
     </section>
-  )
+  );
 }

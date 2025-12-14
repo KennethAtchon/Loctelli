@@ -1,20 +1,32 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { api } from '@/lib/api';
-import { Booking, CreateBookingDto, Lead } from '@/types';
-import { UserProfile } from '@/lib/api/endpoints/admin-auth';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import logger from '@/lib/logger';
-import { useTenant } from '@/contexts/tenant-context';
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { api } from "@/lib/api";
+import { Booking, CreateBookingDto, Lead } from "@/types";
+import { UserProfile } from "@/lib/api/endpoints/admin-auth";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import logger from "@/lib/logger";
+import { useTenant } from "@/contexts/tenant-context";
 
 export default function EditBookingPage() {
   const router = useRouter();
@@ -33,9 +45,9 @@ export default function EditBookingPage() {
   const [formData, setFormData] = useState<Partial<CreateBookingDto>>({
     regularUserId: 0,
     leadId: undefined,
-    bookingType: '',
+    bookingType: "",
     details: {},
-    status: 'pending'
+    status: "pending",
   });
 
   useEffect(() => {
@@ -47,32 +59,33 @@ export default function EditBookingPage() {
         // Load booking data
         const bookingData = await api.bookings.getBooking(bookingId);
         setBooking(bookingData);
-        
+
         // Handle case where booking exists but user doesn't
         const userId = bookingData.regularUserId || 0;
         if (userId === 0) {
-          logger.warn('Booking has no valid user ID:', bookingData);
+          logger.warn("Booking has no valid user ID:", bookingData);
         }
-        
+
         setFormData({
           regularUserId: userId,
           leadId: bookingData.leadId || undefined,
           bookingType: bookingData.bookingType,
           details: bookingData.details || {},
-          status: bookingData.status
+          status: bookingData.status,
         });
 
         // Load users for dropdown
-        const usersData = await api.adminAuth.getAllUsers(adminFilter ?? undefined);
+        const usersData = await api.adminAuth.getAllUsers(
+          adminFilter ?? undefined
+        );
         setUsers(usersData);
 
         // Load leads for dropdown
         const leadsData = await api.leads.getLeads();
         setLeads(leadsData);
-
       } catch (error) {
-        logger.error('Failed to load booking data:', error);
-        setError('Failed to load booking data');
+        logger.error("Failed to load booking data:", error);
+        setError("Failed to load booking data");
         toast({
           title: "Error",
           description: "Failed to load booking data",
@@ -88,28 +101,35 @@ export default function EditBookingPage() {
     }
   }, [bookingId, toast, adminFilter]);
 
-  const handleInputChange = (field: string, value: string | number | undefined) => {
-    setFormData(prev => ({
+  const handleInputChange = (
+    field: string,
+    value: string | number | undefined
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleDetailsChange = (key: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       details: {
         ...prev.details,
-        [key]: value
-      }
+        [key]: value,
+      },
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate required fields
-    if (!formData.regularUserId || formData.regularUserId === 0 || !formData.bookingType) {
+    if (
+      !formData.regularUserId ||
+      formData.regularUserId === 0 ||
+      !formData.bookingType
+    ) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -119,7 +139,9 @@ export default function EditBookingPage() {
     }
 
     // Validate that the selected user exists
-    const selectedUser = users.find(user => user.id === formData.regularUserId);
+    const selectedUser = users.find(
+      (user) => user.id === formData.regularUserId
+    );
     if (!selectedUser) {
       toast({
         title: "Validation Error",
@@ -131,26 +153,26 @@ export default function EditBookingPage() {
 
     try {
       setIsSaving(true);
-      
+
       // Ensure we're sending valid data
       const updateData = {
         regularUserId: formData.regularUserId,
         leadId: formData.leadId,
         bookingType: formData.bookingType,
         details: formData.details,
-        status: formData.status
+        status: formData.status,
       };
-      
+
       await api.bookings.updateBooking(bookingId, updateData);
-      
+
       toast({
         title: "Success",
         description: "Booking updated successfully",
       });
-      
-      router.push('/admin/bookings');
+
+      router.push("/admin/bookings");
     } catch (error) {
-      logger.error('Failed to update booking:', error);
+      logger.error("Failed to update booking:", error);
       toast({
         title: "Error",
         description: "Failed to update booking",
@@ -173,8 +195,8 @@ export default function EditBookingPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error || 'Booking not found'}</p>
-          <Button onClick={() => router.push('/admin/bookings')}>
+          <p className="text-red-600 mb-4">{error || "Booking not found"}</p>
+          <Button onClick={() => router.push("/admin/bookings")}>
             Back to Bookings
           </Button>
         </div>
@@ -189,14 +211,16 @@ export default function EditBookingPage() {
         <div className="flex items-center gap-4">
           <Button
             variant="outline"
-            onClick={() => router.push('/admin/bookings')}
+            onClick={() => router.push("/admin/bookings")}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Edit Booking</h1>
-            <p className="text-gray-600">Update booking information and details</p>
+            <p className="text-gray-600">
+              Update booking information and details
+            </p>
           </div>
         </div>
       </div>
@@ -213,8 +237,10 @@ export default function EditBookingPage() {
               <div className="space-y-2">
                 <Label htmlFor="regularUserId">User *</Label>
                 <Select
-                  value={formData.regularUserId?.toString() || ''}
-                  onValueChange={(value) => handleInputChange('regularUserId', Number(value))}
+                  value={formData.regularUserId?.toString() || ""}
+                  onValueChange={(value) =>
+                    handleInputChange("regularUserId", Number(value))
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a user" />
@@ -229,7 +255,8 @@ export default function EditBookingPage() {
                 </Select>
                 {booking?.user === null && (
                   <p className="text-sm text-amber-600">
-                    ⚠️ The user associated with this booking no longer exists. Please select a new user.
+                    ⚠️ The user associated with this booking no longer exists.
+                    Please select a new user.
                   </p>
                 )}
               </div>
@@ -237,8 +264,13 @@ export default function EditBookingPage() {
               <div className="space-y-2">
                 <Label htmlFor="leadId">Lead</Label>
                 <Select
-                  value={formData.leadId?.toString() || 'no-lead'}
-                  onValueChange={(value) => handleInputChange('leadId', value === 'no-lead' ? undefined : Number(value))}
+                  value={formData.leadId?.toString() || "no-lead"}
+                  onValueChange={(value) =>
+                    handleInputChange(
+                      "leadId",
+                      value === "no-lead" ? undefined : Number(value)
+                    )
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a lead (optional)" />
@@ -247,7 +279,7 @@ export default function EditBookingPage() {
                     <SelectItem value="no-lead">No lead</SelectItem>
                     {leads.map((lead) => (
                       <SelectItem key={lead.id} value={lead.id.toString()}>
-                        {lead.name} ({lead.company || 'No company'})
+                        {lead.name} ({lead.company || "No company"})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -259,8 +291,10 @@ export default function EditBookingPage() {
               <div className="space-y-2">
                 <Label htmlFor="bookingType">Booking Type *</Label>
                 <Select
-                  value={formData.bookingType || ''}
-                  onValueChange={(value) => handleInputChange('bookingType', value)}
+                  value={formData.bookingType || ""}
+                  onValueChange={(value) =>
+                    handleInputChange("bookingType", value)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select booking type" />
@@ -276,8 +310,8 @@ export default function EditBookingPage() {
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
                 <Select
-                  value={formData.status || 'pending'}
-                  onValueChange={(value) => handleInputChange('status', value)}
+                  value={formData.status || "pending"}
+                  onValueChange={(value) => handleInputChange("status", value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
@@ -297,7 +331,9 @@ export default function EditBookingPage() {
         <Card>
           <CardHeader>
             <CardTitle>Booking Details</CardTitle>
-            <CardDescription>Additional information about the booking</CardDescription>
+            <CardDescription>
+              Additional information about the booking
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -305,8 +341,8 @@ export default function EditBookingPage() {
               <Input
                 id="date"
                 type="datetime-local"
-                value={formData.details?.date || ''}
-                onChange={(e) => handleDetailsChange('date', e.target.value)}
+                value={formData.details?.date || ""}
+                onChange={(e) => handleDetailsChange("date", e.target.value)}
                 placeholder="Select date and time"
               />
             </div>
@@ -316,8 +352,10 @@ export default function EditBookingPage() {
               <Input
                 id="duration"
                 type="number"
-                value={formData.details?.duration || ''}
-                onChange={(e) => handleDetailsChange('duration', e.target.value)}
+                value={formData.details?.duration || ""}
+                onChange={(e) =>
+                  handleDetailsChange("duration", e.target.value)
+                }
                 placeholder="30"
                 min="15"
                 step="15"
@@ -329,8 +367,10 @@ export default function EditBookingPage() {
               <Input
                 id="location"
                 type="text"
-                value={formData.details?.location || ''}
-                onChange={(e) => handleDetailsChange('location', e.target.value)}
+                value={formData.details?.location || ""}
+                onChange={(e) =>
+                  handleDetailsChange("location", e.target.value)
+                }
                 placeholder="Meeting location or video call link"
               />
             </div>
@@ -339,8 +379,8 @@ export default function EditBookingPage() {
               <Label htmlFor="notes">Notes</Label>
               <Textarea
                 id="notes"
-                value={formData.details?.notes || ''}
-                onChange={(e) => handleDetailsChange('notes', e.target.value)}
+                value={formData.details?.notes || ""}
+                onChange={(e) => handleDetailsChange("notes", e.target.value)}
                 placeholder="Additional notes about the booking"
                 rows={3}
               />
@@ -350,8 +390,8 @@ export default function EditBookingPage() {
               <Label htmlFor="agenda">Agenda</Label>
               <Textarea
                 id="agenda"
-                value={formData.details?.agenda || ''}
-                onChange={(e) => handleDetailsChange('agenda', e.target.value)}
+                value={formData.details?.agenda || ""}
+                onChange={(e) => handleDetailsChange("agenda", e.target.value)}
                 placeholder="Meeting agenda or discussion points"
                 rows={3}
               />
@@ -364,15 +404,11 @@ export default function EditBookingPage() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push('/admin/bookings')}
+            onClick={() => router.push("/admin/bookings")}
           >
             Cancel
           </Button>
-          <Button 
-            type="button" 
-            disabled={isSaving}
-            onClick={handleSubmit}
-          >
+          <Button type="button" disabled={isSaving} onClick={handleSubmit}>
             {isSaving ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -389,4 +425,4 @@ export default function EditBookingPage() {
       </form>
     </div>
   );
-} 
+}

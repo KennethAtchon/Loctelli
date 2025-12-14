@@ -1,24 +1,33 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Save, Plus, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
-import { useToast } from '@/hooks/use-toast';
-import { api } from '@/lib/api';
-import type { PromptTemplate, UpdatePromptTemplateDto } from '@/lib/api/endpoints/prompt-templates';
-import { Badge } from '@/components/ui/badge';
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { ArrowLeft, Save, Plus, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { useToast } from "@/hooks/use-toast";
+import { api } from "@/lib/api";
+import type {
+  PromptTemplate,
+  UpdatePromptTemplateDto,
+} from "@/lib/api/endpoints/prompt-templates";
+import { Badge } from "@/components/ui/badge";
 
 export default function EditPromptTemplatePage() {
   const [template, setTemplate] = useState<PromptTemplate | null>(null);
   const [formData, setFormData] = useState<UpdatePromptTemplateDto>({});
-  const [tagInput, setTagInput] = useState('');
+  const [tagInput, setTagInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const router = useRouter();
@@ -48,20 +57,23 @@ export default function EditPromptTemplatePage() {
         tags: data.tags || [],
       });
     } catch (error) {
-      console.error('Failed to load template:', error);
+      console.error("Failed to load template:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load template',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load template",
+        variant: "destructive",
       });
-      router.push('/admin/prompt-templates');
+      router.push("/admin/prompt-templates");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleInputChange = (field: keyof UpdatePromptTemplateDto, value: string | number | boolean | undefined | string[]) => {
-    setFormData(prev => ({
+  const handleInputChange = (
+    field: keyof UpdatePromptTemplateDto,
+    value: string | number | boolean | undefined | string[]
+  ) => {
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -70,14 +82,14 @@ export default function EditPromptTemplatePage() {
   const handleAddTag = () => {
     if (tagInput.trim() && !formData.tags?.includes(tagInput.trim())) {
       const newTags = [...(formData.tags || []), tagInput.trim()];
-      handleInputChange('tags', newTags);
-      setTagInput('');
+      handleInputChange("tags", newTags);
+      setTagInput("");
     }
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
-    const newTags = (formData.tags || []).filter(tag => tag !== tagToRemove);
-    handleInputChange('tags', newTags);
+    const newTags = (formData.tags || []).filter((tag) => tag !== tagToRemove);
+    handleInputChange("tags", newTags);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,9 +97,9 @@ export default function EditPromptTemplatePage() {
 
     if (!formData.name?.trim() || !formData.baseSystemPrompt?.trim()) {
       toast({
-        title: 'Validation Error',
-        description: 'Name and Base System Prompt are required',
-        variant: 'destructive',
+        title: "Validation Error",
+        description: "Name and Base System Prompt are required",
+        variant: "destructive",
       });
       return;
     }
@@ -107,20 +119,20 @@ export default function EditPromptTemplatePage() {
         tags: formData.tags || [],
       };
 
-      console.log('Updating prompt template with data:', submitData);
+      console.log("Updating prompt template with data:", submitData);
       const result = await api.promptTemplates.update(templateId, submitData);
-      console.log('Template updated successfully:', result);
+      console.log("Template updated successfully:", result);
       toast({
-        title: 'Success',
-        description: 'Template updated successfully',
+        title: "Success",
+        description: "Template updated successfully",
       });
-      router.push('/admin/prompt-templates');
+      router.push("/admin/prompt-templates");
     } catch (error) {
-      console.error('Failed to update template:', error);
+      console.error("Failed to update template:", error);
       toast({
-        title: 'Error',
-        description: `Failed to update template: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        variant: 'destructive',
+        title: "Error",
+        description: `Failed to update template: ${error instanceof Error ? error.message : "Unknown error"}`,
+        variant: "destructive",
       });
     } finally {
       setSaving(false);
@@ -141,8 +153,10 @@ export default function EditPromptTemplatePage() {
     return (
       <div className="container mx-auto py-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Template not found</h1>
-          <Button onClick={() => router.push('/admin/prompt-templates')}>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Template not found
+          </h1>
+          <Button onClick={() => router.push("/admin/prompt-templates")}>
             Back to Templates
           </Button>
         </div>
@@ -154,16 +168,14 @@ export default function EditPromptTemplatePage() {
     <div className="container mx-auto py-6">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.back()}
-        >
+        <Button variant="outline" size="sm" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Edit Prompt Template</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Edit Prompt Template
+          </h1>
           <p className="text-gray-600 mt-2">
             Update the AI prompt template settings
           </p>
@@ -187,8 +199,8 @@ export default function EditPromptTemplatePage() {
                   <Label htmlFor="name">Template Name *</Label>
                   <Input
                     id="name"
-                    value={formData.name || ''}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    value={formData.name || ""}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
                     placeholder="e.g., Sales Agent, Support Bot, Scheduler"
                     required
                   />
@@ -198,8 +210,10 @@ export default function EditPromptTemplatePage() {
                   <Label htmlFor="description">Description</Label>
                   <Textarea
                     id="description"
-                    value={formData.description || ''}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    value={formData.description || ""}
+                    onChange={(e) =>
+                      handleInputChange("description", e.target.value)
+                    }
                     placeholder="Describe the purpose and style of this template"
                     rows={3}
                   />
@@ -209,8 +223,10 @@ export default function EditPromptTemplatePage() {
                   <Label htmlFor="category">Category</Label>
                   <Input
                     id="category"
-                    value={formData.category || ''}
-                    onChange={(e) => handleInputChange('category', e.target.value)}
+                    value={formData.category || ""}
+                    onChange={(e) =>
+                      handleInputChange("category", e.target.value)
+                    }
                     placeholder="e.g., sales, support, scheduling"
                   />
                 </div>
@@ -222,20 +238,26 @@ export default function EditPromptTemplatePage() {
               <CardHeader>
                 <CardTitle>Base System Prompt *</CardTitle>
                 <CardDescription>
-                  ONE simple sentence that defines the AI's core behavior. Keep it minimal - strategies will add detailed persona and instructions.
+                  ONE simple sentence that defines the AI's core behavior. Keep
+                  it minimal - strategies will add detailed persona and
+                  instructions.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Textarea
-                  value={formData.baseSystemPrompt || ''}
-                  onChange={(e) => handleInputChange('baseSystemPrompt', e.target.value)}
+                  value={formData.baseSystemPrompt || ""}
+                  onChange={(e) =>
+                    handleInputChange("baseSystemPrompt", e.target.value)
+                  }
                   placeholder="You are a helpful AI assistant that guides conversations professionally."
                   rows={4}
                   className="font-mono text-sm"
                   required
                 />
                 <p className="text-xs text-gray-500 mt-2">
-                  Keep this short and simple. Detailed instructions, persona, and conversation style will be defined in individual strategies.
+                  Keep this short and simple. Detailed instructions, persona,
+                  and conversation style will be defined in individual
+                  strategies.
                 </p>
               </CardContent>
             </Card>
@@ -254,7 +276,7 @@ export default function EditPromptTemplatePage() {
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
+                      if (e.key === "Enter") {
                         e.preventDefault();
                         handleAddTag();
                       }
@@ -274,7 +296,11 @@ export default function EditPromptTemplatePage() {
                 {formData.tags && formData.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {formData.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                      <Badge
+                        key={tag}
+                        variant="secondary"
+                        className="flex items-center gap-1"
+                      >
                         {tag}
                         <button
                           type="button"
@@ -307,11 +333,14 @@ export default function EditPromptTemplatePage() {
                     Temperature: {formData.temperature || 0.7}
                   </Label>
                   <p className="text-xs text-gray-500 mb-2">
-                    Controls randomness. Lower = more focused, Higher = more creative
+                    Controls randomness. Lower = more focused, Higher = more
+                    creative
                   </p>
                   <Slider
                     value={[formData.temperature || 0.7]}
-                    onValueChange={(value) => handleInputChange('temperature', value[0])}
+                    onValueChange={(value) =>
+                      handleInputChange("temperature", value[0])
+                    }
                     max={2}
                     min={0}
                     step={0.1}
@@ -327,8 +356,13 @@ export default function EditPromptTemplatePage() {
                   <Input
                     id="maxTokens"
                     type="number"
-                    value={formData.maxTokens || ''}
-                    onChange={(e) => handleInputChange('maxTokens', e.target.value ? parseInt(e.target.value) : undefined)}
+                    value={formData.maxTokens || ""}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "maxTokens",
+                        e.target.value ? parseInt(e.target.value) : undefined
+                      )
+                    }
                     placeholder="e.g., 1000"
                     min={1}
                   />
@@ -340,22 +374,23 @@ export default function EditPromptTemplatePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Template Settings</CardTitle>
-                <CardDescription>
-                  Configure template behavior
-                </CardDescription>
+                <CardDescription>Configure template behavior</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="isActive">Set as Active</Label>
                     <p className="text-sm text-gray-500">
-                      This template will be used as the default choice for new strategies
+                      This template will be used as the default choice for new
+                      strategies
                     </p>
                   </div>
                   <Switch
                     id="isActive"
                     checked={formData.isActive || false}
-                    onCheckedChange={(checked) => handleInputChange('isActive', checked)}
+                    onCheckedChange={(checked) =>
+                      handleInputChange("isActive", checked)
+                    }
                   />
                 </div>
               </CardContent>
@@ -365,13 +400,9 @@ export default function EditPromptTemplatePage() {
             <Card>
               <CardContent className="pt-6">
                 <div className="space-y-3">
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={saving}
-                  >
+                  <Button type="submit" className="w-full" disabled={saving}>
                     {saving ? (
-                      'Saving...'
+                      "Saving..."
                     ) : (
                       <>
                         <Save className="h-4 w-4 mr-2" />

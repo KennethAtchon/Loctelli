@@ -1,5 +1,5 @@
-import logger from '@/lib/logger';
-import { toast } from 'sonner';
+import logger from "@/lib/logger";
+import { toast } from "sonner";
 
 export interface RateLimitOptions {
   retryAfterSeconds?: number;
@@ -12,7 +12,7 @@ export class RateLimiter {
   isBlocked(endpoint: string): boolean {
     const retryTime = this.blockedEndpoints.get(endpoint);
     if (!retryTime) return false;
-    
+
     const now = Date.now();
     if (now < retryTime) {
       return true;
@@ -23,15 +23,17 @@ export class RateLimiter {
   }
 
   blockEndpoint(endpoint: string, retryAfterSeconds: number): void {
-    const retryTime = Date.now() + (retryAfterSeconds * 1000);
+    const retryTime = Date.now() + retryAfterSeconds * 1000;
     this.blockedEndpoints.set(endpoint, retryTime);
-    logger.debug(`🚫 Blocked endpoint ${endpoint} until ${new Date(retryTime).toISOString()}`);
+    logger.debug(
+      `🚫 Blocked endpoint ${endpoint} until ${new Date(retryTime).toISOString()}`
+    );
   }
 
   getRetryTime(endpoint: string): number | null {
     const retryTime = this.blockedEndpoints.get(endpoint);
     if (!retryTime) return null;
-    
+
     const now = Date.now();
     if (now < retryTime) {
       return Math.ceil((retryTime - now) / 1000);
@@ -59,17 +61,25 @@ export class RateLimiter {
     return `${minutes} minutes and ${remainingSeconds} seconds`;
   }
 
-  handleRateLimitError(endpoint: string, response: Response, errorData: any): void {
+  handleRateLimitError(
+    endpoint: string,
+    response: Response,
+    errorData: any
+  ): void {
     const retryAfter = errorData.retryAfter || 60;
     const waitTime = this.formatTime(retryAfter);
-    
+
     this.blockEndpoint(endpoint, retryAfter);
-    
-    logger.warn(`🚫 Rate limit exceeded for ${endpoint}. Retry after ${retryAfter} seconds`);
-    
+
+    logger.warn(
+      `🚫 Rate limit exceeded for ${endpoint}. Retry after ${retryAfter} seconds`
+    );
+
     this.showRateLimitToast(waitTime);
-    
-    throw new Error(`Rate limit exceeded. Please wait ${waitTime} before trying again.`);
+
+    throw new Error(
+      `Rate limit exceeded. Please wait ${waitTime} before trying again.`
+    );
   }
 
   checkRateLimit(endpoint: string): void {
@@ -77,15 +87,19 @@ export class RateLimiter {
       const retryAfter = this.getRetryTime(endpoint);
       if (retryAfter) {
         const waitTime = this.formatTime(retryAfter);
-        logger.warn(`🚫 Blocked request to ${endpoint} - rate limited. Wait ${waitTime}`);
+        logger.warn(
+          `🚫 Blocked request to ${endpoint} - rate limited. Wait ${waitTime}`
+        );
         this.showRateLimitToast(waitTime);
-        throw new Error(`Rate limit exceeded. Please wait ${waitTime} before trying again.`);
+        throw new Error(
+          `Rate limit exceeded. Please wait ${waitTime} before trying again.`
+        );
       }
     }
   }
 
   private showRateLimitToast(waitTime: string): void {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       toast.error(`Rate limited! Please wait ${waitTime} before trying again.`);
     }
   }

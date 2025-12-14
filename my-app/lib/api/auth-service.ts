@@ -1,6 +1,6 @@
-import { AuthCookies } from '../cookies';
-import logger from '@/lib/logger';
-import { API_CONFIG } from '../utils/envUtils';
+import { AuthCookies } from "../cookies";
+import logger from "@/lib/logger";
+import { API_CONFIG } from "../utils/envUtils";
 
 export interface AuthHeaders {
   [key: string]: string;
@@ -24,12 +24,12 @@ export class AuthService {
   // Check if an endpoint is an authentication endpoint that should not be retried
   isAuthEndpoint(endpoint: string): boolean {
     const authEndpoints = [
-      '/auth/login',
-      '/auth/register',
-      '/auth/refresh',
-      '/auth/logout',
-      '/auth/profile',
-      '/auth/change-password'
+      "/auth/login",
+      "/auth/register",
+      "/auth/refresh",
+      "/auth/logout",
+      "/auth/profile",
+      "/auth/change-password",
     ];
     return authEndpoints.includes(endpoint);
   }
@@ -37,14 +37,14 @@ export class AuthService {
   // Get authentication headers based on available tokens
   getAuthHeaders(): AuthHeaders {
     const headers: AuthHeaders = {};
-    
+
     // Debug: Check all tokens
     const adminAccessToken = AuthCookies.getAdminAccessToken();
     const adminRefreshToken = AuthCookies.getAdminRefreshToken();
     const userAccessToken = AuthCookies.getAccessToken();
     const userRefreshToken = AuthCookies.getRefreshToken();
-    
-    logger.debug('🔍 Token Debug:', {
+
+    logger.debug("🔍 Token Debug:", {
       adminAccess: !!adminAccessToken,
       adminRefresh: !!adminRefreshToken,
       userAccess: !!userAccessToken,
@@ -52,22 +52,22 @@ export class AuthService {
       adminAccessLength: adminAccessToken?.length || 0,
       adminRefreshLength: adminRefreshToken?.length || 0,
     });
-    
+
     // Check for admin tokens first (admin takes precedence)
     if (adminAccessToken) {
-      headers['x-user-token'] = adminAccessToken;
-      logger.debug('🔑 Admin access token found and added to headers');
+      headers["x-user-token"] = adminAccessToken;
+      logger.debug("🔑 Admin access token found and added to headers");
       return headers;
     }
-    
+
     // Check for regular user tokens
     if (userAccessToken) {
-      headers['x-user-token'] = userAccessToken;
-      logger.debug('🔑 User access token found and added to headers');
+      headers["x-user-token"] = userAccessToken;
+      logger.debug("🔑 User access token found and added to headers");
     } else {
-      logger.debug('ℹ️ No access tokens found');
+      logger.debug("ℹ️ No access tokens found");
     }
-    
+
     return headers;
   }
 
@@ -81,7 +81,7 @@ export class AuthService {
 
     this.isRefreshing = true;
     this.refreshPromise = this.performTokenRefresh();
-    
+
     try {
       await this.refreshPromise;
     } finally {
@@ -96,13 +96,13 @@ export class AuthService {
       const adminRefreshToken = AuthCookies.getAdminRefreshToken();
       if (adminRefreshToken) {
         try {
-          logger.debug('🔄 Attempting admin token refresh...');
+          logger.debug("🔄 Attempting admin token refresh...");
           // Use direct fetch to avoid infinite loop - now using unified endpoint
           this.isRefreshRequest = true;
           const response = await fetch(`${this.baseUrl}/auth/refresh`, {
-            method: 'POST',
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({ refresh_token: adminRefreshToken }),
           });
@@ -110,18 +110,25 @@ export class AuthService {
 
           if (!response.ok) {
             const errorText = await response.text();
-            logger.debug(`❌ Admin refresh failed with status ${response.status}:`, errorText);
-            throw new Error(`Refresh failed: ${response.status} - ${errorText}`);
+            logger.debug(
+              `❌ Admin refresh failed with status ${response.status}:`,
+              errorText
+            );
+            throw new Error(
+              `Refresh failed: ${response.status} - ${errorText}`
+            );
           }
 
           const data: TokenRefreshResponse = await response.json();
-          logger.debug('✅ Admin token refresh successful, updating cookies...');
+          logger.debug(
+            "✅ Admin token refresh successful, updating cookies..."
+          );
           AuthCookies.setAdminAccessToken(data.access_token);
           AuthCookies.setAdminRefreshToken(data.refresh_token);
-          logger.debug('✅ Admin tokens updated successfully');
+          logger.debug("✅ Admin tokens updated successfully");
           return;
         } catch (error) {
-          logger.debug('❌ Admin token refresh failed:', error);
+          logger.debug("❌ Admin token refresh failed:", error);
           // Clear only admin tokens on failure
           AuthCookies.clearAdminTokens();
           throw error;
@@ -132,13 +139,13 @@ export class AuthService {
       const refreshToken = AuthCookies.getRefreshToken();
       if (refreshToken) {
         try {
-          logger.debug('🔄 Attempting user token refresh...');
+          logger.debug("🔄 Attempting user token refresh...");
           // Use direct fetch to avoid infinite loop
           this.isRefreshRequest = true;
           const response = await fetch(`${this.baseUrl}/auth/refresh`, {
-            method: 'POST',
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({ refresh_token: refreshToken }),
           });
@@ -146,18 +153,23 @@ export class AuthService {
 
           if (!response.ok) {
             const errorText = await response.text();
-            logger.debug(`❌ User refresh failed with status ${response.status}:`, errorText);
-            throw new Error(`Refresh failed: ${response.status} - ${errorText}`);
+            logger.debug(
+              `❌ User refresh failed with status ${response.status}:`,
+              errorText
+            );
+            throw new Error(
+              `Refresh failed: ${response.status} - ${errorText}`
+            );
           }
 
           const data: TokenRefreshResponse = await response.json();
-          logger.debug('✅ User token refresh successful, updating cookies...');
+          logger.debug("✅ User token refresh successful, updating cookies...");
           AuthCookies.setAccessToken(data.access_token);
           AuthCookies.setRefreshToken(data.refresh_token);
-          logger.debug('✅ User tokens updated successfully');
+          logger.debug("✅ User tokens updated successfully");
           return;
         } catch (error) {
-          logger.debug('❌ User token refresh failed:', error);
+          logger.debug("❌ User token refresh failed:", error);
           // Clear only user tokens on failure
           AuthCookies.clearUserTokens();
           throw error;
@@ -165,14 +177,17 @@ export class AuthService {
       }
 
       // This is expected for initial login attempts - don't treat as error
-      logger.debug('⚠️ No refresh tokens available for refresh');
-      throw new Error('No refresh tokens available');
+      logger.debug("⚠️ No refresh tokens available for refresh");
+      throw new Error("No refresh tokens available");
     } catch (error) {
       // Only log as error if it's not the expected "no refresh tokens" case
-      if (error instanceof Error && error.message === 'No refresh tokens available') {
-        logger.debug('❌ Token refresh failed completely:', error.message);
+      if (
+        error instanceof Error &&
+        error.message === "No refresh tokens available"
+      ) {
+        logger.debug("❌ Token refresh failed completely:", error.message);
       } else {
-        logger.error('❌ Token refresh failed completely:', error);
+        logger.error("❌ Token refresh failed completely:", error);
       }
       throw error;
     }
@@ -181,20 +196,20 @@ export class AuthService {
   // Handle 401 responses by attempting token refresh
   async handleUnauthorized(endpoint: string): Promise<AuthHeaders> {
     if (this.isRefreshRequest || this.isAuthEndpoint(endpoint)) {
-      throw new Error('Authentication failed. Please log in again.');
+      throw new Error("Authentication failed. Please log in again.");
     }
 
-    logger.debug('🔒 401 Unauthorized, attempting token refresh...');
+    logger.debug("🔒 401 Unauthorized, attempting token refresh...");
     try {
       await this.refreshTokens();
-      
+
       // Return new auth headers after refresh
       const newAuthHeaders = this.getAuthHeaders();
-      logger.debug('🔄 Retrying with new auth headers:', newAuthHeaders);
+      logger.debug("🔄 Retrying with new auth headers:", newAuthHeaders);
       return newAuthHeaders;
     } catch (refreshError) {
-      logger.debug('❌ Token refresh failed:', refreshError);
-      throw new Error('Authentication failed. Please log in again.');
+      logger.debug("❌ Token refresh failed:", refreshError);
+      throw new Error("Authentication failed. Please log in again.");
     }
   }
 
@@ -232,4 +247,4 @@ export class AuthService {
   hasUserTokens(): boolean {
     return AuthCookies.hasUserTokens();
   }
-} 
+}

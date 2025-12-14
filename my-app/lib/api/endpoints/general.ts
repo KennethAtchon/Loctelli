@@ -1,4 +1,4 @@
-import { ApiClient } from '../client';
+import { ApiClient } from "../client";
 
 export interface DatabaseSchema {
   models: Array<{
@@ -27,8 +27,8 @@ export interface SchemaResponse {
 
 export class GeneralApi {
   constructor(private client: ApiClient) {}
-  
+
   async getDatabaseSchema(): Promise<SchemaResponse> {
-    return this.client.get<SchemaResponse>('/general/schema');
+    return this.client.get<SchemaResponse>("/general/schema");
   }
-} 
+}

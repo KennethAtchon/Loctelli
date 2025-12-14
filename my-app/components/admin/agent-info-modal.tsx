@@ -1,19 +1,25 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import logger from '@/lib/logger';
+import { useState, useEffect } from "react";
+import logger from "@/lib/logger";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Copy, Check, ChevronDown, ChevronUp } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+} from "@/components/ui/dialog";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface AgentInfo {
   identity: {
@@ -66,7 +72,7 @@ export default function AgentInfoModal({
   open,
   onOpenChange,
   userId,
-  leadId
+  leadId,
 }: AgentInfoModalProps) {
   const [agentInfo, setAgentInfo] = useState<AgentInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -83,7 +89,7 @@ export default function AgentInfoModal({
 
   const fetchAgentInfo = async () => {
     if (!userId || !leadId) {
-      setError('User ID and Lead ID are required');
+      setError("User ID and Lead ID are required");
       return;
     }
 
@@ -102,8 +108,10 @@ export default function AgentInfoModal({
       const data: AgentInfo = await response.json();
       setAgentInfo(data);
     } catch (err) {
-      logger.error('Failed to fetch agent info:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch agent info');
+      logger.error("Failed to fetch agent info:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch agent info"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -113,7 +121,7 @@ export default function AgentInfoModal({
     navigator.clipboard.writeText(text);
     setCopiedField(field);
     toast({
-      title: 'Copied',
+      title: "Copied",
       description: `${field} copied to clipboard`,
     });
     setTimeout(() => setCopiedField(null), 2000);
@@ -127,7 +135,7 @@ export default function AgentInfoModal({
     if (showFullPrompt && agentInfo?.systemPromptFull) {
       return agentInfo.systemPromptFull;
     }
-    return agentInfo?.systemPromptPreview || '';
+    return agentInfo?.systemPromptPreview || "";
   };
 
   if (!open) return null;
@@ -164,27 +172,39 @@ export default function AgentInfoModal({
             <Card>
               <CardHeader>
                 <CardTitle>Identity</CardTitle>
-                <CardDescription>Agent identity and role information</CardDescription>
+                <CardDescription>
+                  Agent identity and role information
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-1 gap-2">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                     <span className="text-sm font-medium">Name:</span>
-                    <span className="text-sm break-words">{agentInfo.identity.name || 'N/A'}</span>
+                    <span className="text-sm break-words">
+                      {agentInfo.identity.name || "N/A"}
+                    </span>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                     <span className="text-sm font-medium">Role:</span>
-                    <span className="text-sm break-words">{agentInfo.identity.role || 'N/A'}</span>
+                    <span className="text-sm break-words">
+                      {agentInfo.identity.role || "N/A"}
+                    </span>
                   </div>
                   {agentInfo.identity.title && (
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                       <span className="text-sm font-medium">Title:</span>
-                      <span className="text-sm break-words">{agentInfo.identity.title}</span>
+                      <span className="text-sm break-words">
+                        {agentInfo.identity.title}
+                      </span>
                     </div>
                   )}
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                    <span className="text-sm font-medium">Authority Level:</span>
-                    <Badge variant="secondary" className="w-fit">{agentInfo.identity.authorityLevel || 'N/A'}</Badge>
+                    <span className="text-sm font-medium">
+                      Authority Level:
+                    </span>
+                    <Badge variant="secondary" className="w-fit">
+                      {agentInfo.identity.authorityLevel || "N/A"}
+                    </Badge>
                   </div>
                 </div>
               </CardContent>
@@ -200,22 +220,30 @@ export default function AgentInfoModal({
                 <div className="grid grid-cols-1 gap-2">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                     <span className="text-sm font-medium">Provider:</span>
-                    <Badge className="w-fit">{agentInfo.model?.provider || 'N/A'}</Badge>
+                    <Badge className="w-fit">
+                      {agentInfo.model?.provider || "N/A"}
+                    </Badge>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                     <span className="text-sm font-medium">Model:</span>
-                    <span className="font-mono text-sm break-words">{agentInfo.model?.model || 'N/A'}</span>
+                    <span className="font-mono text-sm break-words">
+                      {agentInfo.model?.model || "N/A"}
+                    </span>
                   </div>
                   {agentInfo.model?.temperature !== undefined && (
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                       <span className="text-sm font-medium">Temperature:</span>
-                      <span className="text-sm">{agentInfo.model.temperature}</span>
+                      <span className="text-sm">
+                        {agentInfo.model.temperature}
+                      </span>
                     </div>
                   )}
                   {agentInfo.model?.maxTokens !== undefined && (
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                       <span className="text-sm font-medium">Max Tokens:</span>
-                      <span className="text-sm">{agentInfo.model.maxTokens}</span>
+                      <span className="text-sm">
+                        {agentInfo.model.maxTokens}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -237,8 +265,12 @@ export default function AgentInfoModal({
                   ) : (
                     agentInfo.tools.map((tool) => (
                       <div key={tool.name} className="border rounded p-2">
-                        <div className="font-mono text-sm font-semibold">{tool.name}</div>
-                        <div className="text-xs text-gray-600 mt-1">{tool.description}</div>
+                        <div className="font-mono text-sm font-semibold">
+                          {tool.name}
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1">
+                          {tool.description}
+                        </div>
                       </div>
                     ))
                   )}
@@ -255,7 +287,9 @@ export default function AgentInfoModal({
               <CardContent>
                 <div className="flex flex-wrap gap-2">
                   {agentInfo.providers.length === 0 ? (
-                    <p className="text-sm text-gray-500">No providers configured</p>
+                    <p className="text-sm text-gray-500">
+                      No providers configured
+                    </p>
                   ) : (
                     agentInfo.providers.map((provider) => (
                       <Badge key={provider} variant="outline">
@@ -271,55 +305,78 @@ export default function AgentInfoModal({
             <Card>
               <CardHeader>
                 <CardTitle>Memory Configuration</CardTitle>
-                <CardDescription>Memory settings and persistence rules</CardDescription>
+                <CardDescription>
+                  Memory settings and persistence rules
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-1 gap-2">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                     <span className="text-sm font-medium">Context Window:</span>
-                    <span className="text-sm">{agentInfo.memory?.contextWindow || 20} messages</span>
+                    <span className="text-sm">
+                      {agentInfo.memory?.contextWindow || 20} messages
+                    </span>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                    <span className="text-sm font-medium">Long-term Enabled:</span>
-                    <Badge variant={agentInfo.memory?.longTermEnabled ? 'default' : 'secondary'} className="w-fit">
-                      {agentInfo.memory?.longTermEnabled ? 'Yes' : 'No'}
+                    <span className="text-sm font-medium">
+                      Long-term Enabled:
+                    </span>
+                    <Badge
+                      variant={
+                        agentInfo.memory?.longTermEnabled
+                          ? "default"
+                          : "secondary"
+                      }
+                      className="w-fit"
+                    >
+                      {agentInfo.memory?.longTermEnabled ? "Yes" : "No"}
                     </Badge>
                   </div>
                 </div>
                 {agentInfo.memory?.autoPersist && (
                   <div className="mt-3 pt-3 border-t">
-                    <div className="text-sm font-medium mb-2">Auto-Persist Rules:</div>
+                    <div className="text-sm font-medium mb-2">
+                      Auto-Persist Rules:
+                    </div>
                     <div className="flex flex-wrap gap-2">
                       {agentInfo.memory.autoPersist.persistAll && (
-                        <Badge variant="default">
-                          Persist All
-                        </Badge>
+                        <Badge variant="default">Persist All</Badge>
                       )}
-                      {agentInfo.memory.autoPersist.minImportance !== undefined && (
+                      {agentInfo.memory.autoPersist.minImportance !==
+                        undefined && (
                         <Badge variant="outline">
-                          Min Importance: {agentInfo.memory.autoPersist.minImportance}
+                          Min Importance:{" "}
+                          {agentInfo.memory.autoPersist.minImportance}
                         </Badge>
                       )}
                     </div>
-                    {agentInfo.memory.autoPersist.types && agentInfo.memory.autoPersist.types.length > 0 && (
-                      <div className="mt-2">
-                        <div className="text-xs text-gray-600 mb-1">Types:</div>
-                        <div className="flex flex-wrap gap-1">
-                          {agentInfo.memory.autoPersist.types.map((type) => (
-                            <Badge key={type} variant="outline" className="text-xs">
-                              {type}
-                            </Badge>
-                          ))}
+                    {agentInfo.memory.autoPersist.types &&
+                      agentInfo.memory.autoPersist.types.length > 0 && (
+                        <div className="mt-2">
+                          <div className="text-xs text-gray-600 mb-1">
+                            Types:
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {agentInfo.memory.autoPersist.types.map((type) => (
+                              <Badge
+                                key={type}
+                                variant="outline"
+                                className="text-xs"
+                              >
+                                {type}
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                   </div>
                 )}
-                {!agentInfo.memory?.autoPersist && agentInfo.memory?.longTermEnabled && (
-                  <div className="text-sm text-gray-500 mt-2">
-                    Auto-persist configuration not available
-                  </div>
-                )}
+                {!agentInfo.memory?.autoPersist &&
+                  agentInfo.memory?.longTermEnabled && (
+                    <div className="text-sm text-gray-500 mt-2">
+                      Auto-persist configuration not available
+                    </div>
+                  )}
               </CardContent>
             </Card>
 
@@ -336,9 +393,11 @@ export default function AgentInfoModal({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => copyToClipboard(getSystemPromptDisplay(), 'System Prompt')}
+                    onClick={() =>
+                      copyToClipboard(getSystemPromptDisplay(), "System Prompt")
+                    }
                   >
-                    {copiedField === 'System Prompt' ? (
+                    {copiedField === "System Prompt" ? (
                       <Check className="h-4 w-4" />
                     ) : (
                       <Copy className="h-4 w-4" />
@@ -366,7 +425,8 @@ export default function AgentInfoModal({
                       ) : (
                         <>
                           <ChevronDown className="h-4 w-4 mr-1" />
-                          Show Full Prompt ({agentInfo.systemPromptLength.toLocaleString()} chars)
+                          Show Full Prompt (
+                          {agentInfo.systemPromptLength.toLocaleString()} chars)
                         </>
                       )}
                     </Button>
@@ -385,22 +445,32 @@ export default function AgentInfoModal({
                 <div className="grid grid-cols-1 gap-2">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                     <span className="text-sm font-medium">Agent ID:</span>
-                    <span className="font-mono text-xs break-all">{agentInfo.agentId || 'N/A'}</span>
+                    <span className="font-mono text-xs break-all">
+                      {agentInfo.agentId || "N/A"}
+                    </span>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                     <span className="text-sm font-medium">Status:</span>
-                    <Badge variant="secondary" className="w-fit">{agentInfo.status || 'N/A'}</Badge>
+                    <Badge variant="secondary" className="w-fit">
+                      {agentInfo.status || "N/A"}
+                    </Badge>
                   </div>
                   {agentInfo.metadata?.createdAt && (
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                       <span className="text-sm font-medium">Created At:</span>
-                      <span className="text-sm">{new Date(agentInfo.metadata.createdAt).toLocaleString()}</span>
+                      <span className="text-sm">
+                        {new Date(
+                          agentInfo.metadata.createdAt
+                        ).toLocaleString()}
+                      </span>
                     </div>
                   )}
                   {agentInfo.metadata?.lastUsed && (
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                       <span className="text-sm font-medium">Last Used:</span>
-                      <span className="text-sm">{new Date(agentInfo.metadata.lastUsed).toLocaleString()}</span>
+                      <span className="text-sm">
+                        {new Date(agentInfo.metadata.lastUsed).toLocaleString()}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -412,4 +482,3 @@ export default function AgentInfoModal({
     </Dialog>
   );
 }
-

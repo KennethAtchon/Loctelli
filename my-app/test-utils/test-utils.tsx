@@ -1,10 +1,10 @@
-import React, { ReactElement } from 'react'
-import { render, RenderOptions } from '@testing-library/react'
-import { ThemeProvider } from '@/components/theme-provider'
-import { UnifiedAuthProvider } from '@/contexts/unified-auth-context'
+import React, { ReactElement } from "react";
+import { render, RenderOptions } from "@testing-library/react";
+import { ThemeProvider } from "@/components/theme-provider";
+import { UnifiedAuthProvider } from "@/contexts/unified-auth-context";
 
 // Mock the API client
-jest.mock('@/lib/api/client', () => ({
+jest.mock("@/lib/api/client", () => ({
   ApiClient: jest.fn().mockImplementation(() => ({
     get: jest.fn(),
     post: jest.fn(),
@@ -12,10 +12,10 @@ jest.mock('@/lib/api/client', () => ({
     patch: jest.fn(),
     delete: jest.fn(),
   })),
-}))
+}));
 
 // Mock the entire API module
-jest.mock('@/lib/api', () => ({
+jest.mock("@/lib/api", () => ({
   api: {
     auth: {
       login: jest.fn(),
@@ -85,10 +85,10 @@ jest.mock('@/lib/api', () => ({
   PromptTemplatesApi: jest.fn(),
   StatusApi: jest.fn(),
   GeneralApi: jest.fn(),
-}))
+}));
 
 // Mock the logger as default export
-jest.mock('@/lib/logger', () => ({
+jest.mock("@/lib/logger", () => ({
   __esModule: true,
   default: {
     info: jest.fn(),
@@ -96,10 +96,10 @@ jest.mock('@/lib/logger', () => ({
     error: jest.fn(),
     debug: jest.fn(),
   },
-}))
+}));
 
 // Mock the cookies module
-jest.mock('@/lib/cookies', () => ({
+jest.mock("@/lib/cookies", () => ({
   AuthCookies: {
     hasUserTokens: jest.fn(),
     hasAdminTokens: jest.fn(),
@@ -113,10 +113,10 @@ jest.mock('@/lib/cookies', () => ({
     clearAdminTokens: jest.fn(),
     clearAll: jest.fn(),
   },
-}))
+}));
 
 interface AllTheProvidersProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 const AllTheProviders = ({ children }: AllTheProvidersProps) => {
@@ -127,53 +127,44 @@ const AllTheProviders = ({ children }: AllTheProvidersProps) => {
       enableSystem
       disableTransitionOnChange
     >
-      <UnifiedAuthProvider>
-        {children}
-      </UnifiedAuthProvider>
+      <UnifiedAuthProvider>{children}</UnifiedAuthProvider>
     </ThemeProvider>
-  )
-}
+  );
+};
 
-interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {}
+interface CustomRenderOptions extends Omit<RenderOptions, "wrapper"> {}
 
-const customRender = (
-  ui: ReactElement,
-  options: CustomRenderOptions = {}
-) => {
+const customRender = (ui: ReactElement, options: CustomRenderOptions = {}) => {
   return render(ui, {
-    wrapper: ({ children }) => (
-      <AllTheProviders>
-        {children}
-      </AllTheProviders>
-    ),
+    wrapper: ({ children }) => <AllTheProviders>{children}</AllTheProviders>,
     ...options,
-  })
-}
+  });
+};
 
 // Re-export everything
-export * from '@testing-library/react'
+export * from "@testing-library/react";
 
 // Override render method
-export { customRender as render }
+export { customRender as render };
 
 // Common test data
 export const mockUser = {
-  id: '1',
-  email: 'test@example.com',
-  name: 'Test User',
-  role: 'USER',
+  id: "1",
+  email: "test@example.com",
+  name: "Test User",
+  role: "USER",
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
-}
+};
 
 export const mockAdminUser = {
-  id: '1',
-  email: 'admin@example.com',
-  name: 'Admin User',
-  role: 'ADMIN',
+  id: "1",
+  email: "admin@example.com",
+  name: "Admin User",
+  role: "ADMIN",
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
-}
+};
 
 export const mockAuthContext = {
   user: mockUser,
@@ -182,7 +173,7 @@ export const mockAuthContext = {
   login: jest.fn(),
   logout: jest.fn(),
   register: jest.fn(),
-}
+};
 
 export const mockAdminAuthContext = {
   user: mockAdminUser,
@@ -191,27 +182,27 @@ export const mockAdminAuthContext = {
   login: jest.fn(),
   logout: jest.fn(),
   verifyCode: jest.fn(),
-}
+};
 
 // Common test helpers
 export const waitForLoadingToFinish = () => {
-  return new Promise(resolve => setTimeout(resolve, 0))
-}
+  return new Promise((resolve) => setTimeout(resolve, 0));
+};
 
 export const createMockApiResponse = (data: any, status = 200) => {
   return Promise.resolve({
     data,
     status,
-    statusText: 'OK',
-  })
-}
+    statusText: "OK",
+  });
+};
 
 export const createMockApiError = (message: string, status = 400) => {
   return Promise.reject({
     response: {
       data: { message },
       status,
-      statusText: 'Bad Request',
+      statusText: "Bad Request",
     },
-  })
-} 
+  });
+};

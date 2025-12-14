@@ -1,12 +1,18 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { RefreshCw, Database, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { api } from '@/lib/api';
-import logger from '@/lib/logger';
+import { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { RefreshCw, Database, ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api";
+import logger from "@/lib/logger";
 
 interface SDKTable {
   name: string;
@@ -34,9 +40,13 @@ interface SDKTablesResponse {
 
 export default function SDKTables() {
   const [tables, setTables] = useState<SDKTable[]>([]);
-  const [tableData, setTableData] = useState<Record<string, TableDataResponse>>({});
+  const [tableData, setTableData] = useState<Record<string, TableDataResponse>>(
+    {}
+  );
   const [tablePages, setTablePages] = useState<Record<string, number>>({});
-  const [tablePageSizes, setTablePageSizes] = useState<Record<string, number>>({});
+  const [tablePageSizes, setTablePageSizes] = useState<Record<string, number>>(
+    {}
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [loadingTables, setLoadingTables] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
@@ -45,57 +55,63 @@ export default function SDKTables() {
     try {
       setIsLoading(true);
       setError(null);
-      
-      const response = await fetch('/api/proxy/ai-receptionist/dev/tables');
+
+      const response = await fetch("/api/proxy/ai-receptionist/dev/tables");
       if (!response.ok) {
         throw new Error(`Failed to fetch SDK tables: ${response.statusText}`);
       }
-      
+
       const data: SDKTablesResponse = await response.json();
       const fetchedTables = data.tables || [];
       setTables(fetchedTables);
-      
+
       // Initialize pagination state for each table
       const initialPages: Record<string, number> = {};
       const initialPageSizes: Record<string, number> = {};
-      fetchedTables.forEach(table => {
+      fetchedTables.forEach((table) => {
         initialPages[table.name] = 1;
         initialPageSizes[table.name] = 50;
       });
       setTablePages(initialPages);
       setTablePageSizes(initialPageSizes);
-      
+
       // Fetch first page of data for each table
-      fetchedTables.forEach(table => {
+      fetchedTables.forEach((table) => {
         if (table.rowCount > 0) {
           fetchTableData(table.name, 1, 50);
         }
       });
     } catch (err) {
-      logger.error('Failed to fetch SDK tables:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch SDK tables');
+      logger.error("Failed to fetch SDK tables:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch SDK tables"
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fetchTableData = async (tableName: string, page: number, pageSize: number) => {
+  const fetchTableData = async (
+    tableName: string,
+    page: number,
+    pageSize: number
+  ) => {
     try {
-      setLoadingTables(prev => new Set(prev).add(tableName));
-      
+      setLoadingTables((prev) => new Set(prev).add(tableName));
+
       const response = await fetch(
         `/api/proxy/ai-receptionist/dev/table-data?tableName=${encodeURIComponent(tableName)}&page=${page}&pageSize=${pageSize}`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch table data: ${response.statusText}`);
       }
-      
+
       const data: TableDataResponse = await response.json();
-      setTableData(prev => ({ ...prev, [tableName]: data }));
+      setTableData((prev) => ({ ...prev, [tableName]: data }));
     } catch (err) {
       logger.error(`Failed to fetch data for table ${tableName}:`, err);
     } finally {
-      setLoadingTables(prev => {
+      setLoadingTables((prev) => {
         const next = new Set(prev);
         next.delete(tableName);
         return next;
@@ -105,13 +121,13 @@ export default function SDKTables() {
 
   const handlePageChange = (tableName: string, newPage: number) => {
     const pageSize = tablePageSizes[tableName] || 50;
-    setTablePages(prev => ({ ...prev, [tableName]: newPage }));
+    setTablePages((prev) => ({ ...prev, [tableName]: newPage }));
     fetchTableData(tableName, newPage, pageSize);
   };
 
   const handlePageSizeChange = (tableName: string, newPageSize: number) => {
-    setTablePageSizes(prev => ({ ...prev, [tableName]: newPageSize }));
-    setTablePages(prev => ({ ...prev, [tableName]: 1 }));
+    setTablePageSizes((prev) => ({ ...prev, [tableName]: newPageSize }));
+    setTablePages((prev) => ({ ...prev, [tableName]: 1 }));
     fetchTableData(tableName, 1, newPageSize);
   };
 
@@ -189,14 +205,18 @@ export default function SDKTables() {
         {tables.length === 0 ? (
           <div className="text-gray-600 py-8 text-center">
             <p>No SDK tables found.</p>
-            <p className="text-sm mt-2">Make sure the SDK has been initialized with database storage.</p>
+            <p className="text-sm mt-2">
+              Make sure the SDK has been initialized with database storage.
+            </p>
           </div>
         ) : (
           <div className="space-y-6">
             {tables.map((table) => (
               <div key={table.name} className="border rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-semibold font-mono">{table.name}</h3>
+                  <h3 className="text-lg font-semibold font-mono">
+                    {table.name}
+                  </h3>
                   <Badge variant="secondary">
                     {table.rowCount.toLocaleString()} rows
                   </Badge>
@@ -204,22 +224,34 @@ export default function SDKTables() {
                 <div className="space-y-4">
                   {/* Schema Table */}
                   <div>
-                    <h4 className="text-sm font-semibold mb-2 text-gray-700">Schema</h4>
+                    <h4 className="text-sm font-semibold mb-2 text-gray-700">
+                      Schema
+                    </h4>
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b">
-                            <th className="text-left p-2 font-semibold">Column</th>
-                            <th className="text-left p-2 font-semibold">Type</th>
-                            <th className="text-left p-2 font-semibold">Nullable</th>
-                            <th className="text-left p-2 font-semibold">Default</th>
+                            <th className="text-left p-2 font-semibold">
+                              Column
+                            </th>
+                            <th className="text-left p-2 font-semibold">
+                              Type
+                            </th>
+                            <th className="text-left p-2 font-semibold">
+                              Nullable
+                            </th>
+                            <th className="text-left p-2 font-semibold">
+                              Default
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
                           {table.columns.map((column) => (
                             <tr key={column.name} className="border-b">
                               <td className="p-2 font-mono">{column.name}</td>
-                              <td className="p-2 text-gray-600">{column.type}</td>
+                              <td className="p-2 text-gray-600">
+                                {column.type}
+                              </td>
                               <td className="p-2">
                                 {column.nullable ? (
                                   <Badge variant="outline">Yes</Badge>
@@ -228,7 +260,7 @@ export default function SDKTables() {
                                 )}
                               </td>
                               <td className="p-2 text-gray-500 font-mono text-xs">
-                                {column.default || '-'}
+                                {column.default || "-"}
                               </td>
                             </tr>
                           ))}
@@ -247,7 +279,12 @@ export default function SDKTables() {
                         <div className="flex items-center gap-2">
                           <select
                             value={tablePageSizes[table.name] || 50}
-                            onChange={(e) => handlePageSizeChange(table.name, parseInt(e.target.value))}
+                            onChange={(e) =>
+                              handlePageSizeChange(
+                                table.name,
+                                parseInt(e.target.value)
+                              )
+                            }
                             className="text-xs border rounded px-2 py-1"
                           >
                             <option value="25">25 per page</option>
@@ -259,11 +296,13 @@ export default function SDKTables() {
                           </select>
                         </div>
                       </div>
-                      
+
                       {loadingTables.has(table.name) ? (
                         <div className="flex items-center justify-center py-8">
                           <RefreshCw className="h-4 w-4 animate-spin text-gray-400 mr-2" />
-                          <span className="text-sm text-gray-600">Loading data...</span>
+                          <span className="text-sm text-gray-600">
+                            Loading data...
+                          </span>
                         </div>
                       ) : tableData[table.name] ? (
                         <>
@@ -272,66 +311,111 @@ export default function SDKTables() {
                               <thead>
                                 <tr className="bg-gray-50 border-b">
                                   {table.columns.map((column) => (
-                                    <th key={column.name} className="text-left p-2 font-semibold">
+                                    <th
+                                      key={column.name}
+                                      className="text-left p-2 font-semibold"
+                                    >
                                       {column.name}
                                     </th>
                                   ))}
                                 </tr>
                               </thead>
                               <tbody>
-                                {tableData[table.name].data.map((row: any, idx: number) => (
-                                  <tr key={idx} className="border-b hover:bg-gray-50">
-                                    {table.columns.map((column) => {
-                                      const value = row[column.name];
-                                      let displayValue: string;
-                                      
-                                      if (value === null || value === undefined) {
-                                        displayValue = '-';
-                                      } else if (typeof value === 'object') {
-                                        displayValue = JSON.stringify(value);
-                                      } else if (typeof value === 'string' && value.length > 100) {
-                                        displayValue = value.substring(0, 100) + '...';
-                                      } else {
-                                        displayValue = String(value);
-                                      }
+                                {tableData[table.name].data.map(
+                                  (row: any, idx: number) => (
+                                    <tr
+                                      key={idx}
+                                      className="border-b hover:bg-gray-50"
+                                    >
+                                      {table.columns.map((column) => {
+                                        const value = row[column.name];
+                                        let displayValue: string;
 
-                                      return (
-                                        <td key={column.name} className="p-2 font-mono text-xs max-w-xs truncate" title={displayValue}>
-                                          {displayValue}
-                                        </td>
-                                      );
-                                    })}
-                                  </tr>
-                                ))}
+                                        if (
+                                          value === null ||
+                                          value === undefined
+                                        ) {
+                                          displayValue = "-";
+                                        } else if (typeof value === "object") {
+                                          displayValue = JSON.stringify(value);
+                                        } else if (
+                                          typeof value === "string" &&
+                                          value.length > 100
+                                        ) {
+                                          displayValue =
+                                            value.substring(0, 100) + "...";
+                                        } else {
+                                          displayValue = String(value);
+                                        }
+
+                                        return (
+                                          <td
+                                            key={column.name}
+                                            className="p-2 font-mono text-xs max-w-xs truncate"
+                                            title={displayValue}
+                                          >
+                                            {displayValue}
+                                          </td>
+                                        );
+                                      })}
+                                    </tr>
+                                  )
+                                )}
                               </tbody>
                             </table>
                           </div>
-                          
+
                           {/* Pagination Controls */}
                           {tableData[table.name].totalPages > 1 && (
                             <div className="flex items-center justify-between mt-4">
                               <div className="text-sm text-gray-600">
-                                Showing {((tableData[table.name].page - 1) * tableData[table.name].pageSize) + 1} to{' '}
-                                {Math.min(tableData[table.name].page * tableData[table.name].pageSize, tableData[table.name].totalRows)} of{' '}
-                                {tableData[table.name].totalRows.toLocaleString()} rows
+                                Showing{" "}
+                                {(tableData[table.name].page - 1) *
+                                  tableData[table.name].pageSize +
+                                  1}{" "}
+                                to{" "}
+                                {Math.min(
+                                  tableData[table.name].page *
+                                    tableData[table.name].pageSize,
+                                  tableData[table.name].totalRows
+                                )}{" "}
+                                of{" "}
+                                {tableData[
+                                  table.name
+                                ].totalRows.toLocaleString()}{" "}
+                                rows
                               </div>
                               <div className="flex items-center gap-2">
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => handlePageChange(table.name, tableData[table.name].page - 1)}
+                                  onClick={() =>
+                                    handlePageChange(
+                                      table.name,
+                                      tableData[table.name].page - 1
+                                    )
+                                  }
                                   disabled={tableData[table.name].page === 1}
                                 >
                                   <ChevronLeft className="h-4 w-4" />
                                 </Button>
                                 <span className="text-sm text-gray-600">
-                                  Page {tableData[table.name].page} of {tableData[table.name].totalPages}
+                                  Page {tableData[table.name].page} of{" "}
+                                  {tableData[table.name].totalPages}
                                 </span>
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => handlePageChange(table.name, tableData[table.name].page + 1)}
-                                  disabled={tableData[table.name].page >= tableData[table.name].totalPages}
+                                  onClick={() =>
+                                    handlePageChange(
+                                      table.name,
+                                      tableData[table.name].page + 1
+                                    )
+                                  }
+                                  disabled={
+                                    tableData[table.name].page >=
+                                    tableData[table.name].totalPages
+                                  }
                                 >
                                   <ChevronRight className="h-4 w-4" />
                                 </Button>
@@ -361,4 +445,3 @@ export default function SDKTables() {
     </Card>
   );
 }
-

@@ -30,7 +30,7 @@ export interface PaginationParams {
   page?: number;
   limit?: number;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
 export interface FilterParams {
@@ -49,7 +49,7 @@ export interface ApiRequestOptions {
   headers?: Record<string, string>;
   timeout?: number;
   retries?: number;
-  responseType?: 'json' | 'blob' | 'text';
+  responseType?: "json" | "blob" | "text";
 }
 
 // WebSocket/Real-time types
@@ -62,7 +62,7 @@ export interface WebSocketMessage {
 }
 
 export interface ChatWebSocketMessage extends WebSocketMessage {
-  type: 'chat_message' | 'typing' | 'read_receipt';
+  type: "chat_message" | "typing" | "read_receipt";
   leadId: number;
   messageId?: string;
-} 
+}

@@ -1,55 +1,72 @@
-"use client"
+"use client";
 
-import { useRef } from "react"
-import { motion, useInView } from "framer-motion"
-import { Zap, BarChart3, Calendar, MessageSquare, Users, Globe, Lock, RefreshCw } from "lucide-react"
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import {
+  Zap,
+  BarChart3,
+  Calendar,
+  MessageSquare,
+  Users,
+  Globe,
+  Lock,
+  RefreshCw,
+} from "lucide-react";
 
 export function FeaturesSection() {
-  const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: true, margin: "-100px" })
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   const features = [
     {
       icon: <Zap className="w-6 h-6 text-teal-500" />,
       title: "AI-Powered Targeting",
-      description: "Our AI analyzes market data to identify and target your ideal prospects with precision.",
+      description:
+        "Our AI analyzes market data to identify and target your ideal prospects with precision.",
     },
     {
       icon: <BarChart3 className="w-6 h-6 text-teal-500" />,
       title: "Advanced Analytics",
-      description: "Gain deep insights into your lead generation performance with real-time dashboards.",
+      description:
+        "Gain deep insights into your lead generation performance with real-time dashboards.",
     },
     {
       icon: <Calendar className="w-6 h-6 text-teal-500" />,
       title: "Automated Scheduling",
-      description: "Qualified leads are automatically booked into your calendar, eliminating manual work.",
+      description:
+        "Qualified leads are automatically booked into your calendar, eliminating manual work.",
     },
     {
       icon: <MessageSquare className="w-6 h-6 text-teal-500" />,
       title: "24/7 Lead Qualification",
-      description: "Our AI chatbot engages with leads around the clock, qualifying them based on your criteria.",
+      description:
+        "Our AI chatbot engages with leads around the clock, qualifying them based on your criteria.",
     },
     {
       icon: <Users className="w-6 h-6 text-teal-500" />,
       title: "Team Collaboration",
-      description: "Seamlessly share leads and insights with your team members for better coordination.",
+      description:
+        "Seamlessly share leads and insights with your team members for better coordination.",
     },
     {
       icon: <Globe className="w-6 h-6 text-teal-500" />,
       title: "Multi-Channel Integration",
-      description: "Connect with leads across various platforms including social media, email, and web.",
+      description:
+        "Connect with leads across various platforms including social media, email, and web.",
     },
     {
       icon: <Lock className="w-6 h-6 text-teal-500" />,
       title: "Enterprise-Grade Security",
-      description: "Your data is protected with advanced encryption and security protocols.",
+      description:
+        "Your data is protected with advanced encryption and security protocols.",
     },
     {
       icon: <RefreshCw className="w-6 h-6 text-teal-500" />,
       title: "Continuous Optimization",
-      description: "Our AI continuously learns and improves targeting based on performance data.",
+      description:
+        "Our AI continuously learns and improves targeting based on performance data.",
     },
-  ]
+  ];
 
   return (
     <section id="features" className="py-24 bg-white" ref={ref}>
@@ -66,7 +83,9 @@ export function FeaturesSection() {
           <motion.div
             className="w-20 h-1 bg-teal-500 mx-auto mb-6"
             initial={{ opacity: 0, width: 0 }}
-            animate={isInView ? { opacity: 1, width: 80 } : { opacity: 0, width: 0 }}
+            animate={
+              isInView ? { opacity: 1, width: 80 } : { opacity: 0, width: 0 }
+            }
             transition={{ duration: 0.5, delay: 0.2 }}
           />
           <motion.p
@@ -75,7 +94,8 @@ export function FeaturesSection() {
             animate={isInView ? { opacity: 1 } : { opacity: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            Everything you need to supercharge your lead generation and conversion
+            Everything you need to supercharge your lead generation and
+            conversion
           </motion.p>
         </div>
 
@@ -91,12 +111,14 @@ export function FeaturesSection() {
               <div className="bg-teal-50 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
                 {feature.icon}
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                {feature.title}
+              </h3>
               <p className="text-gray-600">{feature.description}</p>
             </motion.div>
           ))}
         </div>
       </div>
     </section>
-  )
+  );
 }

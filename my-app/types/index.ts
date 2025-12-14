@@ -81,7 +81,12 @@ export interface ConversationState {
   decisionMaker?: boolean | null;
   painPointsIdentified?: string[];
   objections?: string[];
-  stage?: 'discovery' | 'qualification' | 'objection_handling' | 'closing' | 'booked';
+  stage?:
+    | "discovery"
+    | "qualification"
+    | "objection_handling"
+    | "closing"
+    | "booked";
   lastUpdated?: string;
 }
 
@@ -233,9 +238,9 @@ export interface ChatMessage {
   id: string;
   leadId: number;
   message: string;
-  sender: 'user' | 'lead';
+  sender: "user" | "lead";
   timestamp: Date;
-  status: 'sent' | 'delivered' | 'read';
+  status: "sent" | "delivered" | "read";
 }
 
 export interface SendMessageDto {
@@ -312,12 +317,12 @@ export interface GhlContact {
 
 export interface GhlMessage {
   contactId: string; // GHL Contact ID (maps to customId in Lead model)
-  messageType?: 'SMS' | 'Email' | 'Live Chat' | 'GMB' | 'Call' | 'Voicemail';
+  messageType?: "SMS" | "Email" | "Live Chat" | "GMB" | "Call" | "Voicemail";
   body?: string;
   subject?: string;
   from?: string;
   to?: string;
-  direction?: 'inbound' | 'outbound';
+  direction?: "inbound" | "outbound";
   status?: string;
   timestamp?: string;
   attachments?: Array<{
@@ -343,8 +348,15 @@ export interface ContactSubmission {
   services: string;
   message?: string;
   source: string;
-  status: 'NEW' | 'CONTACTED' | 'QUALIFIED' | 'PROPOSAL_SENT' | 'CLOSED_WON' | 'CLOSED_LOST' | 'UNRESPONSIVE';
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  status:
+    | "NEW"
+    | "CONTACTED"
+    | "QUALIFIED"
+    | "PROPOSAL_SENT"
+    | "CLOSED_WON"
+    | "CLOSED_LOST"
+    | "UNRESPONSIVE";
+  priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   submittedAt: Date;
   updatedAt: Date;
   followedUpAt?: Date;
@@ -366,8 +378,8 @@ export interface CreateContactSubmissionDto {
 }
 
 export interface UpdateContactSubmissionDto {
-  status?: ContactSubmission['status'];
-  priority?: ContactSubmission['priority'];
+  status?: ContactSubmission["status"];
+  priority?: ContactSubmission["priority"];
   assignedToId?: string;
   followedUpAt?: string;
 }
@@ -377,8 +389,8 @@ export interface CreateContactNoteDto {
 }
 
 export interface ContactFiltersDto {
-  status?: ContactSubmission['status'];
-  priority?: ContactSubmission['priority'];
+  status?: ContactSubmission["status"];
+  priority?: ContactSubmission["priority"];
   assignedToId?: string;
 }
 
@@ -387,4 +399,4 @@ export interface ContactStats {
   newCount: number;
   inProgress: number;
   closed: number;
-} 
+}

@@ -1,35 +1,58 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Save, TestTube, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { api } from '@/lib/api';
-import type { Integration, UpdateIntegrationDto } from '@/lib/api';
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import {
+  ArrowLeft,
+  Save,
+  TestTube,
+  CheckCircle,
+  AlertCircle,
+  Trash2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { api } from "@/lib/api";
+import type { Integration, UpdateIntegrationDto } from "@/lib/api";
 
 export default function EditIntegrationPage() {
   const router = useRouter();
   const params = useParams();
   const { toast } = useToast();
-  
+
   const [integration, setIntegration] = useState<Integration | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  
+
   // Form state
   const [formData, setFormData] = useState<UpdateIntegrationDto>({
-    name: '',
-    description: '',
+    name: "",
+    description: "",
     isActive: false,
     config: {},
   });
@@ -47,25 +70,25 @@ export default function EditIntegrationPage() {
       setIntegration(data);
       setFormData({
         name: data.name,
-        description: data.description || '',
+        description: data.description || "",
         isActive: data.isActive,
         config: data.config,
       });
     } catch (error) {
-      console.error('Failed to load integration:', error);
+      console.error("Failed to load integration:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load integration',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load integration",
+        variant: "destructive",
       });
-      router.push('/admin/integrations');
+      router.push("/admin/integrations");
     } finally {
       setLoading(false);
     }
   };
 
   const handleConfigChange = (key: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       config: {
         ...prev.config,
@@ -77,22 +100,26 @@ export default function EditIntegrationPage() {
   const validateForm = (): boolean => {
     if (!formData.name?.trim()) {
       toast({
-        title: 'Error',
-        description: 'Please enter an integration name',
-        variant: 'destructive',
+        title: "Error",
+        description: "Please enter an integration name",
+        variant: "destructive",
       });
       return false;
     }
 
     // Validate required config fields
     if (integration?.integrationTemplate?.configSchema?.required) {
-      const requiredFields = integration.integrationTemplate.configSchema.required;
+      const requiredFields =
+        integration.integrationTemplate.configSchema.required;
       for (const field of requiredFields) {
-        if (!formData.config?.[field] || formData.config[field].toString().trim() === '') {
+        if (
+          !formData.config?.[field] ||
+          formData.config[field].toString().trim() === ""
+        ) {
           toast({
-            title: 'Error',
+            title: "Error",
             description: `Please fill in the required field: ${field}`,
-            variant: 'destructive',
+            variant: "destructive",
           });
           return false;
         }
@@ -109,15 +136,15 @@ export default function EditIntegrationPage() {
       setTesting(true);
       await api.integrations.testConnection(integration.id);
       toast({
-        title: 'Success',
-        description: 'Connection test successful!',
+        title: "Success",
+        description: "Connection test successful!",
       });
     } catch (error) {
-      console.error('Connection test failed:', error);
+      console.error("Connection test failed:", error);
       toast({
-        title: 'Error',
-        description: 'Connection test failed',
-        variant: 'destructive',
+        title: "Error",
+        description: "Connection test failed",
+        variant: "destructive",
       });
     } finally {
       setTesting(false);
@@ -131,17 +158,17 @@ export default function EditIntegrationPage() {
       setTesting(true);
       await api.integrations.syncData(integration.id);
       toast({
-        title: 'Success',
-        description: 'Data sync completed successfully!',
+        title: "Success",
+        description: "Data sync completed successfully!",
       });
       // Reload integration to get updated sync time
       await loadIntegration(integration.id);
     } catch (error) {
-      console.error('Sync failed:', error);
+      console.error("Sync failed:", error);
       toast({
-        title: 'Error',
-        description: 'Data sync failed',
-        variant: 'destructive',
+        title: "Error",
+        description: "Data sync failed",
+        variant: "destructive",
       });
     } finally {
       setTesting(false);
@@ -155,16 +182,16 @@ export default function EditIntegrationPage() {
       setSaving(true);
       await api.integrations.update(integration.id, formData);
       toast({
-        title: 'Success',
-        description: 'Integration updated successfully',
+        title: "Success",
+        description: "Integration updated successfully",
       });
-      router.push('/admin/integrations');
+      router.push("/admin/integrations");
     } catch (error) {
-      console.error('Failed to update integration:', error);
+      console.error("Failed to update integration:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to update integration',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to update integration",
+        variant: "destructive",
       });
     } finally {
       setSaving(false);
@@ -178,16 +205,16 @@ export default function EditIntegrationPage() {
       setDeleting(true);
       await api.integrations.deleteIntegration(integration.id);
       toast({
-        title: 'Success',
-        description: 'Integration deleted successfully',
+        title: "Success",
+        description: "Integration deleted successfully",
       });
-      router.push('/admin/integrations');
+      router.push("/admin/integrations");
     } catch (error) {
-      console.error('Failed to delete integration:', error);
+      console.error("Failed to delete integration:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to delete integration',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to delete integration",
+        variant: "destructive",
       });
     } finally {
       setDeleting(false);
@@ -196,26 +223,35 @@ export default function EditIntegrationPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'active':
+      case "active":
         return <Badge className="bg-green-100 text-green-800">Active</Badge>;
-      case 'pending':
+      case "pending":
         return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
-      case 'error':
+      case "error":
         return <Badge className="bg-red-100 text-red-800">Error</Badge>;
-      case 'disconnected':
-        return <Badge className="bg-gray-100 text-gray-800">Disconnected</Badge>;
+      case "disconnected":
+        return (
+          <Badge className="bg-gray-100 text-gray-800">Disconnected</Badge>
+        );
       default:
         return <Badge className="bg-gray-100 text-gray-800">Unknown</Badge>;
     }
   };
 
-  const renderConfigField = (key: string, schema: { type: string; title?: string; description?: string }) => {
-    const value = formData.config?.[key] || '';
-    const isRequired = integration?.integrationTemplate?.configSchema?.required?.includes(key);
+  const renderConfigField = (
+    key: string,
+    schema: { type: string; title?: string; description?: string }
+  ) => {
+    const value = formData.config?.[key] || "";
+    const isRequired =
+      integration?.integrationTemplate?.configSchema?.required?.includes(key);
 
     switch (schema.type) {
-      case 'string':
-        if (schema.title?.toLowerCase().includes('key') || schema.title?.toLowerCase().includes('token')) {
+      case "string":
+        if (
+          schema.title?.toLowerCase().includes("key") ||
+          schema.title?.toLowerCase().includes("token")
+        ) {
           return (
             <div key={key} className="space-y-2">
               <Label htmlFor={key} className="flex items-center gap-2">
@@ -294,7 +330,10 @@ export default function EditIntegrationPage() {
         <div className="text-center py-12">
           <AlertCircle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
           <p className="text-gray-500">Integration not found</p>
-          <Button onClick={() => router.push('/admin/integrations')} className="mt-4">
+          <Button
+            onClick={() => router.push("/admin/integrations")}
+            className="mt-4"
+          >
             Back to Integrations
           </Button>
         </div>
@@ -307,34 +346,34 @@ export default function EditIntegrationPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.back()}
-          >
+          <Button variant="outline" size="sm" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Edit Integration</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Edit Integration
+            </h1>
             <p className="text-gray-600 mt-2">
-              Update configuration for {integration.integrationTemplate.displayName}
+              Update configuration for{" "}
+              {integration.integrationTemplate.displayName}
             </p>
           </div>
         </div>
-        
+
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="destructive" disabled={deleting}>
               <Trash2 className="h-4 w-4 mr-2" />
-              {deleting ? 'Deleting...' : 'Delete'}
+              {deleting ? "Deleting..." : "Delete"}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Delete Integration</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete this integration? This action cannot be undone.
+                Are you sure you want to delete this integration? This action
+                cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -359,41 +398,61 @@ export default function EditIntegrationPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label className="text-sm font-medium text-gray-700">Type</Label>
-                <p className="text-sm text-gray-900">{integration.integrationTemplate.displayName}</p>
+                <Label className="text-sm font-medium text-gray-700">
+                  Type
+                </Label>
+                <p className="text-sm text-gray-900">
+                  {integration.integrationTemplate.displayName}
+                </p>
               </div>
-              
+
               <div>
-                <Label className="text-sm font-medium text-gray-700">Category</Label>
-                <Badge variant="outline">{integration.integrationTemplate.category}</Badge>
+                <Label className="text-sm font-medium text-gray-700">
+                  Category
+                </Label>
+                <Badge variant="outline">
+                  {integration.integrationTemplate.category}
+                </Badge>
               </div>
-              
+
               <div>
-                <Label className="text-sm font-medium text-gray-700">Status</Label>
+                <Label className="text-sm font-medium text-gray-700">
+                  Status
+                </Label>
                 <div className="mt-1">{getStatusBadge(integration.status)}</div>
               </div>
-              
+
               <div>
-                <Label className="text-sm font-medium text-gray-700">SubAccount</Label>
-                <p className="text-sm text-gray-900">{integration.subAccount.name}</p>
+                <Label className="text-sm font-medium text-gray-700">
+                  SubAccount
+                </Label>
+                <p className="text-sm text-gray-900">
+                  {integration.subAccount.name}
+                </p>
               </div>
-              
+
               {integration.lastSyncAt && (
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">Last Sync</Label>
+                  <Label className="text-sm font-medium text-gray-700">
+                    Last Sync
+                  </Label>
                   <p className="text-sm text-gray-900">
                     {new Date(integration.lastSyncAt).toLocaleString()}
                   </p>
                 </div>
               )}
-              
+
               {integration.errorMessage && (
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">Error</Label>
-                  <p className="text-sm text-red-600">{integration.errorMessage}</p>
+                  <Label className="text-sm font-medium text-gray-700">
+                    Error
+                  </Label>
+                  <p className="text-sm text-red-600">
+                    {integration.errorMessage}
+                  </p>
                 </div>
               )}
-              
+
               <div className="pt-4 space-y-2">
                 <Button
                   variant="outline"
@@ -402,9 +461,9 @@ export default function EditIntegrationPage() {
                   className="w-full"
                 >
                   <TestTube className="h-4 w-4 mr-2" />
-                  {testing ? 'Testing...' : 'Test Connection'}
+                  {testing ? "Testing..." : "Test Connection"}
                 </Button>
-                
+
                 <Button
                   variant="outline"
                   onClick={handleSync}
@@ -412,7 +471,7 @@ export default function EditIntegrationPage() {
                   className="w-full"
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  {testing ? 'Syncing...' : 'Sync Now'}
+                  {testing ? "Syncing..." : "Sync Now"}
                 </Button>
               </div>
             </CardContent>
@@ -432,13 +491,15 @@ export default function EditIntegrationPage() {
               {/* Basic Info */}
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Basic Information</h3>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="name">Integration Name</Label>
                   <Input
                     id="name"
-                    value={formData.name || ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    value={formData.name || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, name: e.target.value }))
+                    }
                     placeholder="Enter a name for this integration"
                   />
                 </div>
@@ -447,8 +508,13 @@ export default function EditIntegrationPage() {
                   <Label htmlFor="description">Description (Optional)</Label>
                   <Textarea
                     id="description"
-                    value={formData.description || ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    value={formData.description || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
                     placeholder="Enter a description for this integration"
                     rows={3}
                   />
@@ -458,7 +524,9 @@ export default function EditIntegrationPage() {
                   <Switch
                     id="isActive"
                     checked={formData.isActive || false}
-                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked }))}
+                    onCheckedChange={(checked) =>
+                      setFormData((prev) => ({ ...prev, isActive: checked }))
+                    }
                   />
                   <Label htmlFor="isActive">Active</Label>
                 </div>
@@ -467,24 +535,24 @@ export default function EditIntegrationPage() {
               {/* Configuration Fields */}
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Configuration</h3>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {integration.integrationTemplate.configSchema?.properties && 
-                    Object.entries(integration.integrationTemplate.configSchema.properties as Record<string, { type: string; title?: string; description?: string }>).map(([key, schema]) => 
-                      renderConfigField(key, schema)
-                    )
-                  }
+                  {integration.integrationTemplate.configSchema?.properties &&
+                    Object.entries(
+                      integration.integrationTemplate.configSchema
+                        .properties as Record<
+                        string,
+                        { type: string; title?: string; description?: string }
+                      >
+                    ).map(([key, schema]) => renderConfigField(key, schema))}
                 </div>
               </div>
 
               {/* Actions */}
               <div className="flex gap-3 pt-4">
-                <Button
-                  onClick={handleSave}
-                  disabled={saving}
-                >
+                <Button onClick={handleSave} disabled={saving}>
                   <Save className="h-4 w-4 mr-2" />
-                  {saving ? 'Saving...' : 'Save Changes'}
+                  {saving ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </CardContent>
@@ -493,4 +561,4 @@ export default function EditIntegrationPage() {
       </div>
     </div>
   );
-} 
+}

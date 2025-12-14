@@ -1,22 +1,43 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback, ReactNode } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Pagination, 
-  PaginationContent, 
-  PaginationItem, 
-  PaginationLink, 
-  PaginationNext, 
-  PaginationPrevious 
-} from '@/components/ui/pagination';
-import { Search, RefreshCw, Plus, Eye, Edit, Trash2, Activity } from 'lucide-react';
-import { BulkActions } from './bulk-actions';
+import { useState, useEffect, useCallback, ReactNode } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  Search,
+  RefreshCw,
+  Plus,
+  Eye,
+  Edit,
+  Trash2,
+  Activity,
+} from "lucide-react";
+import { BulkActions } from "./bulk-actions";
 
 // Column definition interface
 export interface Column<T> {
@@ -31,7 +52,7 @@ export interface Column<T> {
 export interface Filter {
   key: string;
   label: string;
-  type: 'select' | 'text' | 'date';
+  type: "select" | "text" | "date";
   options?: Array<{ value: string; label: string }>;
   placeholder?: string;
 }
@@ -51,18 +72,18 @@ export interface DataTableProps<T extends { id: number | string }> {
   data: T[];
   isLoading?: boolean;
   isRefreshing?: boolean;
-  
+
   // Table configuration
   columns: Column<T>[];
   title: string;
   description?: string;
-  
+
   // Search and filters
   searchPlaceholder?: string;
   filters?: Filter[];
   onSearchChange?: (term: string) => void;
   onFilterChange?: (key: string, value: string) => void;
-  
+
   // Pagination
   pagination?: {
     currentPage: number;
@@ -71,7 +92,7 @@ export interface DataTableProps<T extends { id: number | string }> {
     totalItems: number;
     onPageChange: (page: number) => void;
   };
-  
+
   // Actions
   onCreateClick?: () => void;
   onRefresh?: () => void;
@@ -79,22 +100,30 @@ export interface DataTableProps<T extends { id: number | string }> {
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
   hideCreateButton?: boolean;
-  
+
   // Bulk actions
   bulkActions?: {
     onBulkDelete?: (items: T[]) => Promise<void>;
-    onBulkUpdate?: (items: T[], field: string, value: string | number | boolean) => Promise<void>;
-    updateFields?: Array<{ value: string; label: string; type: 'text' | 'select' }>;
+    onBulkUpdate?: (
+      items: T[],
+      field: string,
+      value: string | number | boolean
+    ) => Promise<void>;
+    updateFields?: Array<{
+      value: string;
+      label: string;
+      type: "text" | "select";
+    }>;
     selectOptions?: Array<{ value: string; label: string }>;
   };
-  
+
   // Stats
   stats?: StatCard[];
-  
+
   // Custom elements
   headerActions?: ReactNode;
   emptyState?: ReactNode;
-  
+
   // Error handling
   error?: string | null;
   success?: string | null;
@@ -123,9 +152,9 @@ export function DataTable<T extends { id: number | string }>({
   headerActions,
   emptyState,
   error,
-  success
+  success,
 }: DataTableProps<T>) {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedItems, setSelectedItems] = useState<T[]>([]);
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});
 
@@ -137,16 +166,16 @@ export function DataTable<T extends { id: number | string }>({
 
   // Handle filter changes
   const handleFilterChange = (key: string, value: string) => {
-    setFilterValues(prev => ({ ...prev, [key]: value }));
+    setFilterValues((prev) => ({ ...prev, [key]: value }));
     onFilterChange?.(key, value);
   };
 
   // Handle item selection
   const handleItemSelect = (item: T, checked: boolean) => {
     if (checked) {
-      setSelectedItems(prev => [...prev, item]);
+      setSelectedItems((prev) => [...prev, item]);
     } else {
-      setSelectedItems(prev => prev.filter(i => i.id !== item.id));
+      setSelectedItems((prev) => prev.filter((i) => i.id !== item.id));
     }
   };
 
@@ -172,16 +201,16 @@ export function DataTable<T extends { id: number | string }>({
           <Search className="h-10 w-10 text-blue-600" />
         </div>
         <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-          {searchTerm || Object.values(filterValues).some(v => v !== 'all' && v !== '')
-            ? 'No matches found' 
-            : 'No items found'
-          }
+          {searchTerm ||
+          Object.values(filterValues).some((v) => v !== "all" && v !== "")
+            ? "No matches found"
+            : "No items found"}
         </h3>
         <p className="text-gray-600 dark:text-gray-400">
-          {searchTerm || Object.values(filterValues).some(v => v !== 'all' && v !== '')
-            ? 'Try adjusting your search criteria or filters to find what you\'re looking for.' 
-            : 'Get started by creating your first item.'
-          }
+          {searchTerm ||
+          Object.values(filterValues).some((v) => v !== "all" && v !== "")
+            ? "Try adjusting your search criteria or filters to find what you're looking for."
+            : "Get started by creating your first item."}
         </p>
       </div>
     </div>
@@ -216,19 +245,21 @@ export function DataTable<T extends { id: number | string }>({
         </div>
         <div className="flex gap-3 justify-start lg:justify-end">
           {onRefresh && (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={onRefresh}
               disabled={isRefreshing}
               className="bg-white/80 dark:bg-slate-700/50 backdrop-blur-sm hover:bg-blue-50 dark:hover:bg-slate-600 border-gray-200/60 dark:border-slate-600/60 transition-all duration-200 dark:text-gray-200"
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
+              <RefreshCw
+                className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin text-blue-600" : ""}`}
+              />
               <span className="hidden sm:inline">Refresh</span>
             </Button>
           )}
           {onCreateClick && !hideCreateButton && (
-            <Button 
+            <Button
               onClick={onCreateClick}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
             >
@@ -244,30 +275,66 @@ export function DataTable<T extends { id: number | string }>({
       {stats && stats.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           {stats.map((stat, index) => {
-            const colorMap: Record<string, { bg: string, icon: string, text: string, hover: string }> = {
-              'text-blue-600': { bg: 'from-blue-50 via-white to-blue-50/50', icon: 'bg-blue-100 group-hover:bg-blue-200', text: 'group-hover:text-blue-700 dark:group-hover:text-blue-400', hover: 'hover:shadow-blue-100/50' },
-              'text-green-600': { bg: 'from-emerald-50 via-white to-emerald-50/50', icon: 'bg-emerald-100 group-hover:bg-emerald-200', text: 'group-hover:text-emerald-700 dark:group-hover:text-emerald-400', hover: 'hover:shadow-emerald-100/50' },
-              'text-red-600': { bg: 'from-red-50 via-white to-red-50/50', icon: 'bg-red-100 group-hover:bg-red-200', text: 'group-hover:text-red-700 dark:group-hover:text-red-400', hover: 'hover:shadow-red-100/50' },
-              'text-purple-600': { bg: 'from-purple-50 via-white to-purple-50/50', icon: 'bg-purple-100 group-hover:bg-purple-200', text: 'group-hover:text-purple-700 dark:group-hover:text-purple-400', hover: 'hover:shadow-purple-100/50' },
+            const colorMap: Record<
+              string,
+              { bg: string; icon: string; text: string; hover: string }
+            > = {
+              "text-blue-600": {
+                bg: "from-blue-50 via-white to-blue-50/50",
+                icon: "bg-blue-100 group-hover:bg-blue-200",
+                text: "group-hover:text-blue-700 dark:group-hover:text-blue-400",
+                hover: "hover:shadow-blue-100/50",
+              },
+              "text-green-600": {
+                bg: "from-emerald-50 via-white to-emerald-50/50",
+                icon: "bg-emerald-100 group-hover:bg-emerald-200",
+                text: "group-hover:text-emerald-700 dark:group-hover:text-emerald-400",
+                hover: "hover:shadow-emerald-100/50",
+              },
+              "text-red-600": {
+                bg: "from-red-50 via-white to-red-50/50",
+                icon: "bg-red-100 group-hover:bg-red-200",
+                text: "group-hover:text-red-700 dark:group-hover:text-red-400",
+                hover: "hover:shadow-red-100/50",
+              },
+              "text-purple-600": {
+                bg: "from-purple-50 via-white to-purple-50/50",
+                icon: "bg-purple-100 group-hover:bg-purple-200",
+                text: "group-hover:text-purple-700 dark:group-hover:text-purple-400",
+                hover: "hover:shadow-purple-100/50",
+              },
             };
-            const colors = colorMap[stat.color] || colorMap['text-blue-600'];
-            
+            const colors = colorMap[stat.color] || colorMap["text-blue-600"];
+
             return (
-              <Card key={index} className={`group relative overflow-hidden bg-gradient-to-br ${colors.bg} dark:from-slate-800 dark:via-slate-700 dark:to-slate-800/50 border-gray-200/60 dark:border-slate-600/60 hover:shadow-xl ${colors.hover} dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300`}>
+              <Card
+                key={index}
+                className={`group relative overflow-hidden bg-gradient-to-br ${colors.bg} dark:from-slate-800 dark:via-slate-700 dark:to-slate-800/50 border-gray-200/60 dark:border-slate-600/60 hover:shadow-xl ${colors.hover} dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300`}
+              >
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <CardContent className="p-6 relative">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className={`text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 ${stat.color}`}>{stat.value}</div>
-                      <div className={`text-sm font-semibold text-gray-700 dark:text-gray-300 ${colors.text} transition-colors`}>{stat.title}</div>
+                      <div
+                        className={`text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 ${stat.color}`}
+                      >
+                        {stat.value}
+                      </div>
+                      <div
+                        className={`text-sm font-semibold text-gray-700 dark:text-gray-300 ${colors.text} transition-colors`}
+                      >
+                        {stat.title}
+                      </div>
                       {stat.description && (
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{stat.description}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {stat.description}
+                        </div>
                       )}
                     </div>
-                    <div className={`p-2 rounded-lg transition-colors ${colors.icon}`}>
-                      <div className={`${stat.color}`}>
-                        {stat.icon}
-                      </div>
+                    <div
+                      className={`p-2 rounded-lg transition-colors ${colors.icon}`}
+                    >
+                      <div className={`${stat.color}`}>{stat.icon}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -281,7 +348,9 @@ export function DataTable<T extends { id: number | string }>({
       {(onSearchChange || filters.length > 0) && (
         <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-gray-200/60 dark:border-slate-700/60 shadow-lg">
           <CardHeader className="border-b border-gray-100 dark:border-slate-700">
-            <CardTitle className="text-lg font-bold text-gray-800 dark:text-gray-200">Search & Filters</CardTitle>
+            <CardTitle className="text-lg font-bold text-gray-800 dark:text-gray-200">
+              Search & Filters
+            </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
             <div className="flex flex-col sm:flex-row gap-4">
@@ -300,10 +369,12 @@ export function DataTable<T extends { id: number | string }>({
               )}
               {filters.map((filter) => (
                 <div key={filter.key}>
-                  {filter.type === 'select' ? (
+                  {filter.type === "select" ? (
                     <select
-                      value={filterValues[filter.key] || 'all'}
-                      onChange={(e) => handleFilterChange(filter.key, e.target.value)}
+                      value={filterValues[filter.key] || "all"}
+                      onChange={(e) =>
+                        handleFilterChange(filter.key, e.target.value)
+                      }
                       className="px-3 py-2 bg-white/50 dark:bg-slate-700/50 border border-gray-200/60 dark:border-slate-600/60 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100"
                     >
                       <option value="all">All {filter.label}</option>
@@ -317,8 +388,10 @@ export function DataTable<T extends { id: number | string }>({
                     <Input
                       type={filter.type}
                       placeholder={filter.placeholder || filter.label}
-                      value={filterValues[filter.key] || ''}
-                      onChange={(e) => handleFilterChange(filter.key, e.target.value)}
+                      value={filterValues[filter.key] || ""}
+                      onChange={(e) =>
+                        handleFilterChange(filter.key, e.target.value)
+                      }
                       className="bg-white/50 dark:bg-slate-700/50 border-gray-200/60 dark:border-slate-600/60 focus:ring-blue-500 focus:border-blue-500"
                     />
                   )}
@@ -358,8 +431,14 @@ export function DataTable<T extends { id: number | string }>({
       {/* Table */}
       <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-gray-200/60 dark:border-slate-700/60 shadow-lg hover:shadow-xl transition-all duration-300">
         <CardHeader className="border-b border-gray-100 dark:border-slate-700 pb-4">
-          <CardTitle className="text-xl font-bold text-gray-800 dark:text-gray-200">{title} ({data.length})</CardTitle>
-          {description && <CardDescription className="text-gray-600 dark:text-gray-400 mt-1">{description}</CardDescription>}
+          <CardTitle className="text-xl font-bold text-gray-800 dark:text-gray-200">
+            {title} ({data.length})
+          </CardTitle>
+          {description && (
+            <CardDescription className="text-gray-600 dark:text-gray-400 mt-1">
+              {description}
+            </CardDescription>
+          )}
         </CardHeader>
         <CardContent className="pt-6">
           {data.length > 0 ? (
@@ -372,7 +451,10 @@ export function DataTable<T extends { id: number | string }>({
                       <TableHead className="w-12">
                         <input
                           type="checkbox"
-                          checked={data.length > 0 && selectedItems.length === data.length}
+                          checked={
+                            data.length > 0 &&
+                            selectedItems.length === data.length
+                          }
                           onChange={(e) => handleSelectAll(e.target.checked)}
                           className="rounded border-gray-300"
                         />
@@ -398,16 +480,25 @@ export function DataTable<T extends { id: number | string }>({
                         <TableCell>
                           <input
                             type="checkbox"
-                            checked={selectedItems.some(i => i.id === item.id)}
-                            onChange={(e) => handleItemSelect(item, e.target.checked)}
+                            checked={selectedItems.some(
+                              (i) => i.id === item.id
+                            )}
+                            onChange={(e) =>
+                              handleItemSelect(item, e.target.checked)
+                            }
                             className="rounded border-gray-300"
                           />
                         </TableCell>
                       )}
                       {/* Data cells */}
                       {columns.map((column) => (
-                        <TableCell key={column.key} className={column.className}>
-                          {column.render ? column.render(item) : (item as any)[column.key]}
+                        <TableCell
+                          key={column.key}
+                          className={column.className}
+                        >
+                          {column.render
+                            ? column.render(item)
+                            : (item as any)[column.key]}
                         </TableCell>
                       ))}
                       {/* Action buttons */}
@@ -458,14 +549,23 @@ export function DataTable<T extends { id: number | string }>({
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
-                        <PaginationPrevious 
-                          onClick={() => pagination.onPageChange(pagination.currentPage - 1)}
-                          className={pagination.currentPage <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        <PaginationPrevious
+                          onClick={() =>
+                            pagination.onPageChange(pagination.currentPage - 1)
+                          }
+                          className={
+                            pagination.currentPage <= 1
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
                         />
                       </PaginationItem>
-                      
+
                       {/* Page numbers */}
-                      {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+                      {Array.from(
+                        { length: pagination.totalPages },
+                        (_, i) => i + 1
+                      ).map((page) => (
                         <PaginationItem key={page}>
                           <PaginationLink
                             onClick={() => pagination.onPageChange(page)}
@@ -476,26 +576,37 @@ export function DataTable<T extends { id: number | string }>({
                           </PaginationLink>
                         </PaginationItem>
                       ))}
-                      
+
                       <PaginationItem>
-                        <PaginationNext 
-                          onClick={() => pagination.onPageChange(pagination.currentPage + 1)}
-                          className={pagination.currentPage >= pagination.totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        <PaginationNext
+                          onClick={() =>
+                            pagination.onPageChange(pagination.currentPage + 1)
+                          }
+                          className={
+                            pagination.currentPage >= pagination.totalPages
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
                         />
                       </PaginationItem>
                     </PaginationContent>
                   </Pagination>
-                  
+
                   {/* Pagination info */}
                   <div className="text-center text-sm text-gray-600 mt-2">
                     {pagination.totalItems > 0 ? (
                       <>
-                        Showing {((pagination.currentPage - 1) * pagination.pageSize) + 1} to{' '}
-                        {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)} of{' '}
-                        {pagination.totalItems} items
+                        Showing{" "}
+                        {(pagination.currentPage - 1) * pagination.pageSize + 1}{" "}
+                        to{" "}
+                        {Math.min(
+                          pagination.currentPage * pagination.pageSize,
+                          pagination.totalItems
+                        )}{" "}
+                        of {pagination.totalItems} items
                       </>
                     ) : (
-                      'No items to display'
+                      "No items to display"
                     )}
                   </div>
                 </div>
@@ -508,4 +619,4 @@ export function DataTable<T extends { id: number | string }>({
       </Card>
     </div>
   );
-} 
+}

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { cn } from '@/lib/utils';
-import { useAdminAuth } from '@/contexts/unified-auth-context';
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+import { useAdminAuth } from "@/contexts/unified-auth-context";
 import {
   LayoutDashboard,
   Users,
@@ -22,24 +22,24 @@ import {
   Search,
   Mail,
   ClipboardList,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const navigation = [
-  { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-  { name: 'SubAccounts', href: '/admin/subaccounts', icon: Building2 },
-  { name: 'Users', href: '/admin/users', icon: Users },
-  { name: 'Contacts', href: '/admin/contacts', icon: Mail },
-  { name: 'Forms', href: '/admin/forms', icon: ClipboardList },
-  { name: 'Strategies', href: '/admin/strategies', icon: Target },
-  { name: 'Leads', href: '/admin/leads', icon: Users },
-  { name: 'Bookings', href: '/admin/bookings', icon: Calendar },
-  { name: 'Chat', href: '/admin/chat', icon: MessageSquare },
-  { name: 'Prompt Builder', href: '/admin/prompt-templates', icon: FileText },
-  { name: 'Integrations', href: '/admin/integrations', icon: Link2 },
-  { name: 'Dev', href: '/admin/dev', icon: Database },
-  { name: 'Settings', href: '/admin/settings', icon: Settings },
+  { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+  { name: "SubAccounts", href: "/admin/subaccounts", icon: Building2 },
+  { name: "Users", href: "/admin/users", icon: Users },
+  { name: "Contacts", href: "/admin/contacts", icon: Mail },
+  { name: "Forms", href: "/admin/forms", icon: ClipboardList },
+  { name: "Strategies", href: "/admin/strategies", icon: Target },
+  { name: "Leads", href: "/admin/leads", icon: Users },
+  { name: "Bookings", href: "/admin/bookings", icon: Calendar },
+  { name: "Chat", href: "/admin/chat", icon: MessageSquare },
+  { name: "Prompt Builder", href: "/admin/prompt-templates", icon: FileText },
+  { name: "Integrations", href: "/admin/integrations", icon: Link2 },
+  { name: "Dev", href: "/admin/dev", icon: Database },
+  { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 export function Sidebar() {
@@ -50,7 +50,7 @@ export function Sidebar() {
 
   const handleLogout = async () => {
     await adminLogout();
-    router.push('/admin/login');
+    router.push("/admin/login");
     setIsOpen(false);
   };
 
@@ -71,16 +71,18 @@ export function Sidebar() {
               href={item.href}
               onClick={() => setIsOpen(false)}
               className={cn(
-                'group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200',
+                "group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
                 isActive
-                  ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-200/50 dark:shadow-blue-900/30 transform scale-[1.02]'
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-gray-900 dark:hover:text-white hover:shadow-md hover:transform hover:scale-[1.01]'
+                  ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-200/50 dark:shadow-blue-900/30 transform scale-[1.02]"
+                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-gray-900 dark:hover:text-white hover:shadow-md hover:transform hover:scale-[1.01]"
               )}
             >
               <item.icon
                 className={cn(
-                  'mr-3 h-5 w-5 flex-shrink-0',
-                  isActive ? 'text-white' : 'text-gray-400 dark:text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-400'
+                  "mr-3 h-5 w-5 flex-shrink-0",
+                  isActive
+                    ? "text-white"
+                    : "text-gray-400 dark:text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-400"
                 )}
               />
               {item.name}
@@ -95,19 +97,27 @@ export function Sidebar() {
           <div className="flex-shrink-0">
             <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md">
               <span className="text-sm font-bold text-white">
-                {admin?.name ? admin.name.charAt(0).toUpperCase() : 'A'}
+                {admin?.name ? admin.name.charAt(0).toUpperCase() : "A"}
               </span>
             </div>
           </div>
           <div className="ml-3 flex-1 min-w-0">
             <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">
-              {admin?.name ? (admin.name.length > 20 ? admin.name.substring(0, 20) + '...' : admin.name) : 'Admin User'}
+              {admin?.name
+                ? admin.name.length > 20
+                  ? admin.name.substring(0, 20) + "..."
+                  : admin.name
+                : "Admin User"}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-              {admin?.email ? (admin.email.length > 20 ? admin.email.substring(0, 20) + '...' : admin.email) : 'admin@example.com'}
+              {admin?.email
+                ? admin.email.length > 20
+                  ? admin.email.substring(0, 20) + "..."
+                  : admin.email
+                : "admin@example.com"}
             </p>
           </div>
-          <button 
+          <button
             onClick={handleLogout}
             className="ml-2 p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200"
             title="Logout"
@@ -141,4 +151,4 @@ export function Sidebar() {
       </div>
     </>
   );
-} 
+}

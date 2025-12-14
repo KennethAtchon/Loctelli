@@ -1,20 +1,34 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Trash2, Edit, Archive, RefreshCw } from 'lucide-react';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Trash2, Edit, Archive, RefreshCw } from "lucide-react";
 
 interface BulkActionsProps<T> {
   items: T[];
   selectedItems: T[];
   onSelectionChange: (items: T[]) => void;
   onBulkDelete?: (items: T[]) => Promise<void>;
-  onBulkUpdate?: (items: T[], field: string, value: string | number | boolean) => Promise<void>;
+  onBulkUpdate?: (
+    items: T[],
+    field: string,
+    value: string | number | boolean
+  ) => Promise<void>;
   onBulkArchive?: (items: T[]) => Promise<void>;
-  updateFields?: Array<{ value: string; label: string; type: 'text' | 'select' }>;
+  updateFields?: Array<{
+    value: string;
+    label: string;
+    type: "text" | "select";
+  }>;
   selectOptions?: Array<{ value: string; label: string }>;
   isLoading?: boolean;
 }
@@ -28,12 +42,11 @@ export function BulkActions<T extends { id: number | string }>({
   onBulkArchive,
   updateFields = [],
   selectOptions = [],
-
 }: BulkActionsProps<T>) {
   const [isBulkActionLoading, setIsBulkActionLoading] = useState(false);
-  const [selectedField, setSelectedField] = useState('');
-  const [selectedValue, setSelectedValue] = useState('');
-  const [error, setError] = useState('');
+  const [selectedField, setSelectedField] = useState("");
+  const [selectedValue, setSelectedValue] = useState("");
+  const [error, setError] = useState("");
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -45,35 +58,45 @@ export function BulkActions<T extends { id: number | string }>({
 
   const handleBulkDelete = async () => {
     if (!onBulkDelete || selectedItems.length === 0) return;
-    
-    if (!confirm(`Are you sure you want to delete ${selectedItems.length} item(s)?`)) {
+
+    if (
+      !confirm(
+        `Are you sure you want to delete ${selectedItems.length} item(s)?`
+      )
+    ) {
       return;
     }
 
     try {
       setIsBulkActionLoading(true);
-      setError('');
+      setError("");
       await onBulkDelete(selectedItems);
       onSelectionChange([]);
     } catch {
-      setError('Failed to delete items');
+      setError("Failed to delete items");
     } finally {
       setIsBulkActionLoading(false);
     }
   };
 
   const handleBulkUpdate = async () => {
-    if (!onBulkUpdate || selectedItems.length === 0 || !selectedField || !selectedValue) return;
+    if (
+      !onBulkUpdate ||
+      selectedItems.length === 0 ||
+      !selectedField ||
+      !selectedValue
+    )
+      return;
 
     try {
       setIsBulkActionLoading(true);
-      setError('');
+      setError("");
       await onBulkUpdate(selectedItems, selectedField, selectedValue);
       onSelectionChange([]);
-      setSelectedField('');
-      setSelectedValue('');
+      setSelectedField("");
+      setSelectedValue("");
     } catch {
-      setError('Failed to update items');
+      setError("Failed to update items");
     } finally {
       setIsBulkActionLoading(false);
     }
@@ -84,11 +107,11 @@ export function BulkActions<T extends { id: number | string }>({
 
     try {
       setIsBulkActionLoading(true);
-      setError('');
+      setError("");
       await onBulkArchive(selectedItems);
       onSelectionChange([]);
     } catch {
-      setError('Failed to archive items');
+      setError("Failed to archive items");
     } finally {
       setIsBulkActionLoading(false);
     }
@@ -96,8 +119,8 @@ export function BulkActions<T extends { id: number | string }>({
 
   if (items.length === 0) return null;
 
-  const isAllSelected = items.length > 0 && selectedItems.length === items.length;
-
+  const isAllSelected =
+    items.length > 0 && selectedItems.length === items.length;
 
   return (
     <div className="space-y-4">
@@ -140,8 +163,12 @@ export function BulkActions<T extends { id: number | string }>({
 
                 {selectedField && (
                   <>
-                    {updateFields.find(f => f.value === selectedField)?.type === 'select' ? (
-                      <Select value={selectedValue} onValueChange={setSelectedValue}>
+                    {updateFields.find((f) => f.value === selectedField)
+                      ?.type === "select" ? (
+                      <Select
+                        value={selectedValue}
+                        onValueChange={setSelectedValue}
+                      >
                         <SelectTrigger className="w-40">
                           <SelectValue placeholder="Select value" />
                         </SelectTrigger>
@@ -209,4 +236,4 @@ export function BulkActions<T extends { id: number | string }>({
       </div>
     </div>
   );
-} 
+}

@@ -1,42 +1,54 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
-import Link from 'next/link';
-import { CreateLeadDto } from '@/types';
-import { Strategy } from '@/types';
-import type { UserProfile } from '@/lib/api/endpoints/admin-auth';
-import logger from '@/lib/logger';
-import { useTenant } from '@/contexts/tenant-context';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { CreateLeadDto } from "@/types";
+import { Strategy } from "@/types";
+import type { UserProfile } from "@/lib/api/endpoints/admin-auth";
+import logger from "@/lib/logger";
+import { useTenant } from "@/contexts/tenant-context";
 
 export default function NewLeadPage() {
   const router = useRouter();
   const { adminFilter } = useTenant();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<number>(0);
   const [formData, setFormData] = useState<CreateLeadDto>({
     regularUserId: 0, // Will be set when user selects from dropdown
     strategyId: 0, // Will be set when strategy selects from dropdown
-    name: '',
-    email: '',
-    phone: '',
-    company: '',
-    position: '',
-    customId: '',
-    status: 'lead',
-    notes: '',
+    name: "",
+    email: "",
+    phone: "",
+    company: "",
+    position: "",
+    customId: "",
+    status: "lead",
+    notes: "",
     subAccountId: 0, // Will be set from current filter
   });
 
@@ -44,14 +56,14 @@ export default function NewLeadPage() {
   useEffect(() => {
     const loadUsers = async () => {
       try {
-        const usersData = await api.adminAuth.getAllUsers(adminFilter ?? undefined);
+        const usersData = await api.adminAuth.getAllUsers(
+          adminFilter ?? undefined
+        );
         // Filter out admin users, only show regular users
-        const regularUsers = usersData.filter(user => user.role !== 'admin');
+        const regularUsers = usersData.filter((user) => user.role !== "admin");
         setUsers(regularUsers);
-
-
       } catch (error) {
-        logger.error('Failed to load users:', error);
+        logger.error("Failed to load users:", error);
       }
     };
     loadUsers();
@@ -65,10 +77,11 @@ export default function NewLeadPage() {
         return;
       }
       try {
-        const strategiesData = await api.strategies.getStrategiesByUser(selectedUserId);
+        const strategiesData =
+          await api.strategies.getStrategiesByUser(selectedUserId);
         setStrategies(strategiesData);
       } catch (error) {
-        logger.error('Failed to load strategies:', error);
+        logger.error("Failed to load strategies:", error);
       }
     };
     loadStrategies();
@@ -76,25 +89,27 @@ export default function NewLeadPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.regularUserId || formData.regularUserId === 0) {
-      setError('Please select a user for this lead');
+      setError("Please select a user for this lead");
       return;
     }
-    
+
     if (!formData.strategyId || formData.strategyId === 0) {
-      setError('Please select a strategy for this lead');
+      setError("Please select a strategy for this lead");
       return;
     }
-    
+
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       // Get the selected user to determine the subaccount
-      const selectedUser = users.find(user => user.id === formData.regularUserId);
+      const selectedUser = users.find(
+        (user) => user.id === formData.regularUserId
+      );
       if (!selectedUser) {
-        setError('Selected user not found');
+        setError("Selected user not found");
         return;
       }
 
@@ -103,26 +118,33 @@ export default function NewLeadPage() {
         ...formData,
         subAccountId: selectedUser.subAccountId || 0,
       });
-      router.push('/admin/leads');
+      router.push("/admin/leads");
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to create lead');
+      setError(
+        error instanceof Error ? error.message : "Failed to create lead"
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: name === 'strategyId' || name === 'regularUserId' ? parseInt(value) || 0 : value,
+      [name]:
+        name === "strategyId" || name === "regularUserId"
+          ? parseInt(value) || 0
+          : value,
     }));
   };
 
@@ -146,7 +168,8 @@ export default function NewLeadPage() {
         <CardHeader>
           <CardTitle>Lead Information</CardTitle>
           <CardDescription>
-            Enter the lead's details below. All fields marked with * are required.
+            Enter the lead's details below. All fields marked with * are
+            required.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -167,7 +190,11 @@ export default function NewLeadPage() {
                     onValueChange={(value) => {
                       const userId = parseInt(value);
                       setSelectedUserId(userId);
-                      setFormData(prev => ({ ...prev, regularUserId: userId, strategyId: 0 }));
+                      setFormData((prev) => ({
+                        ...prev,
+                        regularUserId: userId,
+                        strategyId: 0,
+                      }));
                     }}
                   >
                     <SelectTrigger>
@@ -187,22 +214,32 @@ export default function NewLeadPage() {
                   <Label htmlFor="strategyId">Strategy *</Label>
                   <Select
                     value={formData.strategyId.toString()}
-                    onValueChange={(value) => handleSelectChange('strategyId', value)}
+                    onValueChange={(value) =>
+                      handleSelectChange("strategyId", value)
+                    }
                     disabled={selectedUserId === 0}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder={selectedUserId === 0 ? "Select a user first" : "Select a strategy"} />
+                      <SelectValue
+                        placeholder={
+                          selectedUserId === 0
+                            ? "Select a user first"
+                            : "Select a strategy"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {strategies.map((strategy) => (
-                        <SelectItem key={strategy.id} value={strategy.id.toString()}>
+                        <SelectItem
+                          key={strategy.id}
+                          value={strategy.id.toString()}
+                        >
                           {strategy.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-
 
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name *</Label>
@@ -284,7 +321,9 @@ export default function NewLeadPage() {
                   <Label htmlFor="status">Status</Label>
                   <Select
                     value={formData.status}
-                    onValueChange={(value) => handleSelectChange('status', value)}
+                    onValueChange={(value) =>
+                      handleSelectChange("status", value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />
@@ -314,11 +353,7 @@ export default function NewLeadPage() {
 
             {/* Form Actions */}
             <div className="flex gap-4 pt-4">
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="flex-1"
-              >
+              <Button type="submit" disabled={isLoading} className="flex-1">
                 {isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -342,4 +377,4 @@ export default function NewLeadPage() {
       </Card>
     </div>
   );
-} 
+}

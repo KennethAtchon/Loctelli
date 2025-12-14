@@ -4,26 +4,29 @@
  * Demonstrates mutation with automatic tenant context
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTenantMutation } from '@/hooks/useTenantData';
-import { useTenant } from '@/contexts/tenant-context';
-import { api } from '@/lib/api';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState } from "react";
+import { useTenantMutation } from "@/hooks/useTenantData";
+import { useTenant } from "@/contexts/tenant-context";
+import { api } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function TenantAwareCreateLead() {
   const { subAccountId, mode } = useTenant();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
   // Automatic tenant context in mutations!
-  const createLeadMutation = useTenantMutation<any, { name: string; email: string }>({
+  const createLeadMutation = useTenantMutation<
+    any,
+    { name: string; email: string }
+  >({
     mutationFn: async ({ name, email, subAccountId }) => {
       // subAccountId is automatically injected based on tenant context
       // Note: This is just an example - adjust fields as needed
@@ -39,8 +42,8 @@ export function TenantAwareCreateLead() {
     requireSubAccount: true,
     onSuccess: () => {
       setSuccess(true);
-      setName('');
-      setEmail('');
+      setName("");
+      setEmail("");
     },
     onError: (err) => {
       setError(err.message);
@@ -60,7 +63,7 @@ export function TenantAwareCreateLead() {
   };
 
   // Admin in global view cannot create leads without selecting a subaccount
-  if (mode === 'ADMIN_GLOBAL') {
+  if (mode === "ADMIN_GLOBAL") {
     return (
       <Alert>
         <AlertDescription>
@@ -110,11 +113,8 @@ export function TenantAwareCreateLead() {
             />
           </div>
 
-          <Button
-            type="submit"
-            disabled={createLeadMutation.isLoading}
-          >
-            {createLeadMutation.isLoading ? 'Creating...' : 'Create Lead'}
+          <Button type="submit" disabled={createLeadMutation.isLoading}>
+            {createLeadMutation.isLoading ? "Creating..." : "Create Lead"}
           </Button>
         </form>
       </CardContent>
