@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+  Query,
+} from '@nestjs/common';
 import { IntegrationsService } from './integrations.service';
 import { CreateIntegrationDto } from './dto/create-integration.dto';
 import { UpdateIntegrationDto } from './dto/update-integration.dto';
@@ -13,12 +24,15 @@ import { GhlService } from '../../ghl-integrations/ghl/ghl.service';
 export class IntegrationsController {
   constructor(
     private readonly integrationsService: IntegrationsService,
-    private readonly ghlService: GhlService
+    private readonly ghlService: GhlService,
   ) {}
 
   @Post()
   create(@Body() createDto: CreateIntegrationDto, @Request() req) {
-    console.log('Creating integration:', { createDto, userId: req.user.userId });
+    console.log('Creating integration:', {
+      createDto,
+      userId: req.user.userId,
+    });
     return this.integrationsService.create(createDto, req.user.userId);
   }
 
@@ -34,7 +48,10 @@ export class IntegrationsController {
   }
 
   @Get('status/:status')
-  findByStatus(@Param('status') status: string, @Query('subAccountId') subAccountId?: string) {
+  findByStatus(
+    @Param('status') status: string,
+    @Query('subAccountId') subAccountId?: string,
+  ) {
     const subAccountIdNum = subAccountId ? +subAccountId : undefined;
     return this.integrationsService.findByStatus(status, subAccountIdNum);
   }
@@ -52,10 +69,14 @@ export class IntegrationsController {
 
   @Patch(':id/status')
   updateStatus(
-    @Param('id') id: string, 
-    @Body() body: { status: string; errorMessage?: string }
+    @Param('id') id: string,
+    @Body() body: { status: string; errorMessage?: string },
   ) {
-    return this.integrationsService.updateStatus(+id, body.status, body.errorMessage);
+    return this.integrationsService.updateStatus(
+      +id,
+      body.status,
+      body.errorMessage,
+    );
   }
 
   @Post(':id/test')
@@ -85,7 +106,10 @@ export class IntegrationsController {
   }
 
   @Post(':id/setup-ghl-webhook')
-  setupGhlWebhook(@Param('id') id: string, @Body() webhookConfig: {events: string[]}) {
+  setupGhlWebhook(
+    @Param('id') id: string,
+    @Body() webhookConfig: { events: string[] },
+  ) {
     return this.ghlService.setupWebhook(+id, webhookConfig);
   }
-} 
+}

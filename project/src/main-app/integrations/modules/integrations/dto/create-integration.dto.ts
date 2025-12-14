@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsBoolean, IsObject, IsNumber } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsObject,
+  IsNumber,
+} from 'class-validator';
 
 export class CreateIntegrationDto {
   @IsNumber()
@@ -32,4 +38,4 @@ export class CreateIntegrationDto {
   @IsOptional()
   @IsString()
   webhookSecret?: string;
-} 
+}

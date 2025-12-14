@@ -1,4 +1,12 @@
-import { Controller, Post, Get, Body, Logger, Res, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Logger,
+  Res,
+  Query,
+} from '@nestjs/common';
 import { Response } from 'express';
 import { Public } from '../../../shared/decorators/public.decorator';
 import { AgentFactoryService } from './agent-factory.service';
@@ -23,7 +31,7 @@ export class AIReceptionistWebhookController {
     private prisma: PrismaService,
     private configService: ConfigService,
     private bookingTools: BookingTools,
-    private leadManagementTools: LeadManagementTools
+    private leadManagementTools: LeadManagementTools,
   ) {}
 
   /**
@@ -36,8 +44,8 @@ export class AIReceptionistWebhookController {
       service: 'ai-receptionist-webhooks',
       timestamp: new Date().toISOString(),
       factory: {
-        initialized: this.agentFactory.getFactory() !== null
-      }
+        initialized: this.agentFactory.getFactory() !== null,
+      },
     };
   }
 
@@ -49,14 +57,20 @@ export class AIReceptionistWebhookController {
     try {
       const fs = require('fs');
       const path = require('path');
-      const packageJsonPath = path.join(process.cwd(), 'node_modules', '@atchonk', 'ai-receptionist', 'package.json');
+      const packageJsonPath = path.join(
+        process.cwd(),
+        'node_modules',
+        '@atchonk',
+        'ai-receptionist',
+        'package.json',
+      );
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 
       return {
         package: '@atchonk/ai-receptionist',
         version: packageJson.version,
         description: packageJson.description,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     } catch (error) {
       this.logger.error('Error reading package version:', error);
@@ -64,7 +78,7 @@ export class AIReceptionistWebhookController {
         package: '@atchonk/ai-receptionist',
         version: 'unknown',
         error: 'Could not read package version',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     }
   }
@@ -85,7 +99,7 @@ export class AIReceptionistWebhookController {
 
       // Find lead by phone number
       const lead = await this.findLeadByPhone(fromPhone);
-      
+
       if (!lead) {
         this.logger.warn(`No lead found for phone number: ${fromPhone}`);
         // Return error TwiML
@@ -105,7 +119,7 @@ export class AIReceptionistWebhookController {
       const twimlResponse = await agent.voice.handleWebhook({
         provider: 'twilio',
         payload: body,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
 
       return res.type('text/xml').send(twimlResponse);
@@ -128,12 +142,14 @@ export class AIReceptionistWebhookController {
   @Post('voice/continue')
   async voiceWebhookContinue(@Body() body: any, @Res() res: Response) {
     this.logger.log('Received voice webhook continue');
-    this.logger.debug(`Voice webhook continue payload: ${JSON.stringify(body)}`);
+    this.logger.debug(
+      `Voice webhook continue payload: ${JSON.stringify(body)}`,
+    );
 
     try {
       const fromPhone = body.From;
       const lead = await this.findLeadByPhone(fromPhone);
-      
+
       if (!lead) {
         return res.type('text/xml').send(`
           <?xml version="1.0" encoding="UTF-8"?>
@@ -148,7 +164,7 @@ export class AIReceptionistWebhookController {
       const twimlResponse = await agent.voice.handleWebhook({
         provider: 'twilio',
         payload: body,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
 
       return res.type('text/xml').send(twimlResponse);
@@ -176,7 +192,7 @@ export class AIReceptionistWebhookController {
     try {
       const fromPhone = body.From;
       const lead = await this.findLeadByPhone(fromPhone);
-      
+
       if (!lead) {
         this.logger.warn(`No lead found for phone number: ${fromPhone}`);
         // Return empty TwiML (no response)
@@ -190,7 +206,7 @@ export class AIReceptionistWebhookController {
       const twimlResponse = await agent.sms.handleWebhook({
         provider: 'twilio',
         payload: body,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
 
       return res.type('text/xml').send(twimlResponse);
@@ -208,7 +224,7 @@ export class AIReceptionistWebhookController {
   /**
    * Email webhook endpoint (Postmark)
    * Handles incoming emails
-   * 
+   *
    * Security notes:
    * - Postmark does NOT provide webhook signatures for inbound emails
    * - Recommended security: Basic auth in webhook URL, HTTPS, and IP whitelisting
@@ -221,39 +237,45 @@ export class AIReceptionistWebhookController {
     try {
       // Extract email from webhook (Postmark format)
       const fromEmail = body.From || body.FromEmail || body.FromFull?.Email;
-      
+
       if (!fromEmail) {
         this.logger.warn('Email webhook missing From field');
         return res.status(400).send({
           error: 'Missing From field',
-          message: 'Email webhook must include From field'
+          message: 'Email webhook must include From field',
         });
       }
 
       // Find lead by email
       const lead = await this.findLeadByEmail(fromEmail);
-      
+
       if (!lead) {
         this.logger.warn(`No lead found for email: ${fromEmail}`);
         // Still return success to Postmark (don't bounce)
-        return res.send({ success: true, message: 'Email received but no matching lead found' });
+        return res.send({
+          success: true,
+          message: 'Email received but no matching lead found',
+        });
       }
 
       const agent = await this.getAgentForLead(lead.id, lead.regularUserId);
-      const result = await agent.email.handleWebhook({
-        provider: 'postmark',
-        payload: body,
-        timestamp: new Date()
-      }, {
-        autoReply: true
-      });
+      const result = await agent.email.handleWebhook(
+        {
+          provider: 'postmark',
+          payload: body,
+          timestamp: new Date(),
+        },
+        {
+          autoReply: true,
+        },
+      );
 
       return res.send(result);
     } catch (error) {
       this.logger.error('Email webhook error:', error);
       return res.status(500).send({
         error: 'Webhook processing failed',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -271,13 +293,13 @@ export class AIReceptionistWebhookController {
     let lead = await this.prisma.lead.findFirst({
       where: {
         phone: {
-          contains: normalizedPhone
-        }
+          contains: normalizedPhone,
+        },
       },
       include: {
         regularUser: true,
-        strategy: true
-      }
+        strategy: true,
+      },
     });
 
     // If not found, try with different formats
@@ -285,20 +307,20 @@ export class AIReceptionistWebhookController {
       const formats = [
         `+${normalizedPhone}`,
         `+1${normalizedPhone}`,
-        `(${normalizedPhone.slice(0, 3)}) ${normalizedPhone.slice(3, 6)}-${normalizedPhone.slice(6)}`
+        `(${normalizedPhone.slice(0, 3)}) ${normalizedPhone.slice(3, 6)}-${normalizedPhone.slice(6)}`,
       ];
 
       for (const format of formats) {
         lead = await this.prisma.lead.findFirst({
           where: {
             phone: {
-              contains: format.replace(/\D/g, '')
-            }
+              contains: format.replace(/\D/g, ''),
+            },
           },
           include: {
             regularUser: true,
-            strategy: true
-          }
+            strategy: true,
+          },
         });
         if (lead) break;
       }
@@ -317,13 +339,13 @@ export class AIReceptionistWebhookController {
       where: {
         email: {
           equals: email,
-          mode: 'insensitive'
-        }
+          mode: 'insensitive',
+        },
       },
       include: {
         regularUser: true,
-        strategy: true
-      }
+        strategy: true,
+      },
     });
   }
 
@@ -336,12 +358,15 @@ export class AIReceptionistWebhookController {
 
     const fullAgentConfig = {
       ...agentConfig,
-      model: modelConfig
+      model: modelConfig,
     };
 
-    const agent = await this.agentFactory.getOrCreateAgent(userId, leadId, fullAgentConfig);
+    const agent = await this.agentFactory.getOrCreateAgent(
+      userId,
+      leadId,
+      fullAgentConfig,
+    );
 
     return agent;
   }
 }
-

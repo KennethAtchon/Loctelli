@@ -1,10 +1,18 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AIReceptionistFactory, configureLogger, type AgentInstance, type AIReceptionistConfig } from '@atchonk/ai-receptionist';
+import {
+  AIReceptionistFactory,
+  configureLogger,
+  type AgentInstance,
+  type AIReceptionistConfig,
+} from '@atchonk/ai-receptionist';
 import { DatabaseStorage } from '@atchonk/ai-receptionist';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
-import type { AgentInstanceConfig, LoggerConfig } from '@atchonk/ai-receptionist';
+import type {
+  AgentInstanceConfig,
+  LoggerConfig,
+} from '@atchonk/ai-receptionist';
 import { GoogleCalendarConfigService } from './config/google-calendar-config.service';
 import { BookingTools } from './custom-tools/booking-tools';
 import { LeadManagementTools } from './custom-tools/lead-management-tools';
@@ -25,7 +33,7 @@ export class AgentFactoryService implements OnModuleInit {
     private configService: ConfigService,
     private googleCalendarConfig: GoogleCalendarConfigService,
     private bookingTools: BookingTools,
-    private leadManagementTools: LeadManagementTools
+    private leadManagementTools: LeadManagementTools,
   ) {}
 
   async onModuleInit() {
@@ -35,20 +43,26 @@ export class AgentFactoryService implements OnModuleInit {
       // Initialize database connection for memory storage
       const databaseUrl = this.configService.get<string>('DATABASE_URL');
       if (databaseUrl) {
-        this.logger.log('Creating database connection for AI-receptionist memory storage...');
+        this.logger.log(
+          'Creating database connection for AI-receptionist memory storage...',
+        );
         const pool = new Pool({ connectionString: databaseUrl });
         this.db = drizzle(pool);
-        
+
         // Test the connection
         try {
           await pool.query('SELECT 1');
-          this.logger.log('✅ Database connection test successful for AI-receptionist memory storage');
+          this.logger.log(
+            '✅ Database connection test successful for AI-receptionist memory storage',
+          );
         } catch (error) {
           this.logger.error('❌ Database connection test failed:', error);
           throw error;
         }
       } else {
-        this.logger.warn('⚠️ DATABASE_URL not found - AI-receptionist will use in-memory storage only');
+        this.logger.warn(
+          '⚠️ DATABASE_URL not found - AI-receptionist will use in-memory storage only',
+        );
       }
 
       // Create factory configuration (agent config is optional for factory)
@@ -58,37 +72,52 @@ export class AgentFactoryService implements OnModuleInit {
           apiKey: this.configService.get<string>('OPENAI_API_KEY')!,
           model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
           temperature: 0.7,
-          maxTokens: 7000
+          maxTokens: 7000,
         },
         providers: {
-          communication: this.configService.get<string>('TWILIO_ACCOUNT_SID') ? {
-            twilio: {
-              accountSid: this.configService.get<string>('TWILIO_ACCOUNT_SID')!,
-              authToken: this.configService.get<string>('TWILIO_AUTH_TOKEN')!,
-              phoneNumber: this.configService.get<string>('TWILIO_PHONE_NUMBER')!,
-              webhookBaseUrl: this.configService.get<string>('BASE_URL') || 'http://localhost:8000',
-              voiceWebhookPath: '/ai-receptionist/webhooks/voice',
-              smsWebhookPath: '/ai-receptionist/webhooks/sms'
-            }
-          } : undefined,
-          email: this.configService.get<string>('POSTMARK_API_KEY') ? {
-            postmark: {
-              apiKey: this.configService.get<string>('POSTMARK_API_KEY')!,
-              fromEmail: this.configService.get<string>('POSTMARK_FROM_EMAIL')!,
-              fromName: this.configService.get<string>('POSTMARK_FROM_NAME')!
-            }
-          } : undefined,
-          calendar: this.googleCalendarConfig.getGoogleCalendarConfig()
+          communication: this.configService.get<string>('TWILIO_ACCOUNT_SID')
+            ? {
+                twilio: {
+                  accountSid:
+                    this.configService.get<string>('TWILIO_ACCOUNT_SID')!,
+                  authToken:
+                    this.configService.get<string>('TWILIO_AUTH_TOKEN')!,
+                  phoneNumber: this.configService.get<string>(
+                    'TWILIO_PHONE_NUMBER',
+                  )!,
+                  webhookBaseUrl:
+                    this.configService.get<string>('BASE_URL') ||
+                    'http://localhost:8000',
+                  voiceWebhookPath: '/ai-receptionist/webhooks/voice',
+                  smsWebhookPath: '/ai-receptionist/webhooks/sms',
+                },
+              }
+            : undefined,
+          email: this.configService.get<string>('POSTMARK_API_KEY')
+            ? {
+                postmark: {
+                  apiKey: this.configService.get<string>('POSTMARK_API_KEY')!,
+                  fromEmail: this.configService.get<string>(
+                    'POSTMARK_FROM_EMAIL',
+                  )!,
+                  fromName:
+                    this.configService.get<string>('POSTMARK_FROM_NAME')!,
+                },
+              }
+            : undefined,
+          calendar: this.googleCalendarConfig.getGoogleCalendarConfig(),
         },
-        storage: this.db ? {
-          type: 'database',
-          database: {
-            db: this.db,
-            autoMigrate: true
-          }
-        } : {
-          type: 'memory'
-        },
+        storage: this.db
+          ? {
+              type: 'database',
+              database: {
+                db: this.db,
+                autoMigrate: true,
+              },
+            }
+          : {
+              type: 'memory',
+            },
         tools: {
           // Register custom tools at factory level
           // These tools extract userId and leadId from ExecutionContext.metadata
@@ -98,24 +127,29 @@ export class AgentFactoryService implements OnModuleInit {
             this.bookingTools.createCheckAvailabilityTool(),
             // Lead management tools
             this.leadManagementTools.createUpdateLeadDetailsTool(),
-            this.leadManagementTools.createUpdateConversationStateTool()
-          ]
+            this.leadManagementTools.createUpdateConversationStateTool(),
+          ],
         },
         logger: {
-          level: (process.env.LOG_LEVEL as 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'NONE') || 'INFO',
+          level:
+            (process.env.LOG_LEVEL as
+              | 'DEBUG'
+              | 'INFO'
+              | 'WARN'
+              | 'ERROR'
+              | 'NONE') || 'INFO',
           enableTimestamps: true,
           // Ignore verbose tags - can be configured via environment variable
           // Supports comma-separated list: LOGGER_IGNORE_TAGS="MemoryManager,DatabaseStorage"
           ignoreTags: process.env.LOGGER_IGNORE_TAGS
-            ? process.env.LOGGER_IGNORE_TAGS.split(',').map(tag => tag.trim())
+            ? process.env.LOGGER_IGNORE_TAGS.split(',').map((tag) => tag.trim())
             : [
                 '*Memory*', // Ignore memory storage logs
                 'DatabaseStorage', // Ignore database storage logs
                 'OpenAIProvider',
-
-              ]
+              ],
         } as any, // Type assertion until package types are regenerated with ignoreTags
-        debug: process.env.DEBUG === 'true'
+        debug: process.env.DEBUG === 'true',
       };
 
       configureLogger(factoryConfig.logger as LoggerConfig);
@@ -124,8 +158,13 @@ export class AgentFactoryService implements OnModuleInit {
       this.logger.log('Storage configuration:', {
         hasDb: !!this.db,
         storageType: factoryConfig.storage?.type,
-        hasDatabaseConfig: !!(factoryConfig.storage && 'database' in factoryConfig.storage),
-        autoMigrate: factoryConfig.storage && 'database' in factoryConfig.storage ? factoryConfig.storage.database?.autoMigrate : undefined
+        hasDatabaseConfig: !!(
+          factoryConfig.storage && 'database' in factoryConfig.storage
+        ),
+        autoMigrate:
+          factoryConfig.storage && 'database' in factoryConfig.storage
+            ? factoryConfig.storage.database?.autoMigrate
+            : undefined,
       });
 
       // Initialize factory
@@ -148,15 +187,17 @@ export class AgentFactoryService implements OnModuleInit {
   async getOrCreateAgent(
     userId: number,
     leadId: number,
-    agentConfig: AgentInstanceConfig
+    agentConfig: AgentInstanceConfig,
   ): Promise<AgentInstance> {
     const cacheKey = `${userId}-${leadId}`;
-    
+
     // Check cache first
     if (this.agentCache.has(cacheKey)) {
       const cached = this.agentCache.get(cacheKey)!;
-      this.logger.debug(`Using cached agent for userId=${userId}, leadId=${leadId}, updating config`);
-      
+      this.logger.debug(
+        `Using cached agent for userId=${userId}, leadId=${leadId}, updating config`,
+      );
+
       // Update agent configuration with new config using withAgentConfig()
       // This will rebuild components and prompt as needed
       // Note: Type assertion needed until package types are regenerated
@@ -166,16 +207,16 @@ export class AgentFactoryService implements OnModuleInit {
         knowledge: agentConfig.knowledge,
         goals: agentConfig.goals,
         memory: agentConfig.memory,
-        customSystemPrompt: agentConfig.customSystemPrompt
+        customSystemPrompt: agentConfig.customSystemPrompt,
       });
-      
+
       // Rebuild prompt if it was marked for rebuild
       await cached.agent.rebuildSystemPrompt();
-      
+
       // Always log the full system prompt
       const fullPrompt = cached.agent.getSystemPrompt();
       // this.logger.log(`[FULL SYSTEM PROMPT] userId=${userId}, leadId=${leadId}\n${fullPrompt}`);
-      
+
       return cached;
     }
 
@@ -184,7 +225,9 @@ export class AgentFactoryService implements OnModuleInit {
     }
 
     // Create new agent instance
-    this.logger.debug(`Creating new agent instance for userId=${userId}, leadId=${leadId}`);
+    this.logger.debug(
+      `Creating new agent instance for userId=${userId}, leadId=${leadId}`,
+    );
     const agent = await this.factory.createAgent(agentConfig);
 
     // Always log the full system prompt for new agents
@@ -207,7 +250,9 @@ export class AgentFactoryService implements OnModuleInit {
     if (agent) {
       await agent.dispose();
       this.agentCache.delete(cacheKey);
-      this.logger.debug(`Disposed agent for userId=${userId}, leadId=${leadId}`);
+      this.logger.debug(
+        `Disposed agent for userId=${userId}, leadId=${leadId}`,
+      );
     }
   }
 
@@ -216,7 +261,9 @@ export class AgentFactoryService implements OnModuleInit {
    */
   async clearCache(): Promise<void> {
     this.logger.log('Clearing agent cache...');
-    const disposePromises = Array.from(this.agentCache.values()).map(agent => agent.dispose());
+    const disposePromises = Array.from(this.agentCache.values()).map((agent) =>
+      agent.dispose(),
+    );
     await Promise.all(disposePromises);
     this.agentCache.clear();
     this.logger.log('Agent cache cleared');
@@ -243,4 +290,3 @@ export class AgentFactoryService implements OnModuleInit {
     return this.factory;
   }
 }
-

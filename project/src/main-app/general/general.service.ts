@@ -17,7 +17,7 @@ type Field = {
 export class GeneralService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly cacheService: CacheService
+    private readonly cacheService: CacheService,
   ) {}
 
   // This service is intentionally empty as the controller methods
@@ -26,9 +26,10 @@ export class GeneralService {
   async getDashboardStats(subaccountId?: string) {
     try {
       // Build where clause for subaccount filtering
-      const whereClause: any = subaccountId && subaccountId !== 'GLOBAL' 
-        ? { subAccountId: parseInt(subaccountId) }
-        : {};
+      const whereClause: any =
+        subaccountId && subaccountId !== 'GLOBAL'
+          ? { subAccountId: parseInt(subaccountId) }
+          : {};
 
       // Get counts from database
       const [
@@ -37,7 +38,7 @@ export class GeneralService {
         totalStrategies,
         totalBookings,
         totalLeads,
-        recentUsers
+        recentUsers,
       ] = await Promise.all([
         this.prisma.user.count({ where: whereClause }),
         this.prisma.user.count({ where: { ...whereClause, isActive: true } }),
@@ -54,60 +55,106 @@ export class GeneralService {
             email: true,
             isActive: true,
             createdAt: true,
-            company: true
-          }
-        })
+            company: true,
+          },
+        }),
       ]);
 
       // Calculate growth rates based on this month vs last month
       const now = new Date();
       const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const startOfLastMonth = new Date(
+        now.getFullYear(),
+        now.getMonth() - 1,
+        1,
+      );
       const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
 
       // Users
       const usersThisMonth = await this.prisma.user.count({
-        where: { ...whereClause, createdAt: { gte: startOfThisMonth } }
+        where: { ...whereClause, createdAt: { gte: startOfThisMonth } },
       });
       const usersLastMonth = await this.prisma.user.count({
-        where: { ...whereClause, createdAt: { gte: startOfLastMonth, lt: startOfThisMonth } }
+        where: {
+          ...whereClause,
+          createdAt: { gte: startOfLastMonth, lt: startOfThisMonth },
+        },
       });
-      const usersGrowth = usersLastMonth === 0
-        ? (usersThisMonth > 0 ? 100 : 0)
-        : Math.round(((usersThisMonth - usersLastMonth) / usersLastMonth) * 100);
+      const usersGrowth =
+        usersLastMonth === 0
+          ? usersThisMonth > 0
+            ? 100
+            : 0
+          : Math.round(
+              ((usersThisMonth - usersLastMonth) / usersLastMonth) * 100,
+            );
 
       // Active Users
       const activeUsersThisMonth = await this.prisma.user.count({
-        where: { ...whereClause, isActive: true, createdAt: { gte: startOfThisMonth } }
+        where: {
+          ...whereClause,
+          isActive: true,
+          createdAt: { gte: startOfThisMonth },
+        },
       });
       const activeUsersLastMonth = await this.prisma.user.count({
-        where: { ...whereClause, isActive: true, createdAt: { gte: startOfLastMonth, lt: startOfThisMonth } }
+        where: {
+          ...whereClause,
+          isActive: true,
+          createdAt: { gte: startOfLastMonth, lt: startOfThisMonth },
+        },
       });
-      const activeUsersGrowth = activeUsersLastMonth === 0
-        ? (activeUsersThisMonth > 0 ? 100 : 0)
-        : Math.round(((activeUsersThisMonth - activeUsersLastMonth) / activeUsersLastMonth) * 100);
+      const activeUsersGrowth =
+        activeUsersLastMonth === 0
+          ? activeUsersThisMonth > 0
+            ? 100
+            : 0
+          : Math.round(
+              ((activeUsersThisMonth - activeUsersLastMonth) /
+                activeUsersLastMonth) *
+                100,
+            );
 
       // Strategies
       const strategiesThisMonth = await this.prisma.strategy.count({
-        where: { ...whereClause, createdAt: { gte: startOfThisMonth } }
+        where: { ...whereClause, createdAt: { gte: startOfThisMonth } },
       });
       const strategiesLastMonth = await this.prisma.strategy.count({
-        where: { ...whereClause, createdAt: { gte: startOfLastMonth, lt: startOfThisMonth } }
+        where: {
+          ...whereClause,
+          createdAt: { gte: startOfLastMonth, lt: startOfThisMonth },
+        },
       });
-      const strategiesGrowth = strategiesLastMonth === 0
-        ? (strategiesThisMonth > 0 ? 100 : 0)
-        : Math.round(((strategiesThisMonth - strategiesLastMonth) / strategiesLastMonth) * 100);
+      const strategiesGrowth =
+        strategiesLastMonth === 0
+          ? strategiesThisMonth > 0
+            ? 100
+            : 0
+          : Math.round(
+              ((strategiesThisMonth - strategiesLastMonth) /
+                strategiesLastMonth) *
+                100,
+            );
 
       // Bookings
       const bookingsThisMonth = await this.prisma.booking.count({
-        where: { ...whereClause, createdAt: { gte: startOfThisMonth } }
+        where: { ...whereClause, createdAt: { gte: startOfThisMonth } },
       });
       const bookingsLastMonth = await this.prisma.booking.count({
-        where: { ...whereClause, createdAt: { gte: startOfLastMonth, lt: startOfThisMonth } }
+        where: {
+          ...whereClause,
+          createdAt: { gte: startOfLastMonth, lt: startOfThisMonth },
+        },
       });
-      const bookingsGrowth = bookingsLastMonth === 0
-        ? (bookingsThisMonth > 0 ? 100 : 0)
-        : Math.round(((bookingsThisMonth - bookingsLastMonth) / bookingsLastMonth) * 100);
+      const bookingsGrowth =
+        bookingsLastMonth === 0
+          ? bookingsThisMonth > 0
+            ? 100
+            : 0
+          : Math.round(
+              ((bookingsThisMonth - bookingsLastMonth) / bookingsLastMonth) *
+                100,
+            );
 
       const stats = {
         totalUsers,
@@ -120,8 +167,8 @@ export class GeneralService {
           users: usersGrowth,
           activeUsers: activeUsersGrowth,
           strategies: strategiesGrowth,
-          bookings: bookingsGrowth
-        }
+          bookings: bookingsGrowth,
+        },
       };
 
       return stats;
@@ -136,7 +183,7 @@ export class GeneralService {
         database: 'Healthy',
         apiServer: 'Online',
         redisCache: 'Connected',
-        fileStorage: 'Available'
+        fileStorage: 'Available',
       };
 
       // Check database connection
@@ -149,8 +196,8 @@ export class GeneralService {
       // Check Redis connection
       try {
         const testKey = 'system-status-test';
-              await this.cacheService.setCache(testKey, 'test', 1);
-      const result = await this.cacheService.getCache(testKey);
+        await this.cacheService.setCache(testKey, 'test', 1);
+        const result = await this.cacheService.getCache(testKey);
         if (result !== 'test') {
           status.redisCache = 'Error';
         }
@@ -166,15 +213,16 @@ export class GeneralService {
 
   async getRecentLeads(subaccountId?: string) {
     try {
-      const whereClause: any = subaccountId && subaccountId !== 'GLOBAL' 
-        ? { subAccountId: parseInt(subaccountId) }
-        : {};
+      const whereClause: any =
+        subaccountId && subaccountId !== 'GLOBAL'
+          ? { subAccountId: parseInt(subaccountId) }
+          : {};
 
       return await this.prisma.lead.findMany({
         where: whereClause,
         take: 5,
         orderBy: {
-          id: 'desc'
+          id: 'desc',
         },
         include: {
           regularUser: {
@@ -182,14 +230,14 @@ export class GeneralService {
               id: true,
               name: true,
               email: true,
-            }
+            },
           },
           strategy: {
             select: {
               id: true,
               name: true,
               tag: true,
-            }
+            },
           },
           bookings: {
             select: {
@@ -197,9 +245,9 @@ export class GeneralService {
               bookingType: true,
               status: true,
               createdAt: true,
-            }
-          }
-        }
+            },
+          },
+        },
       });
     } catch (error) {
       throw new Error(`Failed to fetch recent leads: ${error.message}`);
@@ -216,7 +264,7 @@ export class GeneralService {
               id: true,
               name: true,
               email: true,
-            }
+            },
           },
           strategies: {
             select: {
@@ -224,7 +272,7 @@ export class GeneralService {
               name: true,
               tag: true,
               aiName: true,
-            }
+            },
           },
           leads: {
             select: {
@@ -232,7 +280,7 @@ export class GeneralService {
               name: true,
               email: true,
               status: true,
-            }
+            },
           },
           bookings: {
             select: {
@@ -240,9 +288,9 @@ export class GeneralService {
               bookingType: true,
               status: true,
               createdAt: true,
-            }
-          }
-        }
+            },
+          },
+        },
       });
 
       if (!user) {
@@ -270,7 +318,7 @@ export class GeneralService {
               budget: true,
               bookingEnabled: true,
               isActive: true,
-            }
+            },
           },
           strategy: {
             select: {
@@ -282,7 +330,7 @@ export class GeneralService {
               aiRole: true,
               industryContext: true,
               isActive: true,
-            }
+            },
           },
           bookings: {
             select: {
@@ -290,9 +338,9 @@ export class GeneralService {
               bookingType: true,
               status: true,
               createdAt: true,
-            }
-          }
-        }
+            },
+          },
+        },
       });
 
       if (!lead) {
@@ -309,10 +357,10 @@ export class GeneralService {
     try {
       const fs = require('fs');
       const path = require('path');
-      
+
       const schemaPath = path.join(process.cwd(), 'prisma', 'schema.prisma');
       const schemaContent = fs.readFileSync(schemaPath, 'utf-8');
-      
+
       // Parse the schema to extract model information
       const models: any[] = [];
       const modelRegex = /model\s+(\w+)\s*\{([^}]+)\}/g;
@@ -332,7 +380,7 @@ export class GeneralService {
         const fields = this.parseModelFields(modelContent, modelNames);
         models.push({
           name: modelName,
-          fields
+          fields,
         });
       }
       return {
@@ -340,19 +388,22 @@ export class GeneralService {
         data: {
           models,
           rawSchema: schemaContent,
-          lastModified: fs.statSync(schemaPath).mtime
-        }
+          lastModified: fs.statSync(schemaPath).mtime,
+        },
       };
     } catch (error) {
       return {
         success: false,
         error: 'Failed to read database schema',
-        details: error.message
+        details: error.message,
       };
     }
   }
 
-  private parseModelFields(modelContent: string, modelNames: string[]): Field[] {
+  private parseModelFields(
+    modelContent: string,
+    modelNames: string[],
+  ): Field[] {
     let fields: any[] = [];
     const lines = modelContent.split('\n');
     for (const line of lines) {
@@ -361,7 +412,9 @@ export class GeneralService {
         continue;
       }
       // Match: name type? attributes
-      const fieldMatch = trimmedLine.match(/^(\w+)\s+(\w+(?:\[\])?)\s*(\?)?\s*(.*)$/);
+      const fieldMatch = trimmedLine.match(
+        /^(\w+)\s+(\w+(?:\[\])?)\s*(\?)?\s*(.*)$/,
+      );
       if (fieldMatch) {
         const name: string = fieldMatch[1];
         const type: string = fieldMatch[2];
@@ -383,7 +436,7 @@ export class GeneralService {
           isUnique: attributes.includes('@unique'),
           isRelation,
           relationType,
-          relationTarget
+          relationTarget,
         });
       }
     }

@@ -13,7 +13,7 @@ import { redisStore } from 'cache-manager-redis-yet';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         const redisUrl = configService.get<string>('REDIS_URL');
-        
+
         let host = 'localhost';
         let port = 6379;
         let password: string | undefined;
@@ -53,4 +53,4 @@ import { redisStore } from 'cache-manager-redis-yet';
   providers: [CacheService],
   exports: [CacheModule, CacheService],
 })
-export class CommonModule {} 
+export class CommonModule {}

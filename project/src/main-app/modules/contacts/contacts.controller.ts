@@ -32,9 +32,12 @@ export class ContactsController {
     // For public forms, use default subaccount or extract from domain
     // TODO: Implement proper subaccount detection for public forms
     const subAccountId = 1; // Default to first subaccount for now
-    
-    const contact = await this.contactsService.create(createContactDto, subAccountId);
-    
+
+    const contact = await this.contactsService.create(
+      createContactDto,
+      subAccountId,
+    );
+
     // Send email notification
     try {
       await this.emailService.sendContactNotification(contact);
@@ -42,15 +45,12 @@ export class ContactsController {
       console.error('Failed to send email notification:', error);
       // Don't fail the contact creation if email fails
     }
-    
+
     return contact;
   }
 
   @Get()
-  async findAll(
-    @CurrentUser() user: any,
-    @Query() filters: ContactFiltersDto,
-  ) {
+  async findAll(@CurrentUser() user: any, @Query() filters: ContactFiltersDto) {
     return this.contactsService.findAll(user.subAccountId, filters);
   }
 
@@ -86,5 +86,4 @@ export class ContactsController {
       user.name,
     );
   }
-
 }

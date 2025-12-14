@@ -9,4 +9,4 @@ import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
   providers: [PromptTemplatesService],
   exports: [PromptTemplatesService],
 })
-export class PromptTemplatesModule {} 
+export class PromptTemplatesModule {}

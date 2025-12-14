@@ -1,4 +1,8 @@
-import { Injectable, NestMiddleware, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NestMiddleware,
+  BadRequestException,
+} from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 
 @Injectable()
@@ -30,7 +34,7 @@ export class InputValidationMiddleware implements NestMiddleware {
     }
 
     if (Array.isArray(obj)) {
-      return obj.map(item => this.sanitizeObject(item));
+      return obj.map((item) => this.sanitizeObject(item));
     }
 
     const sanitized: any = {};
@@ -53,12 +57,24 @@ export class InputValidationMiddleware implements NestMiddleware {
     value = value.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
 
     // Basic XSS protection - remove script tags and dangerous attributes
-    value = value.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    value = value.replace(
+      /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+      '',
+    );
     value = value.replace(/javascript:/gi, '');
     value = value.replace(/on\w+\s*=/gi, '');
-    value = value.replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '');
-    value = value.replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '');
-    value = value.replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '');
+    value = value.replace(
+      /<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi,
+      '',
+    );
+    value = value.replace(
+      /<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi,
+      '',
+    );
+    value = value.replace(
+      /<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi,
+      '',
+    );
 
     // Trim whitespace
     value = value.trim();
@@ -90,11 +106,11 @@ export class InputValidationMiddleware implements NestMiddleware {
       const allowedTypes = [
         'application/json',
         'application/x-www-form-urlencoded',
-        'multipart/form-data'
+        'multipart/form-data',
       ];
 
-      const isValidType = allowedTypes.some(type => 
-        contentType.toLowerCase().startsWith(type)
+      const isValidType = allowedTypes.some((type) =>
+        contentType.toLowerCase().startsWith(type),
       );
 
       if (!isValidType) {
@@ -108,8 +124,14 @@ export class InputValidationMiddleware implements NestMiddleware {
       // Check for potentially dangerous query parameters
       const dangerousParams = ['script', 'javascript', 'onload', 'onerror'];
       for (const key of Object.keys(req.query)) {
-        if (dangerousParams.some(dangerous => key.toLowerCase().includes(dangerous))) {
-          throw new BadRequestException('Potentially dangerous query parameter detected');
+        if (
+          dangerousParams.some((dangerous) =>
+            key.toLowerCase().includes(dangerous),
+          )
+        ) {
+          throw new BadRequestException(
+            'Potentially dangerous query parameter detected',
+          );
         }
       }
     }
@@ -120,8 +142,14 @@ export class InputValidationMiddleware implements NestMiddleware {
       // Check for potentially dangerous URL parameters
       const dangerousParams = ['script', 'javascript', 'onload', 'onerror'];
       for (const key of Object.keys(req.params)) {
-        if (dangerousParams.some(dangerous => key.toLowerCase().includes(dangerous))) {
-          throw new BadRequestException('Potentially dangerous URL parameter detected');
+        if (
+          dangerousParams.some((dangerous) =>
+            key.toLowerCase().includes(dangerous),
+          )
+        ) {
+          throw new BadRequestException(
+            'Potentially dangerous URL parameter detected',
+          );
         }
       }
     }
@@ -141,7 +169,8 @@ export class InputValidationMiddleware implements NestMiddleware {
 
   static validatePassword(password: string): boolean {
     // Minimum 8 characters, at least one uppercase, one lowercase, one number, one special character
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$/;
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$/;
     return passwordRegex.test(password);
   }
 
@@ -164,4 +193,4 @@ export class InputValidationMiddleware implements NestMiddleware {
       .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
       .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '');
   }
-} 
+}

@@ -69,10 +69,10 @@ export class EmailService {
     this.logger.log(`📧 Email would be sent to: ${template.to}`);
     this.logger.log(`📧 Subject: ${template.subject}`);
     this.logger.debug(`📧 HTML Content: ${template.html.substring(0, 200)}...`);
-    
+
     // Simulate email sending delay
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     this.logger.log(`✅ Email notification sent for contact form submission`);
   }
 }

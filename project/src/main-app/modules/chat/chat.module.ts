@@ -9,7 +9,14 @@ import { SecurityModule } from '../../../shared/security/security.module';
 import { AIReceptionistModule } from '../ai-receptionist/ai-receptionist.module';
 
 @Module({
-  imports: [PrismaModule, PromptTemplatesModule, BookingsModule, ConfigModule, SecurityModule, AIReceptionistModule],
+  imports: [
+    PrismaModule,
+    PromptTemplatesModule,
+    BookingsModule,
+    ConfigModule,
+    SecurityModule,
+    AIReceptionistModule,
+  ],
   controllers: [ChatController],
   providers: [ChatService],
   exports: [ChatService],

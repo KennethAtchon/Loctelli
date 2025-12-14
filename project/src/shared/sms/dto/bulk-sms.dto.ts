@@ -1,4 +1,11 @@
-import { IsString, IsNotEmpty, Length, IsArray, ArrayMinSize, ValidateNested } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  Length,
+  IsArray,
+  ArrayMinSize,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class BulkSmsRecipient {

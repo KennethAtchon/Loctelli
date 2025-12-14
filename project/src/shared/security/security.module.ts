@@ -7,10 +7,7 @@ import { SecureConversationService } from './secure-conversation.service';
 import { SecurityMonitoringService } from './security-monitoring.service';
 
 @Module({
-  imports: [
-    ConfigModule,
-    PrismaModule
-  ],
+  imports: [ConfigModule, PrismaModule],
   providers: [
     // Core security services
     SecureConversationService,

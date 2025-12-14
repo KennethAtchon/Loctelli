@@ -93,12 +93,12 @@ export class SecurityMonitoringService implements OnModuleInit {
     HIGH_RISK_EVENTS_PER_HOUR: 10,
     CRITICAL_EVENTS_PER_HOUR: 5,
     PROGRESSIVE_ATTACKS_PER_DAY: 3,
-    FAILED_VALIDATIONS_PER_HOUR: 20
+    FAILED_VALIDATIONS_PER_HOUR: 20,
   };
 
   constructor(
     private prisma: PrismaService,
-    private secureConversation: SecureConversationService
+    private secureConversation: SecureConversationService,
   ) {}
 
   async onModuleInit() {
@@ -112,13 +112,16 @@ export class SecurityMonitoringService implements OnModuleInit {
    */
   private async startRealtimeMonitoring(): Promise<void> {
     // Run analysis every 5 minutes
-    this.monitoringInterval = setInterval(async () => {
-      try {
-        await this.performPeriodicAnalysis();
-      } catch (error) {
-        this.logger.error('Error during periodic security analysis:', error);
-      }
-    }, 5 * 60 * 1000);
+    this.monitoringInterval = setInterval(
+      async () => {
+        try {
+          await this.performPeriodicAnalysis();
+        } catch (error) {
+          this.logger.error('Error during periodic security analysis:', error);
+        }
+      },
+      5 * 60 * 1000,
+    );
 
     this.logger.log('Real-time security monitoring started');
   }
@@ -128,7 +131,7 @@ export class SecurityMonitoringService implements OnModuleInit {
    */
   async monitorConversation(
     leadId: number,
-    message: string
+    message: string,
   ): Promise<ConversationAnalysis> {
     this.logger.debug(`[monitorConversation] leadId=${leadId}`);
 
@@ -139,7 +142,7 @@ export class SecurityMonitoringService implements OnModuleInit {
         threatIndicators: [],
         progressiveAttackDetected: false,
         anomalousActivityScore: 0,
-        recommendedActions: []
+        recommendedActions: [],
       };
 
       // Check for progressive attacks
@@ -154,12 +157,15 @@ export class SecurityMonitoringService implements OnModuleInit {
           severity: 'HIGH',
           description: 'Progressive injection attack pattern detected',
           leadId,
-          metadata: progressiveAttack
+          metadata: progressiveAttack,
         });
       }
 
       // Calculate anomaly score
-      analysis.anomalousActivityScore = await this.calculateAnomalyScore(leadId, message);
+      analysis.anomalousActivityScore = await this.calculateAnomalyScore(
+        leadId,
+        message,
+      );
       if (analysis.anomalousActivityScore > 0.7) {
         analysis.conversationRisk += 0.3;
         analysis.threatIndicators.push('behavioral_anomaly');
@@ -175,15 +181,19 @@ export class SecurityMonitoringService implements OnModuleInit {
           type: 'PROMPT_INJECTION',
           message: `High-risk conversation detected for lead ${leadId}`,
           affectedEntities: [`lead:${leadId}`],
-          resolved: false
+          resolved: false,
         });
       }
 
-      this.logger.debug(`[monitorConversation] Analysis complete: risk=${analysis.conversationRisk}`);
+      this.logger.debug(
+        `[monitorConversation] Analysis complete: risk=${analysis.conversationRisk}`,
+      );
       return analysis;
-
     } catch (error) {
-      this.logger.error(`[monitorConversation] Error analyzing conversation for leadId=${leadId}:`, error);
+      this.logger.error(
+        `[monitorConversation] Error analyzing conversation for leadId=${leadId}:`,
+        error,
+      );
       throw new Error('Conversation monitoring failed');
     }
   }
@@ -191,12 +201,15 @@ export class SecurityMonitoringService implements OnModuleInit {
   /**
    * Generate comprehensive security report
    */
-  async generateSecurityReport(timeRange?: { start: Date; end: Date }): Promise<MonitoringReport> {
+  async generateSecurityReport(timeRange?: {
+    start: Date;
+    end: Date;
+  }): Promise<MonitoringReport> {
     this.logger.log('[generateSecurityReport] Generating security report');
 
     const defaultRange = {
       start: new Date(Date.now() - this.metricsWindow),
-      end: new Date()
+      end: new Date(),
     };
 
     const range = timeRange || defaultRange;
@@ -207,17 +220,18 @@ export class SecurityMonitoringService implements OnModuleInit {
         where: {
           createdAt: {
             gte: range.start,
-            lte: range.end
-          }
+            lte: range.end,
+          },
         },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       });
 
       // Calculate metrics
       const metrics = this.calculateSecurityMetrics(events);
 
       // Generate recommendations
-      const recommendations = await this.generateSecurityRecommendations(metrics);
+      const recommendations =
+        await this.generateSecurityRecommendations(metrics);
 
       // Get active alerts
       const alerts = await this.getActiveAlerts();
@@ -228,14 +242,18 @@ export class SecurityMonitoringService implements OnModuleInit {
         timeRange: range,
         metrics,
         recommendations,
-        alerts
+        alerts,
       };
 
-      this.logger.log(`[generateSecurityReport] Report generated with ${events.length} events`);
+      this.logger.log(
+        `[generateSecurityReport] Report generated with ${events.length} events`,
+      );
       return report;
-
     } catch (error) {
-      this.logger.error('[generateSecurityReport] Report generation failed:', error);
+      this.logger.error(
+        '[generateSecurityReport] Report generation failed:',
+        error,
+      );
       throw new Error('Security report generation failed');
     }
   }
@@ -266,10 +284,10 @@ export class SecurityMonitoringService implements OnModuleInit {
       // Get recent events
       const recentEvents = await this.prisma.securityIncident.findMany({
         where: {
-          createdAt: { gte: last24h }
+          createdAt: { gte: last24h },
         },
         orderBy: { createdAt: 'desc' },
-        take: 10
+        take: 10,
       });
 
       // Calculate threat level
@@ -281,23 +299,30 @@ export class SecurityMonitoringService implements OnModuleInit {
       // Calculate metrics
       const metrics = {
         eventsLast24h: recentEvents.length,
-        blockedAttacks: recentEvents.filter(e =>
-          ['PROMPT_INJECTION', 'ROLE_MANIPULATION', 'PROGRESSIVE_ATTACK'].includes(e.type)
+        blockedAttacks: recentEvents.filter((e) =>
+          [
+            'PROMPT_INJECTION',
+            'ROLE_MANIPULATION',
+            'PROGRESSIVE_ATTACK',
+          ].includes(e.type),
         ).length,
         averageRiskScore: this.calculateAverageRiskScore(recentEvents),
-        criticalAlerts: recentEvents.filter(e => e.severity === 'CRITICAL').length
+        criticalAlerts: recentEvents.filter((e) => e.severity === 'CRITICAL')
+          .length,
       };
 
       return {
         currentThreatLevel,
-        activeThreats: recentEvents.filter(e => !e.resolved).length,
+        activeThreats: recentEvents.filter((e) => !e.resolved).length,
         recentEvents: recentEvents.map(this.mapPrismaEventToSecurityEvent),
         systemHealth,
-        metrics
+        metrics,
       };
-
     } catch (error) {
-      this.logger.error('[getSecurityDashboard] Dashboard generation failed:', error);
+      this.logger.error(
+        '[getSecurityDashboard] Dashboard generation failed:',
+        error,
+      );
       throw new Error('Security dashboard generation failed');
     }
   }
@@ -323,24 +348,25 @@ export class SecurityMonitoringService implements OnModuleInit {
           leadId: eventData.leadId,
           messageId: eventData.messageId,
           userId: eventData.userId,
-          metadata: eventData.metadata ? JSON.stringify(eventData.metadata) : null,
+          metadata: eventData.metadata
+            ? JSON.stringify(eventData.metadata)
+            : null,
           resolved: false,
-          createdAt: new Date()
-        }
+          createdAt: new Date(),
+        },
       });
 
       // Add to in-memory buffer for real-time processing
       const event: SecurityEvent = {
         id: `event_${Date.now()}_${Math.random()}`,
         ...eventData,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       this.eventBuffer.push(event);
       if (this.eventBuffer.length > this.maxBufferSize) {
         this.eventBuffer.shift(); // Remove oldest event
       }
-
     } catch (error) {
       this.logger.error('Failed to log security event:', error);
     }
@@ -349,7 +375,9 @@ export class SecurityMonitoringService implements OnModuleInit {
   // Helper methods
 
   private async performPeriodicAnalysis(): Promise<void> {
-    this.logger.debug('[performPeriodicAnalysis] Running periodic security analysis');
+    this.logger.debug(
+      '[performPeriodicAnalysis] Running periodic security analysis',
+    );
 
     try {
       // Check for alert conditions
@@ -360,9 +388,11 @@ export class SecurityMonitoringService implements OnModuleInit {
 
       // Check system integrity
       await this.performIntegrityChecks();
-
     } catch (error) {
-      this.logger.error('[performPeriodicAnalysis] Periodic analysis failed:', error);
+      this.logger.error(
+        '[performPeriodicAnalysis] Periodic analysis failed:',
+        error,
+      );
     }
   }
 
@@ -372,12 +402,16 @@ export class SecurityMonitoringService implements OnModuleInit {
 
     const recentEvents = await this.prisma.securityIncident.findMany({
       where: {
-        createdAt: { gte: oneHourAgo }
-      }
+        createdAt: { gte: oneHourAgo },
+      },
     });
 
-    const highRiskEvents = recentEvents.filter(e => e.severity === 'HIGH').length;
-    const criticalEvents = recentEvents.filter(e => e.severity === 'CRITICAL').length;
+    const highRiskEvents = recentEvents.filter(
+      (e) => e.severity === 'HIGH',
+    ).length;
+    const criticalEvents = recentEvents.filter(
+      (e) => e.severity === 'CRITICAL',
+    ).length;
 
     if (highRiskEvents > this.alertThresholds.HIGH_RISK_EVENTS_PER_HOUR) {
       await this.triggerSecurityAlert({
@@ -385,7 +419,7 @@ export class SecurityMonitoringService implements OnModuleInit {
         type: 'RATE_LIMIT_EXCEEDED',
         message: `High risk events threshold exceeded: ${highRiskEvents} events in last hour`,
         affectedEntities: ['system'],
-        resolved: false
+        resolved: false,
       });
     }
 
@@ -395,7 +429,7 @@ export class SecurityMonitoringService implements OnModuleInit {
         type: 'RATE_LIMIT_EXCEEDED',
         message: `Critical events threshold exceeded: ${criticalEvents} events in last hour`,
         affectedEntities: ['system'],
-        resolved: false
+        resolved: false,
       });
     }
   }
@@ -410,31 +444,41 @@ export class SecurityMonitoringService implements OnModuleInit {
     // This would verify the integrity of stored conversations and system components
   }
 
-  private async detectProgressiveAttack(leadId: number): Promise<{ detected: boolean; evidence: any }> {
+  private async detectProgressiveAttack(
+    leadId: number,
+  ): Promise<{ detected: boolean; evidence: any }> {
     const recentEvents = await this.prisma.securityIncident.findMany({
       where: {
         leadId,
-        createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+        createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
       },
-      orderBy: { createdAt: 'asc' }
+      orderBy: { createdAt: 'asc' },
     });
 
-    const attackPatterns = recentEvents.filter(e =>
-      ['PROMPT_INJECTION', 'ROLE_MANIPULATION', 'CONTEXT_SWITCHING'].includes(e.type)
+    const attackPatterns = recentEvents.filter((e) =>
+      ['PROMPT_INJECTION', 'ROLE_MANIPULATION', 'CONTEXT_SWITCHING'].includes(
+        e.type,
+      ),
     );
 
     return {
       detected: attackPatterns.length >= 3,
       evidence: {
         eventCount: attackPatterns.length,
-        timeSpan: attackPatterns.length > 0 ?
-          attackPatterns[attackPatterns.length - 1].createdAt.getTime() - attackPatterns[0].createdAt.getTime() : 0,
-        patterns: attackPatterns.map(e => e.type)
-      }
+        timeSpan:
+          attackPatterns.length > 0
+            ? attackPatterns[attackPatterns.length - 1].createdAt.getTime() -
+              attackPatterns[0].createdAt.getTime()
+            : 0,
+        patterns: attackPatterns.map((e) => e.type),
+      },
     };
   }
 
-  private async calculateAnomalyScore(leadId: number, message: string): Promise<number> {
+  private async calculateAnomalyScore(
+    leadId: number,
+    message: string,
+  ): Promise<number> {
     // Implement behavioral anomaly detection
     // This would compare current behavior against historical patterns
     return 0.1; // Placeholder
@@ -454,17 +498,21 @@ export class SecurityMonitoringService implements OnModuleInit {
     }
 
     if (analysis.anomalousActivityScore > 0.7) {
-      recommendations.push('Review behavioral patterns and consider rate limiting');
+      recommendations.push(
+        'Review behavioral patterns and consider rate limiting',
+      );
     }
 
     return recommendations;
   }
 
-  private async triggerSecurityAlert(alertData: Omit<SecurityAlert, 'id' | 'timestamp'>): Promise<void> {
+  private async triggerSecurityAlert(
+    alertData: Omit<SecurityAlert, 'id' | 'timestamp'>,
+  ): Promise<void> {
     const alert: SecurityAlert = {
       id: `alert_${Date.now()}_${Math.random()}`,
       timestamp: new Date(),
-      ...alertData
+      ...alertData,
     };
 
     this.logger.warn(`[SECURITY ALERT] ${alert.severity}: ${alert.message}`);
@@ -479,9 +527,10 @@ export class SecurityMonitoringService implements OnModuleInit {
     const eventsByType: Record<string, number> = {};
     const eventsBySeverity: Record<string, number> = {};
 
-    events.forEach(event => {
+    events.forEach((event) => {
       eventsByType[event.type] = (eventsByType[event.type] || 0) + 1;
-      eventsBySeverity[event.severity] = (eventsBySeverity[event.severity] || 0) + 1;
+      eventsBySeverity[event.severity] =
+        (eventsBySeverity[event.severity] || 0) + 1;
     });
 
     const riskScore = this.calculateOverallRiskScore(events);
@@ -495,12 +544,14 @@ export class SecurityMonitoringService implements OnModuleInit {
       trends: {
         increasingThreats: this.detectIncreasingTrends(events),
         commonAttackPatterns: Object.keys(eventsByType).slice(0, 5),
-        riskLeads: this.identifyRiskLeads(events)
-      }
+        riskLeads: this.identifyRiskLeads(events),
+      },
     };
   }
 
-  private async generateSecurityRecommendations(metrics: SecurityMetrics): Promise<SecurityRecommendation[]> {
+  private async generateSecurityRecommendations(
+    metrics: SecurityMetrics,
+  ): Promise<SecurityRecommendation[]> {
     const recommendations: SecurityRecommendation[] = [];
 
     if (metrics.riskScore > 0.8) {
@@ -512,8 +563,8 @@ export class SecurityMonitoringService implements OnModuleInit {
         actions: [
           'Review all recent security events',
           'Implement additional monitoring',
-          'Consider temporary restrictions on high-risk conversations'
-        ]
+          'Consider temporary restrictions on high-risk conversations',
+        ],
       });
     }
 
@@ -526,8 +577,8 @@ export class SecurityMonitoringService implements OnModuleInit {
         actions: [
           'Analyze attack patterns for coordination',
           'Update security policies',
-          'Enhance user education on security practices'
-        ]
+          'Enhance user education on security practices',
+        ],
       });
     }
 
@@ -540,8 +591,10 @@ export class SecurityMonitoringService implements OnModuleInit {
   }
 
   private calculateCurrentThreatLevel(events: any[]): SecuritySeverity {
-    const criticalEvents = events.filter(e => e.severity === 'CRITICAL').length;
-    const highEvents = events.filter(e => e.severity === 'HIGH').length;
+    const criticalEvents = events.filter(
+      (e) => e.severity === 'CRITICAL',
+    ).length;
+    const highEvents = events.filter((e) => e.severity === 'HIGH').length;
 
     if (criticalEvents > 0) return 'CRITICAL';
     if (highEvents > 3) return 'HIGH';
@@ -552,7 +605,7 @@ export class SecurityMonitoringService implements OnModuleInit {
   private async checkSystemHealth(): Promise<any> {
     return {
       storageIntegrity: 'HEALTHY',
-      monitoringStatus: 'ACTIVE'
+      monitoringStatus: 'ACTIVE',
     };
   }
 
@@ -560,14 +613,16 @@ export class SecurityMonitoringService implements OnModuleInit {
     if (events.length === 0) return 0;
 
     const severityScores = {
-      'LOW': 0.2,
-      'MEDIUM': 0.5,
-      'HIGH': 0.8,
-      'CRITICAL': 1.0
+      LOW: 0.2,
+      MEDIUM: 0.5,
+      HIGH: 0.8,
+      CRITICAL: 1.0,
     };
 
-    const total = events.reduce((sum, event) =>
-      sum + (severityScores[event.severity as SecuritySeverity] || 0), 0
+    const total = events.reduce(
+      (sum, event) =>
+        sum + (severityScores[event.severity as SecuritySeverity] || 0),
+      0,
     );
 
     return total / events.length;
@@ -582,24 +637,24 @@ export class SecurityMonitoringService implements OnModuleInit {
     messageId: event.messageId,
     userId: event.userId,
     metadata: event.metadata ? JSON.parse(event.metadata) : {},
-    timestamp: event.createdAt
+    timestamp: event.createdAt,
   });
 
   private mapEventType(type: string): SecurityEventType {
     const mapping: Record<string, SecurityEventType> = {
-      'syntactic': 'VALIDATION_FAILURE',
-      'semantic': 'PROMPT_INJECTION',
-      'contextual': 'CONTEXT_SWITCHING',
-      'historical': 'PROGRESSIVE_ATTACK'
+      syntactic: 'VALIDATION_FAILURE',
+      semantic: 'PROMPT_INJECTION',
+      contextual: 'CONTEXT_SWITCHING',
+      historical: 'PROGRESSIVE_ATTACK',
     };
     return mapping[type] || 'VALIDATION_FAILURE';
   }
 
   private mapSeverity(severity: string): SecuritySeverity {
     const mapping: Record<string, SecuritySeverity> = {
-      'low': 'LOW',
-      'medium': 'MEDIUM',
-      'high': 'HIGH'
+      low: 'LOW',
+      medium: 'MEDIUM',
+      high: 'HIGH',
     };
     return mapping[severity] || 'MEDIUM';
   }
@@ -617,7 +672,7 @@ export class SecurityMonitoringService implements OnModuleInit {
   private identifyRiskLeads(events: any[]): number[] {
     const leadCounts: Record<number, number> = {};
 
-    events.forEach(event => {
+    events.forEach((event) => {
       if (event.leadId) {
         leadCounts[event.leadId] = (leadCounts[event.leadId] || 0) + 1;
       }

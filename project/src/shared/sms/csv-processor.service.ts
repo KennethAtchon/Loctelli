@@ -44,26 +44,33 @@ export class CsvProcessorService {
         .pipe(csv())
         .on('data', (row: CsvRow) => {
           results.totalRows++;
-          
+
           try {
             const phoneNumber = this.extractPhoneNumber(row);
-            
+
             if (!phoneNumber) {
-              results.errors.push(`Row ${results.totalRows}: No phone number found`);
+              results.errors.push(
+                `Row ${results.totalRows}: No phone number found`,
+              );
               return;
             }
 
             // Validate phone number
             const validation = this.smsService.validatePhoneNumber(phoneNumber);
-            
+
             if (!validation.isValid) {
               results.invalidNumbers.push(phoneNumber);
-              results.errors.push(`Row ${results.totalRows}: ${validation.error}`);
+              results.errors.push(
+                `Row ${results.totalRows}: ${validation.error}`,
+              );
               return;
             }
 
             // Check for duplicates
-            if (validation.formattedNumber && phoneNumbers.has(validation.formattedNumber)) {
+            if (
+              validation.formattedNumber &&
+              phoneNumbers.has(validation.formattedNumber)
+            ) {
               results.duplicates.push(validation.formattedNumber);
               return;
             }
@@ -72,13 +79,14 @@ export class CsvProcessorService {
               phoneNumbers.add(validation.formattedNumber);
               results.validNumbers.push(validation.formattedNumber);
             }
-
           } catch (error) {
             results.errors.push(`Row ${results.totalRows}: ${error.message}`);
           }
         })
         .on('end', () => {
-          this.logger.log(`CSV processing completed. Valid: ${results.validNumbers.length}, Invalid: ${results.invalidNumbers.length}, Duplicates: ${results.duplicates.length}`);
+          this.logger.log(
+            `CSV processing completed. Valid: ${results.validNumbers.length}, Invalid: ${results.invalidNumbers.length}, Duplicates: ${results.duplicates.length}`,
+          );
           resolve(results);
         })
         .on('error', (error) => {
@@ -93,8 +101,16 @@ export class CsvProcessorService {
    */
   private extractPhoneNumber(row: CsvRow): string | null {
     // Try common column names for phone numbers
-    const phoneFields = ['phoneNumber', 'phone', 'number', 'mobile', 'cell', 'telephone', 'tel'];
-    
+    const phoneFields = [
+      'phoneNumber',
+      'phone',
+      'number',
+      'mobile',
+      'cell',
+      'telephone',
+      'tel',
+    ];
+
     for (const field of phoneFields) {
       if (row[field] && typeof row[field] === 'string') {
         return row[field].trim();
@@ -105,7 +121,7 @@ export class CsvProcessorService {
     const keys = Object.keys(row);
     for (const key of keys) {
       const lowerKey = key.toLowerCase();
-      if (phoneFields.some(field => lowerKey.includes(field))) {
+      if (phoneFields.some((field) => lowerKey.includes(field))) {
         if (row[key] && typeof row[key] === 'string') {
           return row[key].trim();
         }
@@ -137,13 +153,21 @@ export class CsvProcessorService {
         .pipe(csv())
         .on('headers', (headers: string[]) => {
           columnNames.push(...headers);
-          
+
           // Check if any column might contain phone numbers
-          const phoneFields = ['phoneNumber', 'phone', 'number', 'mobile', 'cell', 'telephone', 'tel'];
-          hasPhoneColumn = headers.some(header => 
-            phoneFields.some(field => 
-              header.toLowerCase().includes(field.toLowerCase())
-            )
+          const phoneFields = [
+            'phoneNumber',
+            'phone',
+            'number',
+            'mobile',
+            'cell',
+            'telephone',
+            'tel',
+          ];
+          hasPhoneColumn = headers.some((header) =>
+            phoneFields.some((field) =>
+              header.toLowerCase().includes(field.toLowerCase()),
+            ),
           );
         })
         .on('data', (row: any) => {

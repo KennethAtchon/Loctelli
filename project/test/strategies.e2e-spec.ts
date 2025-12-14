@@ -16,12 +16,12 @@ describe('StrategiesController (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
-    
+
     prismaService = app.get<PrismaService>(PrismaService);
-    
+
     // Clean up database before tests
     await prismaService.strategy.deleteMany({});
-    
+
     await app.init();
   });
 
@@ -33,7 +33,7 @@ describe('StrategiesController (e2e)', () => {
 
   const testStrategy = {
     name: 'Test Strategy',
-    description: 'A test strategy for e2e testing'
+    description: 'A test strategy for e2e testing',
   };
 
   let strategyId: number;
@@ -45,11 +45,11 @@ describe('StrategiesController (e2e)', () => {
         .set('x-api-key', getApiKey())
         .send(testStrategy)
         .expect(201)
-        .then(response => {
+        .then((response) => {
           expect(response.body).toHaveProperty('id');
           expect(response.body.name).toBe(testStrategy.name);
           expect(response.body.description).toBe(testStrategy.description);
-          
+
           strategyId = response.body.id;
         });
     });
@@ -60,7 +60,7 @@ describe('StrategiesController (e2e)', () => {
         .set('x-api-key', getApiKey())
         .send({
           // Missing name
-          description: 'Invalid strategy'
+          description: 'Invalid strategy',
         })
         .expect(400);
     });
@@ -72,7 +72,7 @@ describe('StrategiesController (e2e)', () => {
         .get('/strategies')
         .set('x-api-key', getApiKey())
         .expect(200)
-        .then(response => {
+        .then((response) => {
           expect(Array.isArray(response.body)).toBe(true);
           expect(response.body.length).toBeGreaterThan(0);
           expect(response.body[0]).toHaveProperty('id');
@@ -88,10 +88,13 @@ describe('StrategiesController (e2e)', () => {
         .get(`/strategies/${strategyId}`)
         .set('x-api-key', getApiKey())
         .expect(200)
-        .then(response => {
+        .then((response) => {
           expect(response.body).toHaveProperty('id', strategyId);
           expect(response.body).toHaveProperty('name', testStrategy.name);
-          expect(response.body).toHaveProperty('description', testStrategy.description);
+          expect(response.body).toHaveProperty(
+            'description',
+            testStrategy.description,
+          );
         });
     });
 
@@ -106,16 +109,19 @@ describe('StrategiesController (e2e)', () => {
   describe('/strategies/:id (PATCH)', () => {
     it('should update a strategy', () => {
       const updatedName = 'Updated Strategy';
-      
+
       return request(app.getHttpServer())
         .patch(`/strategies/${strategyId}`)
         .set('x-api-key', getApiKey())
         .send({ name: updatedName })
         .expect(200)
-        .then(response => {
+        .then((response) => {
           expect(response.body).toHaveProperty('id', strategyId);
           expect(response.body).toHaveProperty('name', updatedName);
-          expect(response.body).toHaveProperty('description', testStrategy.description);
+          expect(response.body).toHaveProperty(
+            'description',
+            testStrategy.description,
+          );
         });
     });
   });
@@ -126,7 +132,7 @@ describe('StrategiesController (e2e)', () => {
         .delete(`/strategies/${strategyId}`)
         .set('x-api-key', getApiKey())
         .expect(200)
-        .then(response => {
+        .then((response) => {
           expect(response.body).toHaveProperty('id', strategyId);
         });
     });

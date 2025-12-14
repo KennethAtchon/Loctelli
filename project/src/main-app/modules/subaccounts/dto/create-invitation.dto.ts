@@ -1,4 +1,11 @@
-import { IsString, IsOptional, IsInt, IsBoolean, IsDateString, Min } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsInt,
+  IsBoolean,
+  IsDateString,
+  Min,
+} from 'class-validator';
 
 export class CreateInvitationDto {
   @IsInt()

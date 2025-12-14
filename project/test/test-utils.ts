@@ -83,7 +83,9 @@ export class TestHelper {
   }
 }
 
-export const createMockUser = (overrides: Partial<TestUser> = {}): TestUser => ({
+export const createMockUser = (
+  overrides: Partial<TestUser> = {},
+): TestUser => ({
   id: 1,
   name: 'Test User',
   email: 'test@example.com',
@@ -92,7 +94,9 @@ export const createMockUser = (overrides: Partial<TestUser> = {}): TestUser => (
   ...overrides,
 });
 
-export const createMockAuthTokens = (overrides: Partial<AuthTokens> = {}): AuthTokens => ({
+export const createMockAuthTokens = (
+  overrides: Partial<AuthTokens> = {},
+): AuthTokens => ({
   access_token: 'mock-access-token',
   refresh_token: 'mock-refresh-token',
   user: createMockUser(),
@@ -158,20 +162,20 @@ export const mockGhlService = {
 
 export const clearAllMocks = () => {
   jest.clearAllMocks();
-  Object.values(mockPrismaService).forEach(service => {
-    Object.values(service).forEach(method => {
+  Object.values(mockPrismaService).forEach((service) => {
+    Object.values(service).forEach((method) => {
       if (typeof method === 'function') {
         (method as jest.Mock).mockClear();
       }
     });
   });
-  Object.values(mockJwtService).forEach(method => {
+  Object.values(mockJwtService).forEach((method) => {
     (method as jest.Mock).mockClear();
   });
-  Object.values(mockCacheService).forEach(method => {
+  Object.values(mockCacheService).forEach((method) => {
     (method as jest.Mock).mockClear();
   });
-  Object.values(mockGhlService).forEach(method => {
+  Object.values(mockGhlService).forEach((method) => {
     (method as jest.Mock).mockClear();
   });
 };
@@ -189,8 +193,8 @@ export const createTestingModule = async (providers: any[] = []) => {
         useValue: mockJwtService,
       },
       {
-              provide: 'CacheService',
-      useValue: mockCacheService,
+        provide: 'CacheService',
+        useValue: mockCacheService,
       },
       {
         provide: 'GhlService',
@@ -200,7 +204,10 @@ export const createTestingModule = async (providers: any[] = []) => {
   }).compile();
 };
 
-export const expectValidationError = (response: request.Response, field: string) => {
+export const expectValidationError = (
+  response: request.Response,
+  field: string,
+) => {
   expect(response.status).toBe(400);
   expect(response.body.message).toContain(field);
 };
@@ -231,4 +238,4 @@ export const getApiKey = (): string => {
 
 export const getApiHeaders = (): { 'x-api-key': string } => {
   return { 'x-api-key': getApiKey() };
-}; 
+};

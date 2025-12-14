@@ -39,7 +39,9 @@ export class UnifiedAuthService {
     ipAddress: string,
     userAgent?: string,
   ): Promise<AuthResponse> {
-    this.logger.log(`Login attempt: ${loginDto.email} (${loginDto.accountType})`);
+    this.logger.log(
+      `Login attempt: ${loginDto.email} (${loginDto.accountType})`,
+    );
 
     // Validate email format
     AuthValidation.validateEmail(loginDto.email);
@@ -53,7 +55,9 @@ export class UnifiedAuthService {
 
     if (isLocked) {
       this.logger.warn(`Login blocked - account locked: ${loginDto.email}`);
-      throw new UnauthorizedException('Account is temporarily locked due to multiple failed login attempts');
+      throw new UnauthorizedException(
+        'Account is temporarily locked due to multiple failed login attempts',
+      );
     }
 
     // Route to appropriate login method
@@ -88,7 +92,10 @@ export class UnifiedAuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password,
+      user.password,
+    );
 
     if (!isPasswordValid) {
       await this.securityService.recordFailedLogin(
@@ -178,7 +185,10 @@ export class UnifiedAuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordValid = await bcrypt.compare(loginDto.password, admin.password);
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password,
+      admin.password,
+    );
 
     if (!isPasswordValid) {
       await this.securityService.recordFailedLogin(
@@ -248,11 +258,16 @@ export class UnifiedAuthService {
    * Unified registration for both users and admins
    */
   async register(registerDto: UnifiedRegisterDto): Promise<any> {
-    this.logger.log(`Registration attempt: ${registerDto.email} (${registerDto.accountType})`);
+    this.logger.log(
+      `Registration attempt: ${registerDto.email} (${registerDto.accountType})`,
+    );
 
     // Validate inputs
     AuthValidation.validateEmail(registerDto.email);
-    AuthValidation.validatePassword(registerDto.password, registerDto.accountType);
+    AuthValidation.validatePassword(
+      registerDto.password,
+      registerDto.accountType,
+    );
     AuthValidation.validateAccountType(registerDto.accountType);
 
     // Route to appropriate registration method
@@ -294,7 +309,9 @@ export class UnifiedAuthService {
       },
     });
 
-    this.logger.log(`User registered to ONBOARDING: ${user.email} (ID: ${user.id})`);
+    this.logger.log(
+      `User registered to ONBOARDING: ${user.email} (ID: ${user.id})`,
+    );
 
     const { password, ...result } = user;
     return result;
@@ -306,17 +323,24 @@ export class UnifiedAuthService {
   private async registerAdmin(registerDto: UnifiedRegisterDto): Promise<any> {
     // Validate auth code
     if (!registerDto.authCode) {
-      throw new BadRequestException('Admin registration requires an authorization code');
+      throw new BadRequestException(
+        'Admin registration requires an authorization code',
+      );
     }
 
-    const isValidAuthCode = this.adminAuthCodeService.validateAuthCode(registerDto.authCode);
+    const isValidAuthCode = this.adminAuthCodeService.validateAuthCode(
+      registerDto.authCode,
+    );
 
     if (!isValidAuthCode) {
       throw new BadRequestException('Invalid authorization code');
     }
 
     // Validate role
-    if (!registerDto.role || !['admin', 'super_admin'].includes(registerDto.role)) {
+    if (
+      !registerDto.role ||
+      !['admin', 'super_admin'].includes(registerDto.role)
+    ) {
       throw new BadRequestException('Invalid admin role');
     }
 
@@ -342,7 +366,9 @@ export class UnifiedAuthService {
       },
     });
 
-    this.logger.log(`Admin registration successful: ${admin.email} (ID: ${admin.id})`);
+    this.logger.log(
+      `Admin registration successful: ${admin.email} (ID: ${admin.id})`,
+    );
 
     const { password, ...result } = admin;
     return result;
@@ -351,7 +377,10 @@ export class UnifiedAuthService {
   /**
    * Refresh access token using refresh token
    */
-  async refreshToken(refreshToken: string, ipAddress: string): Promise<TokenPair> {
+  async refreshToken(
+    refreshToken: string,
+    ipAddress: string,
+  ): Promise<TokenPair> {
     this.logger.debug('Token refresh attempt');
 
     try {
@@ -374,7 +403,10 @@ export class UnifiedAuthService {
       }
 
       // Get user/admin and verify active status
-      const account = await this.getAccountByIdAndType(payload.sub, payload.accountType);
+      const account = await this.getAccountByIdAndType(
+        payload.sub,
+        payload.accountType,
+      );
 
       if (!account || !account.isActive) {
         throw new UnauthorizedException('Account not found or inactive');
@@ -394,7 +426,9 @@ export class UnifiedAuthService {
         data: { revokedAt: new Date() },
       });
 
-      this.logger.log(`Token refresh successful for ${payload.accountType}: ${payload.email}`);
+      this.logger.log(
+        `Token refresh successful for ${payload.accountType}: ${payload.email}`,
+      );
 
       return newTokens;
     } catch (error) {
@@ -406,7 +440,10 @@ export class UnifiedAuthService {
   /**
    * Logout - revoke refresh token
    */
-  async logout(userId: number, accountType: AccountType): Promise<{ message: string }> {
+  async logout(
+    userId: number,
+    accountType: AccountType,
+  ): Promise<{ message: string }> {
     this.logger.log(`Logout: ${accountType} ID ${userId}`);
 
     // Revoke all refresh tokens for this user
@@ -497,17 +534,25 @@ export class UnifiedAuthService {
     }
 
     // Verify old password
-    const isOldPasswordValid = await bcrypt.compare(oldPassword, account.password);
+    const isOldPasswordValid = await bcrypt.compare(
+      oldPassword,
+      account.password,
+    );
 
     if (!isOldPasswordValid) {
       throw new UnauthorizedException('Current password is incorrect');
     }
 
     // Check if new password is different
-    const isNewPasswordSame = await bcrypt.compare(newPassword, account.password);
+    const isNewPasswordSame = await bcrypt.compare(
+      newPassword,
+      account.password,
+    );
 
     if (isNewPasswordSame) {
-      throw new BadRequestException('New password must be different from current password');
+      throw new BadRequestException(
+        'New password must be different from current password',
+      );
     }
 
     // Check password history (prevent reuse of last 5 passwords for users, 10 for admins)
@@ -569,7 +614,9 @@ export class UnifiedAuthService {
       },
     });
 
-    this.logger.log(`Password changed successfully for ${accountType} ID ${userId}`);
+    this.logger.log(
+      `Password changed successfully for ${accountType} ID ${userId}`,
+    );
 
     return { message: 'Password changed successfully. Please login again.' };
   }
@@ -596,8 +643,14 @@ export class UnifiedAuthService {
     const accessExpiration = expirations?.access || '15m';
     const refreshExpiration = expirations?.refresh || '7d';
 
-    const accessToken = this.jwtService.sign(payload as any, { expiresIn: accessExpiration } as any);
-    const refreshToken = this.jwtService.sign(payload as any, { expiresIn: refreshExpiration } as any);
+    const accessToken = this.jwtService.sign(
+      payload as any,
+      { expiresIn: accessExpiration } as any,
+    );
+    const refreshToken = this.jwtService.sign(
+      payload as any,
+      { expiresIn: refreshExpiration } as any,
+    );
 
     // Store refresh token in database
     const tokenHash = createHash('sha256').update(refreshToken).digest('hex');
@@ -646,7 +699,9 @@ export class UnifiedAuthService {
         milliseconds = value * 24 * 60 * 60 * 1000;
         break;
       default:
-        this.logger.warn(`Unknown expiration unit: ${unit}, defaulting to 7 days`);
+        this.logger.warn(
+          `Unknown expiration unit: ${unit}, defaulting to 7 days`,
+        );
         milliseconds = 7 * 24 * 60 * 60 * 1000;
     }
 
@@ -656,7 +711,10 @@ export class UnifiedAuthService {
   /**
    * Get account by ID and type
    */
-  private async getAccountByIdAndType(userId: number, accountType: AccountType): Promise<any> {
+  private async getAccountByIdAndType(
+    userId: number,
+    accountType: AccountType,
+  ): Promise<any> {
     if (accountType === 'admin') {
       return this.prisma.adminUser.findUnique({
         where: { id: userId },

@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Queue, Worker } from 'bullmq';
 import { JobProcessor } from './interfaces/job-processor.interface';
@@ -37,7 +42,7 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
 
   private async initializeQueues() {
     const redisConfig = this.configService.get('redis');
-    
+
     // BullMQ connection configuration with Railway IPv6 compatibility
     let connectionConfig;
     if (redisConfig.url) {
@@ -61,33 +66,39 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
         maxRetriesPerRequest: null, // Disable eviction policy warnings
       };
     }
-    
+
     const defaultJobOptions = {
       removeOnComplete: 10, // Keep last 10 successful jobs
       removeOnFail: 50, // Keep last 50 failed jobs for debugging
     };
 
     // Initialize queues for different job types
-    const jobTypes: JobType[] = ['email', 'sms', 'data-export', 'file-processing', 'generic-task'];
-    
+    const jobTypes: JobType[] = [
+      'email',
+      'sms',
+      'data-export',
+      'file-processing',
+      'generic-task',
+    ];
+
     for (const type of jobTypes) {
       const queue = new Queue(`${type}-queue`, {
         connection: connectionConfig,
         defaultJobOptions,
       });
       this.queues.set(type, queue);
-      
+
       queue.on('error', (err) => {
         this.logger.error(`❌ ${type} queue error:`, err);
       });
-      
+
       this.logger.log(`📊 ${type} queue initialized`);
     }
   }
 
   private registerProcessors() {
     const redisConfig = this.configService.get('redis');
-    
+
     // BullMQ connection configuration
     let connectionConfig;
     if (redisConfig.url) {
@@ -120,21 +131,25 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
     this.queues.forEach((queue, type) => {
       const processor = this.processors.get(type);
       if (processor) {
-        const worker = new Worker(`${type}-queue`, async (job) => {
-          this.logger.log(`🔄 Processing ${type} job ${job.id}`);
-          try {
-            const result = await processor.process(job.data);
-            this.logger.log(`✅ ${type} job ${job.id} completed`);
-            return result;
-          } catch (error) {
-            this.logger.error(`❌ ${type} job ${job.id} failed:`, error);
-            throw error;
-          }
-        }, {
-          connection: connectionConfig,
-          concurrency: 5,
-        });
-        
+        const worker = new Worker(
+          `${type}-queue`,
+          async (job) => {
+            this.logger.log(`🔄 Processing ${type} job ${job.id}`);
+            try {
+              const result = await processor.process(job.data);
+              this.logger.log(`✅ ${type} job ${job.id} completed`);
+              return result;
+            } catch (error) {
+              this.logger.error(`❌ ${type} job ${job.id} failed:`, error);
+              throw error;
+            }
+          },
+          {
+            connection: connectionConfig,
+            concurrency: 5,
+          },
+        );
+
         this.workers.set(type, worker);
       }
     });
@@ -150,7 +165,7 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
       delay?: number;
       retries?: number;
       priority?: number;
-    }
+    },
   ): Promise<string> {
     const queue = this.queues.get(type);
     if (!queue) {
@@ -158,22 +173,22 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
     }
 
     const jobOptions: any = {};
-    
+
     if (options?.delay) {
       jobOptions.delay = options.delay;
     }
-    
+
     if (options?.retries) {
       jobOptions.attempts = options.retries;
     }
-    
+
     if (options?.priority) {
       jobOptions.priority = options.priority;
     }
 
     const job = await queue.add(`${type}-job`, data, jobOptions);
     this.logger.log(`📤 ${type} job ${job.id} queued`);
-    
+
     return job.id!;
   }
 
@@ -193,11 +208,11 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
       }
 
       const status = this.mapBullMQJobStatus(await job.getState());
-      
+
       return {
         jobId,
         status,
-        progress: job.progress as number || 0,
+        progress: (job.progress as number) || 0,
         result: job.returnvalue || null,
         error: job.failedReason || null,
         createdAt: new Date(job.timestamp),
@@ -235,7 +250,9 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
     };
   }
 
-  private mapBullMQJobStatus(status: string): 'pending' | 'processing' | 'completed' | 'failed' | 'not_found' | 'error' {
+  private mapBullMQJobStatus(
+    status: string,
+  ): 'pending' | 'processing' | 'completed' | 'failed' | 'not_found' | 'error' {
     switch (status) {
       case 'waiting':
       case 'delayed':
@@ -264,7 +281,7 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
       context?: Record<string, any>;
       delay?: number;
       retries?: number;
-    }
+    },
   ): Promise<string> {
     const jobData = {
       taskName,
@@ -299,7 +316,7 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
       context?: Record<string, any>;
       delay?: number;
       retries?: number;
-    }
+    },
   ): Promise<string> {
     const jobData = {
       taskName,
@@ -326,7 +343,7 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
     for (const worker of this.workers.values()) {
       await worker.close();
     }
-    
+
     // Then close queues
     for (const queue of this.queues.values()) {
       await queue.close();

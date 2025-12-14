@@ -20,7 +20,7 @@ export class AIReceptionistService {
     private agentFactory: AgentFactoryService,
     private agentConfig: AgentConfigService,
     private bookingTools: BookingTools,
-    private leadManagementTools: LeadManagementTools
+    private leadManagementTools: LeadManagementTools,
   ) {}
 
   /**
@@ -29,7 +29,9 @@ export class AIReceptionistService {
   async generateTextResponse(request: GenerateTextRequestDto): Promise<string> {
     const { leadId, message, imageData, context } = request;
 
-    this.logger.debug(`Generating text response for leadId=${leadId}${imageData ? ' with image' : ''}`);
+    this.logger.debug(
+      `Generating text response for leadId=${leadId}${imageData ? ' with image' : ''}`,
+    );
 
     try {
       // Get lead and user information
@@ -37,8 +39,8 @@ export class AIReceptionistService {
         where: { id: leadId },
         include: {
           regularUser: true,
-          strategy: true
-        }
+          strategy: true,
+        },
       });
 
       if (!lead) {
@@ -54,14 +56,14 @@ export class AIReceptionistService {
       // Merge model config into agent config
       const fullAgentConfig = {
         ...agentConfig,
-        model: modelConfig
+        model: modelConfig,
       };
 
       // Get or create agent instance
       const agent = await this.agentFactory.getOrCreateAgent(
         userId,
         leadId,
-        fullAgentConfig
+        fullAgentConfig,
       );
 
       // Load conversation history into agent memory
@@ -72,18 +74,20 @@ export class AIReceptionistService {
       if (imageData && imageData.length > 0) {
         const imageCount = imageData.length;
         const imageNames = imageData
-          .map(img => img.imageName)
+          .map((img) => img.imageName)
           .filter(Boolean)
           .join(', ');
-        
+
         if (imageNames) {
-          prompt = imageCount === 1
-            ? `${message}\n\n[User attached an image: ${imageNames}]`
-            : `${message}\n\n[User attached ${imageCount} images: ${imageNames}]`;
+          prompt =
+            imageCount === 1
+              ? `${message}\n\n[User attached an image: ${imageNames}]`
+              : `${message}\n\n[User attached ${imageCount} images: ${imageNames}]`;
         } else {
-          prompt = imageCount === 1
-            ? `${message}\n\n[User attached an image]`
-            : `${message}\n\n[User attached ${imageCount} images]`;
+          prompt =
+            imageCount === 1
+              ? `${message}\n\n[User attached an image]`
+              : `${message}\n\n[User attached ${imageCount} images]`;
         }
       }
 
@@ -99,26 +103,32 @@ export class AIReceptionistService {
             name: lead.name,
             email: lead.email,
             phone: lead.phone,
-            company: lead.company
+            company: lead.company,
           },
           // Include image data in metadata for vision processing
-          ...(imageData && imageData.length > 0 && {
-            images: imageData.map(img => ({
-              base64: img.imageBase64,
-              type: img.imageType || 'image/jpeg',
-              name: img.imageName
-            }))
-          })
-        }
+          ...(imageData &&
+            imageData.length > 0 && {
+              images: imageData.map((img) => ({
+                base64: img.imageBase64,
+                type: img.imageType || 'image/jpeg',
+                name: img.imageName,
+              })),
+            }),
+        },
       });
 
       // Save conversation to database (for backward compatibility)
       await this.saveMessageToHistory(leadId, message, response.text);
 
-      this.logger.debug(`Generated response for leadId=${leadId}: ${response.text.substring(0, 50)}...`);
+      this.logger.debug(
+        `Generated response for leadId=${leadId}: ${response.text.substring(0, 50)}...`,
+      );
       return response.text;
     } catch (error) {
-      this.logger.error(`Error generating text response for leadId=${leadId}:`, error);
+      this.logger.error(
+        `Error generating text response for leadId=${leadId}:`,
+        error,
+      );
       throw error;
     }
   }
@@ -134,8 +144,8 @@ export class AIReceptionistService {
         where: { id: leadId },
         include: {
           regularUser: true,
-          strategy: true
-        }
+          strategy: true,
+        },
       });
 
       if (!lead) {
@@ -143,8 +153,8 @@ export class AIReceptionistService {
       }
 
       // Check if conversation already started
-      const existingHistory = lead.messageHistory 
-        ? JSON.parse(lead.messageHistory as string) 
+      const existingHistory = lead.messageHistory
+        ? JSON.parse(lead.messageHistory as string)
         : [];
 
       if (existingHistory.length > 0) {
@@ -153,24 +163,28 @@ export class AIReceptionistService {
       }
 
       // Get agent configuration
-      const agentConfig = await this.agentConfig.getAgentConfig(lead.regularUserId, leadId);
+      const agentConfig = await this.agentConfig.getAgentConfig(
+        lead.regularUserId,
+        leadId,
+      );
       const modelConfig = this.agentConfig.getModelConfig();
 
       const fullAgentConfig = {
         ...agentConfig,
-        model: modelConfig
+        model: modelConfig,
       };
 
       // Get or create agent instance
       const agent = await this.agentFactory.getOrCreateAgent(
         lead.regularUserId,
         leadId,
-        fullAgentConfig
+        fullAgentConfig,
       );
 
       // Generate initial greeting
       const greeting = await agent.text.generate({
-        prompt: 'Generate a warm, personalized opening message to initiate this conversation. Introduce yourself and express genuine interest in helping them. Keep it friendly and conversational.',
+        prompt:
+          'Generate a warm, personalized opening message to initiate this conversation. Introduce yourself and express genuine interest in helping them. Keep it friendly and conversational.',
         conversationId: `lead-${leadId}`,
         metadata: {
           leadId,
@@ -180,9 +194,9 @@ export class AIReceptionistService {
             name: lead.name,
             email: lead.email,
             phone: lead.phone,
-            company: lead.company
-          }
-        }
+            company: lead.company,
+          },
+        },
       });
 
       // Save greeting to history
@@ -191,7 +205,10 @@ export class AIReceptionistService {
       this.logger.debug(`Conversation initiated for leadId=${leadId}`);
       return greeting.text;
     } catch (error) {
-      this.logger.error(`Error initiating conversation for leadId=${leadId}:`, error);
+      this.logger.error(
+        `Error initiating conversation for leadId=${leadId}:`,
+        error,
+      );
       throw error;
     }
   }
@@ -202,7 +219,7 @@ export class AIReceptionistService {
   async getConversationHistory(leadId: number): Promise<Message[]> {
     const lead = await this.prisma.lead.findUnique({
       where: { id: leadId },
-      select: { messageHistory: true }
+      select: { messageHistory: true },
     });
 
     if (!lead) {
@@ -219,10 +236,13 @@ export class AIReceptionistService {
       return history.map((msg: any) => ({
         role: msg.role || (msg.from === 'bot' ? 'assistant' : 'user'),
         content: msg.content || msg.message || '',
-        timestamp: msg.timestamp || new Date().toISOString()
+        timestamp: msg.timestamp || new Date().toISOString(),
       }));
     } catch (error) {
-      this.logger.error(`Error parsing message history for leadId=${leadId}:`, error);
+      this.logger.error(
+        `Error parsing message history for leadId=${leadId}:`,
+        error,
+      );
       return [];
     }
   }
@@ -236,8 +256,8 @@ export class AIReceptionistService {
       data: {
         messageHistory: JSON.stringify([]),
         lastMessage: null,
-        lastMessageDate: null
-      }
+        lastMessageDate: null,
+      },
     });
 
     // Also clear from agent memory if agent exists
@@ -248,13 +268,18 @@ export class AIReceptionistService {
   /**
    * Load conversation history into agent memory
    */
-  private async loadConversationHistory(agent: any, leadId: number): Promise<void> {
+  private async loadConversationHistory(
+    agent: any,
+    leadId: number,
+  ): Promise<void> {
     const history = await this.getConversationHistory(leadId);
-    
+
     // Load messages into agent memory
     // Note: AI-receptionist handles memory internally, but we may need to sync
     // This is a placeholder for future memory sync functionality
-    this.logger.debug(`Loaded ${history.length} messages into agent memory for leadId=${leadId}`);
+    this.logger.debug(
+      `Loaded ${history.length} messages into agent memory for leadId=${leadId}`,
+    );
   }
 
   /**
@@ -264,19 +289,19 @@ export class AIReceptionistService {
     leadId: number,
     userMessage: string,
     aiMessage: string,
-    firstMessageRole: 'user' | 'assistant' = 'assistant'
+    firstMessageRole: 'user' | 'assistant' = 'assistant',
   ): Promise<void> {
     const lead = await this.prisma.lead.findUnique({
       where: { id: leadId },
-      select: { messageHistory: true }
+      select: { messageHistory: true },
     });
 
     if (!lead) {
       return;
     }
 
-    const existingHistory = lead.messageHistory 
-      ? JSON.parse(lead.messageHistory as string) 
+    const existingHistory = lead.messageHistory
+      ? JSON.parse(lead.messageHistory as string)
       : [];
 
     const newMessages: any[] = [];
@@ -286,7 +311,7 @@ export class AIReceptionistService {
       newMessages.push({
         role: 'assistant',
         content: aiMessage,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     } else {
       // Add user message
@@ -294,7 +319,7 @@ export class AIReceptionistService {
         newMessages.push({
           role: 'user',
           content: userMessage,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
       }
 
@@ -302,7 +327,7 @@ export class AIReceptionistService {
       newMessages.push({
         role: 'assistant',
         content: aiMessage,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
 
@@ -313,9 +338,8 @@ export class AIReceptionistService {
       data: {
         messageHistory: JSON.stringify(updatedHistory),
         lastMessage: aiMessage,
-        lastMessageDate: new Date().toISOString()
-      }
+        lastMessageDate: new Date().toISOString(),
+      },
     });
   }
 }
-

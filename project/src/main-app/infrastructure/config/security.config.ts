@@ -118,7 +118,11 @@ export class SecurityConfigService {
   }
 
   validateAdminPassword(password: string): boolean {
-    return password.length >= 12 && !password.includes('password') && !password.includes('admin');
+    return (
+      password.length >= 12 &&
+      !password.includes('password') &&
+      !password.includes('admin')
+    );
   }
 
   validateDatabaseUrl(url: string): boolean {
@@ -142,11 +146,15 @@ export class SecurityConfigService {
     }
 
     if (!this.validateAdminAuthCode(config.admin.authCode)) {
-      throw new Error('ADMIN_AUTH_CODE is not secure. Use a strong, random code.');
+      throw new Error(
+        'ADMIN_AUTH_CODE is not secure. Use a strong, random code.',
+      );
     }
 
     if (!this.validateAdminPassword(config.admin.defaultPassword)) {
-      throw new Error('DEFAULT_ADMIN_PASSWORD is not secure. Use a strong password.');
+      throw new Error(
+        'DEFAULT_ADMIN_PASSWORD is not secure. Use a strong password.',
+      );
     }
 
     if (!this.validateDatabaseUrl(config.database.url)) {
@@ -184,4 +192,4 @@ export class SecurityConfigService {
   static generateSecureAdminAuthCode(): string {
     return this.generateSecureSecret(16).toUpperCase();
   }
-} 
+}

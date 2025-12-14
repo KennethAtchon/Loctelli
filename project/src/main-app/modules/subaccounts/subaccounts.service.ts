@@ -1,4 +1,11 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException, UnauthorizedException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+  UnauthorizedException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { CreateSubAccountDto } from './dto/create-subaccount.dto';
 import { UpdateSubAccountDto } from './dto/update-subaccount.dto';
@@ -22,12 +29,17 @@ export class SubAccountsService {
       },
       include: {
         createdByAdmin: {
-          select: { id: true, name: true, email: true }
+          select: { id: true, name: true, email: true },
         },
         _count: {
-          select: { users: true, strategies: true, leads: true, bookings: true }
-        }
-      }
+          select: {
+            users: true,
+            strategies: true,
+            leads: true,
+            bookings: true,
+          },
+        },
+      },
     });
   }
 
@@ -36,13 +48,18 @@ export class SubAccountsService {
     return this.prisma.subAccount.findMany({
       include: {
         createdByAdmin: {
-          select: { id: true, name: true, email: true }
+          select: { id: true, name: true, email: true },
         },
         _count: {
-          select: { users: true, strategies: true, leads: true, bookings: true }
-        }
+          select: {
+            users: true,
+            strategies: true,
+            leads: true,
+            bookings: true,
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -51,7 +68,7 @@ export class SubAccountsService {
       where: { id },
       include: {
         createdByAdmin: {
-          select: { id: true, name: true, email: true }
+          select: { id: true, name: true, email: true },
         },
         users: {
           select: {
@@ -61,8 +78,8 @@ export class SubAccountsService {
             role: true,
             isActive: true,
             lastLoginAt: true,
-            createdAt: true
-          }
+            createdAt: true,
+          },
         },
         strategies: {
           select: {
@@ -70,26 +87,26 @@ export class SubAccountsService {
             name: true,
             tag: true,
             aiName: true,
-            createdAt: true
-          }
+            createdAt: true,
+          },
         },
         leads: {
           select: {
             id: true,
             name: true,
             email: true,
-            status: true
-          }
+            status: true,
+          },
         },
         bookings: {
           select: {
             id: true,
             bookingType: true,
             status: true,
-            createdAt: true
-          }
-        }
-      }
+            createdAt: true,
+          },
+        },
+      },
     });
 
     if (!subAccount) {
@@ -99,9 +116,13 @@ export class SubAccountsService {
     return subAccount;
   }
 
-  async update(id: number, adminId: number, updateSubAccountDto: UpdateSubAccountDto) {
+  async update(
+    id: number,
+    adminId: number,
+    updateSubAccountDto: UpdateSubAccountDto,
+  ) {
     const subAccount = await this.prisma.subAccount.findFirst({
-      where: { id }
+      where: { id },
     });
 
     if (!subAccount) {
@@ -113,15 +134,15 @@ export class SubAccountsService {
       data: updateSubAccountDto,
       include: {
         createdByAdmin: {
-          select: { id: true, name: true, email: true }
-        }
-      }
+          select: { id: true, name: true, email: true },
+        },
+      },
     });
   }
 
   async remove(id: number, adminId: number) {
     const subAccount = await this.prisma.subAccount.findFirst({
-      where: { id }
+      where: { id },
     });
 
     if (!subAccount) {
@@ -134,11 +155,15 @@ export class SubAccountsService {
   }
 
   // Helper method to validate SubAccount access
-  async validateSubAccountAccess(userId: number, subAccountId: number, userType: 'admin' | 'user') {
+  async validateSubAccountAccess(
+    userId: number,
+    subAccountId: number,
+    userType: 'admin' | 'user',
+  ) {
     if (userType === 'admin') {
       // All admins can access any subaccount
       const subAccount = await this.prisma.subAccount.findFirst({
-        where: { id: subAccountId }
+        where: { id: subAccountId },
       });
       if (!subAccount) {
         throw new ForbiddenException('SubAccount not found');
@@ -146,7 +171,7 @@ export class SubAccountsService {
       return subAccount;
     } else {
       const user = await this.prisma.user.findFirst({
-        where: { id: userId, subAccountId }
+        where: { id: userId, subAccountId },
       });
       if (!user) {
         throw new ForbiddenException('Access denied to SubAccount');
@@ -196,7 +221,7 @@ export class SubAccountsService {
     });
 
     this.logger.log(
-      `User ${userId} created subaccount ${subAccount.id} and became admin`
+      `User ${userId} created subaccount ${subAccount.id} and became admin`,
     );
 
     return subAccount;
@@ -205,10 +230,7 @@ export class SubAccountsService {
   /**
    * Join an existing subaccount using invitation code
    */
-  async joinSubAccount(
-    userId: number,
-    joinDto: JoinSubAccountDto,
-  ) {
+  async joinSubAccount(userId: number, joinDto: JoinSubAccountDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -271,7 +293,7 @@ export class SubAccountsService {
     });
 
     this.logger.log(
-      `User ${userId} joined subaccount ${invitation.subAccountId} via invitation`
+      `User ${userId} joined subaccount ${invitation.subAccountId} via invitation`,
     );
 
     return invitation.subAccount;
@@ -304,10 +326,7 @@ export class SubAccountsService {
   /**
    * Create invitation code (admin only)
    */
-  async createInvitation(
-    adminId: number,
-    createDto: CreateInvitationDto,
-  ) {
+  async createInvitation(adminId: number, createDto: CreateInvitationDto) {
     // Verify subaccount exists
     const subAccount = await this.prisma.subAccount.findUnique({
       where: { id: createDto.subAccountId },
@@ -348,7 +367,7 @@ export class SubAccountsService {
     });
 
     this.logger.log(
-      `Admin ${adminId} created invitation ${invitation.code} for subaccount ${createDto.subAccountId}`
+      `Admin ${adminId} created invitation ${invitation.code} for subaccount ${createDto.subAccountId}`,
     );
 
     return invitation;
@@ -425,4 +444,4 @@ export class SubAccountsService {
 
     return code;
   }
-} 
+}

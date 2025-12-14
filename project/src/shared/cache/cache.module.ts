@@ -14,16 +14,16 @@ import { redisStore } from 'cache-manager-redis-yet';
       useFactory: async (configService: ConfigService) => {
         const redisConfig = configService.get('redis');
         const cacheConfig = configService.get('cache');
-        
+
         // Use REDIS_URL if available, otherwise fall back to host/port
         const redisUrl = redisConfig?.url;
-        
+
         if (redisUrl) {
           const store = await redisStore({
             url: redisUrl,
             ttl: cacheConfig?.ttl || 3 * 60000,
           });
-          
+
           return {
             store,
           };
@@ -31,7 +31,7 @@ import { redisStore } from 'cache-manager-redis-yet';
           // Fallback to host/port configuration
           const host = redisConfig?.host || 'localhost';
           const port = redisConfig?.port || 6379;
-          
+
           const store = await redisStore({
             socket: {
               host,
@@ -39,7 +39,7 @@ import { redisStore } from 'cache-manager-redis-yet';
             },
             ttl: cacheConfig?.ttl || 3 * 60000,
           });
-          
+
           return {
             store,
           };
@@ -50,4 +50,4 @@ import { redisStore } from 'cache-manager-redis-yet';
   providers: [CacheService],
   exports: [NestCacheModule, CacheService],
 })
-export class CacheModule {} 
+export class CacheModule {}

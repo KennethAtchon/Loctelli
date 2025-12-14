@@ -15,7 +15,7 @@ import {
   UseInterceptors,
   UploadedFile,
   UploadedFiles,
-  Logger
+  Logger,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { FormsService } from './forms.service';
@@ -40,18 +40,26 @@ export class FormsController {
   @UseGuards(JwtAuthGuard, AdminGuard)
   async createFormTemplate(
     @Body() createFormTemplateDto: CreateFormTemplateDto,
-    @CurrentUser() user: any
+    @CurrentUser() user: any,
   ) {
     try {
       this.logger.debug(`Creating form template for user: ${user.userId}`);
-      this.logger.debug(`Form template data: ${JSON.stringify(createFormTemplateDto)}`);
+      this.logger.debug(
+        `Form template data: ${JSON.stringify(createFormTemplateDto)}`,
+      );
 
-      const result = await this.formsService.createFormTemplate(createFormTemplateDto, user.userId);
+      const result = await this.formsService.createFormTemplate(
+        createFormTemplateDto,
+        user.userId,
+      );
 
       this.logger.debug(`Form template created successfully`);
       return result;
     } catch (error) {
-      this.logger.error(`Error in createFormTemplate controller: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error in createFormTemplate controller: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -60,16 +68,24 @@ export class FormsController {
   @UseGuards(JwtAuthGuard, AdminGuard)
   async findAllFormTemplates(@Query('subAccountId') subAccountId?: string) {
     try {
-      this.logger.debug(`Getting form templates with subAccountId: ${subAccountId}`);
-      const subAccountIdNum = subAccountId ? parseInt(subAccountId, 10) : undefined;
+      this.logger.debug(
+        `Getting form templates with subAccountId: ${subAccountId}`,
+      );
+      const subAccountIdNum = subAccountId
+        ? parseInt(subAccountId, 10)
+        : undefined;
       this.logger.debug(`Parsed subAccountId: ${subAccountIdNum}`);
 
-      const result = await this.formsService.findAllFormTemplates(subAccountIdNum);
+      const result =
+        await this.formsService.findAllFormTemplates(subAccountIdNum);
       this.logger.debug(`Found ${result.length} form templates`);
 
       return result;
     } catch (error) {
-      this.logger.error(`Error getting form templates: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error getting form templates: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -84,7 +100,7 @@ export class FormsController {
   @UseGuards(JwtAuthGuard, AdminGuard)
   updateFormTemplate(
     @Param('id') id: string,
-    @Body() updateFormTemplateDto: UpdateFormTemplateDto
+    @Body() updateFormTemplateDto: UpdateFormTemplateDto,
   ) {
     return this.formsService.updateFormTemplate(id, updateFormTemplateDto);
   }
@@ -111,7 +127,7 @@ export class FormsController {
   async uploadFile(
     @Param('slug') slug: string,
     @UploadedFile() file: Express.Multer.File,
-    @Body('fieldId') fieldId: string
+    @Body('fieldId') fieldId: string,
   ) {
     if (!file) {
       throw new BadRequestException('No file provided');
@@ -131,13 +147,15 @@ export class FormsController {
   async submitForm(
     @Param('slug') slug: string,
     @Body() submissionData: any,
-    @Req() req: any
+    @Req() req: any,
   ) {
     // Get form template to validate and get subAccountId
     const template = await this.formsService.findFormTemplateBySlug(slug);
 
     if (!template.subAccountId) {
-      throw new BadRequestException('Form template must be associated with a sub-account');
+      throw new BadRequestException(
+        'Form template must be associated with a sub-account',
+      );
     }
 
     const createFormSubmissionDto: CreateFormSubmissionDto = {
@@ -146,10 +164,13 @@ export class FormsController {
       files: submissionData.files,
       source: submissionData.source || 'website',
       ipAddress: req.ip || req.connection?.remoteAddress,
-      userAgent: req.get('user-agent')
+      userAgent: req.get('user-agent'),
     };
 
-    return this.formsService.createFormSubmission(createFormSubmissionDto, template.subAccountId);
+    return this.formsService.createFormSubmission(
+      createFormSubmissionDto,
+      template.subAccountId,
+    );
   }
 
   // Public form access (by slug) - parameterized route last
@@ -166,7 +187,7 @@ export class FormsController {
     @CurrentUser() user: any,
     @Query('subAccountId') subAccountId?: string,
     @Query('formTemplateId') formTemplateId?: string,
-    @Query('status') status?: string
+    @Query('status') status?: string,
   ) {
     // Admin users can view all submissions with optional subAccountId filter
     // Regular users can only view their own subAccount submissions
@@ -180,7 +201,11 @@ export class FormsController {
       subAccountIdNum = user.subAccountId;
     }
 
-    return this.formsService.findAllFormSubmissions(subAccountIdNum, formTemplateId, status);
+    return this.formsService.findAllFormSubmissions(
+      subAccountIdNum,
+      formTemplateId,
+      status,
+    );
   }
 
   @Get('submissions/:id')
@@ -193,7 +218,7 @@ export class FormsController {
   @UseGuards(JwtAuthGuard)
   updateFormSubmission(
     @Param('id') id: string,
-    @Body() updateFormSubmissionDto: UpdateFormSubmissionDto
+    @Body() updateFormSubmissionDto: UpdateFormSubmissionDto,
   ) {
     return this.formsService.updateFormSubmission(id, updateFormSubmissionDto);
   }
@@ -203,5 +228,4 @@ export class FormsController {
   removeFormSubmission(@Param('id') id: string) {
     return this.formsService.removeFormSubmission(id);
   }
-
 }

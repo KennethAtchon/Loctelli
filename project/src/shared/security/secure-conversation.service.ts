@@ -1,7 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypto';
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  randomBytes,
+} from 'crypto';
 
 interface ValidatedMessage {
   role: string;
@@ -41,14 +46,17 @@ export class SecureConversationService {
 
   constructor(
     private prisma: PrismaService,
-    private configService: ConfigService
+    private configService: ConfigService,
   ) {
     // Get encryption key from environment or generate a default one
-    this.encryptionKey = this.configService.get<string>('CONVERSATION_ENCRYPTION_KEY') ||
-                        this.generateDefaultKey();
+    this.encryptionKey =
+      this.configService.get<string>('CONVERSATION_ENCRYPTION_KEY') ||
+      this.generateDefaultKey();
 
     if (!this.configService.get<string>('CONVERSATION_ENCRYPTION_KEY')) {
-      this.logger.warn('No CONVERSATION_ENCRYPTION_KEY found in environment. Using generated key. Set CONVERSATION_ENCRYPTION_KEY for production.');
+      this.logger.warn(
+        'No CONVERSATION_ENCRYPTION_KEY found in environment. Using generated key. Set CONVERSATION_ENCRYPTION_KEY for production.',
+      );
     }
   }
 
@@ -65,7 +73,7 @@ export class SecureConversationService {
       // Generate integrity hash for the entire message
       const integrityHash = this.generateIntegrityHash({
         ...message,
-        encryptedContent: encryptionResult.encryptedContent
+        encryptedContent: encryptionResult.encryptedContent,
       });
 
       // Store in database with encryption
@@ -81,14 +89,18 @@ export class SecureConversationService {
           messageTimestamp: new Date(message.timestamp),
           metadata: message.metadata ? JSON.stringify(message.metadata) : null,
           createdAt: new Date(),
-          updatedAt: new Date()
-        }
+          updatedAt: new Date(),
+        },
       });
 
-      this.logger.debug(`[storeMessage] Message stored securely for leadId=${leadId}`);
-
+      this.logger.debug(
+        `[storeMessage] Message stored securely for leadId=${leadId}`,
+      );
     } catch (error) {
-      this.logger.error(`[storeMessage] Failed to store message for leadId=${leadId}:`, error);
+      this.logger.error(
+        `[storeMessage] Failed to store message for leadId=${leadId}:`,
+        error,
+      );
       throw new Error('Failed to store secure message');
     }
   }
@@ -96,14 +108,19 @@ export class SecureConversationService {
   /**
    * Retrieve and decrypt conversation history for a lead
    */
-  async retrieveConversation(leadId: number, limit?: number): Promise<DecryptedMessage[]> {
-    this.logger.debug(`[retrieveConversation] leadId=${leadId}, limit=${limit}`);
+  async retrieveConversation(
+    leadId: number,
+    limit?: number,
+  ): Promise<DecryptedMessage[]> {
+    this.logger.debug(
+      `[retrieveConversation] leadId=${leadId}, limit=${limit}`,
+    );
 
     try {
       const messages = await this.prisma.conversationMessage.findMany({
         where: { leadId },
         orderBy: { messageTimestamp: 'asc' },
-        take: limit
+        take: limit,
       });
 
       const decryptedMessages: DecryptedMessage[] = [];
@@ -113,7 +130,9 @@ export class SecureConversationService {
           // Verify integrity first
           const isValid = await this.verifyIntegrity(msg);
           if (!isValid) {
-            this.logger.warn(`[retrieveConversation] Integrity violation detected for message ${msg.id}, leadId=${leadId}`);
+            this.logger.warn(
+              `[retrieveConversation] Integrity violation detected for message ${msg.id}, leadId=${leadId}`,
+            );
             await this.handleIntegrityViolation(msg);
             continue; // Skip corrupted message
           }
@@ -122,7 +141,7 @@ export class SecureConversationService {
           const decryptedContent = await this.decryptContent({
             encryptedContent: msg.encryptedContent,
             salt: msg.salt,
-            iv: msg.iv
+            iv: msg.iv,
           });
 
           decryptedMessages.push({
@@ -131,20 +150,26 @@ export class SecureConversationService {
             content: decryptedContent,
             timestamp: msg.messageTimestamp.toISOString(),
             validationScore: msg.validationScore,
-            metadata: msg.metadata ? JSON.parse(msg.metadata) : undefined
+            metadata: msg.metadata ? JSON.parse(msg.metadata) : undefined,
           });
-
         } catch (error) {
-          this.logger.error(`[retrieveConversation] Failed to decrypt message ${msg.id}:`, error);
+          this.logger.error(
+            `[retrieveConversation] Failed to decrypt message ${msg.id}:`,
+            error,
+          );
           // Continue with other messages
         }
       }
 
-      this.logger.debug(`[retrieveConversation] Retrieved ${decryptedMessages.length} messages for leadId=${leadId}`);
+      this.logger.debug(
+        `[retrieveConversation] Retrieved ${decryptedMessages.length} messages for leadId=${leadId}`,
+      );
       return decryptedMessages;
-
     } catch (error) {
-      this.logger.error(`[retrieveConversation] Failed to retrieve conversation for leadId=${leadId}:`, error);
+      this.logger.error(
+        `[retrieveConversation] Failed to retrieve conversation for leadId=${leadId}:`,
+        error,
+      );
       throw new Error('Failed to retrieve secure conversation');
     }
   }
@@ -152,8 +177,13 @@ export class SecureConversationService {
   /**
    * Migrate existing plaintext conversation data to encrypted storage
    */
-  async migrateExistingConversations(): Promise<{ migrated: number; failed: number }> {
-    this.logger.log('[migrateExistingConversations] Starting migration of existing conversations');
+  async migrateExistingConversations(): Promise<{
+    migrated: number;
+    failed: number;
+  }> {
+    this.logger.log(
+      '[migrateExistingConversations] Starting migration of existing conversations',
+    );
 
     let migrated = 0;
     let failed = 0;
@@ -163,24 +193,26 @@ export class SecureConversationService {
       const leadsWithHistory = await this.prisma.lead.findMany({
         where: {
           messageHistory: {
-            not: undefined
-          }
+            not: undefined,
+          },
         },
         select: {
           id: true,
-          messageHistory: true
-        }
+          messageHistory: true,
+        },
       });
 
       for (const lead of leadsWithHistory) {
         try {
           // Check if already migrated
           const existingMessages = await this.prisma.conversationMessage.count({
-            where: { leadId: lead.id }
+            where: { leadId: lead.id },
           });
 
           if (existingMessages > 0) {
-            this.logger.debug(`[migrateExistingConversations] Lead ${lead.id} already has encrypted messages, skipping`);
+            this.logger.debug(
+              `[migrateExistingConversations] Lead ${lead.id} already has encrypted messages, skipping`,
+            );
             continue;
           }
 
@@ -194,26 +226,34 @@ export class SecureConversationService {
               content: msg.content || msg.message || '',
               timestamp: msg.timestamp || new Date().toISOString(),
               validationScore: 0.5, // Default score for migrated messages
-              metadata: { migrated: true, originalFormat: msg }
+              metadata: { migrated: true, originalFormat: msg },
             };
 
             await this.storeMessage(lead.id, validatedMessage);
           }
 
           migrated++;
-          this.logger.debug(`[migrateExistingConversations] Migrated conversation for lead ${lead.id}`);
-
+          this.logger.debug(
+            `[migrateExistingConversations] Migrated conversation for lead ${lead.id}`,
+          );
         } catch (error) {
           failed++;
-          this.logger.error(`[migrateExistingConversations] Failed to migrate lead ${lead.id}:`, error);
+          this.logger.error(
+            `[migrateExistingConversations] Failed to migrate lead ${lead.id}:`,
+            error,
+          );
         }
       }
 
-      this.logger.log(`[migrateExistingConversations] Migration complete: ${migrated} migrated, ${failed} failed`);
+      this.logger.log(
+        `[migrateExistingConversations] Migration complete: ${migrated} migrated, ${failed} failed`,
+      );
       return { migrated, failed };
-
     } catch (error) {
-      this.logger.error('[migrateExistingConversations] Migration failed:', error);
+      this.logger.error(
+        '[migrateExistingConversations] Migration failed:',
+        error,
+      );
       throw new Error('Migration failed');
     }
   }
@@ -230,36 +270,47 @@ export class SecureConversationService {
         select: {
           validationScore: true,
           messageTimestamp: true,
-          integrityHash: true
-        }
+          integrityHash: true,
+        },
       });
 
       const messageCount = messages.length;
-      const averageValidationScore = messageCount > 0
-        ? messages.reduce((sum, msg) => sum + msg.validationScore, 0) / messageCount
-        : 0;
+      const averageValidationScore =
+        messageCount > 0
+          ? messages.reduce((sum, msg) => sum + msg.validationScore, 0) /
+            messageCount
+          : 0;
 
       const riskFlags: string[] = [];
 
       // Check for risk indicators
-      const lowScoreMessages = messages.filter(msg => msg.validationScore < 0.3).length;
+      const lowScoreMessages = messages.filter(
+        (msg) => msg.validationScore < 0.3,
+      ).length;
       if (lowScoreMessages > messageCount * 0.2) {
         riskFlags.push('high_risk_message_ratio');
       }
 
-      const lastActivity = messages.length > 0
-        ? new Date(Math.max(...messages.map(msg => msg.messageTimestamp.getTime())))
-        : new Date(0);
+      const lastActivity =
+        messages.length > 0
+          ? new Date(
+              Math.max(
+                ...messages.map((msg) => msg.messageTimestamp.getTime()),
+              ),
+            )
+          : new Date(0);
 
       return {
         messageCount,
         averageValidationScore,
         riskFlags,
-        lastActivity
+        lastActivity,
       };
-
     } catch (error) {
-      this.logger.error(`[getConversationMetrics] Failed to get metrics for leadId=${leadId}:`, error);
+      this.logger.error(
+        `[getConversationMetrics] Failed to get metrics for leadId=${leadId}:`,
+        error,
+      );
       throw new Error('Failed to get conversation metrics');
     }
   }
@@ -268,7 +319,9 @@ export class SecureConversationService {
    * Clean up old conversation data based on retention policy
    */
   async cleanupOldConversations(retentionDays: number = 365): Promise<number> {
-    this.logger.log(`[cleanupOldConversations] Cleaning up conversations older than ${retentionDays} days`);
+    this.logger.log(
+      `[cleanupOldConversations] Cleaning up conversations older than ${retentionDays} days`,
+    );
 
     try {
       const cutoffDate = new Date();
@@ -277,14 +330,15 @@ export class SecureConversationService {
       const result = await this.prisma.conversationMessage.deleteMany({
         where: {
           messageTimestamp: {
-            lt: cutoffDate
-          }
-        }
+            lt: cutoffDate,
+          },
+        },
       });
 
-      this.logger.log(`[cleanupOldConversations] Cleaned up ${result.count} old messages`);
+      this.logger.log(
+        `[cleanupOldConversations] Cleaned up ${result.count} old messages`,
+      );
       return result.count;
-
     } catch (error) {
       this.logger.error('[cleanupOldConversations] Cleanup failed:', error);
       throw new Error('Cleanup failed');
@@ -301,7 +355,9 @@ export class SecureConversationService {
     const iv = randomBytes(16);
 
     // Derive key using salt
-    const key = createHash('sha256').update(this.encryptionKey + salt.toString('hex')).digest();
+    const key = createHash('sha256')
+      .update(this.encryptionKey + salt.toString('hex'))
+      .digest();
 
     const cipher = createCipheriv(this.algorithm, key, iv);
     let encrypted = cipher.update(content, 'utf8', 'hex');
@@ -310,7 +366,7 @@ export class SecureConversationService {
     return {
       encryptedContent: encrypted,
       salt: salt.toString('hex'),
-      iv: iv.toString('hex')
+      iv: iv.toString('hex'),
     };
   }
 
@@ -321,7 +377,9 @@ export class SecureConversationService {
     const salt = Buffer.from(data.salt, 'hex');
 
     // Derive key using salt
-    const key = createHash('sha256').update(this.encryptionKey + salt.toString('hex')).digest();
+    const key = createHash('sha256')
+      .update(this.encryptionKey + salt.toString('hex'))
+      .digest();
 
     const iv = Buffer.from(data.iv, 'hex');
     const decipher = createDecipheriv(this.algorithm, key, iv);
@@ -339,10 +397,12 @@ export class SecureConversationService {
       role: messageData.role,
       encryptedContent: messageData.encryptedContent,
       timestamp: messageData.timestamp,
-      validationScore: messageData.validationScore
+      validationScore: messageData.validationScore,
     });
 
-    return createHash('sha256').update(dataString + this.encryptionKey).digest('hex');
+    return createHash('sha256')
+      .update(dataString + this.encryptionKey)
+      .digest('hex');
   }
 
   /**
@@ -354,7 +414,7 @@ export class SecureConversationService {
         role: message.role,
         encryptedContent: message.encryptedContent,
         timestamp: message.messageTimestamp.toISOString(),
-        validationScore: message.validationScore
+        validationScore: message.validationScore,
       });
 
       return expectedHash === message.integrityHash;
@@ -368,7 +428,9 @@ export class SecureConversationService {
    * Handle integrity violations
    */
   private async handleIntegrityViolation(message: any): Promise<void> {
-    this.logger.error(`Integrity violation detected for message ${message.id}, leadId=${message.leadId}`);
+    this.logger.error(
+      `Integrity violation detected for message ${message.id}, leadId=${message.leadId}`,
+    );
 
     // Log security incident
     try {
@@ -382,10 +444,10 @@ export class SecureConversationService {
           metadata: JSON.stringify({
             messageId: message.id,
             leadId: message.leadId,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           }),
-          createdAt: new Date()
-        }
+          createdAt: new Date(),
+        },
       });
     } catch (error) {
       this.logger.error('Failed to log security incident:', error);
@@ -399,9 +461,9 @@ export class SecureConversationService {
           metadata: JSON.stringify({
             ...JSON.parse(message.metadata || '{}'),
             corrupted: true,
-            corruptionDetected: new Date().toISOString()
-          })
-        }
+            corruptionDetected: new Date().toISOString(),
+          }),
+        },
       });
     } catch (error) {
       this.logger.error('Failed to quarantine corrupted message:', error);
@@ -412,7 +474,9 @@ export class SecureConversationService {
    * Generate default encryption key for development
    */
   private generateDefaultKey(): string {
-    const defaultKey = createHash('sha256').update('loctelli-default-encryption-key-2024').digest('hex');
+    const defaultKey = createHash('sha256')
+      .update('loctelli-default-encryption-key-2024')
+      .digest('hex');
     return defaultKey;
   }
 
@@ -430,12 +494,12 @@ export class SecureConversationService {
     try {
       const messages = await this.prisma.conversationMessage.findMany({
         where: { leadId },
-        orderBy: { messageTimestamp: 'asc' }
+        orderBy: { messageTimestamp: 'asc' },
       });
 
       const exportData = {
         leadId,
-        messages: messages.map(msg => ({
+        messages: messages.map((msg) => ({
           id: msg.id,
           role: msg.role,
           encryptedContent: msg.encryptedContent,
@@ -444,23 +508,27 @@ export class SecureConversationService {
           integrityHash: msg.integrityHash,
           validationScore: msg.validationScore,
           timestamp: msg.messageTimestamp.toISOString(),
-          metadata: msg.metadata
+          metadata: msg.metadata,
         })),
-        exportTimestamp: new Date().toISOString()
+        exportTimestamp: new Date().toISOString(),
       };
 
       // Encrypt the entire export
-      const exportEncryption = await this.encryptContent(JSON.stringify(exportData));
+      const exportEncryption = await this.encryptContent(
+        JSON.stringify(exportData),
+      );
 
       return {
         leadId,
         messageCount: messages.length,
         exportTimestamp: exportData.exportTimestamp,
-        encryptedData: exportEncryption.encryptedContent
+        encryptedData: exportEncryption.encryptedContent,
       };
-
     } catch (error) {
-      this.logger.error(`[exportConversationData] Export failed for leadId=${leadId}:`, error);
+      this.logger.error(
+        `[exportConversationData] Export failed for leadId=${leadId}:`,
+        error,
+      );
       throw new Error('Export failed');
     }
   }

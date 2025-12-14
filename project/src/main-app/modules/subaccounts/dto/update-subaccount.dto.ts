@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsObject, IsBoolean, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsObject,
+  IsBoolean,
+  MaxLength,
+} from 'class-validator';
 
 export class UpdateSubAccountDto {
   @IsString()
@@ -18,4 +24,4 @@ export class UpdateSubAccountDto {
   @IsObject()
   @IsOptional()
   settings?: Record<string, any>;
-} 
+}

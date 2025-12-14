@@ -7,7 +7,6 @@ import type { Strategy, PromptTemplate, Lead, User } from '@prisma/client';
  */
 @Injectable()
 export class AgentConfigMapper {
-
   // Default constants
   private readonly DEFAULT_NAME = 'Assistant';
   private readonly DEFAULT_ROLE = 'Sales Representative';
@@ -19,63 +18,86 @@ export class AgentConfigMapper {
   private readonly DEFAULT_COMMUNICATION_STYLE = {
     primary: 'consultative' as const,
     tone: 'friendly' as const,
-    formalityLevel: 7
+    formalityLevel: 7,
   };
-  private readonly DEFAULT_SPECIALIZATIONS = ['lead qualification', 'appointment scheduling'];
-  private readonly DEFAULT_EXPERTISE = ['lead qualification', 'appointment booking', 'customer service'];
+  private readonly DEFAULT_SPECIALIZATIONS = [
+    'lead qualification',
+    'appointment scheduling',
+  ];
+  private readonly DEFAULT_EXPERTISE = [
+    'lead qualification',
+    'appointment booking',
+    'customer service',
+  ];
   private readonly DEFAULT_INDUSTRIES = ['General'];
   private readonly DEFAULT_TRAITS = [
-    { name: 'professional', description: 'Professional and courteous in all interactions' },
-    { name: 'helpful', description: 'Always eager to assist and provide value' },
-    { name: 'empathetic', description: 'Understanding of customer needs and concerns' }
+    {
+      name: 'professional',
+      description: 'Professional and courteous in all interactions',
+    },
+    {
+      name: 'helpful',
+      description: 'Always eager to assist and provide value',
+    },
+    {
+      name: 'empathetic',
+      description: 'Understanding of customer needs and concerns',
+    },
   ];
   private readonly DEFAULT_SECONDARY_GOALS = [
     'Gather relevant information about lead needs and budget',
     'Handle objections professionally',
-    'Maintain high customer satisfaction'
+    'Maintain high customer satisfaction',
   ];
   private readonly DEFAULT_LIMITATIONS = [
     'Information outside my domain of expertise',
-    'Real-time data I don\'t have access to',
-    'Personal opinions or subjective matters'
+    "Real-time data I don't have access to",
+    'Personal opinions or subjective matters',
   ];
-  private readonly UNCERTAINTY_THRESHOLD = 'I will say "I don\'t know" when I\'m not confident in my answer or when the question is outside my expertise.';
+  private readonly UNCERTAINTY_THRESHOLD =
+    'I will say "I don\'t know" when I\'m not confident in my answer or when the question is outside my expertise.';
 
   /**
    * Map Strategy and PromptTemplate to agent identity configuration
    */
   mapIdentity(
     strategy: Strategy | null,
-    promptTemplate: PromptTemplate | null
+    promptTemplate: PromptTemplate | null,
   ): AgentInstanceConfig['identity'] {
     return {
       name: strategy?.aiName || promptTemplate?.name || this.DEFAULT_NAME,
       role: strategy?.aiRole || promptTemplate?.category || this.DEFAULT_ROLE,
       title: strategy?.name || this.DEFAULT_TITLE,
-      backstory: strategy?.companyBackground || promptTemplate?.description || undefined,
+      backstory:
+        strategy?.companyBackground || promptTemplate?.description || undefined,
       authorityLevel: this.DEFAULT_AUTHORITY_LEVEL,
       yearsOfExperience: this.DEFAULT_YEARS_EXPERIENCE,
       specializations: this.extractSpecializations(strategy, promptTemplate),
-      certifications: []
+      certifications: [],
     };
   }
 
   /**
    * Map Strategy to agent personality configuration
    */
-  mapPersonality(strategy: Strategy | null): AgentInstanceConfig['personality'] {
+  mapPersonality(
+    strategy: Strategy | null,
+  ): AgentInstanceConfig['personality'] {
     const traits = this.extractTraits(strategy);
     const communicationStyle = this.extractCommunicationStyle(strategy);
 
     return {
       traits,
       communicationStyle: {
-        primary: communicationStyle.primary || this.DEFAULT_COMMUNICATION_STYLE.primary,
+        primary:
+          communicationStyle.primary ||
+          this.DEFAULT_COMMUNICATION_STYLE.primary,
         tone: communicationStyle.tone || this.DEFAULT_COMMUNICATION_STYLE.tone,
-        formalityLevel: communicationStyle.formalityLevel || this.DEFAULT_FORMALITY_LEVEL
+        formalityLevel:
+          communicationStyle.formalityLevel || this.DEFAULT_FORMALITY_LEVEL,
       },
       emotionalIntelligence: 'high' as const,
-      adaptability: 'high' as const
+      adaptability: 'high' as const,
     };
   }
 
@@ -86,12 +108,21 @@ export class AgentConfigMapper {
     strategy: Strategy | null,
     promptTemplate: PromptTemplate | null,
     user: User | null,
-    lead: Lead | null
+    lead: Lead | null,
   ): AgentInstanceConfig['knowledge'] {
-    const domain = strategy?.industryContext || promptTemplate?.category || this.DEFAULT_DOMAIN;
+    const domain =
+      strategy?.industryContext ||
+      promptTemplate?.category ||
+      this.DEFAULT_DOMAIN;
     const expertise = this.extractExpertise(strategy);
     const industries = this.extractIndustries(strategy, promptTemplate);
-    const knownDomains = this.extractKnownDomains(strategy, promptTemplate, domain, user, lead);
+    const knownDomains = this.extractKnownDomains(
+      strategy,
+      promptTemplate,
+      domain,
+      user,
+      lead,
+    );
     const limitations = this.extractLimitations(strategy);
 
     return {
@@ -102,9 +133,9 @@ export class AgentConfigMapper {
       limitations,
       languages: {
         fluent: ['English'],
-        conversational: []
+        conversational: [],
       },
-      uncertaintyThreshold: this.UNCERTAINTY_THRESHOLD
+      uncertaintyThreshold: this.UNCERTAINTY_THRESHOLD,
     };
   }
 
@@ -113,7 +144,7 @@ export class AgentConfigMapper {
    */
   mapGoals(
     strategy: Strategy | null,
-    promptTemplate: PromptTemplate | null
+    promptTemplate: PromptTemplate | null,
   ): AgentInstanceConfig['goals'] {
     const primary = strategy?.closingStrategy
       ? 'Qualify leads and book appointments using the defined closing strategy'
@@ -123,7 +154,8 @@ export class AgentConfigMapper {
 
     return {
       primary,
-      secondary: secondary.length > 0 ? secondary : this.DEFAULT_SECONDARY_GOALS
+      secondary:
+        secondary.length > 0 ? secondary : this.DEFAULT_SECONDARY_GOALS,
     };
   }
 
@@ -132,7 +164,7 @@ export class AgentConfigMapper {
    */
   private extractSpecializations(
     strategy: Strategy | null,
-    promptTemplate: PromptTemplate | null
+    promptTemplate: PromptTemplate | null,
   ): string[] {
     const specializations: string[] = [];
 
@@ -146,26 +178,30 @@ export class AgentConfigMapper {
       specializations.push(...promptTemplate.tags);
     }
 
-    return specializations.length > 0 ? specializations : this.DEFAULT_SPECIALIZATIONS;
+    return specializations.length > 0
+      ? specializations
+      : this.DEFAULT_SPECIALIZATIONS;
   }
 
   /**
    * Extract traits from strategy
    */
-  private extractTraits(strategy: Strategy | null): Array<{ name: string; description: string }> {
+  private extractTraits(
+    strategy: Strategy | null,
+  ): Array<{ name: string; description: string }> {
     const traits: Array<{ name: string; description: string }> = [];
 
     if (strategy?.conversationTone) {
       traits.push({
         name: 'conversational',
-        description: strategy.conversationTone
+        description: strategy.conversationTone,
       });
     }
 
     if (strategy?.communicationStyle) {
       traits.push({
         name: 'professional',
-        description: strategy.communicationStyle
+        description: strategy.communicationStyle,
       });
     }
 
@@ -176,7 +212,12 @@ export class AgentConfigMapper {
    * Extract communication style from strategy
    */
   private extractCommunicationStyle(strategy: Strategy | null): {
-    primary?: 'consultative' | 'assertive' | 'empathetic' | 'analytical' | 'casual';
+    primary?:
+      | 'consultative'
+      | 'assertive'
+      | 'empathetic'
+      | 'analytical'
+      | 'casual';
     tone?: 'casual' | 'friendly' | 'formal' | 'professional';
     formalityLevel?: number;
   } {
@@ -185,20 +226,20 @@ export class AgentConfigMapper {
     }
 
     const toneLower = strategy.conversationTone.toLowerCase();
-    
+
     if (toneLower.includes('assertive') || toneLower.includes('direct')) {
       return {
         primary: 'assertive',
         tone: 'professional',
-        formalityLevel: 8
+        formalityLevel: 8,
       };
     }
-    
+
     if (toneLower.includes('consultative') || toneLower.includes('helpful')) {
       return {
         primary: 'consultative',
         tone: 'friendly',
-        formalityLevel: 7
+        formalityLevel: 7,
       };
     }
 
@@ -226,7 +267,7 @@ export class AgentConfigMapper {
    */
   private extractIndustries(
     strategy: Strategy | null,
-    promptTemplate: PromptTemplate | null
+    promptTemplate: PromptTemplate | null,
   ): string[] {
     const industries: string[] = [];
 
@@ -241,7 +282,9 @@ export class AgentConfigMapper {
     }
 
     const uniqueIndustries = Array.from(new Set(industries));
-    return uniqueIndustries.length > 0 ? uniqueIndustries : this.DEFAULT_INDUSTRIES;
+    return uniqueIndustries.length > 0
+      ? uniqueIndustries
+      : this.DEFAULT_INDUSTRIES;
   }
 
   /**
@@ -252,30 +295,40 @@ export class AgentConfigMapper {
     promptTemplate: PromptTemplate | null,
     baseDomain: string,
     user: User | null,
-    lead: Lead | null
+    lead: Lead | null,
   ): string[] {
     const knownDomains: string[] = [baseDomain];
 
-    if (strategy?.industryContext && !knownDomains.includes(strategy.industryContext)) {
+    if (
+      strategy?.industryContext &&
+      !knownDomains.includes(strategy.industryContext)
+    ) {
       knownDomains.push(strategy.industryContext);
     }
-    if (promptTemplate?.category && !knownDomains.includes(promptTemplate.category)) {
+    if (
+      promptTemplate?.category &&
+      !knownDomains.includes(promptTemplate.category)
+    ) {
       knownDomains.push(promptTemplate.category);
     }
 
     // Critical information about the lead
-    if(lead){
+    if (lead) {
       const criticalLeadInfo = this.extractCriticalLeadInfo(lead);
       if (criticalLeadInfo) {
-        knownDomains.push(`!IMPORTANT!: This is everything you know about the person you're talking to: ${criticalLeadInfo}`);
+        knownDomains.push(
+          `!IMPORTANT!: This is everything you know about the person you're talking to: ${criticalLeadInfo}`,
+        );
       }
     }
 
     // Critical information about the user (boss)
-    if(user){
+    if (user) {
       const criticalUserInfo = this.extractCriticalUserInfo(user);
       if (criticalUserInfo) {
-        knownDomains.push(`!IMPORTANT!: This is everything you know about the user, THIS IS YOUR BOSS: ${criticalUserInfo}`);
+        knownDomains.push(
+          `!IMPORTANT!: This is everything you know about the user, THIS IS YOUR BOSS: ${criticalUserInfo}`,
+        );
       }
     }
 
@@ -287,7 +340,7 @@ export class AgentConfigMapper {
    */
   private extractCriticalLeadInfo(lead: Lead): string | null {
     const parts: string[] = [];
-    
+
     if (lead.name) parts.push(`Name: ${lead.name}`);
     if (lead.email) parts.push(`Email: ${lead.email}`);
     if (lead.phone) parts.push(`Phone: ${lead.phone}`);
@@ -297,41 +350,46 @@ export class AgentConfigMapper {
     if (lead.timezone) parts.push(`Timezone: ${lead.timezone}`);
     if (lead.status) parts.push(`Status: ${lead.status}`);
     if (lead.notes) parts.push(`Notes: ${lead.notes}`);
-    
+
     // Return null if no critical fields found
     if (parts.length === 0) {
       return null;
     }
-    
+
     return parts.join(', ');
   }
 
   /**
    * Extract critical information from user (only fields needed for conversation)
    */
-  private extractCriticalUserInfo(user: User & { subAccount?: { name: string } }): string | null {
+  private extractCriticalUserInfo(
+    user: User & { subAccount?: { name: string } },
+  ): string | null {
     const parts: string[] = [];
-    
+
     if (user.name) parts.push(`Name: ${user.name}`);
     if (user.email) parts.push(`Email: ${user.email}`);
     if (user.company) parts.push(`Company: ${user.company}`);
     if (user.timezone) parts.push(`Timezone: ${user.timezone}`);
     if (user.bookingEnabled !== undefined) {
-      parts.push(`Booking Enabled: ${user.bookingEnabled === 1 ? 'Yes' : 'No'}`);
+      parts.push(
+        `Booking Enabled: ${user.bookingEnabled === 1 ? 'Yes' : 'No'}`,
+      );
     }
     if (user.bookingsTime) {
-      const slotsInfo = Array.isArray(user.bookingsTime) 
+      const slotsInfo = Array.isArray(user.bookingsTime)
         ? `${user.bookingsTime.length} time slots configured`
         : 'Available booking slots configured';
       parts.push(`Available Booking Slots: ${slotsInfo}`);
     }
-    if (user.subAccount?.name) parts.push(`SubAccount: ${user.subAccount.name}`);
-    
+    if (user.subAccount?.name)
+      parts.push(`SubAccount: ${user.subAccount.name}`);
+
     // Return null if no critical fields found
     if (parts.length === 0) {
       return null;
     }
-    
+
     return parts.join(', ');
   }
 
@@ -355,19 +413,24 @@ export class AgentConfigMapper {
     const secondary: string[] = [];
 
     if (strategy?.qualificationQuestions) {
-      secondary.push(`Gather relevant information using the qualification questions: ${strategy.qualificationQuestions}`);
+      secondary.push(
+        `Gather relevant information using the qualification questions: ${strategy.qualificationQuestions}`,
+      );
     }
     if (strategy?.objectionHandling) {
-      secondary.push(`Handle objections professionally using the defined objection handling strategies: ${strategy.objectionHandling}`);
+      secondary.push(
+        `Handle objections professionally using the defined objection handling strategies: ${strategy.objectionHandling}`,
+      );
     }
     if (strategy?.outputGuidelines) {
       secondary.push(`Follow output guidelines: ${strategy.outputGuidelines}`);
     }
     if (strategy?.prohibitedBehaviors) {
-      secondary.push(`Avoid prohibited behaviors: ${strategy.prohibitedBehaviors}`);
+      secondary.push(
+        `Avoid prohibited behaviors: ${strategy.prohibitedBehaviors}`,
+      );
     }
 
     return secondary;
   }
 }
-

@@ -1,4 +1,12 @@
-import { IsString, IsOptional, IsBoolean, IsArray, IsObject, IsInt, Min } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsArray,
+  IsObject,
+  IsInt,
+  Min,
+} from 'class-validator';
 import { FormFieldDto } from './create-form-template.dto';
 
 export class UpdateFormTemplateDto {

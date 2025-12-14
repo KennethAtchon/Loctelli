@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { SubAccountsService } from './subaccounts.service';
 import { CreateSubAccountDto } from './dto/create-subaccount.dto';
 import { JoinSubAccountDto } from './dto/join-subaccount.dto';
@@ -31,11 +24,11 @@ export class UserSubAccountsController {
    */
   @Post('create')
   @AllowOnboarding() // Explicitly allow ONBOARDING users
-  createForUser(
-    @CurrentUser() user,
-    @Body() createDto: CreateSubAccountDto,
-  ) {
-    return this.subAccountsService.createSubAccountForUser(user.userId, createDto);
+  createForUser(@CurrentUser() user, @Body() createDto: CreateSubAccountDto) {
+    return this.subAccountsService.createSubAccountForUser(
+      user.userId,
+      createDto,
+    );
   }
 
   /**
@@ -44,10 +37,7 @@ export class UserSubAccountsController {
    */
   @Post('join')
   @AllowOnboarding() // Explicitly allow ONBOARDING users
-  join(
-    @CurrentUser() user,
-    @Body() joinDto: JoinSubAccountDto,
-  ) {
+  join(@CurrentUser() user, @Body() joinDto: JoinSubAccountDto) {
     return this.subAccountsService.joinSubAccount(user.userId, joinDto);
   }
 
@@ -72,10 +62,7 @@ export class UserSubAccountsController {
     @CurrentUser() user,
     @Body() createDto: CreateInvitationDto,
   ) {
-    return this.subAccountsService.createInvitation(
-      user.userId,
-      createDto,
-    );
+    return this.subAccountsService.createInvitation(user.userId, createDto);
   }
 
   /**

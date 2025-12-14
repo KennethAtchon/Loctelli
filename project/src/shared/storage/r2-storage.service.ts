@@ -29,10 +29,13 @@ export class R2StorageService {
 
     const accountId = this.configService.get<string>('r2.accountId');
     const accessKeyId = this.configService.get<string>('r2.accessKeyId');
-    const secretAccessKey = this.configService.get<string>('r2.secretAccessKey');
+    const secretAccessKey =
+      this.configService.get<string>('r2.secretAccessKey');
 
     if (!accountId || !accessKeyId || !secretAccessKey || !this.bucketName) {
-      this.logger.warn('R2 configuration is incomplete. R2 functionality will be disabled.');
+      this.logger.warn(
+        'R2 configuration is incomplete. R2 functionality will be disabled.',
+      );
       this.enabled = false;
       return;
     }
@@ -93,7 +96,12 @@ export class R2StorageService {
   /**
    * Upload a file to a generic folder/key
    */
-  async uploadToFolder(folder: string, filePath: string, content: Buffer, mimeType: string): Promise<string> {
+  async uploadToFolder(
+    folder: string,
+    filePath: string,
+    content: Buffer,
+    mimeType: string,
+  ): Promise<string> {
     const key = folder ? `${folder}/${filePath}` : filePath;
     return this.uploadFile(key, content, mimeType);
   }
@@ -101,11 +109,18 @@ export class R2StorageService {
   /**
    * Upload multiple files to a folder
    */
-  async uploadFilesToFolder(folder: string, files: Map<string, Buffer>): Promise<string[]> {
+  async uploadFilesToFolder(
+    folder: string,
+    files: Map<string, Buffer>,
+  ): Promise<string[]> {
     const urls: string[] = [];
     for (const [filePath, content] of files) {
       const key = folder ? `${folder}/${filePath}` : filePath;
-      const url = await this.uploadFile(key, content, this.getMimeType(filePath));
+      const url = await this.uploadFile(
+        key,
+        content,
+        this.getMimeType(filePath),
+      );
       urls.push(url);
     }
     return urls;
@@ -127,13 +142,13 @@ export class R2StorageService {
     try {
       const response = await this.s3Client.send(command);
       const chunks: Uint8Array[] = [];
-      
+
       if (response.Body) {
         for await (const chunk of response.Body as any) {
           chunks.push(chunk);
         }
       }
-      
+
       return Buffer.concat(chunks);
     } catch (error) {
       this.logger.error(`Error getting file content from R2: ${error.message}`);
@@ -172,7 +187,7 @@ export class R2StorageService {
     }
 
     const prefix = folder ? `${folder}/` : '';
-    
+
     try {
       // List all objects with the prefix
       const listCommand = new ListObjectsV2Command({
@@ -181,15 +196,17 @@ export class R2StorageService {
       });
 
       const listResponse = await this.s3Client.send(listCommand);
-      
+
       if (listResponse.Contents && listResponse.Contents.length > 0) {
         // Delete all objects
         const deletePromises = listResponse.Contents.map((object) =>
           this.deleteFile(object.Key!),
         );
-        
+
         await Promise.all(deletePromises);
-        this.logger.log(`Deleted ${listResponse.Contents.length} files in folder ${folder}`);
+        this.logger.log(
+          `Deleted ${listResponse.Contents.length} files in folder ${folder}`,
+        );
       }
     } catch (error) {
       this.logger.error(`Error deleting files in folder: ${error.message}`);
@@ -223,17 +240,17 @@ export class R2StorageService {
    */
   extractKeyFromUrl(url: string): string | null {
     if (!url || !this.publicUrl) return null;
-    
+
     try {
       const urlObj = new URL(url);
       const publicUrlObj = new URL(this.publicUrl);
-      
+
       if (urlObj.origin === publicUrlObj.origin) {
-        return urlObj.pathname.startsWith('/') 
-          ? urlObj.pathname.substring(1) 
+        return urlObj.pathname.startsWith('/')
+          ? urlObj.pathname.substring(1)
           : urlObj.pathname;
       }
-      
+
       return null;
     } catch (error) {
       this.logger.error(`Error parsing URL: ${error.message}`);
@@ -248,7 +265,7 @@ export class R2StorageService {
     if (!this.publicUrl) {
       throw new Error('R2 public URL is not configured');
     }
-    
+
     return `${this.publicUrl}/${key}`.replace(/([^:]\/)(\/+)/g, '$1');
   }
 
@@ -257,7 +274,7 @@ export class R2StorageService {
    */
   private getMimeType(filePath: string): string {
     const ext = filePath.split('.').pop()?.toLowerCase();
-    
+
     const mimeTypes: Record<string, string> = {
       html: 'text/html',
       css: 'text/css',
@@ -284,4 +301,4 @@ export class R2StorageService {
   isEnabled(): boolean {
     return this.enabled;
   }
-} 
+}

@@ -232,15 +232,17 @@ export class FreeSlotCronService {
    * This should be replaced with actual calendar integration data
    */
   async populateTestBookingsTime(): Promise<void> {
-    this.logger.log('Populating test bookingsTime data for users with booking enabled');
+    this.logger.log(
+      'Populating test bookingsTime data for users with booking enabled',
+    );
 
     try {
       const users = await this.prisma.user.findMany({
         where: {
           bookingEnabled: {
-            not: 0
-          }
-        }
+            not: 0,
+          },
+        },
       });
 
       const now = new Date();
@@ -260,7 +262,7 @@ export class FreeSlotCronService {
 
         testData.push({
           date: dateStr,
-          slots: slots
+          slots: slots,
         });
       }
 
@@ -269,14 +271,16 @@ export class FreeSlotCronService {
         await this.prisma.user.update({
           where: { id: user.id },
           data: {
-            bookingsTime: testData
-          }
+            bookingsTime: testData,
+          },
         });
 
         this.logger.log(`Updated test bookingsTime for userId=${user.id}`);
       }
 
-      this.logger.log(`Populated test bookingsTime data for ${users.length} users`);
+      this.logger.log(
+        `Populated test bookingsTime data for ${users.length} users`,
+      );
     } catch (error) {
       this.logger.error(`Error populating test bookingsTime: ${error}`);
     }

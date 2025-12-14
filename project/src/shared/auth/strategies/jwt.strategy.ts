@@ -23,12 +23,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         ExtractJwt.fromAuthHeaderAsBearerToken(),
         (request) => {
           // Check for x-user-token header
-          const userToken = request?.headers?.['x-user-token'] || request?.headers?.['X-User-Token'];
+          const userToken =
+            request?.headers?.['x-user-token'] ||
+            request?.headers?.['X-User-Token'];
           if (userToken) {
-            this.logger.debug(`Extracted token from x-user-token header: ${userToken.substring(0, 20)}...`);
+            this.logger.debug(
+              `Extracted token from x-user-token header: ${userToken.substring(0, 20)}...`,
+            );
           }
           return userToken;
-        }
+        },
       ]),
       ignoreExpiration: false,
       secretOrKey: jwtSecret,
@@ -38,17 +42,21 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: UnifiedJwtPayload) {
-    this.logger.debug(`Validating JWT payload: ${JSON.stringify({
-      sub: payload.sub,
-      email: payload.email,
-      role: payload.role,
-      accountType: payload.accountType
-    })}`);
+    this.logger.debug(
+      `Validating JWT payload: ${JSON.stringify({
+        sub: payload.sub,
+        email: payload.email,
+        role: payload.role,
+        accountType: payload.accountType,
+      })}`,
+    );
 
     try {
       // Check if this is an admin user
       if (payload.accountType === 'admin') {
-        this.logger.debug(`Admin user validation for ID: ${payload.sub}, email: ${payload.email}`);
+        this.logger.debug(
+          `Admin user validation for ID: ${payload.sub}, email: ${payload.email}`,
+        );
 
         // For admin users, we include both their admin ID and the system user ID
         // This allows services to use the system user ID for user-specific operations
@@ -63,7 +71,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       }
 
       // Regular user
-      this.logger.debug(`Regular user validation for ID: ${payload.sub}, email: ${payload.email}`);
+      this.logger.debug(
+        `Regular user validation for ID: ${payload.sub}, email: ${payload.email}`,
+      );
       return {
         userId: payload.sub,
         email: payload.email,
@@ -72,7 +82,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         subAccountId: payload.subAccountId,
       };
     } catch (error) {
-      this.logger.error(`JWT validation failed for payload: ${JSON.stringify(payload)}`, error.stack);
+      this.logger.error(
+        `JWT validation failed for payload: ${JSON.stringify(payload)}`,
+        error.stack,
+      );
       throw error;
     }
   }

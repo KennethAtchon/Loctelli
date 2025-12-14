@@ -1,6 +1,6 @@
 /**
  * Service Registry for Generic Task Processor
- * 
+ *
  * This registry allows services to register callable methods that can be executed
  * by the GenericTaskProcessor without needing direct dependency injection.
  */
@@ -26,7 +26,11 @@ export class ServiceRegistry {
   /**
    * Register a service with its callable methods
    */
-  registerService(serviceName: string, serviceInstance: any, methods: string[] = []): void {
+  registerService(
+    serviceName: string,
+    serviceInstance: any,
+    methods: string[] = [],
+  ): void {
     const registeredService: RegisteredService = {
       instance: serviceInstance,
       methods: new Map(),
@@ -34,33 +38,47 @@ export class ServiceRegistry {
 
     // If methods are specified, register only those methods
     if (methods.length > 0) {
-      methods.forEach(methodName => {
+      methods.forEach((methodName) => {
         if (typeof serviceInstance[methodName] === 'function') {
-          registeredService.methods.set(methodName, serviceInstance[methodName].bind(serviceInstance));
+          registeredService.methods.set(
+            methodName,
+            serviceInstance[methodName].bind(serviceInstance),
+          );
         } else {
-          console.warn(`Method ${methodName} not found on service ${serviceName}`);
+          console.warn(
+            `Method ${methodName} not found on service ${serviceName}`,
+          );
         }
       });
     } else {
       // Auto-register all public methods
       const proto = Object.getPrototypeOf(serviceInstance);
       const methodNames = Object.getOwnPropertyNames(proto).filter(
-        name => name !== 'constructor' && typeof serviceInstance[name] === 'function'
+        (name) =>
+          name !== 'constructor' && typeof serviceInstance[name] === 'function',
       );
-      
-      methodNames.forEach(methodName => {
-        registeredService.methods.set(methodName, serviceInstance[methodName].bind(serviceInstance));
+
+      methodNames.forEach((methodName) => {
+        registeredService.methods.set(
+          methodName,
+          serviceInstance[methodName].bind(serviceInstance),
+        );
       });
     }
 
     this.services.set(serviceName, registeredService);
-    console.log(`✅ Registered service: ${serviceName} with methods: ${Array.from(registeredService.methods.keys()).join(', ')}`);
+    console.log(
+      `✅ Registered service: ${serviceName} with methods: ${Array.from(registeredService.methods.keys()).join(', ')}`,
+    );
   }
 
   /**
    * Get a registered service method
    */
-  getServiceMethod(serviceName: string, methodName: string): ServiceMethod | undefined {
+  getServiceMethod(
+    serviceName: string,
+    methodName: string,
+  ): ServiceMethod | undefined {
     const service = this.services.get(serviceName);
     if (!service) {
       return undefined;

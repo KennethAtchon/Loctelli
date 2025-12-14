@@ -82,7 +82,10 @@ describe('LeadsController', () => {
       const result = await controller.create(createLeadDto, mockAdminUser);
 
       expect(result).toEqual(mockCreatedLead);
-      expect(leadsService.create).toHaveBeenCalledWith(createLeadDto, createLeadDto.subAccountId);
+      expect(leadsService.create).toHaveBeenCalledWith(
+        createLeadDto,
+        createLeadDto.subAccountId,
+      );
     });
 
     it('should create a lead for regular user', async () => {
@@ -91,7 +94,10 @@ describe('LeadsController', () => {
       const result = await controller.create(createLeadDto, mockUser);
 
       expect(result).toEqual(mockCreatedLead);
-      expect(leadsService.create).toHaveBeenCalledWith(createLeadDto, mockUser.subAccountId);
+      expect(leadsService.create).toHaveBeenCalledWith(
+        createLeadDto,
+        mockUser.subAccountId,
+      );
     });
   });
 
@@ -107,7 +113,9 @@ describe('LeadsController', () => {
       const result = await controller.findAll(mockAdminUser);
 
       expect(result).toEqual(mockLeads);
-      expect(leadsService.findAllByAdmin).toHaveBeenCalledWith(mockAdminUser.userId);
+      expect(leadsService.findAllByAdmin).toHaveBeenCalledWith(
+        mockAdminUser.userId,
+      );
     });
 
     it('should return leads by subAccount for regular user when no query parameters', async () => {
@@ -116,7 +124,9 @@ describe('LeadsController', () => {
       const result = await controller.findAll(mockUser);
 
       expect(result).toEqual(mockLeads);
-      expect(leadsService.findAllBySubAccount).toHaveBeenCalledWith(mockUser.subAccountId);
+      expect(leadsService.findAllBySubAccount).toHaveBeenCalledWith(
+        mockUser.subAccountId,
+      );
     });
 
     it('should return leads by userId when userId query parameter is provided', async () => {
@@ -136,27 +146,43 @@ describe('LeadsController', () => {
       const result = await controller.findAll(mockAdminUser, undefined, '1');
 
       expect(result).toEqual(strategyLeads);
-      expect(leadsService.findByStrategyId).toHaveBeenCalledWith(1, mockAdminUser.userId, mockAdminUser.role);
+      expect(leadsService.findByStrategyId).toHaveBeenCalledWith(
+        1,
+        mockAdminUser.userId,
+        mockAdminUser.role,
+      );
     });
 
     it('should return leads by subAccountId for admin when subAccountId query parameter is provided', async () => {
       mockLeadsService.findAllBySubAccount.mockResolvedValue(mockLeads);
 
-      const result = await controller.findAll(mockAdminUser, undefined, undefined, '1');
+      const result = await controller.findAll(
+        mockAdminUser,
+        undefined,
+        undefined,
+        '1',
+      );
 
       expect(result).toEqual(mockLeads);
       expect(leadsService.findAllBySubAccount).toHaveBeenCalledWith(1);
     });
 
     it('should throw HttpException for invalid userId parameter', async () => {
-      await expect(controller.findAll(mockAdminUser, 'invalid')).rejects.toThrow(
-        new HttpException('Invalid userId parameter', HttpStatus.BAD_REQUEST)
+      await expect(
+        controller.findAll(mockAdminUser, 'invalid'),
+      ).rejects.toThrow(
+        new HttpException('Invalid userId parameter', HttpStatus.BAD_REQUEST),
       );
     });
 
     it('should throw HttpException for invalid strategyId parameter', async () => {
-      await expect(controller.findAll(mockAdminUser, undefined, 'invalid')).rejects.toThrow(
-        new HttpException('Invalid strategyId parameter', HttpStatus.BAD_REQUEST)
+      await expect(
+        controller.findAll(mockAdminUser, undefined, 'invalid'),
+      ).rejects.toThrow(
+        new HttpException(
+          'Invalid strategyId parameter',
+          HttpStatus.BAD_REQUEST,
+        ),
       );
     });
   });
@@ -175,7 +201,11 @@ describe('LeadsController', () => {
       const result = await controller.findOne(1, mockAdminUser);
 
       expect(result).toEqual(mockLead);
-      expect(leadsService.findOne).toHaveBeenCalledWith(1, mockAdminUser.userId, mockAdminUser.role);
+      expect(leadsService.findOne).toHaveBeenCalledWith(
+        1,
+        mockAdminUser.userId,
+        mockAdminUser.role,
+      );
     });
   });
 
@@ -197,7 +227,12 @@ describe('LeadsController', () => {
       const result = await controller.update(1, updateLeadDto, mockAdminUser);
 
       expect(result).toEqual(mockUpdatedLead);
-      expect(leadsService.update).toHaveBeenCalledWith(1, updateLeadDto, mockAdminUser.userId, mockAdminUser.role);
+      expect(leadsService.update).toHaveBeenCalledWith(
+        1,
+        updateLeadDto,
+        mockAdminUser.userId,
+        mockAdminUser.role,
+      );
     });
   });
 
@@ -237,7 +272,11 @@ describe('LeadsController', () => {
       const result = await controller.remove(1, mockAdminUser);
 
       expect(result).toEqual(mockDeletedLead);
-      expect(leadsService.remove).toHaveBeenCalledWith(1, mockAdminUser.userId, mockAdminUser.role);
+      expect(leadsService.remove).toHaveBeenCalledWith(
+        1,
+        mockAdminUser.userId,
+        mockAdminUser.role,
+      );
     });
   });
-}); 
+});

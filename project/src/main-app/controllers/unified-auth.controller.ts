@@ -111,10 +111,7 @@ export class UnifiedAuthController {
   @Post('refresh')
   @Public()
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute
-  async refreshToken(
-    @Body() body: RefreshTokenDto,
-    @Ip() ipAddress: string,
-  ) {
+  async refreshToken(@Body() body: RefreshTokenDto, @Ip() ipAddress: string) {
     this.logger.log(`🔄 Token refresh attempt from IP: ${ipAddress}`);
     this.logger.debug(
       `Refresh token: ${body.refresh_token.substring(0, 20)}...`,

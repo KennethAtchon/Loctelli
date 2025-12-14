@@ -1,4 +1,10 @@
-import { Controller, Get, Query, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { AgentFactoryService } from './agent-factory.service';
 import { AgentConfigService } from './config/agent-config.service';
 import { sql } from 'drizzle-orm';
@@ -13,7 +19,7 @@ export class AIReceptionistDevController {
 
   constructor(
     private agentFactory: AgentFactoryService,
-    private agentConfig: AgentConfigService
+    private agentConfig: AgentConfigService,
   ) {}
 
   /**
@@ -23,7 +29,7 @@ export class AIReceptionistDevController {
   async getTableData(
     @Query('tableName') tableName: string,
     @Query('page') page: string = '1',
-    @Query('pageSize') pageSize: string = '50'
+    @Query('pageSize') pageSize: string = '50',
   ) {
     if (!tableName) {
       throw new NotFoundException('tableName query parameter is required');
@@ -40,7 +46,7 @@ export class AIReceptionistDevController {
           page: 1,
           pageSize: 50,
           totalPages: 0,
-          message: 'No database storage configured'
+          message: 'No database storage configured',
         };
       }
 
@@ -52,19 +58,25 @@ export class AIReceptionistDevController {
           page: 1,
           pageSize: 50,
           totalPages: 0,
-          message: 'Database connection not available'
+          message: 'Database connection not available',
         };
       }
 
       const pageNum = Math.max(1, parseInt(page, 10) || 1);
-      const pageSizeNum = Math.max(1, Math.min(1000, parseInt(pageSize, 10) || 50));
+      const pageSizeNum = Math.max(
+        1,
+        Math.min(1000, parseInt(pageSize, 10) || 50),
+      );
       const offset = (pageNum - 1) * pageSizeNum;
 
       // Get total row count
       const countResult = await db.execute(sql`
         SELECT COUNT(*) as count FROM ${sql.identifier(tableName)}
       `);
-      const totalRows = parseInt(countResult.rows?.[0]?.count || countResult[0]?.count || '0', 10);
+      const totalRows = parseInt(
+        countResult.rows?.[0]?.count || countResult[0]?.count || '0',
+        10,
+      );
       const totalPages = Math.ceil(totalRows / pageSizeNum);
 
       // Get paginated data
@@ -78,7 +90,10 @@ export class AIReceptionistDevController {
           `);
           data = dataResult.rows || dataResult || [];
         } catch (err) {
-          this.logger.warn(`Failed to fetch data for ${tableName} with ordering:`, err);
+          this.logger.warn(
+            `Failed to fetch data for ${tableName} with ordering:`,
+            err,
+          );
           // If created_at doesn't exist, try without ordering
           try {
             const dataResult = await db.execute(sql`
@@ -87,7 +102,10 @@ export class AIReceptionistDevController {
             `);
             data = dataResult.rows || dataResult || [];
           } catch (err2) {
-            this.logger.warn(`Failed to fetch data for ${tableName} without ordering:`, err2);
+            this.logger.warn(
+              `Failed to fetch data for ${tableName} without ordering:`,
+              err2,
+            );
           }
         }
       }
@@ -97,7 +115,7 @@ export class AIReceptionistDevController {
         totalRows,
         page: pageNum,
         pageSize: pageSizeNum,
-        totalPages
+        totalPages,
       };
     } catch (error) {
       this.logger.error('Failed to get table data', error);
@@ -118,7 +136,7 @@ export class AIReceptionistDevController {
       if (!storage) {
         return {
           tables: [],
-          message: 'No database storage configured'
+          message: 'No database storage configured',
         };
       }
 
@@ -127,7 +145,7 @@ export class AIReceptionistDevController {
       if (!db) {
         return {
           tables: [],
-          message: 'Database connection not available'
+          message: 'Database connection not available',
         };
       }
 
@@ -146,7 +164,7 @@ export class AIReceptionistDevController {
 
       for (const row of tablesResult.rows || tablesResult) {
         const tableName = row.table_name || row[0];
-        
+
         // Get column information
         const columnsResult = await db.execute(sql`
           SELECT 
@@ -164,7 +182,10 @@ export class AIReceptionistDevController {
         const countResult = await db.execute(sql`
           SELECT COUNT(*) as count FROM ${sql.identifier(tableName)}
         `);
-        const rowCount = parseInt(countResult.rows?.[0]?.count || countResult[0]?.count || '0', 10);
+        const rowCount = parseInt(
+          countResult.rows?.[0]?.count || countResult[0]?.count || '0',
+          10,
+        );
 
         const tableObject: any = {
           name: tableName,
@@ -172,17 +193,17 @@ export class AIReceptionistDevController {
             name: col.column_name || col[0],
             type: col.data_type || col[1],
             nullable: col.is_nullable === 'YES' || col[2] === 'YES',
-            default: col.column_default || col[3]
+            default: col.column_default || col[3],
           })),
-          rowCount
-        }
+          rowCount,
+        };
 
         tables.push(tableObject);
       }
 
       return {
         tables,
-        count: tables.length
+        count: tables.length,
       };
     } catch (error) {
       this.logger.error('Failed to get SDK tables', error);
@@ -197,10 +218,12 @@ export class AIReceptionistDevController {
   @Get('agent-info')
   async getAgentInfo(
     @Query('userId') userId: string,
-    @Query('leadId') leadId: string
+    @Query('leadId') leadId: string,
   ) {
     if (!userId || !leadId) {
-      throw new NotFoundException('userId and leadId query parameters are required');
+      throw new NotFoundException(
+        'userId and leadId query parameters are required',
+      );
     }
 
     try {
@@ -212,11 +235,14 @@ export class AIReceptionistDevController {
       }
 
       // Get agent instance
-      const agentConfig = await this.agentConfig.getAgentConfig(userIdNum, leadIdNum);
+      const agentConfig = await this.agentConfig.getAgentConfig(
+        userIdNum,
+        leadIdNum,
+      );
       const agentInstance = await this.agentFactory.getOrCreateAgent(
         userIdNum,
         leadIdNum,
-        agentConfig
+        agentConfig,
       );
 
       const agent = agentInstance.agent;
@@ -228,15 +254,17 @@ export class AIReceptionistDevController {
         name: identity.name,
         role: identity.role,
         title: (identity as any).title,
-        authorityLevel: identity.authorityLevel
+        authorityLevel: identity.authorityLevel,
       };
 
       // Get tools
       const toolRegistry = (agent as any).toolRegistry;
-      const tools = toolRegistry ? toolRegistry.listAvailable().map((tool: any) => ({
-        name: tool.name,
-        description: tool.description
-      })) : [];
+      const tools = toolRegistry
+        ? toolRegistry.listAvailable().map((tool: any) => ({
+            name: tool.name,
+            description: tool.description,
+          }))
+        : [];
 
       // Get providers
       const providerRegistry = factory.getProviderRegistry();
@@ -244,17 +272,19 @@ export class AIReceptionistDevController {
 
       // Get model info from factory config
       const factoryConfig = (factory as any).config;
-      const modelInfo = factoryConfig?.model ? {
-        provider: factoryConfig.model.provider || 'unknown',
-        model: factoryConfig.model.model || 'unknown',
-        temperature: factoryConfig.model.temperature,
-        maxTokens: factoryConfig.model.maxTokens
-      } : {
-        provider: 'unknown',
-        model: 'unknown',
-        temperature: undefined,
-        maxTokens: undefined
-      };
+      const modelInfo = factoryConfig?.model
+        ? {
+            provider: factoryConfig.model.provider || 'unknown',
+            model: factoryConfig.model.model || 'unknown',
+            temperature: factoryConfig.model.temperature,
+            maxTokens: factoryConfig.model.maxTokens,
+          }
+        : {
+            provider: 'unknown',
+            model: 'unknown',
+            temperature: undefined,
+            maxTokens: undefined,
+          };
 
       // Get memory config
       const memory = agent.getMemory();
@@ -262,7 +292,7 @@ export class AIReceptionistDevController {
       const memoryManager = (memory as any).memoryManager;
       const longTermMemory = memoryManager?.longTermMemory;
       const longTermEnabled = !!longTermMemory;
-      
+
       // Get autoPersist config
       let autoPersist: {
         persistAll: boolean;
@@ -273,7 +303,7 @@ export class AIReceptionistDevController {
         autoPersist = {
           persistAll: memoryConfig.autoPersist.persistAll || false,
           minImportance: memoryConfig.autoPersist.minImportance,
-          types: memoryConfig.autoPersist.types
+          types: memoryConfig.autoPersist.types,
         };
       } else if (longTermMemory) {
         // Try to get from longTermMemory config
@@ -282,7 +312,7 @@ export class AIReceptionistDevController {
           autoPersist = {
             persistAll: ltmConfig.autoPersist.persistAll || false,
             minImportance: ltmConfig.autoPersist.minImportance,
-            types: ltmConfig.autoPersist.types
+            types: ltmConfig.autoPersist.types,
           };
         }
       }
@@ -290,19 +320,21 @@ export class AIReceptionistDevController {
       const memoryInfo = {
         contextWindow: memoryConfig.contextWindow || 20,
         longTermEnabled,
-        autoPersist
+        autoPersist,
       };
 
       // Get full system prompt
       const systemPrompt = agent.getSystemPrompt();
-      const systemPromptPreview = systemPrompt.substring(0, 500) + (systemPrompt.length > 500 ? '...' : '');
+      const systemPromptPreview =
+        systemPrompt.substring(0, 500) +
+        (systemPrompt.length > 500 ? '...' : '');
 
       // Get agent metadata
       const agentMetadata = {
         id: agent.id,
         status: agent.getStatus(),
         createdAt: (agent as any).createdAt,
-        lastUsed: (agent as any).lastUsed
+        lastUsed: (agent as any).lastUsed,
       };
 
       return {
@@ -316,7 +348,7 @@ export class AIReceptionistDevController {
         systemPromptLength: systemPrompt.length,
         agentId: agent.id,
         status: agent.getStatus(),
-        metadata: agentMetadata
+        metadata: agentMetadata,
       };
     } catch (error) {
       this.logger.error('Failed to get agent info', error);
@@ -324,4 +356,3 @@ export class AIReceptionistDevController {
     }
   }
 }
-

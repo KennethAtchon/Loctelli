@@ -11,7 +11,7 @@ export class SmsProcessor extends BaseProcessor {
 
   async process(data: SmsJobData): Promise<any> {
     this.logStart('SMS', data);
-    
+
     const results: any[] = [];
     let successCount = 0;
     let failCount = 0;
@@ -19,7 +19,11 @@ export class SmsProcessor extends BaseProcessor {
     for (const phoneNumber of data.phoneNumbers) {
       try {
         const result = await this.smsService.sendSms(phoneNumber, data.message);
-        results.push({ phoneNumber, status: 'sent', messageId: result.messageId });
+        results.push({
+          phoneNumber,
+          status: 'sent',
+          messageId: result.messageId,
+        });
         successCount++;
       } catch (error) {
         this.logger.error(`Failed to send SMS to ${phoneNumber}:`, error);

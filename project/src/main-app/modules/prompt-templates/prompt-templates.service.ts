@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { CreatePromptTemplateDto } from './dto/create-prompt-template.dto';
 import { UpdatePromptTemplateDto } from './dto/update-prompt-template.dto';
@@ -36,7 +41,7 @@ export class PromptTemplatesService {
           ...template,
           strategyCount,
         };
-      })
+      }),
     );
 
     return templatesWithCount;
@@ -65,7 +70,9 @@ export class PromptTemplatesService {
   }
 
   async create(createDto: CreatePromptTemplateDto, adminId: number) {
-    this.logger.debug(`Creating prompt template: ${createDto.name} with adminId: ${adminId}`);
+    this.logger.debug(
+      `Creating prompt template: ${createDto.name} with adminId: ${adminId}`,
+    );
 
     try {
       // If this template is being set as active, deactivate all others
@@ -89,10 +96,15 @@ export class PromptTemplatesService {
         },
       });
 
-      this.logger.debug(`Successfully created prompt template with ID: ${result.id}`);
+      this.logger.debug(
+        `Successfully created prompt template with ID: ${result.id}`,
+      );
       return result;
     } catch (error) {
-      this.logger.error(`Failed to create prompt template: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to create prompt template: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -123,10 +135,15 @@ export class PromptTemplatesService {
         },
       });
 
-      this.logger.debug(`Successfully updated prompt template with ID: ${result.id}`);
+      this.logger.debug(
+        `Successfully updated prompt template with ID: ${result.id}`,
+      );
       return result;
     } catch (error) {
-      this.logger.error(`Failed to update prompt template: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to update prompt template: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -140,7 +157,9 @@ export class PromptTemplatesService {
     // For now, we'll leave this as a TODO since the global isActive field is deprecated
     // TODO: Implement per-subaccount cleanup when deleting templates
     if (template.isActive) {
-      this.logger.warn(`Deleting template ${id} that has global isActive=true. Per-subaccount cleanup needed.`);
+      this.logger.warn(
+        `Deleting template ${id} that has global isActive=true. Per-subaccount cleanup needed.`,
+      );
     }
 
     return this.prisma.promptTemplate.delete({
@@ -149,7 +168,9 @@ export class PromptTemplatesService {
   }
 
   async activate(id: number, subAccountId: number) {
-    this.logger.debug(`Activating prompt template with id: ${id} for subAccountId: ${subAccountId}`);
+    this.logger.debug(
+      `Activating prompt template with id: ${id} for subAccountId: ${subAccountId}`,
+    );
 
     // Check if template exists
     await this.findOne(id);
@@ -188,24 +209,29 @@ export class PromptTemplatesService {
       },
     });
 
-    this.logger.debug(`Successfully activated template ${id} for subAccountId ${subAccountId}`);
+    this.logger.debug(
+      `Successfully activated template ${id} for subAccountId ${subAccountId}`,
+    );
     return result.promptTemplate;
   }
 
   async getActive(subAccountId?: number) {
-    this.logger.debug(`Getting active prompt template for subAccountId: ${subAccountId}`);
+    this.logger.debug(
+      `Getting active prompt template for subAccountId: ${subAccountId}`,
+    );
 
     if (subAccountId) {
       // Get the active template for this specific subaccount
-      const activeSubAccountTemplate = await this.prisma.subAccountPromptTemplate.findFirst({
-        where: {
-          subAccountId,
-          isActive: true,
-        },
-        include: {
-          promptTemplate: true,
-        },
-      });
+      const activeSubAccountTemplate =
+        await this.prisma.subAccountPromptTemplate.findFirst({
+          where: {
+            subAccountId,
+            isActive: true,
+          },
+          include: {
+            promptTemplate: true,
+          },
+        });
 
       if (activeSubAccountTemplate) {
         return activeSubAccountTemplate.promptTemplate;
@@ -214,7 +240,9 @@ export class PromptTemplatesService {
       // If no active template for this subaccount, auto-assign the first available template
       const templates = await this.findAll();
       if (templates.length > 0) {
-        this.logger.debug(`No active template for subAccountId ${subAccountId}, auto-assigning first available template`);
+        this.logger.debug(
+          `No active template for subAccountId ${subAccountId}, auto-assigning first available template`,
+        );
         await this.activate(templates[0].id, subAccountId);
         return templates[0];
       }
@@ -247,39 +275,47 @@ export class PromptTemplatesService {
 
     if (!activeTemplate) {
       this.logger.log('Creating active prompt template');
-      return this.create({
-        name: 'Sales Agent',
-        description: 'Conversational sales representative template',
-        category: 'sales',
-        baseSystemPrompt: 'You are a conversational sales representative for {{companyName}}, managed by {{ownerName}}.',
-        temperature: 0.7,
-        isActive: true,
-        tags: ['sales', 'default'],
-      }, adminId);
+      return this.create(
+        {
+          name: 'Sales Agent',
+          description: 'Conversational sales representative template',
+          category: 'sales',
+          baseSystemPrompt:
+            'You are a conversational sales representative for {{companyName}}, managed by {{ownerName}}.',
+          temperature: 0.7,
+          isActive: true,
+          tags: ['sales', 'default'],
+        },
+        adminId,
+      );
     }
 
     return activeTemplate;
   }
 
   private async deactivateAllTemplates() {
-    this.logger.debug('Deactivating all prompt templates (deprecated - use per-subaccount)');
+    this.logger.debug(
+      'Deactivating all prompt templates (deprecated - use per-subaccount)',
+    );
     await this.prisma.promptTemplate.updateMany({
       data: { isActive: false },
     });
   }
 
   private async deactivateAllTemplatesForSubAccount(subAccountId: number) {
-    this.logger.debug(`Deactivating all prompt templates for subAccountId: ${subAccountId}`);
+    this.logger.debug(
+      `Deactivating all prompt templates for subAccountId: ${subAccountId}`,
+    );
     await this.prisma.subAccountPromptTemplate.updateMany({
       where: { subAccountId },
       data: { isActive: false },
     });
   }
 
-
-
   async findAllForSubAccount(subAccountId: number) {
-    this.logger.debug(`Finding all prompt templates for subAccountId: ${subAccountId}`);
+    this.logger.debug(
+      `Finding all prompt templates for subAccountId: ${subAccountId}`,
+    );
 
     // Get all templates with their activation status for this subaccount
     const templates = await this.prisma.promptTemplate.findMany({
@@ -308,8 +344,9 @@ export class PromptTemplatesService {
           where: { promptTemplateId: template.id },
         });
 
-        const isActiveForSubAccount = template.subAccountTemplates.length > 0 &&
-                                      template.subAccountTemplates[0].isActive;
+        const isActiveForSubAccount =
+          template.subAccountTemplates.length > 0 &&
+          template.subAccountTemplates[0].isActive;
 
         return {
           ...template,
@@ -317,32 +354,40 @@ export class PromptTemplatesService {
           isActiveForSubAccount,
           subAccountTemplates: undefined, // Remove the nested data
         };
-      })
+      }),
     );
 
     return templatesWithSubAccountStatus;
   }
 
-  async getActiveTemplateIdForSubAccount(subAccountId: number): Promise<number | null> {
-    const activeTemplate = await this.prisma.subAccountPromptTemplate.findFirst({
-      where: {
-        subAccountId,
-        isActive: true,
+  async getActiveTemplateIdForSubAccount(
+    subAccountId: number,
+  ): Promise<number | null> {
+    const activeTemplate = await this.prisma.subAccountPromptTemplate.findFirst(
+      {
+        where: {
+          subAccountId,
+          isActive: true,
+        },
+        select: { promptTemplateId: true },
       },
-      select: { promptTemplateId: true },
-    });
+    );
 
     return activeTemplate?.promptTemplateId || null;
   }
 
   async validateOnlyOneActive() {
-    this.logger.debug('Validating only one template is active (deprecated - use per-subaccount validation)');
+    this.logger.debug(
+      'Validating only one template is active (deprecated - use per-subaccount validation)',
+    );
     const activeTemplates = await this.prisma.promptTemplate.findMany({
       where: { isActive: true },
     });
 
     if (activeTemplates.length > 1) {
-      this.logger.warn(`Found ${activeTemplates.length} active templates, deactivating all except the first`);
+      this.logger.warn(
+        `Found ${activeTemplates.length} active templates, deactivating all except the first`,
+      );
       // Keep only the first one active
       for (let i = 1; i < activeTemplates.length; i++) {
         await this.prisma.promptTemplate.update({
@@ -354,16 +399,22 @@ export class PromptTemplatesService {
   }
 
   async validateOnlyOneActivePerSubAccount(subAccountId: number) {
-    this.logger.debug(`Validating only one template is active for subAccountId: ${subAccountId}`);
-    const activeTemplates = await this.prisma.subAccountPromptTemplate.findMany({
-      where: {
-        subAccountId,
-        isActive: true
+    this.logger.debug(
+      `Validating only one template is active for subAccountId: ${subAccountId}`,
+    );
+    const activeTemplates = await this.prisma.subAccountPromptTemplate.findMany(
+      {
+        where: {
+          subAccountId,
+          isActive: true,
+        },
       },
-    });
+    );
 
     if (activeTemplates.length > 1) {
-      this.logger.warn(`Found ${activeTemplates.length} active templates for subAccountId ${subAccountId}, keeping only the first`);
+      this.logger.warn(
+        `Found ${activeTemplates.length} active templates for subAccountId ${subAccountId}, keeping only the first`,
+      );
       // Keep only the first one active
       for (let i = 1; i < activeTemplates.length; i++) {
         await this.prisma.subAccountPromptTemplate.update({
@@ -373,4 +424,4 @@ export class PromptTemplatesService {
       }
     }
   }
-} 
+}

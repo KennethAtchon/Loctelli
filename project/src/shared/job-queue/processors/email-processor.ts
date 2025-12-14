@@ -10,7 +10,7 @@ export class EmailProcessor extends BaseProcessor {
 
   async process(data: EmailJobData): Promise<any> {
     this.logStart('Email', data);
-    
+
     // TODO: Implement actual email sending logic
     // This is a placeholder implementation
     const results: any[] = [];
@@ -20,11 +20,16 @@ export class EmailProcessor extends BaseProcessor {
     for (const recipient of data.to) {
       try {
         // Simulate email sending
-        await this.simulateEmailSend(recipient, data.subject, data.template, data.templateData);
-        results.push({ 
-          recipient, 
-          status: 'sent', 
-          messageId: `email_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` 
+        await this.simulateEmailSend(
+          recipient,
+          data.subject,
+          data.template,
+          data.templateData,
+        );
+        results.push({
+          recipient,
+          status: 'sent',
+          messageId: `email_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         });
         successCount++;
       } catch (error) {
@@ -45,10 +50,15 @@ export class EmailProcessor extends BaseProcessor {
     return summary;
   }
 
-  private async simulateEmailSend(to: string, subject: string, template: string, templateData?: Record<string, any>): Promise<void> {
+  private async simulateEmailSend(
+    to: string,
+    subject: string,
+    template: string,
+    templateData?: Record<string, any>,
+  ): Promise<void> {
     // Simulate processing time
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     // Simulate occasional failures for testing
     if (Math.random() < 0.05) {
       throw new Error('Email service temporarily unavailable');

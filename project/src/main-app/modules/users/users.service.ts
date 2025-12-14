@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { GhlService } from '../../integrations/ghl-integrations/ghl/ghl.service';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -11,7 +16,7 @@ import { isAdminOrSuperAdmin } from '../../../shared/utils';
 export class UsersService {
   constructor(
     private prisma: PrismaService,
-    private ghlService: GhlService
+    private ghlService: GhlService,
   ) {}
 
   async create(createUserDto: CreateUserDto, subAccountId: number) {
@@ -20,13 +25,13 @@ export class UsersService {
     if (data.password) {
       data.password = await bcrypt.hash(data.password, 12);
     }
-    
+
     const { subAccountId: _, ...userData } = data;
     return this.prisma.user.create({
       data: {
         ...userData,
         subAccount: {
-          connect: { id: subAccountId }
+          connect: { id: subAccountId },
         },
       },
       select: {
@@ -37,7 +42,7 @@ export class UsersService {
         company: true,
         isActive: true,
         subAccount: {
-          select: { id: true, name: true }
+          select: { id: true, name: true },
         },
         createdAt: true,
         updatedAt: true,
@@ -69,7 +74,7 @@ export class UsersService {
         createdAt: true,
         updatedAt: true,
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -87,10 +92,10 @@ export class UsersService {
         createdAt: true,
         updatedAt: true,
         subAccount: {
-          select: { id: true, name: true }
-        }
+          select: { id: true, name: true },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -140,16 +145,16 @@ export class UsersService {
     try {
       // Fetch subaccounts from GoHighLevel API
       const subaccountsData = await this.ghlService.searchSubaccounts();
-      
+
       if (!subaccountsData || !subaccountsData.locations) {
         throw new HttpException(
           'Failed to fetch subaccounts from GoHighLevel API',
-          HttpStatus.BAD_GATEWAY
+          HttpStatus.BAD_GATEWAY,
         );
       }
-      
+
       const createdUsers: User[] = [];
-      
+
       // Process each location and create a user
       for (const loc of subaccountsData.locations) {
         // Get default SubAccount for new users
@@ -160,7 +165,7 @@ export class UsersService {
         if (!defaultSubAccount) {
           throw new HttpException(
             'No default SubAccount available for user creation',
-            HttpStatus.BAD_REQUEST
+            HttpStatus.BAD_REQUEST,
           );
         }
 
@@ -172,30 +177,30 @@ export class UsersService {
           password: await bcrypt.hash('defaultPassword123', 12), // Default password
           role: 'user',
           subAccount: {
-            connect: { id: defaultSubAccount.id }
+            connect: { id: defaultSubAccount.id },
           },
           // Add any other mappings as needed
         };
-        
+
         // Prevent duplicates by checking if user with same email exists
         if (userData.email) {
           const existingUser = await this.prisma.user.findFirst({
-            where: { email: userData.email }
+            where: { email: userData.email },
           });
-          
+
           if (existingUser) {
             continue;
           }
         }
-        
+
         // Create the user
         const newUser = await this.prisma.user.create({
-          data: userData
+          data: userData,
         });
-        
+
         createdUsers.push(newUser);
       }
-      
+
       return createdUsers;
     } catch (error) {
       if (error instanceof HttpException) {
@@ -203,7 +208,7 @@ export class UsersService {
       }
       throw new HttpException(
         `Error importing GHL users: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -211,12 +216,17 @@ export class UsersService {
   /**
    * Update user's booking availability
    */
-  async updateUserBookingsTime(userId: number, bookingsTime: any, currentUserId: number, currentUserRole: string) {
+  async updateUserBookingsTime(
+    userId: number,
+    bookingsTime: any,
+    currentUserId: number,
+    currentUserRole: string,
+  ) {
     try {
       // Verify the user exists and current user has permission
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: { id: true, subAccountId: true }
+        select: { id: true, subAccountId: true },
       });
 
       if (!user) {
@@ -232,20 +242,20 @@ export class UsersService {
       const updatedUser = await this.prisma.user.update({
         where: { id: userId },
         data: {
-          bookingsTime: bookingsTime
+          bookingsTime: bookingsTime,
         },
         select: {
           id: true,
           name: true,
           bookingsTime: true,
-          bookingEnabled: true
-        }
+          bookingEnabled: true,
+        },
       });
 
       return {
         success: true,
         message: 'Booking availability updated successfully',
-        data: updatedUser
+        data: updatedUser,
       };
     } catch (error) {
       if (error instanceof HttpException) {
@@ -253,7 +263,7 @@ export class UsersService {
       }
       throw new HttpException(
         `Error updating booking availability: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -261,7 +271,11 @@ export class UsersService {
   /**
    * Get user's booking availability
    */
-  async getUserBookingsTime(userId: number, currentUserId: number, currentUserRole: string) {
+  async getUserBookingsTime(
+    userId: number,
+    currentUserId: number,
+    currentUserRole: string,
+  ) {
     try {
       // Verify the user exists and current user has permission
       const user = await this.prisma.user.findUnique({
@@ -272,8 +286,8 @@ export class UsersService {
           email: true,
           bookingsTime: true,
           bookingEnabled: true,
-          subAccountId: true
-        }
+          subAccountId: true,
+        },
       });
 
       if (!user) {
@@ -292,8 +306,8 @@ export class UsersService {
           name: user.name,
           email: user.email,
           bookingsTime: user.bookingsTime,
-          bookingEnabled: user.bookingEnabled
-        }
+          bookingEnabled: user.bookingEnabled,
+        },
       };
     } catch (error) {
       if (error instanceof HttpException) {
@@ -301,7 +315,7 @@ export class UsersService {
       }
       throw new HttpException(
         `Error retrieving booking availability: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

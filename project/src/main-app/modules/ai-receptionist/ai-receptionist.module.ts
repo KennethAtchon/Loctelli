@@ -1,4 +1,9 @@
-import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
+import {
+  Module,
+  NestModule,
+  MiddlewareConsumer,
+  RequestMethod,
+} from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
 import { PromptTemplatesModule } from '../prompt-templates/prompt-templates.module';
@@ -15,12 +20,7 @@ import { WebhookSecurityMiddleware } from './webhook-security.middleware';
 import { AIReceptionistDevController } from './dev.controller';
 
 @Module({
-  imports: [
-    PrismaModule,
-    PromptTemplatesModule,
-    BookingsModule,
-    ConfigModule
-  ],
+  imports: [PrismaModule, PromptTemplatesModule, BookingsModule, ConfigModule],
   controllers: [AIReceptionistWebhookController, AIReceptionistDevController],
   providers: [
     AIReceptionistService,
@@ -30,22 +30,18 @@ import { AIReceptionistDevController } from './dev.controller';
     BookingTools,
     LeadManagementTools,
     GoogleCalendarConfigService,
-    WebhookSecurityMiddleware
+    WebhookSecurityMiddleware,
   ],
-  exports: [
-    AIReceptionistService,
-    AgentFactoryService,
-    AgentConfigService
-  ]
+  exports: [AIReceptionistService, AgentFactoryService, AgentConfigService],
 })
 export class AIReceptionistModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     // Apply webhook security middleware to webhook endpoints
     consumer
       .apply(WebhookSecurityMiddleware)
-      .forRoutes(
-        { path: 'ai-receptionist/webhooks/(.*)', method: RequestMethod.ALL }
-      );
+      .forRoutes({
+        path: 'ai-receptionist/webhooks/(.*)',
+        method: RequestMethod.ALL,
+      });
   }
 }
-

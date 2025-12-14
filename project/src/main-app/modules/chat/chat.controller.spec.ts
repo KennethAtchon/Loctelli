@@ -98,7 +98,10 @@ describe('ChatController', () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(mockLead);
       mockChatService.sendMessage.mockResolvedValue(mockResponse);
 
-      const result = await controller.sendMessage(chatMessageDto, mockAdminUser);
+      const result = await controller.sendMessage(
+        chatMessageDto,
+        mockAdminUser,
+      );
 
       expect(result).toEqual(mockResponse);
     });
@@ -106,17 +109,23 @@ describe('ChatController', () => {
     it('should throw HttpException when lead not found', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(null);
 
-      await expect(controller.sendMessage(chatMessageDto, mockUser)).rejects.toThrow(
-        new HttpException('Lead not found', HttpStatus.NOT_FOUND)
+      await expect(
+        controller.sendMessage(chatMessageDto, mockUser),
+      ).rejects.toThrow(
+        new HttpException('Lead not found', HttpStatus.NOT_FOUND),
       );
     });
 
     it('should throw HttpException when user does not have access', async () => {
       const leadWithDifferentUser = { ...mockLead, userId: 2 };
-      mockPrismaService.lead.findUnique.mockResolvedValue(leadWithDifferentUser);
+      mockPrismaService.lead.findUnique.mockResolvedValue(
+        leadWithDifferentUser,
+      );
 
-      await expect(controller.sendMessage(chatMessageDto, mockUser)).rejects.toThrow(
-        new HttpException('Access denied', HttpStatus.FORBIDDEN)
+      await expect(
+        controller.sendMessage(chatMessageDto, mockUser),
+      ).rejects.toThrow(
+        new HttpException('Access denied', HttpStatus.FORBIDDEN),
       );
     });
   });
@@ -129,7 +138,11 @@ describe('ChatController', () => {
 
     const mockMessages = [
       { role: 'user', content: 'Hello', timestamp: '2023-01-01T00:00:00Z' },
-      { role: 'assistant', content: 'Hi there!', timestamp: '2023-01-01T00:01:00Z' },
+      {
+        role: 'assistant',
+        content: 'Hi there!',
+        timestamp: '2023-01-01T00:01:00Z',
+      },
     ];
 
     it('should get messages when user owns the lead', async () => {
@@ -158,23 +171,28 @@ describe('ChatController', () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(null);
 
       await expect(controller.getMessages(999, mockUser)).rejects.toThrow(
-        new HttpException('Lead not found', HttpStatus.NOT_FOUND)
+        new HttpException('Lead not found', HttpStatus.NOT_FOUND),
       );
     });
 
     it('should throw HttpException when user does not have access', async () => {
       const leadWithDifferentUser = { ...mockLead, userId: 2 };
-      mockPrismaService.lead.findUnique.mockResolvedValue(leadWithDifferentUser);
+      mockPrismaService.lead.findUnique.mockResolvedValue(
+        leadWithDifferentUser,
+      );
 
       await expect(controller.getMessages(1, mockUser)).rejects.toThrow(
-        new HttpException('Access denied', HttpStatus.FORBIDDEN)
+        new HttpException('Access denied', HttpStatus.FORBIDDEN),
       );
     });
   });
 
   describe('markMessageAsRead', () => {
     it('should return placeholder response', async () => {
-      const result = await controller.markMessageAsRead('message-123', mockUser);
+      const result = await controller.markMessageAsRead(
+        'message-123',
+        mockUser,
+      );
 
       expect(result).toEqual({ message: 'Message marked as read' });
     });
@@ -216,17 +234,23 @@ describe('ChatController', () => {
     it('should throw HttpException when lead not found', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(null);
 
-      await expect(controller.getUnreadMessagesCount(999, mockUser)).rejects.toThrow(
-        new HttpException('Lead not found', HttpStatus.NOT_FOUND)
+      await expect(
+        controller.getUnreadMessagesCount(999, mockUser),
+      ).rejects.toThrow(
+        new HttpException('Lead not found', HttpStatus.NOT_FOUND),
       );
     });
 
     it('should throw HttpException when user does not have access', async () => {
       const leadWithDifferentUser = { ...mockLead, userId: 2 };
-      mockPrismaService.lead.findUnique.mockResolvedValue(leadWithDifferentUser);
+      mockPrismaService.lead.findUnique.mockResolvedValue(
+        leadWithDifferentUser,
+      );
 
-      await expect(controller.getUnreadMessagesCount(1, mockUser)).rejects.toThrow(
-        new HttpException('Access denied', HttpStatus.FORBIDDEN)
+      await expect(
+        controller.getUnreadMessagesCount(1, mockUser),
+      ).rejects.toThrow(
+        new HttpException('Access denied', HttpStatus.FORBIDDEN),
       );
     });
   });
@@ -260,16 +284,18 @@ describe('ChatController', () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(null);
 
       await expect(controller.markAllAsRead(999, mockUser)).rejects.toThrow(
-        new HttpException('Lead not found', HttpStatus.NOT_FOUND)
+        new HttpException('Lead not found', HttpStatus.NOT_FOUND),
       );
     });
 
     it('should throw HttpException when user does not have access', async () => {
       const leadWithDifferentUser = { ...mockLead, userId: 2 };
-      mockPrismaService.lead.findUnique.mockResolvedValue(leadWithDifferentUser);
+      mockPrismaService.lead.findUnique.mockResolvedValue(
+        leadWithDifferentUser,
+      );
 
       await expect(controller.markAllAsRead(1, mockUser)).rejects.toThrow(
-        new HttpException('Access denied', HttpStatus.FORBIDDEN)
+        new HttpException('Access denied', HttpStatus.FORBIDDEN),
       );
     });
   });
@@ -291,7 +317,9 @@ describe('ChatController', () => {
       const result = await controller.sendMessageByCustomId(sendMessageDto);
 
       expect(result).toEqual(mockResponse);
-      expect(chatService.sendMessageByCustomId).toHaveBeenCalledWith(sendMessageDto);
+      expect(chatService.sendMessageByCustomId).toHaveBeenCalledWith(
+        sendMessageDto,
+      );
     });
   });
 
@@ -341,17 +369,19 @@ describe('ChatController', () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(null);
 
       await expect(controller.clearLeadMessages(999, mockUser)).rejects.toThrow(
-        new HttpException('Lead not found', HttpStatus.NOT_FOUND)
+        new HttpException('Lead not found', HttpStatus.NOT_FOUND),
       );
     });
 
     it('should throw HttpException when user does not have access', async () => {
       const leadWithDifferentUser = { ...mockLead, userId: 2 };
-      mockPrismaService.lead.findUnique.mockResolvedValue(leadWithDifferentUser);
+      mockPrismaService.lead.findUnique.mockResolvedValue(
+        leadWithDifferentUser,
+      );
 
       await expect(controller.clearLeadMessages(1, mockUser)).rejects.toThrow(
-        new HttpException('Access denied', HttpStatus.FORBIDDEN)
+        new HttpException('Access denied', HttpStatus.FORBIDDEN),
       );
     });
   });
-}); 
+});

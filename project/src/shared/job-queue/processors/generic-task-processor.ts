@@ -13,7 +13,7 @@ export class GenericTaskProcessor extends BaseProcessor {
 
   async process(data: GenericTaskJobData): Promise<any> {
     this.logStart('Generic Task', { taskName: data.taskName });
-    
+
     try {
       let result: any;
 
@@ -43,26 +43,33 @@ export class GenericTaskProcessor extends BaseProcessor {
   private async executeServiceMethod(data: GenericTaskJobData): Promise<any> {
     try {
       // Get service method from registry
-      const method = this.serviceRegistry.getServiceMethod(data.serviceName!, data.functionName);
-      
+      const method = this.serviceRegistry.getServiceMethod(
+        data.serviceName!,
+        data.functionName,
+      );
+
       if (!method) {
         const availableServices = this.serviceRegistry.getRegisteredServices();
-        const availableMethods = this.serviceRegistry.hasService(data.serviceName!) 
+        const availableMethods = this.serviceRegistry.hasService(
+          data.serviceName!,
+        )
           ? this.serviceRegistry.getServiceMethods(data.serviceName!)
           : [];
-        
+
         throw new Error(
           `Service method '${data.serviceName}.${data.functionName}' not found in registry.\n` +
-          `Available services: ${availableServices.join(', ')}\n` +
-          `Available methods for ${data.serviceName}: ${availableMethods.join(', ')}`
+            `Available services: ${availableServices.join(', ')}\n` +
+            `Available methods for ${data.serviceName}: ${availableMethods.join(', ')}`,
         );
       }
 
-      this.logger.log(`📞 Calling ${data.serviceName}.${data.functionName}() via registry`);
-      
+      this.logger.log(
+        `📞 Calling ${data.serviceName}.${data.functionName}() via registry`,
+      );
+
       // Execute the method with provided parameters
       const result = await method(...data.parameters);
-      
+
       return result;
     } catch (error) {
       this.logger.error(`Failed to execute service method:`, error);
@@ -70,20 +77,24 @@ export class GenericTaskProcessor extends BaseProcessor {
     }
   }
 
-  private async executeStandaloneFunction(data: GenericTaskJobData): Promise<any> {
+  private async executeStandaloneFunction(
+    data: GenericTaskJobData,
+  ): Promise<any> {
     try {
       // For standalone functions, we'll need to maintain a registry
       const taskRegistry = this.getTaskRegistry();
-      
+
       if (!taskRegistry[data.functionName]) {
-        throw new Error(`Function '${data.functionName}' not found in task registry`);
+        throw new Error(
+          `Function '${data.functionName}' not found in task registry`,
+        );
       }
 
       this.logger.log(`🔧 Executing function ${data.functionName}()`);
-      
+
       const func = taskRegistry[data.functionName];
       const result = await func(...data.parameters, data.context || {});
-      
+
       return result;
     } catch (error) {
       this.logger.error(`Failed to execute standalone function:`, error);
@@ -99,26 +110,32 @@ export class GenericTaskProcessor extends BaseProcessor {
     return {
       // Example functions
       delay: async (ms: number) => {
-        await new Promise(resolve => setTimeout(resolve, ms));
+        await new Promise((resolve) => setTimeout(resolve, ms));
         return { message: `Delayed for ${ms}ms`, completedAt: new Date() };
       },
-      
+
       calculateSum: async (numbers: number[]) => {
         const sum = numbers.reduce((a, b) => a + b, 0);
         return { numbers, sum };
       },
-      
+
       processData: async (data: any[], operation: string, context: any) => {
         switch (operation) {
           case 'count':
             return { count: data.length, operation };
           case 'filter':
-            const filtered = data.filter(item => 
-              context.filterKey ? item[context.filterKey] === context.filterValue : true
+            const filtered = data.filter((item) =>
+              context.filterKey
+                ? item[context.filterKey] === context.filterValue
+                : true,
             );
-            return { original: data.length, filtered: filtered.length, data: filtered };
+            return {
+              original: data.length,
+              filtered: filtered.length,
+              data: filtered,
+            };
           case 'transform':
-            const transformed = data.map(item => ({
+            const transformed = data.map((item) => ({
               ...item,
               processed: true,
               processedAt: new Date(),
@@ -129,16 +146,21 @@ export class GenericTaskProcessor extends BaseProcessor {
         }
       },
 
-      sendNotification: async (type: string, recipients: string[], message: string, context: any) => {
+      sendNotification: async (
+        type: string,
+        recipients: string[],
+        message: string,
+        context: any,
+      ) => {
         // Simulate notification sending
-        const results = recipients.map(recipient => ({
+        const results = recipients.map((recipient) => ({
           recipient,
           type,
           message,
           sent: true,
           sentAt: new Date(),
         }));
-        
+
         return {
           type,
           totalRecipients: recipients.length,
@@ -147,11 +169,15 @@ export class GenericTaskProcessor extends BaseProcessor {
         };
       },
 
-      cleanupOldData: async (tableName: string, daysOld: number, context: any) => {
+      cleanupOldData: async (
+        tableName: string,
+        daysOld: number,
+        context: any,
+      ) => {
         // Simulate data cleanup
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - daysOld);
-        
+
         return {
           tableName,
           cutoffDate,
@@ -160,7 +186,11 @@ export class GenericTaskProcessor extends BaseProcessor {
         };
       },
 
-      generateReport: async (reportType: string, filters: any, context: any) => {
+      generateReport: async (
+        reportType: string,
+        filters: any,
+        context: any,
+      ) => {
         // Simulate report generation
         return {
           reportType,
@@ -175,8 +205,8 @@ export class GenericTaskProcessor extends BaseProcessor {
       // Custom async task example
       customAsyncTask: async (taskId: string, data: any, context: any) => {
         // Your custom logic here
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate work
-        
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate work
+
         return {
           taskId,
           processedData: data,

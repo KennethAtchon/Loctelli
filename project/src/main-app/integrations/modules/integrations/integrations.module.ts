@@ -10,4 +10,4 @@ import { GhlModule } from '../../ghl-integrations/ghl/ghl.module';
   providers: [IntegrationsService],
   exports: [IntegrationsService],
 })
-export class IntegrationsModule {} 
+export class IntegrationsModule {}

@@ -1,4 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, HttpException, HttpStatus, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseIntPipe,
+  HttpException,
+  HttpStatus,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -21,9 +34,15 @@ export class UsersController {
     // For regular users, they can only create users in their own SubAccount
     if (isAdminAccount(user)) {
       if (!createUserDto.subAccountId) {
-        throw new HttpException('subAccountId is required for admin user creation', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          'subAccountId is required for admin user creation',
+          HttpStatus.BAD_REQUEST,
+        );
       }
-      return this.usersService.create(createUserDto, createUserDto.subAccountId);
+      return this.usersService.create(
+        createUserDto,
+        createUserDto.subAccountId,
+      );
     } else {
       // Regular users can only create users in their own SubAccount
       return this.usersService.create(createUserDto, user.subAccountId);
@@ -31,12 +50,19 @@ export class UsersController {
   }
 
   @Get()
-  findAll(@CurrentUser() user, @Query('userId') userId?: string, @Query('subAccountId') subAccountId?: string) {
+  findAll(
+    @CurrentUser() user,
+    @Query('userId') userId?: string,
+    @Query('subAccountId') subAccountId?: string,
+  ) {
     // If userId is provided, check if current user has permission to view that user's data
     if (userId) {
       const parsedUserId = parseInt(userId, 10);
       if (isNaN(parsedUserId)) {
-        throw new HttpException('Invalid userId parameter', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          'Invalid userId parameter',
+          HttpStatus.BAD_REQUEST,
+        );
       }
       // Only allow viewing own data unless admin
       if (!isAdminOrSuperAdmin(user) && user.userId !== parsedUserId) {
@@ -44,11 +70,13 @@ export class UsersController {
       }
       return this.usersService.findOne(parsedUserId);
     }
-    
+
     // Handle SubAccount filtering
     if (isAdminAccount(user)) {
       // Admin can view users in specific SubAccount or all their SubAccounts
-      const parsedSubAccountId = subAccountId ? parseInt(subAccountId, 10) : undefined;
+      const parsedSubAccountId = subAccountId
+        ? parseInt(subAccountId, 10)
+        : undefined;
       if (parsedSubAccountId) {
         return this.usersService.findAllBySubAccount(parsedSubAccountId);
       } else {
@@ -74,7 +102,7 @@ export class UsersController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
-    @CurrentUser() user
+    @CurrentUser() user,
   ) {
     // Only allow updating own data unless admin
     if (!isAdminOrSuperAdmin(user) && user.userId !== id) {
@@ -108,9 +136,14 @@ export class UsersController {
   async updateUserBookingsTime(
     @Param('id', ParseIntPipe) userId: number,
     @Body() updateData: { bookingsTime: any },
-    @CurrentUser() currentUser: any
+    @CurrentUser() currentUser: any,
   ) {
-    return this.usersService.updateUserBookingsTime(userId, updateData.bookingsTime, currentUser.userId, currentUser.role);
+    return this.usersService.updateUserBookingsTime(
+      userId,
+      updateData.bookingsTime,
+      currentUser.userId,
+      currentUser.role,
+    );
   }
 
   /**
@@ -121,8 +154,12 @@ export class UsersController {
   @Roles('admin', 'super_admin')
   async getUserBookingsTime(
     @Param('id', ParseIntPipe) userId: number,
-    @CurrentUser() currentUser: any
+    @CurrentUser() currentUser: any,
   ) {
-    return this.usersService.getUserBookingsTime(userId, currentUser.userId, currentUser.role);
+    return this.usersService.getUserBookingsTime(
+      userId,
+      currentUser.userId,
+      currentUser.role,
+    );
   }
 }

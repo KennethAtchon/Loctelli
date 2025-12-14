@@ -11,77 +11,119 @@ export class TimezoneDetectorService {
   // US State to primary timezone mapping (IANA timezone identifiers)
   private readonly stateTimezones: Record<string, string> = {
     // Eastern Time
-    'CT': 'America/New_York', 'DE': 'America/New_York', 'FL': 'America/New_York',
-    'GA': 'America/New_York', 'ME': 'America/New_York', 'MD': 'America/New_York',
-    'MA': 'America/New_York', 'NH': 'America/New_York', 'NJ': 'America/New_York',
-    'NY': 'America/New_York', 'NC': 'America/New_York', 'OH': 'America/New_York',
-    'PA': 'America/New_York', 'RI': 'America/New_York', 'SC': 'America/New_York',
-    'VT': 'America/New_York', 'VA': 'America/New_York', 'WV': 'America/New_York',
-    'DC': 'America/New_York',
+    CT: 'America/New_York',
+    DE: 'America/New_York',
+    FL: 'America/New_York',
+    GA: 'America/New_York',
+    ME: 'America/New_York',
+    MD: 'America/New_York',
+    MA: 'America/New_York',
+    NH: 'America/New_York',
+    NJ: 'America/New_York',
+    NY: 'America/New_York',
+    NC: 'America/New_York',
+    OH: 'America/New_York',
+    PA: 'America/New_York',
+    RI: 'America/New_York',
+    SC: 'America/New_York',
+    VT: 'America/New_York',
+    VA: 'America/New_York',
+    WV: 'America/New_York',
+    DC: 'America/New_York',
 
     // Central Time
-    'AL': 'America/Chicago', 'AR': 'America/Chicago', 'IL': 'America/Chicago',
-    'IA': 'America/Chicago', 'KS': 'America/Chicago', 'KY': 'America/Chicago',
-    'LA': 'America/Chicago', 'MN': 'America/Chicago', 'MS': 'America/Chicago',
-    'MO': 'America/Chicago', 'NE': 'America/Chicago', 'ND': 'America/Chicago',
-    'OK': 'America/Chicago', 'SD': 'America/Chicago', 'TN': 'America/Chicago',
-    'TX': 'America/Chicago', 'WI': 'America/Chicago',
+    AL: 'America/Chicago',
+    AR: 'America/Chicago',
+    IL: 'America/Chicago',
+    IA: 'America/Chicago',
+    KS: 'America/Chicago',
+    KY: 'America/Chicago',
+    LA: 'America/Chicago',
+    MN: 'America/Chicago',
+    MS: 'America/Chicago',
+    MO: 'America/Chicago',
+    NE: 'America/Chicago',
+    ND: 'America/Chicago',
+    OK: 'America/Chicago',
+    SD: 'America/Chicago',
+    TN: 'America/Chicago',
+    TX: 'America/Chicago',
+    WI: 'America/Chicago',
 
     // Mountain Time
-    'AZ': 'America/Phoenix', 'CO': 'America/Denver', 'ID': 'America/Denver',
-    'MT': 'America/Denver', 'NM': 'America/Denver', 'UT': 'America/Denver',
-    'WY': 'America/Denver',
+    AZ: 'America/Phoenix',
+    CO: 'America/Denver',
+    ID: 'America/Denver',
+    MT: 'America/Denver',
+    NM: 'America/Denver',
+    UT: 'America/Denver',
+    WY: 'America/Denver',
 
     // Pacific Time
-    'CA': 'America/Los_Angeles', 'NV': 'America/Los_Angeles',
-    'OR': 'America/Los_Angeles', 'WA': 'America/Los_Angeles',
+    CA: 'America/Los_Angeles',
+    NV: 'America/Los_Angeles',
+    OR: 'America/Los_Angeles',
+    WA: 'America/Los_Angeles',
 
     // Alaska Time
-    'AK': 'America/Anchorage',
+    AK: 'America/Anchorage',
 
     // Hawaii Time
-    'HI': 'Pacific/Honolulu',
+    HI: 'Pacific/Honolulu',
   };
 
   // US Postal code ranges to timezone mapping (first 3 digits)
   private readonly postalCodeRanges: Record<string, string> = {
     // Eastern Time (ranges 006-199, 220-268, 270-329, 369-397, 400-549)
-    '006': 'America/New_York', '007': 'America/New_York', '008': 'America/New_York',
-    '009': 'America/New_York', '010': 'America/New_York', '011': 'America/New_York',
-    '012': 'America/New_York', '013': 'America/New_York', '014': 'America/New_York',
+    '006': 'America/New_York',
+    '007': 'America/New_York',
+    '008': 'America/New_York',
+    '009': 'America/New_York',
+    '010': 'America/New_York',
+    '011': 'America/New_York',
+    '012': 'America/New_York',
+    '013': 'America/New_York',
+    '014': 'America/New_York',
 
     // Central Time (ranges 350-368, 500-567, 600-658, 700-729, 730-799, 850-885)
-    '350': 'America/Chicago', '351': 'America/Chicago', '352': 'America/Chicago',
+    '350': 'America/Chicago',
+    '351': 'America/Chicago',
+    '352': 'America/Chicago',
 
     // Mountain Time (ranges 569-599, 800-847, 820-831, 832-838, 870-884, 889-891)
-    '800': 'America/Denver', '801': 'America/Denver', '802': 'America/Denver',
+    '800': 'America/Denver',
+    '801': 'America/Denver',
+    '802': 'America/Denver',
 
     // Pacific Time (ranges 900-961)
-    '900': 'America/Los_Angeles', '901': 'America/Los_Angeles',
+    '900': 'America/Los_Angeles',
+    '901': 'America/Los_Angeles',
 
     // Alaska (ranges 995-999)
-    '995': 'America/Anchorage', '996': 'America/Anchorage',
+    '995': 'America/Anchorage',
+    '996': 'America/Anchorage',
 
     // Hawaii (ranges 967-968)
-    '967': 'Pacific/Honolulu', '968': 'Pacific/Honolulu',
+    '967': 'Pacific/Honolulu',
+    '968': 'Pacific/Honolulu',
   };
 
   // Country to default timezone mapping
   private readonly countryTimezones: Record<string, string> = {
-    'US': 'America/New_York', // Default to Eastern for US
-    'CA': 'America/Toronto', // Canada
-    'MX': 'America/Mexico_City', // Mexico
-    'GB': 'Europe/London', // United Kingdom
-    'DE': 'Europe/Berlin', // Germany
-    'FR': 'Europe/Paris', // France
-    'ES': 'Europe/Madrid', // Spain
-    'IT': 'Europe/Rome', // Italy
-    'AU': 'Australia/Sydney', // Australia
-    'NZ': 'Pacific/Auckland', // New Zealand
-    'JP': 'Asia/Tokyo', // Japan
-    'CN': 'Asia/Shanghai', // China
-    'IN': 'Asia/Kolkata', // India
-    'BR': 'America/Sao_Paulo', // Brazil
+    US: 'America/New_York', // Default to Eastern for US
+    CA: 'America/Toronto', // Canada
+    MX: 'America/Mexico_City', // Mexico
+    GB: 'Europe/London', // United Kingdom
+    DE: 'Europe/Berlin', // Germany
+    FR: 'Europe/Paris', // France
+    ES: 'Europe/Madrid', // Spain
+    IT: 'Europe/Rome', // Italy
+    AU: 'Australia/Sydney', // Australia
+    NZ: 'Pacific/Auckland', // New Zealand
+    JP: 'Asia/Tokyo', // Japan
+    CN: 'Asia/Shanghai', // China
+    IN: 'Asia/Kolkata', // India
+    BR: 'America/Sao_Paulo', // Brazil
   };
 
   /**
@@ -96,13 +138,17 @@ export class TimezoneDetectorService {
   }): string | null {
     const { postalCode, state, city, country } = params;
 
-    this.logger.debug(`Detecting timezone for: postalCode=${postalCode}, state=${state}, city=${city}, country=${country}`);
+    this.logger.debug(
+      `Detecting timezone for: postalCode=${postalCode}, state=${state}, city=${city}, country=${country}`,
+    );
 
     // Try postal code first (most accurate for US)
     if (postalCode) {
       const timezone = this.getTimezoneFromPostalCode(postalCode);
       if (timezone) {
-        this.logger.log(`Detected timezone ${timezone} from postal code ${postalCode}`);
+        this.logger.log(
+          `Detected timezone ${timezone} from postal code ${postalCode}`,
+        );
         return timezone;
       }
     }
@@ -120,7 +166,9 @@ export class TimezoneDetectorService {
     if (country) {
       const timezone = this.getTimezoneFromCountry(country);
       if (timezone) {
-        this.logger.log(`Detected timezone ${timezone} from country ${country}`);
+        this.logger.log(
+          `Detected timezone ${timezone} from country ${country}`,
+        );
         return timezone;
       }
     }

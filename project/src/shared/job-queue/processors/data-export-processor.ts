@@ -11,7 +11,7 @@ export class DataExportProcessor extends BaseProcessor {
 
   async process(data: DataExportJobData): Promise<any> {
     this.logStart('Data Export', data);
-    
+
     try {
       let exportData: any[];
       let filename: string;
@@ -55,7 +55,7 @@ export class DataExportProcessor extends BaseProcessor {
 
   private async exportLeads(data: DataExportJobData): Promise<any[]> {
     const where: any = { subAccountId: data.subAccountId };
-    
+
     if (data.filters) {
       Object.assign(where, data.filters);
     }
@@ -77,7 +77,7 @@ export class DataExportProcessor extends BaseProcessor {
 
   private async exportBookings(data: DataExportJobData): Promise<any[]> {
     const where: any = { subAccountId: data.subAccountId };
-    
+
     if (data.filters) {
       Object.assign(where, data.filters);
     }
@@ -99,7 +99,7 @@ export class DataExportProcessor extends BaseProcessor {
 
   private async exportUsers(data: DataExportJobData): Promise<any[]> {
     const where: any = { subAccountId: data.subAccountId };
-    
+
     if (data.filters) {
       Object.assign(where, data.filters);
     }
@@ -117,13 +117,16 @@ export class DataExportProcessor extends BaseProcessor {
     });
   }
 
-  private buildSelectClause(requestedColumns?: string[], defaultSelect?: Record<string, boolean>): Record<string, boolean> {
+  private buildSelectClause(
+    requestedColumns?: string[],
+    defaultSelect?: Record<string, boolean>,
+  ): Record<string, boolean> {
     if (!requestedColumns || requestedColumns.length === 0) {
       return defaultSelect || { id: true };
     }
 
     const select: Record<string, boolean> = {};
-    requestedColumns.forEach(column => {
+    requestedColumns.forEach((column) => {
       select[column] = true;
     });
 
@@ -149,11 +152,14 @@ export class DataExportProcessor extends BaseProcessor {
     const headers = Object.keys(data[0]);
     const csvRows = [headers.join(',')];
 
-    data.forEach(row => {
-      const values = headers.map(header => {
+    data.forEach((row) => {
+      const values = headers.map((header) => {
         const value = row[header];
         if (value === null || value === undefined) return '';
-        if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+        if (
+          typeof value === 'string' &&
+          (value.includes(',') || value.includes('"'))
+        ) {
           return `"${value.replace(/"/g, '""')}"`;
         }
         return String(value);

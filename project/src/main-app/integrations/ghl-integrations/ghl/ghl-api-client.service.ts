@@ -12,7 +12,7 @@ export class GhlApiClientService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly encryptionService: EncryptionService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -22,7 +22,7 @@ export class GhlApiClientService {
    */
   private async createGhlClient(integrationId: number): Promise<HighLevel> {
     const integration = await this.prisma.integration.findUnique({
-      where: { id: integrationId }
+      where: { id: integrationId },
     });
 
     if (!integration) {
@@ -33,11 +33,18 @@ export class GhlApiClientService {
 
     // Decrypt the API key and other credentials
     const apiKey = this.encryptionService.safeDecrypt(config.apiKey);
-    const clientId = config.clientId ? this.encryptionService.safeDecrypt(config.clientId) : undefined;
-    const clientSecret = config.clientSecret ? this.encryptionService.safeDecrypt(config.clientSecret) : undefined;
+    const clientId = config.clientId
+      ? this.encryptionService.safeDecrypt(config.clientId)
+      : undefined;
+    const clientSecret = config.clientSecret
+      ? this.encryptionService.safeDecrypt(config.clientSecret)
+      : undefined;
 
     if (!apiKey) {
-      throw new HttpException('API key not found or could not be decrypted', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'API key not found or could not be decrypted',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     // Create client configuration
@@ -67,26 +74,35 @@ export class GhlApiClientService {
    * @param searchParams Search parameters
    * @returns List of locations
    */
-  async searchLocations(integrationId: number, searchParams: {
-    companyId?: string;
-    skip?: string;
-    limit?: string;
-    order?: string;
-    email?: string;
-  } = {}) {
+  async searchLocations(
+    integrationId: number,
+    searchParams: {
+      companyId?: string;
+      skip?: string;
+      limit?: string;
+      order?: string;
+      email?: string;
+    } = {},
+  ) {
     try {
-      this.logger.log(`Searching locations from GoHighLevel API for integration ${integrationId}`);
+      this.logger.log(
+        `Searching locations from GoHighLevel API for integration ${integrationId}`,
+      );
 
       const client = await this.createGhlClient(integrationId);
       const response = await client.locations.searchLocations(searchParams);
 
-      this.logger.log(`Successfully fetched ${response.locations?.length || 0} locations`);
+      this.logger.log(
+        `Successfully fetched ${response.locations?.length || 0} locations`,
+      );
       return response;
     } catch (error) {
-      this.logger.error(`Error searching locations for integration ${integrationId}: ${error.message}`);
+      this.logger.error(
+        `Error searching locations for integration ${integrationId}: ${error.message}`,
+      );
       throw new HttpException(
         `Failed to search locations: ${error.message}`,
-        error.status || HttpStatus.BAD_GATEWAY
+        error.status || HttpStatus.BAD_GATEWAY,
       );
     }
   }
@@ -99,17 +115,21 @@ export class GhlApiClientService {
    */
   async getLocation(integrationId: number, locationId: string) {
     try {
-      this.logger.log(`Fetching location ${locationId} for integration ${integrationId}`);
+      this.logger.log(
+        `Fetching location ${locationId} for integration ${integrationId}`,
+      );
 
       const client = await this.createGhlClient(integrationId);
       const response = await client.locations.getLocation({ locationId });
 
       return response;
     } catch (error) {
-      this.logger.error(`Error fetching location ${locationId}: ${error.message}`);
+      this.logger.error(
+        `Error fetching location ${locationId}: ${error.message}`,
+      );
       throw new HttpException(
         `Failed to fetch location: ${error.message}`,
-        error.status || HttpStatus.BAD_GATEWAY
+        error.status || HttpStatus.BAD_GATEWAY,
       );
     }
   }
@@ -121,25 +141,31 @@ export class GhlApiClientService {
    * @param options Optional parameters
    * @returns List of calendars
    */
-  async getCalendars(integrationId: number, locationId: string, options: {
-    groupId?: string;
-    showDrafted?: boolean;
-  } = {}) {
+  async getCalendars(
+    integrationId: number,
+    locationId: string,
+    options: {
+      groupId?: string;
+      showDrafted?: boolean;
+    } = {},
+  ) {
     try {
       this.logger.log(`Fetching calendars for location ${locationId}`);
 
       const client = await this.createGhlClient(integrationId);
       const response = await client.calendars.getCalendars({
         locationId,
-        ...options
+        ...options,
       });
 
       return response;
     } catch (error) {
-      this.logger.error(`Error fetching calendars for location ${locationId}: ${error.message}`);
+      this.logger.error(
+        `Error fetching calendars for location ${locationId}: ${error.message}`,
+      );
       throw new HttpException(
         `Failed to fetch calendars: ${error.message}`,
-        error.status || HttpStatus.BAD_GATEWAY
+        error.status || HttpStatus.BAD_GATEWAY,
       );
     }
   }
@@ -150,15 +176,20 @@ export class GhlApiClientService {
    * @param blockSlotData Block slot data
    * @returns Created block slot
    */
-  async createBlockSlot(integrationId: number, blockSlotData: {
-    calendarId: string;
-    locationId: string;
-    startTime: string;
-    endTime: string;
-    title: string;
-  }) {
+  async createBlockSlot(
+    integrationId: number,
+    blockSlotData: {
+      calendarId: string;
+      locationId: string;
+      startTime: string;
+      endTime: string;
+      title: string;
+    },
+  ) {
     try {
-      this.logger.log(`Creating block slot for calendar ${blockSlotData.calendarId}`);
+      this.logger.log(
+        `Creating block slot for calendar ${blockSlotData.calendarId}`,
+      );
 
       const client = await this.createGhlClient(integrationId);
       const response = await client.calendars.createBlockSlot(blockSlotData);
@@ -168,7 +199,7 @@ export class GhlApiClientService {
       this.logger.error(`Error creating block slot: ${error.message}`);
       throw new HttpException(
         `Failed to create block slot: ${error.message}`,
-        error.status || HttpStatus.BAD_GATEWAY
+        error.status || HttpStatus.BAD_GATEWAY,
       );
     }
   }
@@ -179,27 +210,33 @@ export class GhlApiClientService {
    * @param appointmentData Appointment data
    * @returns Created appointment
    */
-  async createAppointment(integrationId: number, appointmentData: {
-    calendarId: string;
-    locationId: string;
-    contactId: string;
-    startTime: string;
-    endTime: string;
-    title: string;
-    description?: string;
-  }) {
+  async createAppointment(
+    integrationId: number,
+    appointmentData: {
+      calendarId: string;
+      locationId: string;
+      contactId: string;
+      startTime: string;
+      endTime: string;
+      title: string;
+      description?: string;
+    },
+  ) {
     try {
-      this.logger.log(`Creating appointment for calendar ${appointmentData.calendarId}`);
+      this.logger.log(
+        `Creating appointment for calendar ${appointmentData.calendarId}`,
+      );
 
       const client = await this.createGhlClient(integrationId);
-      const response = await client.calendars.createAppointment(appointmentData);
+      const response =
+        await client.calendars.createAppointment(appointmentData);
 
       return response;
     } catch (error) {
       this.logger.error(`Error creating appointment: ${error.message}`);
       throw new HttpException(
         `Failed to create appointment: ${error.message}`,
-        error.status || HttpStatus.BAD_GATEWAY
+        error.status || HttpStatus.BAD_GATEWAY,
       );
     }
   }
@@ -210,30 +247,36 @@ export class GhlApiClientService {
    * @param searchParams Search parameters
    * @returns List of opportunities
    */
-  async searchOpportunities(integrationId: number, searchParams: {
-    locationId: string;
-    q?: string;
-    pipelineId?: string;
-    pipelineStageId?: string;
-    contactId?: string;
-    status?: string;
-    assignedTo?: string;
-    campaignId?: string;
-    page?: number;
-    limit?: number;
-  }) {
+  async searchOpportunities(
+    integrationId: number,
+    searchParams: {
+      locationId: string;
+      q?: string;
+      pipelineId?: string;
+      pipelineStageId?: string;
+      contactId?: string;
+      status?: string;
+      assignedTo?: string;
+      campaignId?: string;
+      page?: number;
+      limit?: number;
+    },
+  ) {
     try {
-      this.logger.log(`Searching opportunities for location ${searchParams.locationId}`);
+      this.logger.log(
+        `Searching opportunities for location ${searchParams.locationId}`,
+      );
 
       const client = await this.createGhlClient(integrationId);
-      const response = await client.opportunities.searchOpportunity(searchParams);
+      const response =
+        await client.opportunities.searchOpportunity(searchParams);
 
       return response;
     } catch (error) {
       this.logger.error(`Error searching opportunities: ${error.message}`);
       throw new HttpException(
         `Failed to search opportunities: ${error.message}`,
-        error.status || HttpStatus.BAD_GATEWAY
+        error.status || HttpStatus.BAD_GATEWAY,
       );
     }
   }
@@ -249,14 +292,18 @@ export class GhlApiClientService {
       this.logger.log(`Fetching opportunity ${opportunityId}`);
 
       const client = await this.createGhlClient(integrationId);
-      const response = await client.opportunities.getOpportunity({ id: opportunityId });
+      const response = await client.opportunities.getOpportunity({
+        id: opportunityId,
+      });
 
       return response;
     } catch (error) {
-      this.logger.error(`Error fetching opportunity ${opportunityId}: ${error.message}`);
+      this.logger.error(
+        `Error fetching opportunity ${opportunityId}: ${error.message}`,
+      );
       throw new HttpException(
         `Failed to fetch opportunity: ${error.message}`,
-        error.status || HttpStatus.BAD_GATEWAY
+        error.status || HttpStatus.BAD_GATEWAY,
       );
     }
   }
@@ -267,27 +314,33 @@ export class GhlApiClientService {
    * @param opportunityData Opportunity data
    * @returns Created opportunity
    */
-  async createOpportunity(integrationId: number, opportunityData: {
-    locationId: string;
-    pipelineId: string;
-    pipelineStageId: string;
-    name: string;
-    status: string;
-    monetaryValue?: number;
-    contactId: string;
-  }) {
+  async createOpportunity(
+    integrationId: number,
+    opportunityData: {
+      locationId: string;
+      pipelineId: string;
+      pipelineStageId: string;
+      name: string;
+      status: string;
+      monetaryValue?: number;
+      contactId: string;
+    },
+  ) {
     try {
-      this.logger.log(`Creating opportunity for location ${opportunityData.locationId}`);
+      this.logger.log(
+        `Creating opportunity for location ${opportunityData.locationId}`,
+      );
 
       const client = await this.createGhlClient(integrationId);
-      const response = await client.opportunities.createOpportunity(opportunityData);
+      const response =
+        await client.opportunities.createOpportunity(opportunityData);
 
       return response;
     } catch (error) {
       this.logger.error(`Error creating opportunity: ${error.message}`);
       throw new HttpException(
         `Failed to create opportunity: ${error.message}`,
-        error.status || HttpStatus.BAD_GATEWAY
+        error.status || HttpStatus.BAD_GATEWAY,
       );
     }
   }
@@ -297,26 +350,28 @@ export class GhlApiClientService {
    * @param integrationId Integration ID
    * @returns Connection test result
    */
-  async testConnection(integrationId: number): Promise<{success: boolean, message: string, data?: any}> {
+  async testConnection(
+    integrationId: number,
+  ): Promise<{ success: boolean; message: string; data?: any }> {
     try {
       const client = await this.createGhlClient(integrationId);
 
       // Try to search locations with minimal parameters
       const response = await client.locations.searchLocations({
-        limit: '1'
+        limit: '1',
       });
 
       return {
         success: true,
         message: 'Successfully connected to GoHighLevel',
         data: {
-          locationsCount: response.locations?.length || 0
-        }
+          locationsCount: response.locations?.length || 0,
+        },
       };
     } catch (error) {
       return {
         success: false,
-        message: `Connection failed: ${error.message}`
+        message: `Connection failed: ${error.message}`,
       };
     }
   }
@@ -331,13 +386,13 @@ export class GhlApiClientService {
       where: {
         config: {
           path: ['locationId'],
-          equals: locationId
-        }
+          equals: locationId,
+        },
       },
       include: {
         subAccount: true,
-        integrationTemplate: true
-      }
+        integrationTemplate: true,
+      },
     });
   }
 
@@ -351,16 +406,16 @@ export class GhlApiClientService {
     const integration = await this.prisma.integration.findFirst({
       where: {
         integrationTemplate: {
-          name: 'gohighlevel'
+          name: 'gohighlevel',
         },
-        status: 'active'
-      }
+        status: 'active',
+      },
     });
 
     if (!integration) {
       throw new HttpException(
         'No active GoHighLevel integration found. Please set up a GHL integration first.',
-        HttpStatus.NOT_FOUND
+        HttpStatus.NOT_FOUND,
       );
     }
 

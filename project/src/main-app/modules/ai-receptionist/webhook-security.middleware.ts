@@ -1,4 +1,9 @@
-import { Injectable, NestMiddleware, UnauthorizedException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NestMiddleware,
+  UnauthorizedException,
+  Logger,
+} from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { ConfigService } from '@nestjs/config';
 
@@ -22,7 +27,8 @@ export class WebhookSecurityMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: NextFunction) {
     const clientIP = this.getClientIP(req);
-    const enableIPWhitelist = this.configService.get<string>('ENABLE_WEBHOOK_IP_WHITELIST') === 'true';
+    const enableIPWhitelist =
+      this.configService.get<string>('ENABLE_WEBHOOK_IP_WHITELIST') === 'true';
     const webhookUsername = this.configService.get<string>('WEBHOOK_USERNAME');
     const webhookPassword = this.configService.get<string>('WEBHOOK_PASSWORD');
 
@@ -30,15 +36,22 @@ export class WebhookSecurityMiddleware implements NestMiddleware {
     if (webhookUsername && webhookPassword) {
       const authHeader = req.headers.authorization;
       if (!authHeader || !authHeader.startsWith('Basic ')) {
-        this.logger.warn(`❌ Webhook blocked - Missing basic auth: ${clientIP}`);
+        this.logger.warn(
+          `❌ Webhook blocked - Missing basic auth: ${clientIP}`,
+        );
         throw new UnauthorizedException('Authentication required');
       }
 
-      const credentials = Buffer.from(authHeader.substring(6), 'base64').toString('utf-8');
+      const credentials = Buffer.from(
+        authHeader.substring(6),
+        'base64',
+      ).toString('utf-8');
       const [username, password] = credentials.split(':');
 
       if (username !== webhookUsername || password !== webhookPassword) {
-        this.logger.warn(`❌ Webhook blocked - Invalid credentials from IP: ${clientIP}`);
+        this.logger.warn(
+          `❌ Webhook blocked - Invalid credentials from IP: ${clientIP}`,
+        );
         throw new UnauthorizedException('Invalid credentials');
       }
     }
@@ -46,7 +59,9 @@ export class WebhookSecurityMiddleware implements NestMiddleware {
     // IP whitelist check for email webhooks (if enabled)
     if (enableIPWhitelist && req.path.includes('/webhooks/email')) {
       if (!this.POSTMARK_IPS.includes(clientIP)) {
-        this.logger.warn(`❌ Webhook blocked - IP not whitelisted: ${clientIP}`);
+        this.logger.warn(
+          `❌ Webhook blocked - IP not whitelisted: ${clientIP}`,
+        );
         throw new UnauthorizedException('IP not whitelisted');
       }
     }
@@ -66,4 +81,3 @@ export class WebhookSecurityMiddleware implements NestMiddleware {
     );
   }
 }
-

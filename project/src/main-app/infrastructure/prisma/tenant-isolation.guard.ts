@@ -1,4 +1,10 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Logger,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
 /**
@@ -30,7 +36,10 @@ export class TenantIsolationGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     // Check if this endpoint bypasses tenant isolation
     const handler = context.getHandler();
-    const bypassIsolation = Reflect.getMetadata('bypassTenantIsolation', handler);
+    const bypassIsolation = Reflect.getMetadata(
+      'bypassTenantIsolation',
+      handler,
+    );
 
     if (bypassIsolation) {
       this.logger.debug('Bypassing tenant isolation for admin operation');
@@ -47,7 +56,9 @@ export class TenantIsolationGuard implements CanActivate {
 
     // Regular users must have a subAccountId
     if (!user?.subAccountId) {
-      this.logger.error(`User ${user?.userId} attempted access without subAccountId`);
+      this.logger.error(
+        `User ${user?.userId} attempted access without subAccountId`,
+      );
       throw new ForbiddenException('Tenant context required');
     }
 
@@ -55,20 +66,30 @@ export class TenantIsolationGuard implements CanActivate {
     const subAccountIdInParams = request.params?.subAccountId;
     const subAccountIdInBody = request.body?.subAccountId;
 
-    if (subAccountIdInParams && parseInt(subAccountIdInParams) !== user.subAccountId) {
+    if (
+      subAccountIdInParams &&
+      parseInt(subAccountIdInParams) !== user.subAccountId
+    ) {
       this.logger.error(
         `User ${user.userId} (subAccount ${user.subAccountId}) ` +
-        `attempted to access subAccount ${subAccountIdInParams}`
+          `attempted to access subAccount ${subAccountIdInParams}`,
       );
-      throw new ForbiddenException('Access denied: Cannot access other tenant data');
+      throw new ForbiddenException(
+        'Access denied: Cannot access other tenant data',
+      );
     }
 
-    if (subAccountIdInBody && parseInt(subAccountIdInBody) !== user.subAccountId) {
+    if (
+      subAccountIdInBody &&
+      parseInt(subAccountIdInBody) !== user.subAccountId
+    ) {
       this.logger.error(
         `User ${user.userId} (subAccount ${user.subAccountId}) ` +
-        `attempted to set subAccountId to ${subAccountIdInBody}`
+          `attempted to set subAccountId to ${subAccountIdInBody}`,
       );
-      throw new ForbiddenException('Access denied: Cannot modify other tenant data');
+      throw new ForbiddenException(
+        'Access denied: Cannot modify other tenant data',
+      );
     }
 
     return true;

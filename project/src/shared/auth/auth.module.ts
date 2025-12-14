@@ -39,10 +39,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     PrismaModule,
     ConfigModule,
   ],
-  controllers: [
-    UnifiedAuthController,
-    AdminManagementController,
-  ],
+  controllers: [UnifiedAuthController, AdminManagementController],
   providers: [
     // Unified auth services
     UnifiedAuthService,

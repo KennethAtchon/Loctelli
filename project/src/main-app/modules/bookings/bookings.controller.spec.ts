@@ -79,7 +79,10 @@ describe('BookingsController', () => {
       const result = await controller.create(createBookingDto, mockAdminUser);
 
       expect(result).toEqual(mockCreatedBooking);
-      expect(bookingsService.create).toHaveBeenCalledWith(createBookingDto, createBookingDto.subAccountId);
+      expect(bookingsService.create).toHaveBeenCalledWith(
+        createBookingDto,
+        createBookingDto.subAccountId,
+      );
     });
 
     it('should create a booking for regular user', async () => {
@@ -88,14 +91,23 @@ describe('BookingsController', () => {
       const result = await controller.create(createBookingDto, mockUser);
 
       expect(result).toEqual(mockCreatedBooking);
-      expect(bookingsService.create).toHaveBeenCalledWith(createBookingDto, mockUser.subAccountId);
+      expect(bookingsService.create).toHaveBeenCalledWith(
+        createBookingDto,
+        mockUser.subAccountId,
+      );
     });
   });
 
   describe('findAll', () => {
     const mockBookings = [
       { id: 1, userId: 1, leadId: 1, bookingType: 'call', status: 'pending' },
-      { id: 2, userId: 2, leadId: 2, bookingType: 'meeting', status: 'confirmed' },
+      {
+        id: 2,
+        userId: 2,
+        leadId: 2,
+        bookingType: 'meeting',
+        status: 'confirmed',
+      },
     ];
 
     it('should return all bookings for admin when no query parameters', async () => {
@@ -104,7 +116,9 @@ describe('BookingsController', () => {
       const result = await controller.findAll(mockAdminUser);
 
       expect(result).toEqual(mockBookings);
-      expect(bookingsService.findAllByAdmin).toHaveBeenCalledWith(mockAdminUser.userId);
+      expect(bookingsService.findAllByAdmin).toHaveBeenCalledWith(
+        mockAdminUser.userId,
+      );
     });
 
     it('should return bookings by subAccount for regular user when no query parameters', async () => {
@@ -113,11 +127,15 @@ describe('BookingsController', () => {
       const result = await controller.findAll(mockUser);
 
       expect(result).toEqual(mockBookings);
-      expect(bookingsService.findAllBySubAccount).toHaveBeenCalledWith(mockUser.subAccountId);
+      expect(bookingsService.findAllBySubAccount).toHaveBeenCalledWith(
+        mockUser.subAccountId,
+      );
     });
 
     it('should return bookings by userId when userId query parameter is provided', async () => {
-      const userBookings = [{ id: 1, userId: 1, leadId: 1, bookingType: 'call', status: 'pending' }];
+      const userBookings = [
+        { id: 1, userId: 1, leadId: 1, bookingType: 'call', status: 'pending' },
+      ];
       mockBookingsService.findByUserId.mockResolvedValue(userBookings);
 
       const result = await controller.findAll(mockAdminUser, '1');
@@ -127,24 +145,32 @@ describe('BookingsController', () => {
     });
 
     it('should return bookings by leadId when leadId query parameter is provided', async () => {
-      const leadBookings = [{ id: 1, userId: 1, leadId: 1, bookingType: 'call', status: 'pending' }];
+      const leadBookings = [
+        { id: 1, userId: 1, leadId: 1, bookingType: 'call', status: 'pending' },
+      ];
       mockBookingsService.findByleadId.mockResolvedValue(leadBookings);
 
       const result = await controller.findAll(mockAdminUser, undefined, '1');
 
       expect(result).toEqual(leadBookings);
-      expect(bookingsService.findByleadId).toHaveBeenCalledWith(1, mockAdminUser.userId, mockAdminUser.role);
+      expect(bookingsService.findByleadId).toHaveBeenCalledWith(
+        1,
+        mockAdminUser.userId,
+        mockAdminUser.role,
+      );
     });
 
     it('should throw HttpException for invalid userId parameter', () => {
       expect(() => controller.findAll(mockAdminUser, 'invalid')).toThrow(
-        new HttpException('Invalid userId parameter', HttpStatus.BAD_REQUEST)
+        new HttpException('Invalid userId parameter', HttpStatus.BAD_REQUEST),
       );
     });
 
     it('should throw HttpException for invalid leadId parameter', () => {
-      expect(() => controller.findAll(mockAdminUser, undefined, 'invalid')).toThrow(
-        new HttpException('Invalid leadId parameter', HttpStatus.BAD_REQUEST)
+      expect(() =>
+        controller.findAll(mockAdminUser, undefined, 'invalid'),
+      ).toThrow(
+        new HttpException('Invalid leadId parameter', HttpStatus.BAD_REQUEST),
       );
     });
   });
@@ -164,7 +190,11 @@ describe('BookingsController', () => {
       const result = await controller.findOne(1, mockAdminUser);
 
       expect(result).toEqual(mockBooking);
-      expect(bookingsService.findOne).toHaveBeenCalledWith(1, mockAdminUser.userId, mockAdminUser.role);
+      expect(bookingsService.findOne).toHaveBeenCalledWith(
+        1,
+        mockAdminUser.userId,
+        mockAdminUser.role,
+      );
     });
   });
 
@@ -184,10 +214,19 @@ describe('BookingsController', () => {
     it('should update a booking', async () => {
       mockBookingsService.update.mockResolvedValue(mockUpdatedBooking);
 
-      const result = await controller.update(1, updateBookingDto, mockAdminUser);
+      const result = await controller.update(
+        1,
+        updateBookingDto,
+        mockAdminUser,
+      );
 
       expect(result).toEqual(mockUpdatedBooking);
-      expect(bookingsService.update).toHaveBeenCalledWith(1, updateBookingDto, mockAdminUser.userId, mockAdminUser.role);
+      expect(bookingsService.update).toHaveBeenCalledWith(
+        1,
+        updateBookingDto,
+        mockAdminUser.userId,
+        mockAdminUser.role,
+      );
     });
   });
 
@@ -205,10 +244,19 @@ describe('BookingsController', () => {
     it('should update booking status', async () => {
       mockBookingsService.update.mockResolvedValue(mockUpdatedBooking);
 
-      const result = await controller.updateStatus(1, statusBody, mockAdminUser);
+      const result = await controller.updateStatus(
+        1,
+        statusBody,
+        mockAdminUser,
+      );
 
       expect(result).toEqual(mockUpdatedBooking);
-      expect(bookingsService.update).toHaveBeenCalledWith(1, { status: 'confirmed' }, mockAdminUser.userId, mockAdminUser.role);
+      expect(bookingsService.update).toHaveBeenCalledWith(
+        1,
+        { status: 'confirmed' },
+        mockAdminUser.userId,
+        mockAdminUser.role,
+      );
     });
   });
 
@@ -227,7 +275,11 @@ describe('BookingsController', () => {
       const result = await controller.remove(1, mockAdminUser);
 
       expect(result).toEqual(mockDeletedBooking);
-      expect(bookingsService.remove).toHaveBeenCalledWith(1, mockAdminUser.userId, mockAdminUser.role);
+      expect(bookingsService.remove).toHaveBeenCalledWith(
+        1,
+        mockAdminUser.userId,
+        mockAdminUser.role,
+      );
     });
   });
-}); 
+});

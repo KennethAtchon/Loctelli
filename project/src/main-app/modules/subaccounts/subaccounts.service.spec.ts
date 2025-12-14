@@ -76,12 +76,17 @@ describe('SubAccountsService', () => {
         },
         include: {
           createdByAdmin: {
-            select: { id: true, name: true, email: true }
+            select: { id: true, name: true, email: true },
           },
           _count: {
-            select: { users: true, strategies: true, leads: true, bookings: true }
-          }
-        }
+            select: {
+              users: true,
+              strategies: true,
+              leads: true,
+              bookings: true,
+            },
+          },
+        },
       });
       expect(result).toEqual(expectedResult);
     });
@@ -95,7 +100,11 @@ describe('SubAccountsService', () => {
           id: 1,
           name: 'Test SubAccount',
           createdByAdminId: adminId,
-          createdByAdmin: { id: adminId, name: 'Admin', email: 'admin@test.com' },
+          createdByAdmin: {
+            id: adminId,
+            name: 'Admin',
+            email: 'admin@test.com',
+          },
           _count: { users: 0, strategies: 0, leads: 0, bookings: 0 },
         },
       ];
@@ -107,13 +116,18 @@ describe('SubAccountsService', () => {
       expect(mockPrismaService.subAccount.findMany).toHaveBeenCalledWith({
         include: {
           createdByAdmin: {
-            select: { id: true, name: true, email: true }
+            select: { id: true, name: true, email: true },
           },
           _count: {
-            select: { users: true, strategies: true, leads: true, bookings: true }
-          }
+            select: {
+              users: true,
+              strategies: true,
+              leads: true,
+              bookings: true,
+            },
+          },
         },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       });
       expect(result).toEqual(expectedResult);
     });
@@ -142,7 +156,7 @@ describe('SubAccountsService', () => {
         where: { id: subAccountId },
         include: {
           createdByAdmin: {
-            select: { id: true, name: true, email: true }
+            select: { id: true, name: true, email: true },
           },
           users: {
             select: {
@@ -152,8 +166,8 @@ describe('SubAccountsService', () => {
               role: true,
               isActive: true,
               lastLoginAt: true,
-              createdAt: true
-            }
+              createdAt: true,
+            },
           },
           strategies: {
             select: {
@@ -161,26 +175,26 @@ describe('SubAccountsService', () => {
               name: true,
               tag: true,
               tone: true,
-              createdAt: true
-            }
+              createdAt: true,
+            },
           },
           leads: {
             select: {
               id: true,
               name: true,
               email: true,
-              status: true
-            }
+              status: true,
+            },
           },
           bookings: {
             select: {
               id: true,
               bookingType: true,
               status: true,
-              createdAt: true
-            }
-          }
-        }
+              createdAt: true,
+            },
+          },
+        },
       });
       expect(result).toEqual(expectedResult);
     });
@@ -191,7 +205,9 @@ describe('SubAccountsService', () => {
 
       mockPrismaService.subAccount.findFirst.mockResolvedValue(null);
 
-      await expect(service.findOne(subAccountId, adminId)).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(subAccountId, adminId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -216,7 +232,9 @@ describe('SubAccountsService', () => {
         createdByAdmin: { id: adminId, name: 'Admin', email: 'admin@test.com' },
       };
 
-      mockPrismaService.subAccount.findFirst.mockResolvedValue(existingSubAccount);
+      mockPrismaService.subAccount.findFirst.mockResolvedValue(
+        existingSubAccount,
+      );
       mockPrismaService.subAccount.update.mockResolvedValue(expectedResult);
 
       const result = await service.update(subAccountId, adminId, updateDto);
@@ -226,9 +244,9 @@ describe('SubAccountsService', () => {
         data: updateDto,
         include: {
           createdByAdmin: {
-            select: { id: true, name: true, email: true }
-          }
-        }
+            select: { id: true, name: true, email: true },
+          },
+        },
       });
       expect(result).toEqual(expectedResult);
     });
@@ -240,7 +258,9 @@ describe('SubAccountsService', () => {
 
       mockPrismaService.subAccount.findFirst.mockResolvedValue(null);
 
-      await expect(service.update(subAccountId, adminId, updateDto)).rejects.toThrow(NotFoundException);
+      await expect(
+        service.update(subAccountId, adminId, updateDto),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -255,12 +275,16 @@ describe('SubAccountsService', () => {
         createdByAdminId: adminId,
       };
 
-      mockPrismaService.subAccount.findFirst.mockResolvedValue(existingSubAccount);
+      mockPrismaService.subAccount.findFirst.mockResolvedValue(
+        existingSubAccount,
+      );
       mockPrismaService.subAccount.delete.mockResolvedValue({});
 
       const result = await service.remove(subAccountId, adminId);
 
-      expect(mockPrismaService.subAccount.delete).toHaveBeenCalledWith({ where: { id: subAccountId } });
+      expect(mockPrismaService.subAccount.delete).toHaveBeenCalledWith({
+        where: { id: subAccountId },
+      });
       expect(result).toEqual({ message: 'SubAccount deleted successfully' });
     });
 
@@ -270,7 +294,9 @@ describe('SubAccountsService', () => {
 
       mockPrismaService.subAccount.findFirst.mockResolvedValue(null);
 
-      await expect(service.remove(subAccountId, adminId)).rejects.toThrow(NotFoundException);
+      await expect(service.remove(subAccountId, adminId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -285,12 +311,18 @@ describe('SubAccountsService', () => {
         createdByAdminId: adminId,
       };
 
-      mockPrismaService.subAccount.findFirst.mockResolvedValue(expectedSubAccount);
+      mockPrismaService.subAccount.findFirst.mockResolvedValue(
+        expectedSubAccount,
+      );
 
-      const result = await service.validateSubAccountAccess(adminId, subAccountId, 'admin');
+      const result = await service.validateSubAccountAccess(
+        adminId,
+        subAccountId,
+        'admin',
+      );
 
       expect(mockPrismaService.subAccount.findFirst).toHaveBeenCalledWith({
-        where: { id: subAccountId }
+        where: { id: subAccountId },
       });
       expect(result).toEqual(expectedSubAccount);
     });
@@ -307,10 +339,14 @@ describe('SubAccountsService', () => {
 
       mockPrismaService.user.findFirst.mockResolvedValue(expectedUser);
 
-      const result = await service.validateSubAccountAccess(userId, subAccountId, 'user');
+      const result = await service.validateSubAccountAccess(
+        userId,
+        subAccountId,
+        'user',
+      );
 
       expect(mockPrismaService.user.findFirst).toHaveBeenCalledWith({
-        where: { id: userId, subAccountId }
+        where: { id: userId, subAccountId },
       });
       expect(result).toEqual(expectedUser);
     });
@@ -321,7 +357,9 @@ describe('SubAccountsService', () => {
 
       mockPrismaService.subAccount.findFirst.mockResolvedValue(null);
 
-      await expect(service.validateSubAccountAccess(adminId, subAccountId, 'admin')).rejects.toThrow(ForbiddenException);
+      await expect(
+        service.validateSubAccountAccess(adminId, subAccountId, 'admin'),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('should throw ForbiddenException for invalid user access', async () => {
@@ -330,7 +368,9 @@ describe('SubAccountsService', () => {
 
       mockPrismaService.user.findFirst.mockResolvedValue(null);
 
-      await expect(service.validateSubAccountAccess(userId, subAccountId, 'user')).rejects.toThrow(ForbiddenException);
+      await expect(
+        service.validateSubAccountAccess(userId, subAccountId, 'user'),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
-}); 
+});

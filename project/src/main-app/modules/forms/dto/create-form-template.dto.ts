@@ -1,4 +1,13 @@
-import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsArray, IsObject, IsInt, Min } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsBoolean,
+  IsArray,
+  IsObject,
+  IsInt,
+  Min,
+} from 'class-validator';
 
 export class FormFieldDto {
   @IsString()
@@ -7,7 +16,16 @@ export class FormFieldDto {
 
   @IsString()
   @IsNotEmpty()
-  type: 'text' | 'email' | 'phone' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'file' | 'image';
+  type:
+    | 'text'
+    | 'email'
+    | 'phone'
+    | 'textarea'
+    | 'select'
+    | 'checkbox'
+    | 'radio'
+    | 'file'
+    | 'image';
 
   @IsString()
   @IsNotEmpty()

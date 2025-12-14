@@ -40,7 +40,7 @@ export class BookingHelperService {
     // TODO: Re-enable GHL block slot creation when priority
     this.logger.warn('createGohighlevelBlockSlot is temporarily disabled');
     return;
-    
+
     /* COMMENTED OUT - NOT PRIORITY
     try {
       // Lookup user to get calendarId
@@ -262,18 +262,18 @@ export class BookingHelperService {
     const booking = await this.prisma.booking.create({
       data: {
         regularUser: {
-          connect: { id: userId }
+          connect: { id: userId },
         },
         ...(leadId && {
           lead: {
-            connect: { id: leadId }
-          }
+            connect: { id: leadId },
+          },
         }),
         bookingType: 'meeting',
         details,
         status: 'pending',
         subAccount: {
-          connect: { id: user.subAccountId }
+          connect: { id: user.subAccountId },
         },
       },
     });
@@ -291,7 +291,10 @@ export class BookingHelperService {
     integrationId: number,
   ): Promise<GhlCalendarsResponse | null> {
     try {
-      const response = await this.ghlApiClient.getCalendars(integrationId, locationId);
+      const response = await this.ghlApiClient.getCalendars(
+        integrationId,
+        locationId,
+      );
 
       if (response && Array.isArray(response.calendars)) {
         const calendars = response.calendars as GhlCalendar[];

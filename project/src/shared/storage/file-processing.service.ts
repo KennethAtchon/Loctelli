@@ -22,7 +22,11 @@ export class FileProcessingService {
   /**
    * Upload a file to R2
    */
-  async uploadFile(filePath: string, content: Buffer, mimeType: string): Promise<string> {
+  async uploadFile(
+    filePath: string,
+    content: Buffer,
+    mimeType: string,
+  ): Promise<string> {
     await this.r2Storage.uploadToFolder('', filePath, content, mimeType);
     return this.r2Storage.getPublicUrl(filePath);
   }
@@ -37,7 +41,11 @@ export class FileProcessingService {
   /**
    * Update a file in R2
    */
-  async updateFileContent(filePath: string, content: Buffer, mimeType: string): Promise<void> {
+  async updateFileContent(
+    filePath: string,
+    content: Buffer,
+    mimeType: string,
+  ): Promise<void> {
     await this.r2Storage.uploadToFolder('', filePath, content, mimeType);
   }
 
@@ -115,4 +123,4 @@ export class FileProcessingService {
     };
     return mimeTypes[ext] || 'application/octet-stream';
   }
-} 
+}

@@ -5,7 +5,7 @@ import { CacheService } from '../infrastructure/cache/cache.service';
 @Injectable()
 export class StatusService {
   private readonly logger = new Logger(StatusService.name);
-  
+
   constructor(
     private readonly prismaService: PrismaService,
     private readonly cacheService: CacheService,
@@ -38,7 +38,7 @@ export class StatusService {
       const testValue = 'test';
       await this.cacheService.setCache(testKey, testValue, 1);
       const result = await this.cacheService.getCache(testKey);
-      
+
       if (result === testValue) {
         health.services.redis = 'ok';
       } else {

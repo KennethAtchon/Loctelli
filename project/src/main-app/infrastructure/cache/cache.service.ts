@@ -9,13 +9,17 @@ export class CacheService {
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
     this.logger.log('🔧 CacheService initialized');
     this.logger.log(`🔧 Cache manager type: ${typeof this.cacheManager}`);
-    this.logger.log(`🔧 Cache manager methods: ${Object.getOwnPropertyNames(Object.getPrototypeOf(this.cacheManager))}`);
+    this.logger.log(
+      `🔧 Cache manager methods: ${Object.getOwnPropertyNames(Object.getPrototypeOf(this.cacheManager))}`,
+    );
   }
 
   async getCache<T = any>(key: string): Promise<T | null> {
     try {
       const result = await this.cacheManager.get<T>(key);
-      this.logger.debug(`🔍 Cache GET ${key}: ${result ? 'found' : 'not found'}`);
+      this.logger.debug(
+        `🔍 Cache GET ${key}: ${result ? 'found' : 'not found'}`,
+      );
       return result || null;
     } catch (error) {
       this.logger.error(`❌ Cache GET error for key ${key}:`, error);
@@ -29,7 +33,9 @@ export class CacheService {
         // Convert seconds to milliseconds for cache-manager-redis-yet
         const ttlMs = ttl * 1000;
         await this.cacheManager.set(key, value, ttlMs);
-        this.logger.debug(`💾 Cache SET ${key} with TTL ${ttl}s (${ttlMs}ms): success`);
+        this.logger.debug(
+          `💾 Cache SET ${key} with TTL ${ttl}s (${ttlMs}ms): success`,
+        );
       } else {
         await this.cacheManager.set(key, value);
         this.logger.debug(`💾 Cache SET ${key} (no TTL): success`);
@@ -95,21 +101,21 @@ export class CacheService {
     try {
       const testKey = 'redis_connection_test';
       const testValue = 'test_value_' + Date.now();
-      
+
       this.logger.log('🔍 Testing Redis connection...');
-      
+
       // Try to set a test value
       await this.cacheManager.set(testKey, testValue, 10000); // 10 seconds in ms
       this.logger.log('✅ Redis SET test passed');
-      
+
       // Try to get the test value
       const retrieved = await this.cacheManager.get(testKey);
       this.logger.log(`✅ Redis GET test passed: ${retrieved}`);
-      
+
       // Try to delete the test value
       await this.cacheManager.del(testKey);
       this.logger.log('✅ Redis DEL test passed');
-      
+
       this.logger.log('✅ Redis connection test successful');
       return true;
     } catch (error) {
@@ -130,4 +136,4 @@ export class CacheService {
       return [];
     }
   }
-} 
+}

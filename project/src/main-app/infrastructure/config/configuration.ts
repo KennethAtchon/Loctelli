@@ -27,12 +27,14 @@ export default () => ({
     defaultPassword: process.env.DEFAULT_ADMIN_PASSWORD,
   },
   cors: {
-    origins: process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : [
-      'http://localhost:3000',
-      'http://loctelli_frontend:3000',
-      'http://frontend:3000',
-      'http://loctelli.com',
-    ],
+    origins: process.env.FRONTEND_URL
+      ? [process.env.FRONTEND_URL]
+      : [
+          'http://localhost:3000',
+          'http://loctelli_frontend:3000',
+          'http://frontend:3000',
+          'http://loctelli.com',
+        ],
   },
   twilio: {
     accountSid: process.env.TWILIO_ACCOUNT_SID,
@@ -42,4 +44,4 @@ export default () => ({
   openai: {
     apiKey: process.env.OPENAI_API_KEY,
   },
-}); 
+});

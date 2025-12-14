@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsBoolean, IsObject, IsUrl } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsObject,
+  IsUrl,
+} from 'class-validator';
 
 export class CreateIntegrationTemplateDto {
   @IsString()
@@ -36,4 +42,4 @@ export class CreateIntegrationTemplateDto {
   @IsOptional()
   @IsString()
   apiVersion?: string;
-} 
+}

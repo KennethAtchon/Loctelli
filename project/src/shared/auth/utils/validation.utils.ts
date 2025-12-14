@@ -28,28 +28,36 @@ export class AuthValidation {
     // Check minimum length
     if (password.length < requirements.minLength) {
       throw new BadRequestException(
-        `Password must be at least ${requirements.minLength} characters long`
+        `Password must be at least ${requirements.minLength} characters long`,
       );
     }
 
     // Check for uppercase letter
     if (!/[A-Z]/.test(password)) {
-      throw new BadRequestException('Password must contain at least one uppercase letter');
+      throw new BadRequestException(
+        'Password must contain at least one uppercase letter',
+      );
     }
 
     // Check for lowercase letter
     if (!/[a-z]/.test(password)) {
-      throw new BadRequestException('Password must contain at least one lowercase letter');
+      throw new BadRequestException(
+        'Password must contain at least one lowercase letter',
+      );
     }
 
     // Check for number
     if (!/\d/.test(password)) {
-      throw new BadRequestException('Password must contain at least one number');
+      throw new BadRequestException(
+        'Password must contain at least one number',
+      );
     }
 
     // Check for special character
     if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      throw new BadRequestException('Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)');
+      throw new BadRequestException(
+        'Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)',
+      );
     }
   }
 
@@ -60,11 +68,13 @@ export class AuthValidation {
     return accountType === 'admin'
       ? {
           minLength: 12,
-          description: 'Admin passwords require at least 12 characters, including uppercase, lowercase, number, and special character',
+          description:
+            'Admin passwords require at least 12 characters, including uppercase, lowercase, number, and special character',
         }
       : {
           minLength: 8,
-          description: 'Passwords require at least 8 characters, including uppercase, lowercase, number, and special character',
+          description:
+            'Passwords require at least 8 characters, including uppercase, lowercase, number, and special character',
         };
   }
 
@@ -75,7 +85,9 @@ export class AuthValidation {
    */
   static validateAccountType(accountType: string): accountType is AccountType {
     if (accountType !== 'user' && accountType !== 'admin') {
-      throw new BadRequestException('Invalid account type. Must be "user" or "admin"');
+      throw new BadRequestException(
+        'Invalid account type. Must be "user" or "admin"',
+      );
     }
     return true;
   }

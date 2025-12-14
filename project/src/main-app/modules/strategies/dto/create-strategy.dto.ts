@@ -1,4 +1,12 @@
-import { IsString, IsOptional, IsInt, IsJSON, IsNumber, IsNotEmpty, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsInt,
+  IsJSON,
+  IsNumber,
+  IsNotEmpty,
+  IsBoolean,
+} from 'class-validator';
 
 export class CreateStrategyDto {
   @IsInt()

@@ -26,7 +26,7 @@ export class AdminAuthCodeService {
   } {
     const code = this.generateAuthCode(12);
     const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000);
-    
+
     return { code, expiresAt };
   }
 
@@ -36,7 +36,8 @@ export class AdminAuthCodeService {
    * @returns True if valid, false otherwise
    */
   validateAuthCode(providedCode: string): boolean {
-    const validAuthCode = this.configService.get<string>('ADMIN_AUTH_CODE') || 'ADMIN_2024_SECURE';
+    const validAuthCode =
+      this.configService.get<string>('ADMIN_AUTH_CODE') || 'ADMIN_2024_SECURE';
     return providedCode === validAuthCode;
   }
 
@@ -45,7 +46,9 @@ export class AdminAuthCodeService {
    * @returns The current admin auth code
    */
   getCurrentAuthCode(): string {
-    return this.configService.get<string>('ADMIN_AUTH_CODE') || 'ADMIN_2024_SECURE';
+    return (
+      this.configService.get<string>('ADMIN_AUTH_CODE') || 'ADMIN_2024_SECURE'
+    );
   }
 
   /**

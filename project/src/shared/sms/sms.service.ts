@@ -21,17 +21,26 @@ export class SmsService implements SmsServiceInterface {
   private readonly retryAttempts: number;
 
   constructor(private readonly configService: ConfigService) {
-    this.smsConfig = this.configService.get<SmsConfig>('twilio') || {} as SmsConfig;
-    this.rateLimitPerMinute = this.configService.get<number>('sms.rateLimitPerMinute') || 60;
-    this.maxBatchSize = this.configService.get<number>('sms.maxBatchSize') || 100;
-    this.retryAttempts = this.configService.get<number>('sms.retryAttempts') || 3;
+    this.smsConfig =
+      this.configService.get<SmsConfig>('twilio') || ({} as SmsConfig);
+    this.rateLimitPerMinute =
+      this.configService.get<number>('sms.rateLimitPerMinute') || 60;
+    this.maxBatchSize =
+      this.configService.get<number>('sms.maxBatchSize') || 100;
+    this.retryAttempts =
+      this.configService.get<number>('sms.retryAttempts') || 3;
 
     if (!this.smsConfig?.accountSid || !this.smsConfig?.authToken) {
-      this.logger.warn('Twilio credentials not configured. SMS functionality will be disabled.');
+      this.logger.warn(
+        'Twilio credentials not configured. SMS functionality will be disabled.',
+      );
       return;
     }
 
-    this.twilioClient = new Twilio(this.smsConfig.accountSid, this.smsConfig.authToken);
+    this.twilioClient = new Twilio(
+      this.smsConfig.accountSid,
+      this.smsConfig.authToken,
+    );
     this.logger.log('SMS Service initialized with Twilio');
   }
 
@@ -44,7 +53,8 @@ export class SmsService implements SmsServiceInterface {
       if (!this.isConfigured()) {
         return {
           success: false,
-          error: 'SMS service is not configured. Please configure Twilio credentials.',
+          error:
+            'SMS service is not configured. Please configure Twilio credentials.',
           status: 'failed',
         };
       }
@@ -69,7 +79,9 @@ export class SmsService implements SmsServiceInterface {
         to: phoneValidation.formattedNumber!,
       });
 
-      this.logger.log(`SMS sent successfully to ${phoneValidation.formattedNumber}. SID: ${twilioMessage.sid}`);
+      this.logger.log(
+        `SMS sent successfully to ${phoneValidation.formattedNumber}. SID: ${twilioMessage.sid}`,
+      );
 
       return {
         success: true,
@@ -98,10 +110,13 @@ export class SmsService implements SmsServiceInterface {
 
     // Process messages in batches to respect rate limits
     const batches = this.createBatches(messages, this.maxBatchSize);
-    
+
     for (const batch of batches) {
       const batchPromises = batch.map(async (msg) => {
-        const result = await this.sendSmsWithRetry(msg.phoneNumber, msg.message);
+        const result = await this.sendSmsWithRetry(
+          msg.phoneNumber,
+          msg.message,
+        );
         if (result.success) {
           successful++;
         } else {
@@ -116,7 +131,7 @@ export class SmsService implements SmsServiceInterface {
 
       // Add delay between batches to respect rate limits
       if (batches.indexOf(batch) < batches.length - 1) {
-        await this.delay(60000 / this.rateLimitPerMinute * batch.length);
+        await this.delay((60000 / this.rateLimitPerMinute) * batch.length);
       }
     }
 
@@ -132,23 +147,28 @@ export class SmsService implements SmsServiceInterface {
   /**
    * Send SMS with retry logic
    */
-  private async sendSmsWithRetry(phoneNumber: string, message: string): Promise<SmsResult> {
+  private async sendSmsWithRetry(
+    phoneNumber: string,
+    message: string,
+  ): Promise<SmsResult> {
     let lastError: string = 'Failed after all retry attempts';
 
     for (let attempt = 1; attempt <= this.retryAttempts; attempt++) {
       const result = await this.sendSms(phoneNumber, message);
-      
+
       if (result.success) {
         return result;
       }
 
       lastError = result.error || 'Unknown error';
-      
+
       if (attempt < this.retryAttempts) {
         // Exponential backoff
         const delay = Math.pow(2, attempt) * 1000;
         await this.delay(delay);
-        this.logger.warn(`Retrying SMS to ${phoneNumber} (attempt ${attempt + 1}/${this.retryAttempts})`);
+        this.logger.warn(
+          `Retrying SMS to ${phoneNumber} (attempt ${attempt + 1}/${this.retryAttempts})`,
+        );
       }
     }
 
@@ -175,7 +195,7 @@ export class SmsService implements SmsServiceInterface {
       }
 
       const parsedNumber = parsePhoneNumber(cleanNumber);
-      
+
       return {
         isValid: true,
         formattedNumber: parsedNumber.format('E.164'),
@@ -212,14 +232,18 @@ export class SmsService implements SmsServiceInterface {
    * Delay utility
    */
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
    * Check if SMS service is configured
    */
   isConfigured(): boolean {
-    return !!(this.smsConfig?.accountSid && this.smsConfig?.authToken && this.smsConfig?.phoneNumber);
+    return !!(
+      this.smsConfig?.accountSid &&
+      this.smsConfig?.authToken &&
+      this.smsConfig?.phoneNumber
+    );
   }
 
   /**
@@ -265,7 +289,11 @@ export class SmsService implements SmsServiceInterface {
   /**
    * Test Twilio connection
    */
-  async testConnection(): Promise<{ success: boolean; message: string; accountInfo?: any }> {
+  async testConnection(): Promise<{
+    success: boolean;
+    message: string;
+    accountInfo?: any;
+  }> {
     try {
       if (!this.isConfigured()) {
         return {
@@ -275,8 +303,10 @@ export class SmsService implements SmsServiceInterface {
       }
 
       // Test the connection by getting account info
-      const account = await this.twilioClient!.api.accounts(this.smsConfig.accountSid).fetch();
-      
+      const account = await this.twilioClient!.api.accounts(
+        this.smsConfig.accountSid,
+      ).fetch();
+
       return {
         success: true,
         message: 'Connection successful',

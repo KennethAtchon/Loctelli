@@ -13,7 +13,10 @@ export function sanitizeFilename(filename: string): string {
     .toLowerCase();
 }
 
-export function validateFileType(filename: string, allowedTypes: string[]): boolean {
+export function validateFileType(
+  filename: string,
+  allowedTypes: string[],
+): boolean {
   const extension = filename.split('.').pop()?.toLowerCase();
   return extension ? allowedTypes.includes(extension) : false;
 }
@@ -24,4 +27,4 @@ export function formatFileSize(bytes: number): string {
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-} 
+}

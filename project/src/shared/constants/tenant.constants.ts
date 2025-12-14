@@ -37,5 +37,5 @@ export const ONBOARDING_RESTRICTIONS = {
     canMakeBookings: false,
     canUseIntegrations: false,
     canManageContacts: false,
-  }
+  },
 };

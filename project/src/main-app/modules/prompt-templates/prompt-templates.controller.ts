@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+  BadRequestException,
+} from '@nestjs/common';
 import { PromptTemplatesService } from './prompt-templates.service';
 import { CreatePromptTemplateDto } from './dto/create-prompt-template.dto';
 import { UpdatePromptTemplateDto } from './dto/update-prompt-template.dto';
@@ -10,11 +21,16 @@ import { Roles } from '../../../shared/decorators/roles.decorator';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin', 'super_admin')
 export class PromptTemplatesController {
-  constructor(private readonly promptTemplatesService: PromptTemplatesService) {}
+  constructor(
+    private readonly promptTemplatesService: PromptTemplatesService,
+  ) {}
 
   @Post()
   create(@Body() createDto: CreatePromptTemplateDto, @Request() req) {
-    console.log('Creating prompt template:', { createDto, userId: req.user.userId });
+    console.log('Creating prompt template:', {
+      createDto,
+      userId: req.user.userId,
+    });
     return this.promptTemplatesService.create(createDto, req.user.userId);
   }
 
@@ -47,7 +63,9 @@ export class PromptTemplatesController {
   @Patch(':id/activate')
   activate(@Param('id') id: string, @Body() body: { subAccountId?: number }) {
     if (!body.subAccountId) {
-      throw new BadRequestException('subAccountId is required to activate a template');
+      throw new BadRequestException(
+        'subAccountId is required to activate a template',
+      );
     }
     return this.promptTemplatesService.activate(+id, body.subAccountId);
   }
@@ -56,4 +74,4 @@ export class PromptTemplatesController {
   remove(@Param('id') id: string) {
     return this.promptTemplatesService.delete(+id);
   }
-} 
+}

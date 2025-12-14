@@ -27,12 +27,14 @@ export default () => ({
     defaultPassword: process.env.DEFAULT_ADMIN_PASSWORD,
   },
   cors: {
-    origins: process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : [
-      'http://localhost:3000',
-      'http://loctelli_frontend:3000',
-      'http://frontend:3000',
-      'http://loctelli.com',
-    ],
+    origins: process.env.FRONTEND_URL
+      ? [process.env.FRONTEND_URL]
+      : [
+          'http://localhost:3000',
+          'http://loctelli_frontend:3000',
+          'http://frontend:3000',
+          'http://loctelli.com',
+        ],
   },
   // R2 Storage Configuration
   r2: {
@@ -51,7 +53,10 @@ export default () => ({
   },
   // SMS Settings
   sms: {
-    rateLimitPerMinute: parseInt(process.env.SMS_RATE_LIMIT_PER_MINUTE || '60', 10),
+    rateLimitPerMinute: parseInt(
+      process.env.SMS_RATE_LIMIT_PER_MINUTE || '60',
+      10,
+    ),
     maxBatchSize: parseInt(process.env.SMS_MAX_BATCH_SIZE || '100', 10),
     retryAttempts: parseInt(process.env.SMS_RETRY_ATTEMPTS || '3', 10),
   },
@@ -62,4 +67,4 @@ export default () => ({
     defaultRetries: parseInt(process.env.QUEUE_DEFAULT_RETRIES || '3', 10),
     maxConcurrency: parseInt(process.env.QUEUE_MAX_CONCURRENCY || '10', 10),
   },
-}); 
+});

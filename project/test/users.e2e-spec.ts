@@ -16,12 +16,12 @@ describe('UsersController (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
-    
+
     prismaService = app.get<PrismaService>(PrismaService);
-    
+
     // Clean up database before tests
     await prismaService.user.deleteMany({});
-    
+
     await app.init();
   });
 
@@ -34,7 +34,7 @@ describe('UsersController (e2e)', () => {
   const testUser = {
     name: 'Test User',
     email: 'test@example.com',
-    password: 'password123'
+    password: 'password123',
   };
 
   let userId: number;
@@ -46,12 +46,12 @@ describe('UsersController (e2e)', () => {
         .set('x-api-key', getApiKey())
         .send(testUser)
         .expect(201)
-        .then(response => {
+        .then((response) => {
           expect(response.body).toHaveProperty('id');
           expect(response.body.name).toBe(testUser.name);
           expect(response.body.email).toBe(testUser.email);
           expect(response.body).not.toHaveProperty('password'); // Password should not be returned
-          
+
           userId = response.body.id;
         });
     });
@@ -63,7 +63,7 @@ describe('UsersController (e2e)', () => {
         .send({
           name: 'Invalid User',
           // Missing email
-          password: 'password123'
+          password: 'password123',
         })
         .expect(400);
     });
@@ -75,7 +75,7 @@ describe('UsersController (e2e)', () => {
         .get('/users')
         .set('x-api-key', getApiKey())
         .expect(200)
-        .then(response => {
+        .then((response) => {
           expect(Array.isArray(response.body)).toBe(true);
           expect(response.body.length).toBeGreaterThan(0);
           expect(response.body[0]).toHaveProperty('id');
@@ -91,7 +91,7 @@ describe('UsersController (e2e)', () => {
         .get(`/users/${userId}`)
         .set('x-api-key', getApiKey())
         .expect(200)
-        .then(response => {
+        .then((response) => {
           expect(response.body).toHaveProperty('id', userId);
           expect(response.body).toHaveProperty('name', testUser.name);
           expect(response.body).toHaveProperty('email', testUser.email);
@@ -109,13 +109,13 @@ describe('UsersController (e2e)', () => {
   describe('/users/:id (PATCH)', () => {
     it('should update a user', () => {
       const updatedName = 'Updated User';
-      
+
       return request(app.getHttpServer())
         .patch(`/users/${userId}`)
         .set('x-api-key', getApiKey())
         .send({ name: updatedName })
         .expect(200)
-        .then(response => {
+        .then((response) => {
           expect(response.body).toHaveProperty('id', userId);
           expect(response.body).toHaveProperty('name', updatedName);
           expect(response.body).toHaveProperty('email', testUser.email);
@@ -129,7 +129,7 @@ describe('UsersController (e2e)', () => {
         .delete(`/users/${userId}`)
         .set('x-api-key', getApiKey())
         .expect(200)
-        .then(response => {
+        .then((response) => {
           expect(response.body).toHaveProperty('id', userId);
         });
     });

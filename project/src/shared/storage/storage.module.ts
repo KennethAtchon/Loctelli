@@ -8,4 +8,4 @@ import { FileProcessingService } from './file-processing.service';
   providers: [R2StorageService, FileProcessingService],
   exports: [R2StorageService, FileProcessingService],
 })
-export class StorageModule {} 
+export class StorageModule {}

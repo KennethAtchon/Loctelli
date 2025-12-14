@@ -1,6 +1,10 @@
 import { Controller, Post, Get, Param, Body } from '@nestjs/common';
 import { JobQueueService } from '../job-queue.service';
-import { SmsJobData, DataExportJobData, EmailJobData } from '../interfaces/job-data.interface';
+import {
+  SmsJobData,
+  DataExportJobData,
+  EmailJobData,
+} from '../interfaces/job-data.interface';
 
 /**
  * Example controller demonstrating how to use the JobQueueService
@@ -15,7 +19,7 @@ export class JobQueueExampleController {
     // Queue the SMS job instead of processing synchronously
     const jobId = await this.jobQueueService.addJob('sms', data, {
       retries: 3,
-      priority: 1
+      priority: 1,
     });
 
     return {
@@ -31,7 +35,7 @@ export class JobQueueExampleController {
     // Queue the email job
     const jobId = await this.jobQueueService.addJob('email', data, {
       retries: 2,
-      priority: 2
+      priority: 2,
     });
 
     return {
@@ -46,7 +50,7 @@ export class JobQueueExampleController {
     // Queue the data export job
     const jobId = await this.jobQueueService.addJob('data-export', data, {
       retries: 1,
-      priority: 3
+      priority: 3,
     });
 
     return {
@@ -57,7 +61,10 @@ export class JobQueueExampleController {
   }
 
   @Get('status/:type/:jobId')
-  async getJobStatus(@Param('type') type: string, @Param('jobId') jobId: string) {
+  async getJobStatus(
+    @Param('type') type: string,
+    @Param('jobId') jobId: string,
+  ) {
     return this.jobQueueService.getJobStatus(type as any, jobId);
   }
 
@@ -77,18 +84,22 @@ export class ExampleService {
       subAccountId,
       exportType: 'leads',
       format,
-      metadata: { requestedBy: 'user-123' }
+      metadata: { requestedBy: 'user-123' },
     });
 
     return { jobId, status: 'queued' };
   }
 
-  async sendBulkSms(phoneNumbers: string[], message: string, subAccountId: string) {
+  async sendBulkSms(
+    phoneNumbers: string[],
+    message: string,
+    subAccountId: string,
+  ) {
     const jobId = await this.jobQueueService.addJob('sms', {
       subAccountId,
       phoneNumbers,
       message,
-      metadata: { source: 'bulk-campaign' }
+      metadata: { source: 'bulk-campaign' },
     });
 
     return { jobId, status: 'queued' };

@@ -20,7 +20,7 @@ export class SecurityService {
 
   // Account lockout thresholds
   private readonly LOCKOUT_THRESHOLDS = {
-    LIGHT: { attempts: 5, duration: 15 * 60 * 1000 },  // 15 minutes
+    LIGHT: { attempts: 5, duration: 15 * 60 * 1000 }, // 15 minutes
     MEDIUM: { attempts: 10, duration: 60 * 60 * 1000 }, // 1 hour
     HEAVY: { attempts: 15, duration: 24 * 60 * 60 * 1000 }, // 24 hours
   };
@@ -47,10 +47,13 @@ export class SecurityService {
       });
 
       this.logger.log(
-        `Login attempt recorded: ${data.email} (${data.accountType}) - ${data.success ? 'SUCCESS' : 'FAILED'}`
+        `Login attempt recorded: ${data.email} (${data.accountType}) - ${data.success ? 'SUCCESS' : 'FAILED'}`,
       );
     } catch (error) {
-      this.logger.error(`Failed to record login attempt: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to record login attempt: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
@@ -97,7 +100,9 @@ export class SecurityService {
     });
 
     // Determine if account should be locked
-    const newLockoutDuration = this.calculateLockoutDuration(lockout.failedAttempts);
+    const newLockoutDuration = this.calculateLockoutDuration(
+      lockout.failedAttempts,
+    );
 
     if (newLockoutDuration) {
       const lockedUntil = new Date(Date.now() + newLockoutDuration);
@@ -115,7 +120,7 @@ export class SecurityService {
       });
 
       this.logger.warn(
-        `Account locked: ${email} (${accountType}) - ${lockout.failedAttempts} failed attempts - Locked until ${lockedUntil.toISOString()}`
+        `Account locked: ${email} (${accountType}) - ${lockout.failedAttempts} failed attempts - Locked until ${lockedUntil.toISOString()}`,
       );
     }
   }
@@ -123,7 +128,10 @@ export class SecurityService {
   /**
    * Check if an account is currently locked
    */
-  async isAccountLocked(email: string, accountType: AccountType): Promise<boolean> {
+  async isAccountLocked(
+    email: string,
+    accountType: AccountType,
+  ): Promise<boolean> {
     try {
       const lockout = await this.prisma.accountLockout.findUnique({
         where: {
@@ -147,7 +155,10 @@ export class SecurityService {
 
       return true;
     } catch (error) {
-      this.logger.error(`Error checking account lockout: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error checking account lockout: ${error.message}`,
+        error.stack,
+      );
       return false;
     }
   }
@@ -169,7 +180,10 @@ export class SecurityService {
   /**
    * Reset account lockout after successful login
    */
-  async resetAccountLockout(email: string, accountType: AccountType): Promise<void> {
+  async resetAccountLockout(
+    email: string,
+    accountType: AccountType,
+  ): Promise<void> {
     try {
       await this.prisma.accountLockout.update({
         where: {
@@ -189,7 +203,10 @@ export class SecurityService {
     } catch (error) {
       // If no lockout record exists, that's fine
       if (error.code !== 'P2025') {
-        this.logger.error(`Error resetting account lockout: ${error.message}`, error.stack);
+        this.logger.error(
+          `Error resetting account lockout: ${error.message}`,
+          error.stack,
+        );
       }
     }
   }
@@ -245,14 +262,15 @@ export class SecurityService {
    * Get authentication analytics (for admin dashboard)
    */
   async getAuthAnalytics(startDate?: Date, endDate?: Date) {
-    const dateFilter = startDate && endDate
-      ? {
-          createdAt: {
-            gte: startDate,
-            lte: endDate,
-          },
-        }
-      : {};
+    const dateFilter =
+      startDate && endDate
+        ? {
+            createdAt: {
+              gte: startDate,
+              lte: endDate,
+            },
+          }
+        : {};
 
     const [
       totalAttempts,
@@ -296,10 +314,7 @@ export class SecurityService {
         where: {
           ...dateFilter,
           success: true,
-          OR: [
-            { isNewLocation: true },
-            { isNewDevice: true },
-          ],
+          OR: [{ isNewLocation: true }, { isNewDevice: true }],
         },
         take: 20,
         orderBy: {

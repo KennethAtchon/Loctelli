@@ -65,7 +65,9 @@ describe('AuthController (e2e)', () => {
         })
         .expect(400)
         .expect((res) => {
-          expect(res.body.message).toContain('Password must be at least 8 characters long');
+          expect(res.body.message).toContain(
+            'Password must be at least 8 characters long',
+          );
         });
     });
 
@@ -82,7 +84,9 @@ describe('AuthController (e2e)', () => {
         .send(validRegisterData)
         .expect(409)
         .expect((res) => {
-          expect(res.body.message).toContain('User with this email already exists');
+          expect(res.body.message).toContain(
+            'User with this email already exists',
+          );
         });
     });
   });
@@ -201,9 +205,7 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should reject profile access without token', () => {
-      return request(app.getHttpServer())
-        .get('/auth/profile')
-        .expect(401);
+      return request(app.getHttpServer()).get('/auth/profile').expect(401);
     });
 
     it('should reject profile access with invalid token', () => {
@@ -301,9 +303,7 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should reject logout without token', () => {
-      return request(app.getHttpServer())
-        .post('/auth/logout')
-        .expect(401);
+      return request(app.getHttpServer()).post('/auth/logout').expect(401);
     });
   });
 
@@ -371,7 +371,9 @@ describe('AuthController (e2e)', () => {
         })
         .expect(400)
         .expect((res) => {
-          expect(res.body.message).toContain('Password must be at least 8 characters long');
+          expect(res.body.message).toContain(
+            'Password must be at least 8 characters long',
+          );
         });
     });
 
@@ -385,4 +387,4 @@ describe('AuthController (e2e)', () => {
         .expect(401);
     });
   });
-}); 
+});

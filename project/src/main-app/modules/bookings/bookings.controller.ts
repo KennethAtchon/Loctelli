@@ -1,4 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseIntPipe,
+  Query,
+  HttpException,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
@@ -13,7 +26,7 @@ import { isAdminAccount } from '../../../shared/utils';
 export class BookingsController {
   constructor(
     private readonly bookingsService: BookingsService,
-    private readonly freeSlotCronService: FreeSlotCronService
+    private readonly freeSlotCronService: FreeSlotCronService,
   ) {}
 
   @Post()
@@ -23,9 +36,15 @@ export class BookingsController {
     if (isAdminAccount(user)) {
       // For admin users, subAccountId should be provided in the DTO
       if (!createBookingDto.subAccountId) {
-        throw new HttpException('subAccountId is required for booking creation', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          'subAccountId is required for booking creation',
+          HttpStatus.BAD_REQUEST,
+        );
       }
-      return this.bookingsService.create(createBookingDto, createBookingDto.subAccountId);
+      return this.bookingsService.create(
+        createBookingDto,
+        createBookingDto.subAccountId,
+      );
     } else {
       // Regular users can only create bookings for themselves in their own SubAccount
       createBookingDto.regularUserId = user.userId;
@@ -35,27 +54,44 @@ export class BookingsController {
 
   @Get()
   @Admin()
-  findAll(@CurrentUser() user, @Query('userId') userId?: string, @Query('leadId') leadId?: string, @Query('subAccountId') subAccountId?: string) {
+  findAll(
+    @CurrentUser() user,
+    @Query('userId') userId?: string,
+    @Query('leadId') leadId?: string,
+    @Query('subAccountId') subAccountId?: string,
+  ) {
     if (userId) {
       const parsedUserId = parseInt(userId, 10);
       if (isNaN(parsedUserId)) {
-        throw new HttpException('Invalid userId parameter', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          'Invalid userId parameter',
+          HttpStatus.BAD_REQUEST,
+        );
       }
       return this.bookingsService.findByUserId(parsedUserId);
     }
-    
+
     if (leadId) {
       const parsedleadId = parseInt(leadId, 10);
       if (isNaN(parsedleadId)) {
-        throw new HttpException('Invalid leadId parameter', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          'Invalid leadId parameter',
+          HttpStatus.BAD_REQUEST,
+        );
       }
-      return this.bookingsService.findByleadId(parsedleadId, user.userId, user.role);
+      return this.bookingsService.findByleadId(
+        parsedleadId,
+        user.userId,
+        user.role,
+      );
     }
-    
+
     // Handle SubAccount filtering
     if (isAdminAccount(user)) {
       // Admin can view bookings in specific SubAccount or all their SubAccounts
-      const parsedSubAccountId = subAccountId ? parseInt(subAccountId, 10) : undefined;
+      const parsedSubAccountId = subAccountId
+        ? parseInt(subAccountId, 10)
+        : undefined;
       if (parsedSubAccountId) {
         return this.bookingsService.findAllBySubAccount(parsedSubAccountId);
       } else {
@@ -79,9 +115,14 @@ export class BookingsController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateBookingDto: UpdateBookingDto,
-    @CurrentUser() user
+    @CurrentUser() user,
   ) {
-    return this.bookingsService.update(id, updateBookingDto, user.userId, user.role);
+    return this.bookingsService.update(
+      id,
+      updateBookingDto,
+      user.userId,
+      user.role,
+    );
   }
 
   @Patch(':id/status')
@@ -89,9 +130,14 @@ export class BookingsController {
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: { status: string },
-    @CurrentUser() user
+    @CurrentUser() user,
   ) {
-    return this.bookingsService.update(id, { status: body.status }, user.userId, user.role);
+    return this.bookingsService.update(
+      id,
+      { status: body.status },
+      user.userId,
+      user.role,
+    );
   }
 
   @Delete(':id')
@@ -111,12 +157,12 @@ export class BookingsController {
       await this.freeSlotCronService.populateTestBookingsTime();
       return {
         success: true,
-        message: 'Test availability data populated successfully'
+        message: 'Test availability data populated successfully',
       };
     } catch (error) {
       throw new HttpException(
         `Failed to populate test availability data: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -131,12 +177,12 @@ export class BookingsController {
       await this.freeSlotCronService.fetchFreeSlots();
       return {
         success: true,
-        message: 'GHL availability sync triggered (currently blocked)'
+        message: 'GHL availability sync triggered (currently blocked)',
       };
     } catch (error) {
       throw new HttpException(
         `Failed to sync GHL availability: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

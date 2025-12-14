@@ -1,4 +1,9 @@
-export type JobType = 'email' | 'sms' | 'data-export' | 'file-processing' | 'generic-task';
+export type JobType =
+  | 'email'
+  | 'sms'
+  | 'data-export'
+  | 'file-processing'
+  | 'generic-task';
 
 export interface BaseJobData {
   subAccountId: string;
@@ -34,4 +39,8 @@ export interface GenericTaskJobData extends BaseJobData {
   context?: Record<string, any>;
 }
 
-export type JobData = EmailJobData | SmsJobData | DataExportJobData | GenericTaskJobData;
+export type JobData =
+  | EmailJobData
+  | SmsJobData
+  | DataExportJobData
+  | GenericTaskJobData;

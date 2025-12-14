@@ -27,4 +27,4 @@ import { EncryptionModule } from './encryption/encryption.module';
     EncryptionModule,
   ],
 })
-export class SharedModule {} 
+export class SharedModule {}

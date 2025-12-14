@@ -10,11 +10,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 
 @Global()
 @Module({
-  imports: [
-    ConfigModule, 
-    SmsModule, 
-    PrismaModule,
-  ],
+  imports: [ConfigModule, SmsModule, PrismaModule],
   providers: [
     JobQueueService,
     EmailProcessor,

@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsObject, IsNotEmpty, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsObject,
+  IsNotEmpty,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateSubAccountDto {
   @IsString()
@@ -14,4 +20,4 @@ export class CreateSubAccountDto {
   @IsObject()
   @IsOptional()
   settings?: Record<string, any>;
-} 
+}

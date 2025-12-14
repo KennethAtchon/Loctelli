@@ -1,4 +1,10 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Logger,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ONBOARDING_SUBACCOUNT_ID } from '../constants/tenant.constants';
 
@@ -21,10 +27,10 @@ export class OnboardingGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     // Check if route explicitly allows ONBOARDING users
-    const allowOnboarding = this.reflector.getAllAndOverride<boolean>(ALLOW_ONBOARDING_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const allowOnboarding = this.reflector.getAllAndOverride<boolean>(
+      ALLOW_ONBOARDING_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
     const request = context.switchToHttp().getRequest();
     const { user } = request;
@@ -39,10 +45,10 @@ export class OnboardingGuard implements CanActivate {
 
     if (isOnboarding && !allowOnboarding) {
       this.logger.warn(
-        `🚫 ONBOARDING user blocked: ${user.email} attempted to access ${route}`
+        `🚫 ONBOARDING user blocked: ${user.email} attempted to access ${route}`,
       );
       throw new ForbiddenException(
-        'You must join or create a workspace to access this feature. Please complete your onboarding.'
+        'You must join or create a workspace to access this feature. Please complete your onboarding.',
       );
     }
 

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { UpdateLeadDto } from './dto/update-lead.dto';
@@ -49,8 +53,8 @@ export class LeadsService {
         strategy: true,
         bookings: true,
         subAccount: {
-          select: { id: true, name: true }
-        }
+          select: { id: true, name: true },
+        },
       },
     });
   }
@@ -98,7 +102,10 @@ export class LeadsService {
     }
 
     // Check if user has permission to access this strategy's leads
-    if (!isAdminOrSuperAdmin(null, userRole) && strategy.regularUserId !== userId) {
+    if (
+      !isAdminOrSuperAdmin(null, userRole) &&
+      strategy.regularUserId !== userId
+    ) {
       throw new ForbiddenException('Access denied');
     }
 
@@ -111,7 +118,12 @@ export class LeadsService {
     });
   }
 
-  async update(id: number, updateLeadDto: UpdateLeadDto, userId: number, userRole: string) {
+  async update(
+    id: number,
+    updateLeadDto: UpdateLeadDto,
+    userId: number,
+    userRole: string,
+  ) {
     // Check if lead exists and user has permission
     const lead = await this.prisma.lead.findUnique({
       where: { id },
@@ -147,8 +159,10 @@ export class LeadsService {
     }
 
     // Parse existing messages or initialize empty array
-    const existingMessages = lead.messageHistory ? JSON.parse(lead.messageHistory as string) : [];
-    
+    const existingMessages = lead.messageHistory
+      ? JSON.parse(lead.messageHistory as string)
+      : [];
+
     // Add new message
     existingMessages.push(message);
 

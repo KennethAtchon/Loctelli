@@ -6,4 +6,4 @@ import { AppCacheModule } from '../infrastructure/cache/cache.module';
   imports: [AppCacheModule],
   controllers: [DebugController],
 })
-export class DebugModule {} 
+export class DebugModule {}

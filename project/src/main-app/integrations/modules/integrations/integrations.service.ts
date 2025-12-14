@@ -10,14 +10,16 @@ export class IntegrationsService {
 
   constructor(
     private prisma: PrismaService,
-    private encryptionService: EncryptionService
+    private encryptionService: EncryptionService,
   ) {}
 
   async findAll(subAccountId?: number) {
-    this.logger.debug(`Finding integrations${subAccountId ? ` for subaccount ${subAccountId}` : ''}`);
-    
+    this.logger.debug(
+      `Finding integrations${subAccountId ? ` for subaccount ${subAccountId}` : ''}`,
+    );
+
     const where = subAccountId ? { subAccountId } : {};
-    
+
     const integrations = await this.prisma.integration.findMany({
       where,
       include: {
@@ -92,7 +94,9 @@ export class IntegrationsService {
   }
 
   async create(createDto: CreateIntegrationDto, adminId: number) {
-    this.logger.debug(`Creating integration: ${createDto.name} with adminId: ${adminId}`);
+    this.logger.debug(
+      `Creating integration: ${createDto.name} with adminId: ${adminId}`,
+    );
 
     try {
       // Verify that the integration template exists
@@ -101,7 +105,9 @@ export class IntegrationsService {
       });
 
       if (!template) {
-        throw new NotFoundException(`Integration template with ID ${createDto.integrationTemplateId} not found`);
+        throw new NotFoundException(
+          `Integration template with ID ${createDto.integrationTemplateId} not found`,
+        );
       }
 
       // Verify that the subaccount exists
@@ -110,7 +116,9 @@ export class IntegrationsService {
       });
 
       if (!subAccount) {
-        throw new NotFoundException(`SubAccount with ID ${createDto.subAccountId} not found`);
+        throw new NotFoundException(
+          `SubAccount with ID ${createDto.subAccountId} not found`,
+        );
       }
 
       // Encrypt sensitive config data before saving
@@ -148,10 +156,15 @@ export class IntegrationsService {
         },
       });
 
-      this.logger.debug(`Successfully created integration with ID: ${result.id}`);
+      this.logger.debug(
+        `Successfully created integration with ID: ${result.id}`,
+      );
       return result;
     } catch (error) {
-      this.logger.error(`Failed to create integration: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to create integration: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -198,10 +211,15 @@ export class IntegrationsService {
         },
       });
 
-      this.logger.debug(`Successfully updated integration with ID: ${result.id}`);
+      this.logger.debug(
+        `Successfully updated integration with ID: ${result.id}`,
+      );
       return result;
     } catch (error) {
-      this.logger.error(`Failed to update integration: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to update integration: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -223,7 +241,7 @@ export class IntegrationsService {
 
   async findByStatus(status: string, subAccountId?: number) {
     this.logger.debug(`Finding integrations with status: ${status}`);
-    
+
     const where: any = { status };
     if (subAccountId) {
       where.subAccountId = subAccountId;
@@ -273,9 +291,9 @@ export class IntegrationsService {
 
   async testConnection(id: number) {
     this.logger.debug(`Testing connection for integration: ${id}`);
-    
+
     const integration = await this.findOne(id);
-    
+
     // TODO: Implement actual connection testing based on integration type
     // For now, just return a mock success response
     return {
@@ -287,13 +305,13 @@ export class IntegrationsService {
 
   async syncData(id: number) {
     this.logger.debug(`Syncing data for integration: ${id}`);
-    
+
     const integration = await this.findOne(id);
-    
+
     // TODO: Implement actual data synchronization based on integration type
     // For now, just update the last sync time
     await this.updateStatus(id, 'active');
-    
+
     return {
       success: true,
       message: 'Data sync completed',
@@ -309,19 +327,21 @@ export class IntegrationsService {
    */
   private encryptSensitiveConfig(config: any): any {
     if (!config) return config;
-    
+
     const encryptedConfig = { ...config };
-    
+
     // Encrypt API key if present
     if (encryptedConfig.apiKey && typeof encryptedConfig.apiKey === 'string') {
-      encryptedConfig.apiKey = this.encryptionService.safeEncrypt(encryptedConfig.apiKey);
+      encryptedConfig.apiKey = this.encryptionService.safeEncrypt(
+        encryptedConfig.apiKey,
+      );
     }
-    
+
     // Add other sensitive fields here as needed
     // if (encryptedConfig.secretToken) {
     //   encryptedConfig.secretToken = this.encryptionService.safeEncrypt(encryptedConfig.secretToken);
     // }
-    
+
     return encryptedConfig;
   }
 
@@ -332,19 +352,21 @@ export class IntegrationsService {
    */
   decryptSensitiveConfig(config: any): any {
     if (!config) return config;
-    
+
     const decryptedConfig = { ...config };
-    
+
     // Decrypt API key if present
     if (decryptedConfig.apiKey && typeof decryptedConfig.apiKey === 'string') {
       try {
-        decryptedConfig.apiKey = this.encryptionService.safeDecrypt(decryptedConfig.apiKey);
+        decryptedConfig.apiKey = this.encryptionService.safeDecrypt(
+          decryptedConfig.apiKey,
+        );
       } catch (error) {
         this.logger.warn(`Failed to decrypt API key: ${error.message}`);
         // Keep the encrypted value if decryption fails
       }
     }
-    
+
     // Add other sensitive fields here as needed
     // if (decryptedConfig.secretToken) {
     //   try {
@@ -353,7 +375,7 @@ export class IntegrationsService {
     //     this.logger.warn(`Failed to decrypt secret token: ${error.message}`);
     //   }
     // }
-    
+
     return decryptedConfig;
   }
-} 
+}

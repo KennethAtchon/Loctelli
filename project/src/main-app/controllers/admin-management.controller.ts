@@ -52,7 +52,9 @@ export class AdminManagementController {
     );
 
     try {
-      const where = subaccountId ? { subAccountId: parseInt(subaccountId, 10) } : {};
+      const where = subaccountId
+        ? { subAccountId: parseInt(subaccountId, 10) }
+        : {};
 
       const users = await this.prisma.user.findMany({
         where,

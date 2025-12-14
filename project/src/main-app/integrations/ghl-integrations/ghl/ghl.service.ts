@@ -1,16 +1,19 @@
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import axios from 'axios';
-import { GhlSubaccountsResponse, GhlIntegrationConfigDto } from '../dto/ghl-integration-config.dto';
+import {
+  GhlSubaccountsResponse,
+  GhlIntegrationConfigDto,
+} from '../dto/ghl-integration-config.dto';
 import { PrismaService } from '../../../../shared/prisma/prisma.service';
 import { EncryptionService } from '../../../../shared/encryption/encryption.service';
 
 @Injectable()
 export class GhlService {
   private readonly logger = new Logger(GhlService.name);
-  
+
   constructor(
     private readonly prisma: PrismaService,
-    private readonly encryptionService: EncryptionService
+    private readonly encryptionService: EncryptionService,
   ) {}
 
   /**
@@ -23,13 +26,13 @@ export class GhlService {
       where: {
         config: {
           path: ['locationId'],
-          equals: locationId
-        }
+          equals: locationId,
+        },
       },
       include: {
         subAccount: true,
-        integrationTemplate: true
-      }
+        integrationTemplate: true,
+      },
     });
   }
 
@@ -41,39 +44,46 @@ export class GhlService {
    * @param data Request body
    * @returns API response
    */
-  async makeGhlApiCall(integrationId: number, endpoint: string, method = 'GET', data?: any) {
+  async makeGhlApiCall(
+    integrationId: number,
+    endpoint: string,
+    method = 'GET',
+    data?: any,
+  ) {
     const integration = await this.prisma.integration.findUnique({
-      where: { id: integrationId }
+      where: { id: integrationId },
     });
-    
+
     if (!integration) {
       throw new HttpException('Integration not found', HttpStatus.NOT_FOUND);
     }
-    
+
     const config = integration.config as unknown as GhlIntegrationConfigDto;
     const baseUrl = config.baseUrl || 'https://rest.gohighlevel.com';
     const apiVersion = config.apiVersion || 'v1';
-    
+
     // Decrypt the API key before using it
     const apiKey = this.encryptionService.safeDecrypt(config.apiKey);
-    
+
     try {
       const response = await axios({
         method,
         url: `${baseUrl}/${apiVersion}${endpoint}`,
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
         },
-        data
+        data,
       });
-      
+
       return response;
     } catch (error) {
-      this.logger.error(`GHL API call failed for integration ${integrationId}: ${error.message}`);
+      this.logger.error(
+        `GHL API call failed for integration ${integrationId}: ${error.message}`,
+      );
       throw new HttpException(
         `GHL API call failed: ${error.response?.data?.message || error.message}`,
-        error.response?.status || HttpStatus.BAD_GATEWAY
+        error.response?.status || HttpStatus.BAD_GATEWAY,
       );
     }
   }
@@ -83,10 +93,14 @@ export class GhlService {
    * @param integrationId Integration ID for credentials
    * @returns List of subaccounts/locations from GoHighLevel API
    */
-  async searchSubaccountsByIntegration(integrationId: number): Promise<GhlSubaccountsResponse> {
+  async searchSubaccountsByIntegration(
+    integrationId: number,
+  ): Promise<GhlSubaccountsResponse> {
     try {
-      this.logger.log(`Fetching subaccounts from GoHighLevel API for integration ${integrationId}`);
-      
+      this.logger.log(
+        `Fetching subaccounts from GoHighLevel API for integration ${integrationId}`,
+      );
+
       const response = await this.makeGhlApiCall(integrationId, '/locations');
       return response.data as GhlSubaccountsResponse;
     } catch (error) {
@@ -100,7 +114,9 @@ export class GhlService {
    * @param integrationId Integration ID
    * @returns Connection test result
    */
-  async testConnection(integrationId: number): Promise<{success: boolean, message: string, data?: any}> {
+  async testConnection(
+    integrationId: number,
+  ): Promise<{ success: boolean; message: string; data?: any }> {
     try {
       const response = await this.makeGhlApiCall(integrationId, '/locations');
       return {
@@ -108,13 +124,13 @@ export class GhlService {
         message: 'Successfully connected to GoHighLevel',
         data: {
           locationsCount: response.data.locations?.length || 0,
-          apiVersion: response.headers['x-api-version'] || 'v1'
-        }
+          apiVersion: response.headers['x-api-version'] || 'v1',
+        },
       };
     } catch (error) {
       return {
         success: false,
-        message: `Connection failed: ${error.response?.data?.message || error.message}`
+        message: `Connection failed: ${error.response?.data?.message || error.message}`,
       };
     }
   }
@@ -125,41 +141,52 @@ export class GhlService {
    * @param webhookConfig Webhook configuration
    * @returns Webhook setup result
    */
-  async setupWebhook(integrationId: number, webhookConfig: {events: string[]}) {
+  async setupWebhook(
+    integrationId: number,
+    webhookConfig: { events: string[] },
+  ) {
     const integration = await this.prisma.integration.findUnique({
-      where: { id: integrationId }
+      where: { id: integrationId },
     });
-    
+
     if (!integration) {
       throw new HttpException('Integration not found', HttpStatus.NOT_FOUND);
     }
-    
+
     const config = integration.config as unknown as GhlIntegrationConfigDto;
-    const webhookUrl = config.webhookUrl || `${process.env.BACKEND_URL}/webhook`;
-    
+    const webhookUrl =
+      config.webhookUrl || `${process.env.BACKEND_URL}/webhook`;
+
     try {
       // Register webhook with GHL API
-      const response = await this.makeGhlApiCall(integrationId, '/webhooks', 'POST', {
-        url: webhookUrl,
-        events: webhookConfig.events
-      });
-      
+      const response = await this.makeGhlApiCall(
+        integrationId,
+        '/webhooks',
+        'POST',
+        {
+          url: webhookUrl,
+          events: webhookConfig.events,
+        },
+      );
+
       // Update integration with webhook ID - keep existing encryption
       const updatedConfig = {
         ...config,
-        webhookId: response.data.id
+        webhookId: response.data.id,
       };
-      
+
       await this.prisma.integration.update({
         where: { id: integrationId },
         data: {
-          config: updatedConfig
-        }
+          config: updatedConfig,
+        },
       });
-      
+
       return response.data;
     } catch (error) {
-      this.logger.error(`Failed to setup webhook for integration ${integrationId}: ${error.message}`);
+      this.logger.error(
+        `Failed to setup webhook for integration ${integrationId}: ${error.message}`,
+      );
       throw error;
     }
   }
@@ -174,16 +201,16 @@ export class GhlService {
     const integration = await this.prisma.integration.findFirst({
       where: {
         integrationTemplate: {
-          name: 'gohighlevel'
+          name: 'gohighlevel',
         },
-        status: 'active'
-      }
+        status: 'active',
+      },
     });
 
     if (!integration) {
       throw new HttpException(
         'No active GoHighLevel integration found. Please set up a GHL integration first.',
-        HttpStatus.NOT_FOUND
+        HttpStatus.NOT_FOUND,
       );
     }
 

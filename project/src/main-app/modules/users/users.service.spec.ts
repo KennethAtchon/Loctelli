@@ -100,7 +100,7 @@ describe('UsersService', () => {
           company: true,
           isActive: true,
           subAccount: {
-            select: { id: true, name: true }
+            select: { id: true, name: true },
           },
           createdAt: true,
           updatedAt: true,
@@ -110,14 +110,14 @@ describe('UsersService', () => {
     });
 
     it('should create user without password hashing when password is empty string', async () => {
-      const createUserDtoWithoutPassword = { 
+      const createUserDtoWithoutPassword = {
         name: 'Test User',
         email: 'test@example.com',
         password: '',
         company: 'Test Company',
         role: 'user',
       };
-      
+
       mockPrismaService.user.create.mockResolvedValue(mockCreatedUser);
 
       const result = await service.create(createUserDtoWithoutPassword, 1);
@@ -136,7 +136,7 @@ describe('UsersService', () => {
           company: true,
           isActive: true,
           subAccount: {
-            select: { id: true, name: true }
+            select: { id: true, name: true },
           },
           createdAt: true,
           updatedAt: true,
@@ -249,9 +249,13 @@ describe('UsersService', () => {
     });
 
     it('should throw NotFoundException when user does not exist', async () => {
-      mockPrismaService.user.update.mockRejectedValue(new Error('User not found'));
+      mockPrismaService.user.update.mockRejectedValue(
+        new Error('User not found'),
+      );
 
-      await expect(service.update(999, updateUserDto)).rejects.toThrow(NotFoundException);
+      await expect(service.update(999, updateUserDto)).rejects.toThrow(
+        NotFoundException,
+      );
       expect(prismaService.user.update).toHaveBeenCalledWith({
         where: { id: 999 },
         data: updateUserDto,
@@ -278,7 +282,9 @@ describe('UsersService', () => {
     });
 
     it('should throw NotFoundException when user does not exist', async () => {
-      mockPrismaService.user.delete.mockRejectedValue(new Error('User not found'));
+      mockPrismaService.user.delete.mockRejectedValue(
+        new Error('User not found'),
+      );
 
       await expect(service.remove(999)).rejects.toThrow(NotFoundException);
       expect(prismaService.user.delete).toHaveBeenCalledWith({
@@ -322,7 +328,10 @@ describe('UsersService', () => {
 
     it('should successfully import GHL users', async () => {
       mockGhlService.searchSubaccounts.mockResolvedValue(mockSubaccountsData);
-      mockPrismaService.subAccount.findFirst.mockResolvedValue({ id: 1, name: 'Default SubAccount' });
+      mockPrismaService.subAccount.findFirst.mockResolvedValue({
+        id: 1,
+        name: 'Default SubAccount',
+      });
       mockPrismaService.user.findFirst.mockResolvedValue(null); // No existing users
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
       mockPrismaService.user.create
@@ -339,7 +348,10 @@ describe('UsersService', () => {
 
     it('should skip existing users during import', async () => {
       mockGhlService.searchSubaccounts.mockResolvedValue(mockSubaccountsData);
-      mockPrismaService.subAccount.findFirst.mockResolvedValue({ id: 1, name: 'Default SubAccount' });
+      mockPrismaService.subAccount.findFirst.mockResolvedValue({
+        id: 1,
+        name: 'Default SubAccount',
+      });
       mockPrismaService.user.findFirst
         .mockResolvedValueOnce(null) // First user doesn't exist
         .mockResolvedValueOnce({ id: 1, email: 'location2@example.com' }); // Second user exists
@@ -363,8 +375,13 @@ describe('UsersService', () => {
         ],
       };
 
-      mockGhlService.searchSubaccounts.mockResolvedValue(subaccountsDataWithoutEmail);
-      mockPrismaService.subAccount.findFirst.mockResolvedValue({ id: 1, name: 'Default SubAccount' });
+      mockGhlService.searchSubaccounts.mockResolvedValue(
+        subaccountsDataWithoutEmail,
+      );
+      mockPrismaService.subAccount.findFirst.mockResolvedValue({
+        id: 1,
+        name: 'Default SubAccount',
+      });
       mockPrismaService.user.findFirst.mockResolvedValue(null);
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
       mockPrismaService.user.create.mockResolvedValue({
@@ -401,7 +418,10 @@ describe('UsersService', () => {
     });
 
     it('should handle and rethrow HttpException from GHL service', async () => {
-      const httpException = new HttpException('GHL API Error', HttpStatus.BAD_GATEWAY);
+      const httpException = new HttpException(
+        'GHL API Error',
+        HttpStatus.BAD_GATEWAY,
+      );
       mockGhlService.searchSubaccounts.mockRejectedValue(httpException);
 
       await expect(service.importGhlUsers()).rejects.toThrow(HttpException);

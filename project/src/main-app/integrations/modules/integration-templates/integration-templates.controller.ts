@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+  Query,
+} from '@nestjs/common';
 import { IntegrationTemplatesService } from './integration-templates.service';
 import { CreateIntegrationTemplateDto } from './dto/create-integration-template.dto';
 import { UpdateIntegrationTemplateDto } from './dto/update-integration-template.dto';
@@ -10,11 +21,16 @@ import { Roles } from '../../../../shared/decorators/roles.decorator';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin', 'super_admin')
 export class IntegrationTemplatesController {
-  constructor(private readonly integrationTemplatesService: IntegrationTemplatesService) {}
+  constructor(
+    private readonly integrationTemplatesService: IntegrationTemplatesService,
+  ) {}
 
   @Post()
   create(@Body() createDto: CreateIntegrationTemplateDto, @Request() req) {
-    console.log('Creating integration template:', { createDto, userId: req.user.userId });
+    console.log('Creating integration template:', {
+      createDto,
+      userId: req.user.userId,
+    });
     return this.integrationTemplatesService.create(createDto, req.user.userId);
   }
 
@@ -39,7 +55,10 @@ export class IntegrationTemplatesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDto: UpdateIntegrationTemplateDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateDto: UpdateIntegrationTemplateDto,
+  ) {
     console.log('Updating integration template:', { id, updateDto });
     return this.integrationTemplatesService.update(+id, updateDto);
   }
@@ -48,4 +67,4 @@ export class IntegrationTemplatesController {
   remove(@Param('id') id: string) {
     return this.integrationTemplatesService.delete(+id);
   }
-} 
+}

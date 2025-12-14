@@ -7,10 +7,10 @@ import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
 @Module({
   imports: [PrismaModule],
   controllers: [
-    SubAccountsController,      // Admin endpoints (/admin/subaccounts)
-    UserSubAccountsController,  // User endpoints (/subaccounts)
+    SubAccountsController, // Admin endpoints (/admin/subaccounts)
+    UserSubAccountsController, // User endpoints (/subaccounts)
   ],
   providers: [SubAccountsService],
   exports: [SubAccountsService],
 })
-export class SubAccountsModule {} 
+export class SubAccountsModule {}

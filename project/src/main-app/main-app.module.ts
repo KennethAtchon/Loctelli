@@ -51,4 +51,4 @@ import { AIReceptionistModule } from './modules/ai-receptionist/ai-receptionist.
     },
   ],
 })
-export class MainAppModule {} 
+export class MainAppModule {}

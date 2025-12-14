@@ -111,4 +111,4 @@ export interface GhlMessage {
     url: string;
     type: string;
   }>;
-} 
+}

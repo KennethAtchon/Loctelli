@@ -1,4 +1,13 @@
-import { IsString, IsOptional, IsBoolean, IsNumber, Min, Max, IsNotEmpty, IsArray } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsNumber,
+  Min,
+  Max,
+  IsNotEmpty,
+  IsArray,
+} from 'class-validator';
 
 export class CreatePromptTemplateDto {
   @IsString()
@@ -36,4 +45,4 @@ export class CreatePromptTemplateDto {
   @IsString({ each: true })
   @IsOptional()
   tags?: string[];
-} 
+}

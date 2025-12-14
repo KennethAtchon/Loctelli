@@ -1,4 +1,11 @@
-import { IsEmail, IsString, MinLength, IsEnum, IsOptional, IsBoolean } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  MinLength,
+  IsEnum,
+  IsOptional,
+  IsBoolean,
+} from 'class-validator';
 import { AccountType } from '../utils/validation.utils';
 
 export class UnifiedLoginDto {
@@ -67,12 +74,12 @@ export class RefreshTokenDto {
 }
 
 export interface UnifiedJwtPayload {
-  sub: number;              // User ID
+  sub: number; // User ID
   email: string;
   role: string;
   accountType: AccountType;
-  subAccountId?: number;    // Only for regular users
-  permissions?: any;        // Only for admins
+  subAccountId?: number; // Only for regular users
+  permissions?: any; // Only for admins
 }
 
 export interface AuthResponse {

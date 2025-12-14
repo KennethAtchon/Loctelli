@@ -64,16 +64,27 @@ describe('UsersController', () => {
     it('should successfully create a user for admin', async () => {
       mockUsersService.create.mockResolvedValue(mockCreatedUser);
 
-      const result = await controller.create(createUserDto, { role: 'admin', type: 'admin', subAccountId: 1 });
+      const result = await controller.create(createUserDto, {
+        role: 'admin',
+        type: 'admin',
+        subAccountId: 1,
+      });
 
-      expect(usersService.create).toHaveBeenCalledWith(createUserDto, createUserDto.subAccountId);
+      expect(usersService.create).toHaveBeenCalledWith(
+        createUserDto,
+        createUserDto.subAccountId,
+      );
       expect(result).toEqual(mockCreatedUser);
     });
 
     it('should successfully create a user for regular user', async () => {
       mockUsersService.create.mockResolvedValue(mockCreatedUser);
 
-      const result = await controller.create(createUserDto, { role: 'user', type: 'user', subAccountId: 1 });
+      const result = await controller.create(createUserDto, {
+        role: 'user',
+        type: 'user',
+        subAccountId: 1,
+      });
 
       expect(usersService.create).toHaveBeenCalledWith(createUserDto, 1);
       expect(result).toEqual(mockCreatedUser);
@@ -109,7 +120,9 @@ describe('UsersController', () => {
 
       const result = await controller.findAll(mockAdminUser);
 
-      expect(usersService.findAllByAdmin).toHaveBeenCalledWith(mockAdminUser.userId);
+      expect(usersService.findAllByAdmin).toHaveBeenCalledWith(
+        mockAdminUser.userId,
+      );
       expect(result).toEqual([mockUserData]);
     });
 
@@ -118,7 +131,9 @@ describe('UsersController', () => {
 
       const result = await controller.findAll(mockRegularUser);
 
-      expect(usersService.findAllBySubAccount).toHaveBeenCalledWith(mockRegularUser.subAccountId);
+      expect(usersService.findAllBySubAccount).toHaveBeenCalledWith(
+        mockRegularUser.subAccountId,
+      );
       expect(result).toEqual([mockUserData]);
     });
 
@@ -141,11 +156,15 @@ describe('UsersController', () => {
     });
 
     it('should throw HttpException for invalid userId parameter', () => {
-      expect(() => controller.findAll(mockRegularUser, 'invalid')).toThrow(HttpException);
+      expect(() => controller.findAll(mockRegularUser, 'invalid')).toThrow(
+        HttpException,
+      );
     });
 
     it('should throw HttpException when user tries to access other user data without admin role', () => {
-      expect(() => controller.findAll(mockRegularUser, '2')).toThrow(HttpException);
+      expect(() => controller.findAll(mockRegularUser, '2')).toThrow(
+        HttpException,
+      );
     });
   });
 
@@ -208,7 +227,10 @@ describe('UsersController', () => {
     it('should successfully update user when user is admin', () => {
       mockUsersService.update.mockResolvedValue(mockUpdatedUser);
 
-      const result = controller.update(2, updateUserDto, { ...mockUser, role: 'admin' });
+      const result = controller.update(2, updateUserDto, {
+        ...mockUser,
+        role: 'admin',
+      });
 
       expect(usersService.update).toHaveBeenCalledWith(2, updateUserDto);
       expect(result).resolves.toEqual(mockUpdatedUser);
@@ -224,7 +246,9 @@ describe('UsersController', () => {
     });
 
     it('should throw HttpException when user tries to update other user data without admin role', () => {
-      expect(() => controller.update(2, updateUserDto, mockUser)).toThrow(HttpException);
+      expect(() => controller.update(2, updateUserDto, mockUser)).toThrow(
+        HttpException,
+      );
     });
   });
 
@@ -291,4 +315,4 @@ describe('UsersController', () => {
       expect(result).resolves.toEqual(mockImportedUsers);
     });
   });
-}); 
+});

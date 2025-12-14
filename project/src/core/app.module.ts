@@ -62,16 +62,12 @@ import { InputValidationMiddleware } from '../shared/middleware/input-validation
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     // Apply security headers to all routes
-    consumer
-      .apply(SecurityHeadersMiddleware)
-      .forRoutes('*');
+    consumer.apply(SecurityHeadersMiddleware).forRoutes('*');
 
     // Apply input validation to all routes except website-builder upload
     consumer
       .apply(InputValidationMiddleware)
-      .exclude(
-        { path: 'website-builder/upload', method: RequestMethod.POST },
-      )
+      .exclude({ path: 'website-builder/upload', method: RequestMethod.POST })
       .forRoutes('*');
 
     // Apply rate limiting to unified auth endpoints

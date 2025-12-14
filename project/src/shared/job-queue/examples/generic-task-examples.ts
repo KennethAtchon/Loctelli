@@ -19,7 +19,7 @@ export class GenericTaskExamplesController {
       {
         subAccountId: 'sub_123',
         userId: 'user_456',
-      }
+      },
     );
 
     return {
@@ -30,7 +30,9 @@ export class GenericTaskExamplesController {
 
   // Example 2: Process data in background
   @Post('process-data')
-  async processData(@Body() { data, operation }: { data: any[], operation: string }) {
+  async processData(
+    @Body() { data, operation }: { data: any[]; operation: string },
+  ) {
     const jobId = await this.jobQueueService.executeTask(
       'Data Processing',
       'processData',
@@ -39,9 +41,9 @@ export class GenericTaskExamplesController {
         subAccountId: 'sub_123',
         context: {
           filterKey: 'status',
-          filterValue: 'active'
-        }
-      }
+          filterValue: 'active',
+        },
+      },
     );
 
     return {
@@ -54,17 +56,19 @@ export class GenericTaskExamplesController {
 
   // Example 3: Execute service method in background
   @Post('export-leads-async')
-  async exportLeadsAsync(@Body() { subAccountId, format }: { subAccountId: string, format: string }) {
+  async exportLeadsAsync(
+    @Body() { subAccountId, format }: { subAccountId: string; format: string },
+  ) {
     const jobId = await this.jobQueueService.executeServiceMethod(
       'Background Lead Export',
       'LeadsService', // Service name
-      'exportLeads',  // Method name
+      'exportLeads', // Method name
       [subAccountId, format], // Parameters
       {
         subAccountId,
         retries: 2,
         delay: 5000, // 5 second delay
-      }
+      },
     );
 
     return {
@@ -76,11 +80,18 @@ export class GenericTaskExamplesController {
 
   // Example 4: Custom notification task
   @Post('send-notifications')
-  async sendNotifications(@Body() { type, recipients, message }: { 
-    type: string, 
-    recipients: string[], 
-    message: string 
-  }) {
+  async sendNotifications(
+    @Body()
+    {
+      type,
+      recipients,
+      message,
+    }: {
+      type: string;
+      recipients: string[];
+      message: string;
+    },
+  ) {
     const jobId = await this.jobQueueService.executeTask(
       'Send Notifications',
       'sendNotification',
@@ -89,9 +100,9 @@ export class GenericTaskExamplesController {
         subAccountId: 'sub_123',
         context: {
           priority: 'high',
-          campaign: 'holiday-2024'
-        }
-      }
+          campaign: 'holiday-2024',
+        },
+      },
     );
 
     return {
@@ -103,7 +114,9 @@ export class GenericTaskExamplesController {
 
   // Example 5: Scheduled cleanup task
   @Post('cleanup-old-data')
-  async cleanupOldData(@Body() { tableName, daysOld }: { tableName: string, daysOld: number }) {
+  async cleanupOldData(
+    @Body() { tableName, daysOld }: { tableName: string; daysOld: number },
+  ) {
     const jobId = await this.jobQueueService.executeTask(
       'Data Cleanup',
       'cleanupOldData',
@@ -114,9 +127,9 @@ export class GenericTaskExamplesController {
         retries: 3,
         context: {
           backupBefore: true,
-          notifyAdmin: true
-        }
-      }
+          notifyAdmin: true,
+        },
+      },
     );
 
     return {
@@ -127,7 +140,9 @@ export class GenericTaskExamplesController {
 
   // Example 6: Generate reports
   @Post('generate-report')
-  async generateReport(@Body() { reportType, filters }: { reportType: string, filters: any }) {
+  async generateReport(
+    @Body() { reportType, filters }: { reportType: string; filters: any },
+  ) {
     const jobId = await this.jobQueueService.executeTask(
       'Report Generation',
       'generateReport',
@@ -136,9 +151,9 @@ export class GenericTaskExamplesController {
         subAccountId: 'sub_123',
         context: {
           outputFormat: 'pdf',
-          emailWhenDone: true
-        }
-      }
+          emailWhenDone: true,
+        },
+      },
     );
 
     return {
@@ -170,9 +185,9 @@ export class ExampleBusinessService {
         userId,
         context: {
           source: 'user-upload',
-          transformType: 'normalize'
-        }
-      }
+          transformType: 'normalize',
+        },
+      },
     );
 
     return { jobId, message: 'Processing started' };
@@ -187,8 +202,8 @@ export class ExampleBusinessService {
         'Clean temp files',
         'cleanupOldData',
         ['temp_files', 7],
-        { delay: 300000 } // 5 minutes
-      )
+        { delay: 300000 }, // 5 minutes
+      ),
     );
 
     tasks.push(
@@ -196,8 +211,8 @@ export class ExampleBusinessService {
         'Generate daily report',
         'generateReport',
         ['daily_activity', { date: new Date().toISOString().split('T')[0] }],
-        { delay: 600000 } // 10 minutes
-      )
+        { delay: 600000 }, // 10 minutes
+      ),
     );
 
     return {
@@ -218,9 +233,9 @@ export class ExampleBusinessService {
         context: {
           action,
           timestamp: new Date(),
-          source: 'user-interface'
-        }
-      }
+          source: 'user-interface',
+        },
+      },
     );
   }
 
@@ -233,8 +248,8 @@ export class ExampleBusinessService {
       [campaignId, recipients],
       {
         retries: 2,
-        context: { source: 'campaign-scheduler' }
-      }
+        context: { source: 'campaign-scheduler' },
+      },
     );
   }
 
@@ -249,32 +264,32 @@ export class ExampleBusinessService {
         delay: 10000, // 10 second delay
         context: {
           syncType: 'bidirectional',
-          priority: 'normal'
-        }
-      }
+          priority: 'normal',
+        },
+      },
     );
   }
 }
 
 /**
  * Usage Patterns:
- * 
+ *
  * 1. Built-in Functions:
  *    - delay, calculateSum, processData, sendNotification
  *    - cleanupOldData, generateReport, customAsyncTask
- * 
+ *
  * 2. Service Methods:
  *    - Any method from any injectable service
  *    - Full dependency injection support
- * 
+ *
  * 3. Custom Functions:
  *    - Add to task registry in GenericTaskProcessor
  *    - Access via executeTask()
- * 
+ *
  * 4. Flexible Parameters:
  *    - Pass any parameters as array
  *    - Additional context via options.context
- * 
+ *
  * 5. Full Background Execution:
  *    - Immediate response with jobId
  *    - Monitor via getJobStatus()

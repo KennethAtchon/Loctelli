@@ -8,7 +8,7 @@ export class SystemUserService {
   private readonly logger = new Logger(SystemUserService.name);
   private readonly SYSTEM_USER_EMAIL = 'user@loctelli.com';
   private readonly SYSTEM_USER_ID = 1; // Known ID from database
-  
+
   constructor(private prisma: PrismaService) {}
 
   /**
@@ -23,7 +23,9 @@ export class SystemUserService {
     });
 
     if (!systemUser) {
-      this.logger.error(`System user not found with ID: ${this.SYSTEM_USER_ID}`);
+      this.logger.error(
+        `System user not found with ID: ${this.SYSTEM_USER_ID}`,
+      );
       throw new Error('System user not found. Please contact administrator.');
     }
 
@@ -54,7 +56,7 @@ export class SystemUserService {
    */
   async ensureSystemUserSecurity() {
     this.logger.log('🔒 Ensuring system user security...');
-    
+
     try {
       const systemUser = await this.prisma.user.findUnique({
         where: { id: this.SYSTEM_USER_ID },
@@ -89,14 +91,15 @@ export class SystemUserService {
    * Generate an extremely secure password for the system user
    */
   private generateSecureSystemPassword(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
     const length = 128; // Very long password
     let password = '';
-    
+
     for (let i = 0; i < length; i++) {
       password += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    
+
     // Add timestamp and random suffix to make it unique
     return `${password}_${Date.now()}_${Math.random().toString(36).substring(2)}`;
   }
@@ -115,11 +118,15 @@ export class SystemUserService {
    */
   getEffectiveRegularUserId(user: any): number {
     if (this.isAdminUser(user)) {
-      this.logger.debug(`Admin user ${user.email} mapped to system user ID: ${this.SYSTEM_USER_ID}`);
+      this.logger.debug(
+        `Admin user ${user.email} mapped to system user ID: ${this.SYSTEM_USER_ID}`,
+      );
       return this.SYSTEM_USER_ID;
     }
-    
-    this.logger.debug(`Regular user ${user.email} using their own ID: ${user.userId}`);
+
+    this.logger.debug(
+      `Regular user ${user.email} using their own ID: ${user.userId}`,
+    );
     return user.userId;
   }
 
@@ -131,7 +138,7 @@ export class SystemUserService {
     if (this.isAdminUser(user)) {
       return user.userId; // This is the admin's real ID
     }
-    
+
     return null; // Regular users don't have admin IDs
   }
 
@@ -143,7 +150,7 @@ export class SystemUserService {
     if (this.isAdminUser(user)) {
       return await this.getSystemUser();
     }
-    
+
     // For regular users, fetch their full user record
     return await this.prisma.user.findUnique({
       where: { id: user.userId },
@@ -162,17 +169,17 @@ export class SystemUserService {
       const systemUser = await this.getSystemUser();
       return systemUser.subAccountId;
     }
-    
+
     // For regular users, use their subAccount
     const regularUser = await this.prisma.user.findUnique({
       where: { id: user.userId },
       select: { subAccountId: true },
     });
-    
+
     if (!regularUser) {
       throw new Error('User not found');
     }
-    
+
     return regularUser.subAccountId;
   }
 
@@ -180,13 +187,16 @@ export class SystemUserService {
    * Log admin operation for audit purposes
    */
   logAdminOperation(adminUser: any, operation: string, details?: any) {
-    this.logger.log(`🔧 Admin Operation: ${adminUser.email} (ID: ${adminUser.userId}) performed ${operation}`, {
-      adminId: adminUser.userId,
-      adminEmail: adminUser.email,
-      operation,
-      systemUserId: this.SYSTEM_USER_ID,
-      timestamp: new Date().toISOString(),
-      details,
-    });
+    this.logger.log(
+      `🔧 Admin Operation: ${adminUser.email} (ID: ${adminUser.userId}) performed ${operation}`,
+      {
+        adminId: adminUser.userId,
+        adminEmail: adminUser.email,
+        operation,
+        systemUserId: this.SYSTEM_USER_ID,
+        timestamp: new Date().toISOString(),
+        details,
+      },
+    );
   }
 }

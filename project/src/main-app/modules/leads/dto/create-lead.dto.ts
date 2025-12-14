@@ -1,4 +1,11 @@
-import { IsString, IsOptional, IsInt, IsEmail, IsJSON, IsNumber } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsInt,
+  IsEmail,
+  IsJSON,
+  IsNumber,
+} from 'class-validator';
 
 export class CreateLeadDto {
   @IsInt()

@@ -9,4 +9,4 @@ import { PrismaModule } from '../../../infrastructure/prisma/prisma.module';
   providers: [IntegrationTemplatesService],
   exports: [IntegrationTemplatesService],
 })
-export class IntegrationTemplatesModule {} 
+export class IntegrationTemplatesModule {}

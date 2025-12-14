@@ -6,7 +6,7 @@ import * as crypto from 'crypto';
 export class EncryptionService {
   private readonly algorithm = 'aes-256-cbc';
   private readonly keyLength = 32;
-  
+
   constructor(private configService: ConfigService) {}
 
   /**
@@ -14,7 +14,9 @@ export class EncryptionService {
    * @returns Buffer containing the encryption key
    */
   private getEncryptionKey(): Buffer {
-    const secret = this.configService.get<string>('API_KEY_ENCRYPTION_SECRET') || 'default-secret-key-32-characters!!';
+    const secret =
+      this.configService.get<string>('API_KEY_ENCRYPTION_SECRET') ||
+      'default-secret-key-32-characters!!';
     return crypto.scryptSync(secret, 'salt', this.keyLength);
   }
 
@@ -26,11 +28,11 @@ export class EncryptionService {
   encrypt(plainText: string): string {
     const iv = crypto.randomBytes(16);
     const key = this.getEncryptionKey();
-    
+
     const cipher = crypto.createCipheriv(this.algorithm, key, iv);
     let encrypted = cipher.update(plainText, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    
+
     return `${iv.toString('hex')}:${encrypted}`;
   }
 
@@ -41,18 +43,18 @@ export class EncryptionService {
    */
   decrypt(encryptedText: string): string {
     const key = this.getEncryptionKey();
-    
+
     const [ivHex, encrypted] = encryptedText.split(':');
     if (!ivHex || !encrypted) {
       throw new Error('Invalid encrypted text format');
     }
-    
+
     const iv = Buffer.from(ivHex, 'hex');
-    
+
     const decipher = crypto.createDecipheriv(this.algorithm, key, iv);
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
-    
+
     return decrypted;
   }
 

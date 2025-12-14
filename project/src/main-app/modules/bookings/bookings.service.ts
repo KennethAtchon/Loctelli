@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
@@ -45,8 +49,8 @@ export class BookingsService {
         regularUser: true,
         lead: true,
         subAccount: {
-          select: { id: true, name: true }
-        }
+          select: { id: true, name: true },
+        },
       },
     });
   }
@@ -65,7 +69,10 @@ export class BookingsService {
     }
 
     // Check if user has permission to access this booking
-    if (!isAdminOrSuperAdmin(null, userRole) && booking.regularUserId !== userId) {
+    if (
+      !isAdminOrSuperAdmin(null, userRole) &&
+      booking.regularUserId !== userId
+    ) {
       throw new ForbiddenException('Access denied');
     }
 
@@ -106,7 +113,12 @@ export class BookingsService {
     });
   }
 
-  async update(id: number, updateBookingDto: UpdateBookingDto, userId: number, userRole: string) {
+  async update(
+    id: number,
+    updateBookingDto: UpdateBookingDto,
+    userId: number,
+    userRole: string,
+  ) {
     // Check if booking exists and user has permission
     const booking = await this.prisma.booking.findUnique({
       where: { id },
@@ -117,7 +129,10 @@ export class BookingsService {
     }
 
     // Check if user has permission to update this booking
-    if (!isAdminOrSuperAdmin(null, userRole) && booking.regularUserId !== userId) {
+    if (
+      !isAdminOrSuperAdmin(null, userRole) &&
+      booking.regularUserId !== userId
+    ) {
       throw new ForbiddenException('Access denied');
     }
 
@@ -133,12 +148,12 @@ export class BookingsService {
     } catch (error) {
       // Log the actual error for debugging
       console.error('Booking update error:', error);
-      
+
       // Check if it's a foreign key constraint error
       if (error.code === 'P2003') {
         throw new NotFoundException('Referenced user or lead not found');
       }
-      
+
       throw new NotFoundException(`Booking with ID ${id} not found`);
     }
   }
@@ -154,7 +169,10 @@ export class BookingsService {
     }
 
     // Check if user has permission to delete this booking
-    if (!isAdminOrSuperAdmin(null, userRole) && booking.regularUserId !== userId) {
+    if (
+      !isAdminOrSuperAdmin(null, userRole) &&
+      booking.regularUserId !== userId
+    ) {
       throw new ForbiddenException('Access denied');
     }
 

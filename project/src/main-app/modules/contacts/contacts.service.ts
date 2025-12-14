@@ -29,7 +29,9 @@ export class ContactsService {
         subAccountId,
         status: filters?.status,
         priority: filters?.priority,
-        assignedToId: filters?.assignedToId ? parseInt(filters.assignedToId) : undefined,
+        assignedToId: filters?.assignedToId
+          ? parseInt(filters.assignedToId)
+          : undefined,
       },
       include: {
         assignedTo: true,
@@ -48,7 +50,11 @@ export class ContactsService {
     });
   }
 
-  async update(id: string, data: UpdateContactSubmissionDto, subAccountId: number) {
+  async update(
+    id: string,
+    data: UpdateContactSubmissionDto,
+    subAccountId: number,
+  ) {
     // DTO fields now match Prisma schema exactly - no conversion needed
     return this.prisma.contactSubmission.update({
       where: { id, subAccountId },
@@ -59,7 +65,12 @@ export class ContactsService {
     });
   }
 
-  async addNote(contactId: string, noteData: CreateContactNoteDto, authorId: number, authorName: string) {
+  async addNote(
+    contactId: string,
+    noteData: CreateContactNoteDto,
+    authorId: number,
+    authorName: string,
+  ) {
     const contact = await this.prisma.contactSubmission.findUnique({
       where: { id: contactId },
       select: { notes: true },
@@ -91,20 +102,20 @@ export class ContactsService {
   async getStats(subAccountId: number) {
     const [total, newCount, inProgress, closed] = await Promise.all([
       this.prisma.contactSubmission.count({ where: { subAccountId } }),
-      this.prisma.contactSubmission.count({ 
-        where: { subAccountId, status: 'NEW' } 
+      this.prisma.contactSubmission.count({
+        where: { subAccountId, status: 'NEW' },
       }),
-      this.prisma.contactSubmission.count({ 
-        where: { 
-          subAccountId, 
-          status: { in: ['CONTACTED', 'QUALIFIED', 'PROPOSAL_SENT'] } 
-        } 
+      this.prisma.contactSubmission.count({
+        where: {
+          subAccountId,
+          status: { in: ['CONTACTED', 'QUALIFIED', 'PROPOSAL_SENT'] },
+        },
       }),
-      this.prisma.contactSubmission.count({ 
-        where: { 
-          subAccountId, 
-          status: { in: ['CLOSED_WON', 'CLOSED_LOST'] } 
-        } 
+      this.prisma.contactSubmission.count({
+        where: {
+          subAccountId,
+          status: { in: ['CLOSED_WON', 'CLOSED_LOST'] },
+        },
       }),
     ]);
 

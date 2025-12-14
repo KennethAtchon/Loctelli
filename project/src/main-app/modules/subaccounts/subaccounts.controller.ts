@@ -26,7 +26,10 @@ export class SubAccountsController {
   @Post()
   @Roles('admin', 'super_admin')
   @UseGuards(RolesGuard)
-  create(@CurrentUser() user, @Body() createSubAccountDto: CreateSubAccountDto) {
+  create(
+    @CurrentUser() user,
+    @Body() createSubAccountDto: CreateSubAccountDto,
+  ) {
     return this.subAccountsService.create(user.userId, createSubAccountDto);
   }
 
@@ -50,7 +53,7 @@ export class SubAccountsController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user,
-    @Body() updateSubAccountDto: UpdateSubAccountDto
+    @Body() updateSubAccountDto: UpdateSubAccountDto,
   ) {
     return this.subAccountsService.update(id, user.userId, updateSubAccountDto);
   }
@@ -61,4 +64,4 @@ export class SubAccountsController {
   remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user) {
     return this.subAccountsService.remove(id, user.userId);
   }
-} 
+}

@@ -36,7 +36,7 @@ export class IntegrationTemplatesService {
           ...template,
           integrationCount,
         };
-      })
+      }),
     );
 
     return templatesWithCount;
@@ -58,14 +58,18 @@ export class IntegrationTemplatesService {
     });
 
     if (!template) {
-      throw new NotFoundException(`Integration template with ID ${id} not found`);
+      throw new NotFoundException(
+        `Integration template with ID ${id} not found`,
+      );
     }
 
     return template;
   }
 
   async create(createDto: CreateIntegrationTemplateDto, adminId: number) {
-    this.logger.debug(`Creating integration template: ${createDto.name} with adminId: ${adminId}`);
+    this.logger.debug(
+      `Creating integration template: ${createDto.name} with adminId: ${adminId}`,
+    );
 
     try {
       const result = await this.prisma.integrationTemplate.create({
@@ -84,10 +88,15 @@ export class IntegrationTemplatesService {
         },
       });
 
-      this.logger.debug(`Successfully created integration template with ID: ${result.id}`);
+      this.logger.debug(
+        `Successfully created integration template with ID: ${result.id}`,
+      );
       return result;
     } catch (error) {
-      this.logger.error(`Failed to create integration template: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to create integration template: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -113,10 +122,15 @@ export class IntegrationTemplatesService {
         },
       });
 
-      this.logger.debug(`Successfully updated integration template with ID: ${result.id}`);
+      this.logger.debug(
+        `Successfully updated integration template with ID: ${result.id}`,
+      );
       return result;
     } catch (error) {
-      this.logger.error(`Failed to update integration template: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to update integration template: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -132,7 +146,9 @@ export class IntegrationTemplatesService {
     });
 
     if (integrationCount > 0) {
-      throw new Error(`Cannot delete template: ${integrationCount} integrations are using this template`);
+      throw new Error(
+        `Cannot delete template: ${integrationCount} integrations are using this template`,
+      );
     }
 
     return this.prisma.integrationTemplate.delete({
@@ -143,9 +159,9 @@ export class IntegrationTemplatesService {
   async findByCategory(category: string) {
     this.logger.debug(`Finding integration templates by category: ${category}`);
     return this.prisma.integrationTemplate.findMany({
-      where: { 
+      where: {
         category,
-        isActive: true 
+        isActive: true,
       },
       orderBy: {
         displayName: 'asc',
@@ -157,10 +173,7 @@ export class IntegrationTemplatesService {
     this.logger.debug('Finding all active integration templates');
     return this.prisma.integrationTemplate.findMany({
       where: { isActive: true },
-      orderBy: [
-        { category: 'asc' },
-        { displayName: 'asc' },
-      ],
+      orderBy: [{ category: 'asc' }, { displayName: 'asc' }],
     });
   }
-} 
+}

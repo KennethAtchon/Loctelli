@@ -1,4 +1,10 @@
-import { IsEnum, IsOptional, IsString, IsDateString, IsInt } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsDateString,
+  IsInt,
+} from 'class-validator';
 import { ContactStatus, Priority } from '@prisma/client';
 
 export class UpdateContactSubmissionDto {

@@ -8,6 +8,6 @@ import { StorageModule } from '../../../shared/storage/storage.module';
   imports: [PrismaModule, StorageModule],
   controllers: [FormsController],
   providers: [FormsService],
-  exports: [FormsService]
+  exports: [FormsService],
 })
 export class FormsModule {}

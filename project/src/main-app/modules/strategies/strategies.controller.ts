@@ -1,4 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, HttpException, HttpStatus, UseGuards, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseIntPipe,
+  Query,
+  HttpException,
+  HttpStatus,
+  UseGuards,
+  Logger,
+} from '@nestjs/common';
 import { StrategiesService } from './strategies.service';
 import { CreateStrategyDto } from './dto/create-strategy.dto';
 import { UpdateStrategyDto } from './dto/update-strategy.dto';
@@ -16,39 +30,65 @@ export class StrategiesController {
   @Admin()
   create(@Body() createStrategyDto: CreateStrategyDto, @CurrentUser() user) {
     // Admin users can create strategies for any regular user within their SubAccounts
-    this.logger.log(`Creating strategy for user: ${user.email} (ID: ${user.userId}, accountType: ${user.accountType}), ${JSON.stringify(user)}`);
+    this.logger.log(
+      `Creating strategy for user: ${user.email} (ID: ${user.userId}, accountType: ${user.accountType}), ${JSON.stringify(user)}`,
+    );
     if (isAdminAccount(user)) {
       // For admin users, subAccountId should be provided in the DTO
       // Check explicitly for undefined/null (not just falsy, since 0 could be valid)
-      if (createStrategyDto.subAccountId === undefined || createStrategyDto.subAccountId === null) {
-        throw new HttpException('subAccountId is required for strategy creation', HttpStatus.BAD_REQUEST);
+      if (
+        createStrategyDto.subAccountId === undefined ||
+        createStrategyDto.subAccountId === null
+      ) {
+        throw new HttpException(
+          'subAccountId is required for strategy creation',
+          HttpStatus.BAD_REQUEST,
+        );
       }
-      return this.strategiesService.create(createStrategyDto, createStrategyDto.subAccountId);
+      return this.strategiesService.create(
+        createStrategyDto,
+        createStrategyDto.subAccountId,
+      );
     } else {
       // Regular users can only create strategies for themselves in their own SubAccount
       createStrategyDto.regularUserId = user.userId;
       if (!user.subAccountId) {
-        throw new HttpException('User subAccountId is missing', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          'User subAccountId is missing',
+          HttpStatus.BAD_REQUEST,
+        );
       }
-      return this.strategiesService.create(createStrategyDto, user.subAccountId);
+      return this.strategiesService.create(
+        createStrategyDto,
+        user.subAccountId,
+      );
     }
   }
 
   @Get()
   @Admin()
-  findAll(@CurrentUser() user, @Query('userId') userId?: string, @Query('subAccountId') subAccountId?: string) {
+  findAll(
+    @CurrentUser() user,
+    @Query('userId') userId?: string,
+    @Query('subAccountId') subAccountId?: string,
+  ) {
     if (userId) {
       const parsedUserId = parseInt(userId, 10);
       if (isNaN(parsedUserId)) {
-        throw new HttpException('Invalid userId parameter', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          'Invalid userId parameter',
+          HttpStatus.BAD_REQUEST,
+        );
       }
       return this.strategiesService.findByUserId(parsedUserId);
     }
-    
+
     // Handle SubAccount filtering
     if (isAdminAccount(user)) {
       // Admin can view strategies in specific SubAccount or all their SubAccounts
-      const parsedSubAccountId = subAccountId ? parseInt(subAccountId, 10) : undefined;
+      const parsedSubAccountId = subAccountId
+        ? parseInt(subAccountId, 10)
+        : undefined;
       if (parsedSubAccountId) {
         return this.strategiesService.findAllBySubAccount(parsedSubAccountId);
       } else {
@@ -72,9 +112,14 @@ export class StrategiesController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateStrategyDto: UpdateStrategyDto,
-    @CurrentUser() user
+    @CurrentUser() user,
   ) {
-    return this.strategiesService.update(id, updateStrategyDto, user.userId, user.role);
+    return this.strategiesService.update(
+      id,
+      updateStrategyDto,
+      user.userId,
+      user.role,
+    );
   }
 
   @Delete(':id')
