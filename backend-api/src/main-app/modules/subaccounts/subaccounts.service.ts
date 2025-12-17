@@ -21,7 +21,7 @@ export class SubAccountsService {
 
   constructor(private prisma: PrismaService) {}
 
-  async create(adminId: number, createSubAccountDto: CreateSubAccountDto) {
+  create(adminId: number, createSubAccountDto: CreateSubAccountDto) {
     return this.prisma.subAccount.create({
       data: {
         ...createSubAccountDto,
@@ -43,7 +43,7 @@ export class SubAccountsService {
     });
   }
 
-  async findAll(adminId: number) {
+  findAll(adminId: number) {
     // All admins can see all subaccounts
     return this.prisma.subAccount.findMany({
       include: {
@@ -413,7 +413,7 @@ export class SubAccountsService {
   /**
    * List all invitations for a subaccount (admin only)
    */
-  async listInvitations(subAccountId: number) {
+  listInvitations(subAccountId: number) {
     return this.prisma.subAccountInvitation.findMany({
       where: { subAccountId },
       include: {

@@ -133,7 +133,7 @@ export class DataExportProcessor extends BaseProcessor {
     return select;
   }
 
-  private async formatData(data: any[], format: string): Promise<any> {
+  private formatData(data: any[], format: string): Promise<any> {
     switch (format) {
       case 'csv':
         return this.formatAsCsv(data);

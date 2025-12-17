@@ -10,7 +10,7 @@ export class CacheService {
     this.logger.log('🔧 CacheService initialized');
     this.logger.log(`🔧 Cache manager type: ${typeof this.cacheManager}`);
     this.logger.log(
-      `🔧 Cache manager methods: ${Object.getOwnPropertyNames(Object.getPrototypeOf(this.cacheManager))}`,
+      `🔧 Cache manager methods: ${Object.getOwnPropertyNames(Object.getPrototypeOf(this.cacheManager)).join(', ')}`,
     );
   }
 
@@ -110,7 +110,7 @@ export class CacheService {
 
       // Try to get the test value
       const retrieved = await this.cacheManager.get(testKey);
-      this.logger.log(`✅ Redis GET test passed: ${retrieved}`);
+      this.logger.log(`✅ Redis GET test passed: ${String(retrieved)}`);
 
       // Try to delete the test value
       await this.cacheManager.del(testKey);
@@ -125,7 +125,7 @@ export class CacheService {
   }
 
   // Additional cache manager specific methods
-  async keys(pattern?: string): Promise<string[]> {
+  keys(pattern?: string): Promise<string[]> {
     try {
       // Note: cache-manager doesn't provide direct keys access
       // This would need to be implemented differently if needed

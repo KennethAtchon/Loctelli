@@ -165,18 +165,18 @@ export const clearAllMocks = () => {
   Object.values(mockPrismaService).forEach((service) => {
     Object.values(service).forEach((method) => {
       if (typeof method === 'function') {
-        (method as jest.Mock).mockClear();
+        method.mockClear();
       }
     });
   });
   Object.values(mockJwtService).forEach((method) => {
-    (method as jest.Mock).mockClear();
+    method.mockClear();
   });
   Object.values(mockCacheService).forEach((method) => {
-    (method as jest.Mock).mockClear();
+    method.mockClear();
   });
   Object.values(mockGhlService).forEach((method) => {
-    (method as jest.Mock).mockClear();
+    method.mockClear();
   });
 };
 

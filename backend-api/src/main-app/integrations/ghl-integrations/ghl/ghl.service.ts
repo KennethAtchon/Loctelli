@@ -21,7 +21,7 @@ export class GhlService {
    * @param locationId GHL location ID from webhook
    * @returns Integration with subaccount and template info
    */
-  async findIntegrationByLocationId(locationId: string) {
+  findIntegrationByLocationId(locationId: string) {
     return this.prisma.integration.findFirst({
       where: {
         config: {

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "build:all": "pnpm run format:check && pnpm run lint && tsc --noEmit && pnpm run build",
     "start": "next start",
     "lint": "echo 'Linting disabled'",
     "format": "prettier --write .",

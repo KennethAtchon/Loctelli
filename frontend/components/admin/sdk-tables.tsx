@@ -57,7 +57,9 @@ export default function SDKTables() {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch(`${API_CONFIG.BASE_URL}/ai-receptionist/dev/tables`);
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/ai-receptionist/dev/tables`
+      );
       if (!response.ok) {
         throw new Error(`Failed to fetch SDK tables: ${response.statusText}`);
       }

@@ -181,6 +181,7 @@ export class SecurityConfigService {
 
   // Generate secure secrets (for development)
   static generateSecureSecret(length: number = 32): string {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const crypto = require('crypto');
     return crypto.randomBytes(length).toString('hex');
   }

@@ -169,7 +169,7 @@ export class ChatService {
    * @param data Any JSON data
    * @returns Object with received data
    */
-  async handleGeneralChat(data: any) {
+  handleGeneralChat(data: any) {
     // Simply echo back the received data like in the Python implementation
     return { received: data };
   }

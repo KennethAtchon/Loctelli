@@ -385,7 +385,7 @@ export class UnifiedAuthService {
 
     try {
       // Verify JWT signature
-      const payload = this.jwtService.verify(refreshToken) as UnifiedJwtPayload;
+      const payload = this.jwtService.verify(refreshToken);
 
       // Check if refresh token exists in database and is not revoked
       const tokenHash = createHash('sha256').update(refreshToken).digest('hex');

@@ -50,7 +50,7 @@ export class UsersService {
     });
   }
 
-  async findAll() {
+  findAll() {
     return this.prisma.user.findMany({
       include: {
         strategies: true,
@@ -60,7 +60,7 @@ export class UsersService {
     });
   }
 
-  async findAllBySubAccount(subAccountId: number) {
+  findAllBySubAccount(subAccountId: number) {
     return this.prisma.user.findMany({
       where: { subAccountId },
       select: {
@@ -78,7 +78,7 @@ export class UsersService {
     });
   }
 
-  async findAllByAdmin(adminId: number) {
+  findAllByAdmin(adminId: number) {
     // All admins can see all users
     return this.prisma.user.findMany({
       select: {

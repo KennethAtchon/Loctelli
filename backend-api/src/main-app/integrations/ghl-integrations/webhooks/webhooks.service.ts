@@ -281,7 +281,7 @@ export class WebhooksService {
    * @param leadId The lead ID
    * @returns A dummy response
    */
-  private async generateDummyResponse(
+  private generateDummyResponse(
     message: string,
     leadId: number,
   ): Promise<string> {

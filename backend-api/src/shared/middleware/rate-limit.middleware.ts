@@ -40,7 +40,7 @@ export class RateLimitMiddleware implements NestMiddleware {
       `🎯 Selected rate limit config: ${config.maxRequests} requests per ${config.windowMs / 1000 / 60} minutes`,
     );
 
-    this.handleRateLimit(req, res, next, config);
+    void this.handleRateLimit(req, res, next, config);
   }
 
   private getConfigForRoute(req: Request): RateLimitConfig {
@@ -297,7 +297,7 @@ export class RateLimitMiddleware implements NestMiddleware {
         `🔧 Creating custom rate limit middleware with config:`,
         mergedConfig,
       );
-      middleware.handleRateLimit(req, res, next, mergedConfig);
+      void middleware.handleRateLimit(req, res, next, mergedConfig);
     };
   }
 }

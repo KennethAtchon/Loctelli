@@ -12,7 +12,7 @@ import { isAdminOrSuperAdmin } from '../../../shared/utils';
 export class LeadsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createLeadDto: CreateLeadDto, subAccountId: number) {
+  create(createLeadDto: CreateLeadDto, subAccountId: number) {
     // DTO fields now match Prisma schema exactly - just add subAccountId
     const createData: any = {
       ...createLeadDto,
@@ -24,7 +24,7 @@ export class LeadsService {
     });
   }
 
-  async findAll() {
+  findAll() {
     return this.prisma.lead.findMany({
       include: {
         regularUser: true,
@@ -34,7 +34,7 @@ export class LeadsService {
     });
   }
 
-  async findAllBySubAccount(subAccountId: number) {
+  findAllBySubAccount(subAccountId: number) {
     return this.prisma.lead.findMany({
       where: { subAccountId },
       include: {
@@ -45,7 +45,7 @@ export class LeadsService {
     });
   }
 
-  async findAllByAdmin(adminId: number) {
+  findAllByAdmin(adminId: number) {
     // All admins can see all leads
     return this.prisma.lead.findMany({
       include: {
@@ -81,7 +81,7 @@ export class LeadsService {
     return lead;
   }
 
-  async findByUserId(userId: number) {
+  findByUserId(userId: number) {
     return this.prisma.lead.findMany({
       where: { regularUserId: userId },
       include: {

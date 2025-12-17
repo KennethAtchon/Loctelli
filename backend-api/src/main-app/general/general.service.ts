@@ -353,9 +353,11 @@ export class GeneralService {
     }
   }
 
-  async getDatabaseSchema() {
+  getDatabaseSchema() {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const fs = require('fs');
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const path = require('path');
 
       const schemaPath = path.join(process.cwd(), 'prisma', 'schema.prisma');
@@ -404,7 +406,7 @@ export class GeneralService {
     modelContent: string,
     modelNames: string[],
   ): Field[] {
-    let fields: any[] = [];
+    const fields: any[] = [];
     const lines = modelContent.split('\n');
     for (const line of lines) {
       const trimmedLine = line.trim();

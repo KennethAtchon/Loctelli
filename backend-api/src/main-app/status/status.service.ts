@@ -53,7 +53,7 @@ export class StatusService {
     return health;
   }
 
-  async getStatus() {
+  getStatus() {
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
@@ -62,7 +62,7 @@ export class StatusService {
     };
   }
 
-  async getVersion() {
+  getVersion() {
     return {
       version: process.env.npm_package_version || '1.0.0',
     };

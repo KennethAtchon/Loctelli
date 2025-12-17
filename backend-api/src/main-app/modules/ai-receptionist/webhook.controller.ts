@@ -38,7 +38,7 @@ export class AIReceptionistWebhookController {
    * Health check endpoint
    */
   @Get('health')
-  async healthCheck() {
+  healthCheck() {
     return {
       status: 'healthy',
       service: 'ai-receptionist-webhooks',
@@ -53,9 +53,11 @@ export class AIReceptionistWebhookController {
    * Version endpoint - shows installed AI Receptionist package version
    */
   @Get('version')
-  async getVersion() {
+  getVersion() {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const fs = require('fs');
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const path = require('path');
       const packageJsonPath = path.join(
         process.cwd(),

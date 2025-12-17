@@ -114,16 +114,16 @@ export class GenericTaskProcessor extends BaseProcessor {
         return { message: `Delayed for ${ms}ms`, completedAt: new Date() };
       },
 
-      calculateSum: async (numbers: number[]) => {
+      calculateSum: (numbers: number[]) => {
         const sum = numbers.reduce((a, b) => a + b, 0);
         return { numbers, sum };
       },
 
-      processData: async (data: any[], operation: string, context: any) => {
+      processData: (data: any[], operation: string, context: any) => {
         switch (operation) {
           case 'count':
             return { count: data.length, operation };
-          case 'filter':
+          case 'filter': {
             const filtered = data.filter((item) =>
               context.filterKey
                 ? item[context.filterKey] === context.filterValue
@@ -134,19 +134,21 @@ export class GenericTaskProcessor extends BaseProcessor {
               filtered: filtered.length,
               data: filtered,
             };
-          case 'transform':
+          }
+          case 'transform': {
             const transformed = data.map((item) => ({
               ...item,
               processed: true,
               processedAt: new Date(),
             }));
             return { transformed };
+          }
           default:
             return { data, operation: 'none' };
         }
       },
 
-      sendNotification: async (
+      sendNotification: (
         type: string,
         recipients: string[],
         message: string,
@@ -169,7 +171,7 @@ export class GenericTaskProcessor extends BaseProcessor {
         };
       },
 
-      cleanupOldData: async (
+      cleanupOldData: (
         tableName: string,
         daysOld: number,
         context: any,
@@ -186,7 +188,7 @@ export class GenericTaskProcessor extends BaseProcessor {
         };
       },
 
-      generateReport: async (
+      generateReport: (
         reportType: string,
         filters: any,
         context: any,

@@ -238,7 +238,7 @@ export class FormsService {
     });
   }
 
-  async findAllFormSubmissions(
+  findAllFormSubmissions(
     subAccountId?: number,
     formTemplateId?: string,
     status?: string,

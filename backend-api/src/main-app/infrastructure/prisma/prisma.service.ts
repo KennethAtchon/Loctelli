@@ -126,7 +126,7 @@ export class PrismaService
     }
   }
 
-  private async migrate() {
+  private migrate() {
     try {
       this.logger.log('Running database migrations...');
 

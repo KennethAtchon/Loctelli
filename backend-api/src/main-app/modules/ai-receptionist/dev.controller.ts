@@ -307,7 +307,7 @@ export class AIReceptionistDevController {
         };
       } else if (longTermMemory) {
         // Try to get from longTermMemory config
-        const ltmConfig = (longTermMemory as any).config;
+        const ltmConfig = longTermMemory.config;
         if (ltmConfig?.autoPersist) {
           autoPersist = {
             persistAll: ltmConfig.autoPersist.persistAll || false,

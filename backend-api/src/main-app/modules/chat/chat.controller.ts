@@ -129,7 +129,7 @@ export class ChatController {
   }
 
   @Patch('messages/:messageId/read')
-  async markMessageAsRead(
+  markMessageAsRead(
     @Param('messageId') messageId: string,
     @CurrentUser() user,
   ) {
@@ -146,7 +146,7 @@ export class ChatController {
   }
 
   @Delete('messages/:messageId')
-  async deleteMessage(
+  deleteMessage(
     @Param('messageId') messageId: string,
     @CurrentUser() user,
   ) {

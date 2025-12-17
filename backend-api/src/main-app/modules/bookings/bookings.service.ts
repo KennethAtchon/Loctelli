@@ -12,7 +12,7 @@ import { isAdminOrSuperAdmin } from '../../../shared/utils';
 export class BookingsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createBookingDto: CreateBookingDto, subAccountId: number) {
+  create(createBookingDto: CreateBookingDto, subAccountId: number) {
     // DTO fields now match Prisma schema exactly - just add subAccountId
     return this.prisma.booking.create({
       data: {
@@ -23,7 +23,7 @@ export class BookingsService {
     });
   }
 
-  async findAll() {
+  findAll() {
     return this.prisma.booking.findMany({
       include: {
         regularUser: true,
@@ -32,7 +32,7 @@ export class BookingsService {
     });
   }
 
-  async findAllBySubAccount(subAccountId: number) {
+  findAllBySubAccount(subAccountId: number) {
     return this.prisma.booking.findMany({
       where: { subAccountId },
       include: {
@@ -42,7 +42,7 @@ export class BookingsService {
     });
   }
 
-  async findAllByAdmin(adminId: number) {
+  findAllByAdmin(adminId: number) {
     // All admins can see all bookings
     return this.prisma.booking.findMany({
       include: {
@@ -81,7 +81,7 @@ export class BookingsService {
     return booking;
   }
 
-  async findByUserId(userId: number) {
+  findByUserId(userId: number) {
     return this.prisma.booking.findMany({
       where: { regularUserId: userId },
       include: {

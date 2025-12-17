@@ -239,7 +239,7 @@ export class IntegrationsService {
     return this.findAll(subAccountId);
   }
 
-  async findByStatus(status: string, subAccountId?: number) {
+  findByStatus(status: string, subAccountId?: number) {
     this.logger.debug(`Finding integrations with status: ${status}`);
 
     const where: any = { status };
@@ -272,7 +272,7 @@ export class IntegrationsService {
     });
   }
 
-  async updateStatus(id: number, status: string, errorMessage?: string) {
+  updateStatus(id: number, status: string, errorMessage?: string) {
     this.logger.debug(`Updating integration status: ${id} -> ${status}`);
 
     const updateData: any = { status };

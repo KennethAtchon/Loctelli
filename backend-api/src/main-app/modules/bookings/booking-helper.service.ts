@@ -36,10 +36,10 @@ export class BookingHelperService {
    * @param booking Booking entity from database
    * @deprecated Temporarily disabled - not priority
    */
-  async createGohighlevelBlockSlot(booking: any): Promise<void> {
+  createGohighlevelBlockSlot(booking: any): Promise<void> {
     // TODO: Re-enable GHL block slot creation when priority
     this.logger.warn('createGohighlevelBlockSlot is temporarily disabled');
-    return;
+    return Promise.resolve();
 
     /* COMMENTED OUT - NOT PRIORITY
     try {

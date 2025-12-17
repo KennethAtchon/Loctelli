@@ -54,6 +54,7 @@ export class InputValidationMiddleware implements NestMiddleware {
     value = value.replace(/\0/g, '');
 
     // Remove control characters except newlines and tabs
+    // eslint-disable-next-line no-control-regex
     value = value.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
 
     // Basic XSS protection - remove script tags and dangerous attributes
@@ -163,8 +164,8 @@ export class InputValidationMiddleware implements NestMiddleware {
 
   static validatePhone(phone: string): boolean {
     // Basic phone validation - can be customized based on requirements
-    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-    return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
+    const phoneRegex = /^[+]?[1-9][\d]{0,15}$/;
+    return phoneRegex.test(phone.replace(/[\s\-()]/g, ''));
   }
 
   static validatePassword(password: string): boolean {

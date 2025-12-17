@@ -234,7 +234,7 @@ export class BookingTools {
           const availableSlots: string[] = [];
           const bookedTimes = bookings
             .map((b) => {
-              const details = b.details as any;
+              const details = b.details;
               return details?.time;
             })
             .filter(Boolean);

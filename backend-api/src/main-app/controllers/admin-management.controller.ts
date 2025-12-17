@@ -396,7 +396,7 @@ export class AdminManagementController {
    */
   @Post('auth-code/generate')
   @Roles('super_admin')
-  async generateAuthCode(@CurrentUser() currentUser) {
+  generateAuthCode(@CurrentUser() currentUser) {
     this.logger.log(
       `🔑 Auth code generation by super admin: ${currentUser.email}`,
     );
@@ -427,7 +427,7 @@ export class AdminManagementController {
    */
   @Get('auth-code/current')
   @Roles('super_admin')
-  async getCurrentAuthCode(@CurrentUser() currentUser) {
+  getCurrentAuthCode(@CurrentUser() currentUser) {
     this.logger.log(
       `🔍 Current auth code request by super admin: ${currentUser.email}`,
     );

@@ -9,7 +9,7 @@ import { ContactFiltersDto } from './dto/contact-filters.dto';
 export class ContactsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(data: CreateContactSubmissionDto, subAccountId: number) {
+  create(data: CreateContactSubmissionDto, subAccountId: number) {
     return this.prisma.contactSubmission.create({
       data: {
         ...data,
@@ -23,7 +23,7 @@ export class ContactsService {
     });
   }
 
-  async findAll(subAccountId: number, filters?: ContactFiltersDto) {
+  findAll(subAccountId: number, filters?: ContactFiltersDto) {
     return this.prisma.contactSubmission.findMany({
       where: {
         subAccountId,
@@ -40,7 +40,7 @@ export class ContactsService {
     });
   }
 
-  async findOne(id: string, subAccountId: number) {
+  findOne(id: string, subAccountId: number) {
     return this.prisma.contactSubmission.findUnique({
       where: { id, subAccountId },
       include: {
@@ -50,7 +50,7 @@ export class ContactsService {
     });
   }
 
-  async update(
+  update(
     id: string,
     data: UpdateContactSubmissionDto,
     subAccountId: number,

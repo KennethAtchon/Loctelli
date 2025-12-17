@@ -156,7 +156,7 @@ export class IntegrationTemplatesService {
     });
   }
 
-  async findByCategory(category: string) {
+  findByCategory(category: string) {
     this.logger.debug(`Finding integration templates by category: ${category}`);
     return this.prisma.integrationTemplate.findMany({
       where: {
@@ -169,7 +169,7 @@ export class IntegrationTemplatesService {
     });
   }
 
-  async findActive() {
+  findActive() {
     this.logger.debug('Finding all active integration templates');
     return this.prisma.integrationTemplate.findMany({
       where: { isActive: true },

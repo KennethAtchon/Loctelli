@@ -37,11 +37,9 @@ import { AIReceptionistDevController } from './dev.controller';
 export class AIReceptionistModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     // Apply webhook security middleware to webhook endpoints
-    consumer
-      .apply(WebhookSecurityMiddleware)
-      .forRoutes({
-        path: 'ai-receptionist/webhooks/(.*)',
-        method: RequestMethod.ALL,
-      });
+    consumer.apply(WebhookSecurityMiddleware).forRoutes({
+      path: 'ai-receptionist/webhooks/(.*)',
+      method: RequestMethod.ALL,
+    });
   }
 }
