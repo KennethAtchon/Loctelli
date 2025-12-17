@@ -145,7 +145,7 @@ model Integration {
 
 ### GHL API Client Service
 
-**Location**: `project/src/main-app/integrations/ghl-integrations/ghl/ghl-api-client.service.ts`
+**Location**: `backend-api/src/main-app/integrations/ghl-integrations/ghl/ghl-api-client.service.ts`
 
 **Responsibilities**:
 - Make authenticated requests to GHL API

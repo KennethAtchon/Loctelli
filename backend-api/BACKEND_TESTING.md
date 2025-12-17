@@ -47,8 +47,8 @@ Make sure PostgreSQL and Redis are running:
 cd .. # Go back to root Loctelli directory
 docker-compose up -d db redis
 
-# Then return to project directory for backend commands
-cd project
+# Then return to backend-api directory for backend commands
+cd backend-api
 
 # Check backend logs for database connection
 ```

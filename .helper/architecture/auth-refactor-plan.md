@@ -172,7 +172,7 @@ Log all events to `AuthAttempt` table:
 
 ### Backend
 ```
-project/src/shared/auth/
+backend-api/src/shared/auth/
 ├── services/
 │   ├── unified-auth.service.ts         (NEW)
 │   ├── security.service.ts             (NEW)
@@ -184,12 +184,12 @@ project/src/shared/auth/
 └── strategies/
     └── jwt.strategy.ts                 (UPDATE)
 
-project/src/main-app/controllers/
+backend-api/src/main-app/controllers/
 ├── auth.controller.ts                  (REPLACE)
 ├── admin-users.controller.ts           (NEW)
 └── admin-management.controller.ts      (NEW)
 
-project/prisma/migrations/
+backend-api/prisma/migrations/
 └── xxx_add_auth_security_tables/       (NEW)
 ```
 

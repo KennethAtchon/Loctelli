@@ -57,7 +57,7 @@ model Booking {
 ### 2. Service Architecture
 
 #### BookingHelperService
-**Location**: `project/src/main-app/modules/bookings/booking-helper.service.ts`
+**Location**: `backend-api/src/main-app/modules/bookings/booking-helper.service.ts`
 
 **Responsibilities**:
 - Parse booking details from AI responses
@@ -74,7 +74,7 @@ createBookingAndBlockSlotGhl(aiResponse: string, userId: number, leadId: number)
 ```
 
 #### AiToolsService (Booking Functions)
-**Location**: `project/src/main-app/modules/chat/ai-tools.service.ts`
+**Location**: `backend-api/src/main-app/modules/chat/ai-tools.service.ts`
 
 **Responsibilities**:
 - Define OpenAI function calling tools for bookings

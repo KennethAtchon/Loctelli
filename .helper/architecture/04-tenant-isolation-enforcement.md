@@ -24,7 +24,7 @@ const leads = await prisma.lead.findMany({
 
 ### Layer 1: Prisma Middleware (Warning Mode)
 
-**File**: [project/src/main-app/infrastructure/prisma/prisma.service.ts](../../project/src/main-app/infrastructure/prisma/prisma.service.ts)
+**File**: [backend-api/src/main-app/infrastructure/prisma/prisma.service.ts](../../backend-api/src/main-app/infrastructure/prisma/prisma.service.ts)
 
 The PrismaService now includes middleware that:
 - **Monitors** all queries to tenant-scoped models
@@ -74,7 +74,7 @@ This forces developers to fix issues before they reach production.
 
 ### Layer 3: TenantIsolationGuard (HTTP Layer)
 
-**File**: [project/src/main-app/infrastructure/prisma/tenant-isolation.guard.ts](../../project/src/main-app/infrastructure/prisma/tenant-isolation.guard.ts)
+**File**: [backend-api/src/main-app/infrastructure/prisma/tenant-isolation.guard.ts](../../backend-api/src/main-app/infrastructure/prisma/tenant-isolation.guard.ts)
 
 Apply this guard to controllers to validate tenant context at the HTTP request level:
 

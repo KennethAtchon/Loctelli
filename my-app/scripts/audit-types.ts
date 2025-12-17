@@ -617,7 +617,7 @@ async function main() {
   const schemaPath = path.join(
     projectRoot,
     "..",
-    "project",
+    "backend-api",
     "prisma",
     "schema.prisma"
   );

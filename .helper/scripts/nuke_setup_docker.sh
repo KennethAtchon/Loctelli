@@ -2,7 +2,7 @@
 
 #Load R2 env vars
 # set -a
-# source ./project/.env
+# source ./backend-api/.env
 # set +a
 
 # export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"

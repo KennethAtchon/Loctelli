@@ -38,7 +38,7 @@ The authentication system uses **unified JWT-based authentication** with a hybri
   - `changePassword(userId, accountType, oldPassword, newPassword)` - Updates password with validation
   - `generateTokens(userId, accountType, rememberMe)` - Creates JWT pairs
 
-**SecurityService** (`project/src/shared/auth/services/security.service.ts`)
+**SecurityService** (`backend-api/src/shared/auth/services/security.service.ts`)
 - Account lockout tracking and enforcement
 - Password history validation (5 for users, 10 for admins)
 - Authentication attempt logging (audit trail)

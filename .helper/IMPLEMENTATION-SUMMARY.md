@@ -15,7 +15,7 @@ This implementation addresses critical security vulnerabilities and creates a ce
 
 ### 1. Token Expiration Bug ✅
 
-**File**: `project/src/shared/auth/services/unified-auth.service.ts`
+**File**: `backend-api/src/shared/auth/services/unified-auth.service.ts`
 
 **Problem**: Refresh tokens expired at incorrect times due to hardcoded values.
 
@@ -172,7 +172,7 @@ Created a centralized, robust tenant management system that:
 The Prisma middleware is **already active** in development mode:
 
 ```bash
-cd project
+cd backend-api
 npm run start:dev
 
 # Watch console for warnings:
@@ -187,7 +187,7 @@ npm run start:dev
 Enable strict mode in `main.ts`:
 
 ```typescript
-// project/src/core/main.ts
+// backend-api/src/core/main.ts
 if (process.env.NODE_ENV === 'production') {
   const prismaService = app.get(PrismaService);
   prismaService.enableStrictTenantMode();
