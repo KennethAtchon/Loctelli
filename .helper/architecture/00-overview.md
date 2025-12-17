@@ -409,7 +409,7 @@ TWILIO_ACCOUNT_SID=AC...
 TWILIO_AUTH_TOKEN=...
 ```
 
-**Frontend** (`my-app/.env.local`)
+**Frontend** (`frontend/.env.local`)
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8000
 BACKEND_URL=http://localhost:8000

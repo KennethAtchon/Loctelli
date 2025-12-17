@@ -4,11 +4,11 @@
 
 ### New Files Created
 
-1. **`my-app/contexts/tenant-context.tsx`** - Centralized tenant management
-2. **`my-app/hooks/useTenantQuery.ts`** - React Query integration
-3. **`my-app/lib/api/tenant-client.ts`** - Enhanced API client
-4. **`my-app/components/examples/TenantAwareLeadsList.tsx`** - Example component
-5. **`my-app/components/examples/TenantAwareCreateLead.tsx`** - Example form
+1. **`frontend/contexts/tenant-context.tsx`** - Centralized tenant management
+2. **`frontend/hooks/useTenantQuery.ts`** - React Query integration
+3. **`frontend/lib/api/tenant-client.ts`** - Enhanced API client
+4. **`frontend/components/examples/TenantAwareLeadsList.tsx`** - Example component
+5. **`frontend/components/examples/TenantAwareCreateLead.tsx`** - Example form
 
 ### Preserved Systems
 
@@ -24,7 +24,7 @@
 **For regular user pages:**
 
 ```tsx
-// my-app/app/layout.tsx
+// frontend/app/layout.tsx
 import { TenantProvider } from '@/contexts/tenant-context';
 
 export default function RootLayout({ children }) {
@@ -41,7 +41,7 @@ export default function RootLayout({ children }) {
 **For admin pages (IMPORTANT - Order matters!):**
 
 ```tsx
-// my-app/app/admin/(main)/layout.tsx
+// frontend/app/admin/(main)/layout.tsx
 import { SubaccountFilterProvider } from '@/contexts/subaccount-filter-context';
 import { TenantProvider } from '@/contexts/tenant-context';
 
@@ -343,7 +343,7 @@ test('admin can switch between global and filtered view', async () => {
 For questions or issues:
 
 1. Check [FRONTEND-TENANT-SYSTEM.md](./FRONTEND-TENANT-SYSTEM.md) for detailed docs
-2. Review example components in `my-app/components/examples/`
+2. Review example components in `frontend/components/examples/`
 3. Check backend logs for tenant validation errors
 4. Review React Query DevTools for query cache
 

@@ -53,7 +53,7 @@ export class UnifiedRolesGuard implements CanActivate {
 #### API Client Updates
 
 ```typescript
-// my-app/lib/api/auth.ts
+// frontend/lib/api/auth.ts
 export const authApi = {
   login: async (email: string, password: string, userType: 'user' | 'admin') => {
     return api.post('/auth/login', { email, password, userType });
@@ -195,7 +195,7 @@ backend-api/prisma/migrations/
 
 ### Frontend
 ```
-my-app/lib/api/
+frontend/lib/api/
 └── auth.ts                             (UPDATE)
 ```
 

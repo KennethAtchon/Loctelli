@@ -86,7 +86,7 @@ The authentication system uses **unified JWT-based authentication** with a hybri
 
 #### Direct API Connection
 
-**API Client** (`my-app/lib/api/client.ts`)
+**API Client** (`frontend/lib/api/client.ts`)
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Frontend (Next.js)                       │
@@ -140,7 +140,7 @@ The authentication system uses **unified JWT-based authentication** with a hybri
 
 #### React Context (Unified)
 
-**UnifiedAuthContext** (`my-app/contexts/unified-auth-context.tsx`) ⭐ **RECOMMENDED**
+**UnifiedAuthContext** (`frontend/contexts/unified-auth-context.tsx`) ⭐ **RECOMMENDED**
 - Single context for both users and admins
 - Discriminates by `accountType: 'user' | 'admin'`
 - Methods:
@@ -158,18 +158,18 @@ The authentication system uses **unified JWT-based authentication** with a hybri
   - Backward compatible hooks (`useAuth`, `useAdminAuth`)
 
 **Legacy Contexts** (For backward compatibility only)
-- `AuthContext` (`my-app/contexts/auth-context.tsx`) - User-only context
-- `AdminAuthContext` (`my-app/contexts/admin-auth-context.tsx`) - Admin-only context
+- `AuthContext` (`frontend/contexts/auth-context.tsx`) - User-only context
+- `AdminAuthContext` (`frontend/contexts/admin-auth-context.tsx`) - Admin-only context
 - ⚠️ Use `UnifiedAuthContext` for new code
 
 #### API Client
 
-**AuthApi** (`my-app/lib/api/endpoints/auth.ts`)
+**AuthApi** (`frontend/lib/api/endpoints/auth.ts`)
 - `login(data)` - Automatically passes `accountType: 'user'`
 - `register(data)` - Automatically passes `accountType: 'user'`
 - `refreshToken()`, `logout()`, `getProfile()`, `changePassword()`
 
-**AdminAuthApi** (`my-app/lib/api/endpoints/admin-auth.ts`)
+**AdminAuthApi** (`frontend/lib/api/endpoints/admin-auth.ts`)
 - `adminLogin(data)` - Passes `accountType: 'admin'` to unified `/auth/login`
 - `adminRegister(data)` - Passes `accountType: 'admin'` to unified `/auth/register`
 - `adminRefreshToken()` - Uses unified `/auth/refresh`
@@ -178,7 +178,7 @@ The authentication system uses **unified JWT-based authentication** with a hybri
 - `changeAdminPassword()` - Uses unified `/auth/change-password`
 - User management methods still use `/admin/*` routes
 
-**AuthService** (`my-app/lib/api/auth-service.ts`)
+**AuthService** (`frontend/lib/api/auth-service.ts`)
 - Manages token storage (separate cookies for users vs admins)
 - Auto-refresh on 401 errors
 - Handles token rotation
@@ -473,7 +473,7 @@ JWT_EXPIRATION=15m
 JWT_REFRESH_EXPIRATION=7d
 ```
 
-**Frontend** (`my-app/.env.local`)
+**Frontend** (`frontend/.env.local`)
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8000
 BACKEND_URL=http://localhost:8000
@@ -557,7 +557,7 @@ BACKEND_URL=http://localhost:8000
 **1. Setup in app layout:**
 
 ```tsx
-// my-app/app/layout.tsx
+// frontend/app/layout.tsx
 import { UnifiedAuthProvider } from '@/contexts/unified-auth-context';
 
 export default function RootLayout({ children }) {
@@ -576,7 +576,7 @@ export default function RootLayout({ children }) {
 **2. User login page:**
 
 ```tsx
-// my-app/app/auth/login/page.tsx
+// frontend/app/auth/login/page.tsx
 'use client';
 import { useUnifiedAuth } from '@/contexts/unified-auth-context';
 
@@ -612,7 +612,7 @@ export default function LoginPage() {
 **3. Admin login page:**
 
 ```tsx
-// my-app/app/admin/auth/login/page.tsx
+// frontend/app/admin/auth/login/page.tsx
 'use client';
 import { useUnifiedAuth } from '@/contexts/unified-auth-context';
 
@@ -641,7 +641,7 @@ export default function AdminLoginPage() {
 **4. Protected page with type guards:**
 
 ```tsx
-// my-app/app/dashboard/page.tsx
+// frontend/app/dashboard/page.tsx
 'use client';
 import { useUnifiedAuth } from '@/contexts/unified-auth-context';
 

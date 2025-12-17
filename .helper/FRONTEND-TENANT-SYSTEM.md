@@ -574,11 +574,11 @@ The tenant system is highly optimized:
 
 ## Related Files
 
-- [`contexts/tenant-context.tsx`](../my-app/contexts/tenant-context.tsx) - Core tenant context
-- [`hooks/useTenantQuery.ts`](../my-app/hooks/useTenantQuery.ts) - React Query integration
-- [`lib/api/tenant-client.ts`](../my-app/lib/api/tenant-client.ts) - Tenant-aware API client
-- [`contexts/subaccount-filter-context.tsx`](../my-app/contexts/subaccount-filter-context.tsx) - Admin filter
-- [`components/examples/`](../my-app/components/examples/) - Usage examples
+- [`contexts/tenant-context.tsx`](../frontend/contexts/tenant-context.tsx) - Core tenant context
+- [`hooks/useTenantQuery.ts`](../frontend/hooks/useTenantQuery.ts) - React Query integration
+- [`lib/api/tenant-client.ts`](../frontend/lib/api/tenant-client.ts) - Tenant-aware API client
+- [`contexts/subaccount-filter-context.tsx`](../frontend/contexts/subaccount-filter-context.tsx) - Admin filter
+- [`components/examples/`](../frontend/components/examples/) - Usage examples
 
 ## See Also
 

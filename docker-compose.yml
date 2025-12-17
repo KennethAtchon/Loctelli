@@ -91,7 +91,7 @@ services:
   # Main Frontend (CRM)
   frontend:
     build:
-      context: ./my-app
+      context: ./frontend
       dockerfile: Dockerfile
     container_name: loctelli_frontend
     restart: unless-stopped
@@ -101,7 +101,7 @@ services:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
       BACKEND_URL: http://loctelli_api:8000
     env_file:
-      - ./my-app/.env
+      - ./frontend/.env
     depends_on:
       api:
         condition: service_healthy

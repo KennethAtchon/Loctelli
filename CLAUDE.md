@@ -76,7 +76,7 @@ docker-compose down -v
 
 ## Project Structure
 
-### Frontend (`my-app/`)
+### Frontend (`frontend/`)
 * **`app/`** - Next.js 15 App Router pages and layouts
   * **`admin/`** - Admin panel pages (auth & main sections)
   * **`api/`** - API routes and proxy endpoints

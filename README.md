@@ -26,7 +26,7 @@ Loctelli/
 │   │   ├── background/   # Background processes
 │   │   └── infrastructure/ # Database, Redis, config
 │   └── prisma/           # Database schema and migrations
-└── my-app/               # Next.js Frontend
+└── frontend/             # Next.js Frontend
     ├── app/              # App router pages
     │   ├── admin/        # Admin panel
     │   ├── auth/         # Authentication pages
@@ -92,7 +92,7 @@ npm run db:generate
 npm run db:migrate
 
 # Frontend setup
-cd ../my-app
+cd ../frontend
 cp .env.example .env.local
 npm install
 npm run dev
@@ -125,7 +125,7 @@ npm run test:cov          # Coverage report
 npm run test:e2e          # E2E tests
 
 # Frontend tests
-cd my-app
+cd frontend
 npm test                  # Unit tests
 npm run test:coverage     # Coverage report
 ```
@@ -144,7 +144,7 @@ npm run db:studio        # Open Prisma Studio
 
 ### Frontend Development
 ```bash
-cd my-app
+cd frontend
 npm run dev              # Development server
 npm run build            # Production build
 npm run lint             # Code linting

@@ -28,7 +28,7 @@ This implementation addresses critical security vulnerabilities and creates a ce
 
 ### 2. Frontend Auth Race Conditions ✅
 
-**File**: `my-app/contexts/unified-auth-context.tsx`
+**File**: `frontend/contexts/unified-auth-context.tsx`
 
 **Problem**: State updates after component unmount, race conditions on remount.
 
@@ -87,19 +87,19 @@ Created a centralized, robust tenant management system that:
 
 ### New Files
 
-1. **`my-app/contexts/tenant-context.tsx`** - Core tenant management
+1. **`frontend/contexts/tenant-context.tsx`** - Core tenant management
    - Detects user type (user vs admin)
    - Manages tenant modes (USER_SCOPED, ADMIN_GLOBAL, ADMIN_FILTERED)
    - Provides helper functions
    - Integrates with SubaccountFilterContext
 
-2. **`my-app/hooks/useTenantQuery.ts`** - React Query integration
+2. **`frontend/hooks/useTenantQuery.ts`** - React Query integration
    - `useTenantQuery()` - Automatic tenant filtering
    - `useTenantMutation()` - Auto-invalidation
    - `useInvalidateTenantQueries()` - Manual invalidation
    - Full TypeScript support
 
-3. **`my-app/lib/api/tenant-client.ts`** - Enhanced API client
+3. **`frontend/lib/api/tenant-client.ts`** - Enhanced API client
    - Automatically includes `X-SubAccount-Id` header
    - Tenant-aware request methods
    - Works with existing ApiClient
@@ -296,7 +296,7 @@ function LeadsList() {
 1. **Quick Start**: Read [FRONTEND-TENANT-MIGRATION.md](./FRONTEND-TENANT-MIGRATION.md)
 2. **Detailed Guide**: Read [FRONTEND-TENANT-SYSTEM.md](./FRONTEND-TENANT-SYSTEM.md)
 3. **Backend Security**: Read [04-tenant-isolation-enforcement.md](./architecture/04-tenant-isolation-enforcement.md)
-4. **Examples**: Check `my-app/components/examples/`
+4. **Examples**: Check `frontend/components/examples/`
 
 ---
 
@@ -377,7 +377,7 @@ When adding tenant-scoped models:
 Questions or issues?
 
 1. Check documentation in `.helper/` directory
-2. Review example components in `my-app/components/examples/`
+2. Review example components in `frontend/components/examples/`
 3. Check backend logs for validation errors
 4. Use React Query DevTools to inspect cache
 
