@@ -111,7 +111,7 @@ stateDiagram-v2
 ### 4. Lead Service Architecture
 
 #### LeadsService
-**Location**: `project/src/main-app/modules/leads/leads.service.ts`
+**Location**: `backend-api/src/main-app/modules/leads/leads.service.ts`
 
 **Key Responsibilities**:
 - CRUD operations for leads
@@ -220,7 +220,7 @@ sequenceDiagram
 ## Timezone Detection
 
 ### TimezoneDetectorService
-**Location**: `project/src/shared/utils/timezone-detector.service.ts`
+**Location**: `backend-api/src/shared/utils/timezone-detector.service.ts`
 
 **Purpose**: Automatically detect lead's timezone from location data
 

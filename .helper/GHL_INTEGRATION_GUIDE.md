@@ -33,10 +33,10 @@ The GHL integration enables Loctelli to:
 
 | Service | Location | Purpose |
 |---------|----------|---------|
-| **GhlService** | `project/src/main-app/integrations/ghl-integrations/ghl/ghl.service.ts` | Legacy API client using axios |
-| **GhlApiClientService** | `project/src/main-app/integrations/ghl-integrations/ghl/ghl-api-client.service.ts` | Official GHL SDK client (`@gohighlevel/api-client`) |
-| **WebhooksService** | `project/src/main-app/integrations/ghl-integrations/webhooks/webhooks.service.ts` | Processes incoming GHL webhooks |
-| **IntegrationsService** | `project/src/main-app/integrations/modules/integrations/integrations.service.ts` | Manages integration CRUD operations |
+| **GhlService** | `backend-api/src/main-app/integrations/ghl-integrations/ghl/ghl.service.ts` | Legacy API client using axios |
+| **GhlApiClientService** | `backend-api/src/main-app/integrations/ghl-integrations/ghl/ghl-api-client.service.ts` | Official GHL SDK client (`@gohighlevel/api-client`) |
+| **WebhooksService** | `backend-api/src/main-app/integrations/ghl-integrations/webhooks/webhooks.service.ts` | Processes incoming GHL webhooks |
+| **IntegrationsService** | `backend-api/src/main-app/integrations/modules/integrations/integrations.service.ts` | Manages integration CRUD operations |
 
 ### Controllers
 
@@ -402,12 +402,12 @@ The system maintains two GHL API client services:
 1. **GhlService** (Legacy)
    - Uses `axios` for raw HTTP requests
    - Good for custom endpoints or debugging
-   - Located: [ghl.service.ts](../project/src/main-app/integrations/ghl-integrations/ghl/ghl.service.ts)
+   - Located: [ghl.service.ts](../backend-api/src/main-app/integrations/ghl-integrations/ghl/ghl.service.ts)
 
 2. **GhlApiClientService** (Recommended)
    - Uses official `@gohighlevel/api-client` SDK
    - Type-safe, auto-documented methods
-   - Located: [ghl-api-client.service.ts](../project/src/main-app/integrations/ghl-integrations/ghl/ghl-api-client.service.ts)
+   - Located: [ghl-api-client.service.ts](../backend-api/src/main-app/integrations/ghl-integrations/ghl/ghl-api-client.service.ts)
 
 ---
 
@@ -519,23 +519,23 @@ DATABASE_URL=postgresql://postgres:password@localhost:5432/loctelli
 ## Related Files
 
 ### Core Services
-- [ghl.service.ts](../project/src/main-app/integrations/ghl-integrations/ghl/ghl.service.ts)
-- [ghl-api-client.service.ts](../project/src/main-app/integrations/ghl-integrations/ghl/ghl-api-client.service.ts)
-- [webhooks.service.ts](../project/src/main-app/integrations/ghl-integrations/webhooks/webhooks.service.ts)
-- [integrations.service.ts](../project/src/main-app/integrations/modules/integrations/integrations.service.ts)
+- [ghl.service.ts](../backend-api/src/main-app/integrations/ghl-integrations/ghl/ghl.service.ts)
+- [ghl-api-client.service.ts](../backend-api/src/main-app/integrations/ghl-integrations/ghl/ghl-api-client.service.ts)
+- [webhooks.service.ts](../backend-api/src/main-app/integrations/ghl-integrations/webhooks/webhooks.service.ts)
+- [integrations.service.ts](../backend-api/src/main-app/integrations/modules/integrations/integrations.service.ts)
 
 ### Controllers
-- [webhooks.controller.ts](../project/src/main-app/integrations/ghl-integrations/webhooks/webhooks.controller.ts)
-- [highlevel-webhooks.controller.ts](../project/src/main-app/integrations/ghl-integrations/webhooks/highlevel-webhooks.controller.ts)
+- [webhooks.controller.ts](../backend-api/src/main-app/integrations/ghl-integrations/webhooks/webhooks.controller.ts)
+- [highlevel-webhooks.controller.ts](../backend-api/src/main-app/integrations/ghl-integrations/webhooks/highlevel-webhooks.controller.ts)
 
 ### DTOs
-- [webhook-event.dto.ts](../project/src/main-app/integrations/ghl-integrations/webhooks/dto/webhook-event.dto.ts)
-- [contact-created.dto.ts](../project/src/main-app/integrations/ghl-integrations/webhooks/dto/contact-created.dto.ts)
-- [outbound-message.dto.ts](../project/src/main-app/integrations/ghl-integrations/webhooks/dto/outbound-message.dto.ts)
-- [ghl-integration-config.dto.ts](../project/src/main-app/integrations/ghl-integrations/dto/ghl-integration-config.dto.ts)
+- [webhook-event.dto.ts](../backend-api/src/main-app/integrations/ghl-integrations/webhooks/dto/webhook-event.dto.ts)
+- [contact-created.dto.ts](../backend-api/src/main-app/integrations/ghl-integrations/webhooks/dto/contact-created.dto.ts)
+- [outbound-message.dto.ts](../backend-api/src/main-app/integrations/ghl-integrations/webhooks/dto/outbound-message.dto.ts)
+- [ghl-integration-config.dto.ts](../backend-api/src/main-app/integrations/ghl-integrations/dto/ghl-integration-config.dto.ts)
 
 ### Database
-- [schema.prisma](../project/prisma/schema.prisma) - Integration, IntegrationTemplate, Lead models
+- [schema.prisma](../backend-api/prisma/schema.prisma) - Integration, IntegrationTemplate, Lead models
 
 ---
 

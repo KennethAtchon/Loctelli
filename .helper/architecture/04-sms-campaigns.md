@@ -20,7 +20,7 @@ The system integrates with **Twilio** for SMS delivery, providing both single-me
 ### 1. Core Service
 
 #### SmsService
-**Location**: `project/src/shared/sms/sms.service.ts`
+**Location**: `backend-api/src/shared/sms/sms.service.ts`
 
 **Responsibilities**:
 - Send individual SMS messages via Twilio

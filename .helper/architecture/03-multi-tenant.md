@@ -186,7 +186,7 @@ const leads = await prisma.lead.findMany({
 The `AuthGuard` extracts the user's `subAccountId` from the JWT token:
 
 ```typescript
-// project/src/shared/auth/auth.guard.ts
+// backend-api/src/shared/auth/auth.guard.ts
 @Injectable()
 export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {

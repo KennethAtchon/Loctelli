@@ -126,7 +126,7 @@ Creates Lead with correct subAccountId (Line 116)
 ### Phase 2: Remove Environment Dependencies
 
 #### 2.1 Update GhlService to Use Integration Config
-**File**: `project/src/main-app/integrations/ghl-integrations/ghl/ghl.service.ts`
+**File**: `backend-api/src/main-app/integrations/ghl-integrations/ghl/ghl.service.ts`
 
 **Current Code (Lines 9-11):**
 ```typescript
@@ -164,7 +164,7 @@ async searchSubaccounts(integrationId: number): Promise<GhlSubaccountsResponse> 
 ```
 
 #### 2.2 Add Integration Lookup Methods
-**File**: `project/src/main-app/integrations/ghl-integrations/ghl/ghl.service.ts`
+**File**: `backend-api/src/main-app/integrations/ghl-integrations/ghl/ghl.service.ts`
 
 ```typescript
 // New method to get integration by locationId (for webhooks)
@@ -212,7 +212,7 @@ async makeGhlApiCall(integrationId: number, endpoint: string, method = 'GET', da
 ### Phase 3: Enhance Frontend Integration
 
 #### 3.1 Update Integration Controller
-**File**: `project/src/main-app/integrations/modules/integrations/integrations.controller.ts`
+**File**: `backend-api/src/main-app/integrations/modules/integrations/integrations.controller.ts`
 
 Add GHL-specific endpoints:
 ```typescript
@@ -236,7 +236,7 @@ async setupGhlWebhook(@Param('id') id: number, @Body() webhookConfig: any) {
 ```
 
 #### 3.2 Add GHL Connection Testing
-**File**: `project/src/main-app/integrations/ghl-integrations/ghl/ghl.service.ts`
+**File**: `backend-api/src/main-app/integrations/ghl-integrations/ghl/ghl.service.ts`
 
 ```typescript
 async testConnection(integrationId: number): Promise<{success: boolean, message: string, data?: any}> {
@@ -264,7 +264,7 @@ async testConnection(integrationId: number): Promise<{success: boolean, message:
 #### 4.1 Current Webhook Flow (WORKING)
 The current webhook flow is actually well-designed:
 
-**File**: `project/src/main-app/integrations/ghl-integrations/webhooks/webhooks.service.ts:48-66`
+**File**: `backend-api/src/main-app/integrations/ghl-integrations/webhooks/webhooks.service.ts:48-66`
 ```typescript
 // This part is PERFECT - keep as is
 const integration = await this.prisma.integration.findFirst({
@@ -283,7 +283,7 @@ const integration = await this.prisma.integration.findFirst({
 **No changes needed** - this lookup mechanism works perfectly for finding the right subaccount.
 
 #### 4.2 Add Webhook Setup Method
-**File**: `project/src/main-app/integrations/ghl-integrations/ghl/ghl.service.ts`
+**File**: `backend-api/src/main-app/integrations/ghl-integrations/ghl/ghl.service.ts`
 
 ```typescript
 async setupWebhook(integrationId: number, webhookConfig: {events: string[]}) {

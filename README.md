@@ -18,7 +18,7 @@ A comprehensive CRM application built with NestJS backend and Next.js frontend, 
 
 ```
 Loctelli/
-├── project/              # NestJS Backend
+├── backend-api/          # NestJS Backend
 │   ├── src/
 │   │   ├── auth/         # Authentication & authorization
 │   │   ├── modules/      # Core business modules (users, leads, strategies, bookings, chat)
@@ -84,7 +84,7 @@ git clone <repository-url>
 cd Loctelli
 
 # Backend setup
-cd project
+cd backend-api
 cp .env.example .env
 npm install
 docker-compose up -d db redis
@@ -119,7 +119,7 @@ npm run dev
 
 ```bash
 # Backend tests
-cd project
+cd backend-api
 npm run test              # Unit tests
 npm run test:cov          # Coverage report
 npm run test:e2e          # E2E tests
@@ -136,7 +136,7 @@ npm run test:coverage     # Coverage report
 
 ### Backend Development
 ```bash
-cd project
+cd backend-api
 npm run start:dev        # Development server with hot reload
 npm run db:migrate:dev   # Create new migration
 npm run db:studio        # Open Prisma Studio
@@ -153,7 +153,7 @@ npm run lint             # Code linting
 ### Database Management
 
 ```bash
-cd project
+cd backend-api
 
 # Create a new migration
 npm run db:migrate:dev
@@ -173,7 +173,7 @@ npm run db:generate
 If you need to start fresh with Prisma (remove all migrations and start over):
 
 ```bash
-cd project
+cd backend-api
 
 # 1. Stop the application and database
 docker-compose down
@@ -206,7 +206,7 @@ npm run start:dev
 If you want to keep your data but reset migration history:
 
 ```bash
-cd project
+cd backend-api
 npm run db:migrate:dev   # Create new migration
 npm run db:migrate       # Deploy migrations
 npm run db:reset         # Reset database (development only)

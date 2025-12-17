@@ -136,7 +136,7 @@ The backend implements a sophisticated, security-focused prompt building system 
 ## Database Models
 
 ### PromptTemplate Model
-**Location**: `project/prisma/schema.prisma:169-188`
+**Location**: `backend-api/prisma/schema.prisma:169-188`
 
 Stores reusable prompt templates with configurable parameters.
 
@@ -178,7 +178,7 @@ model PromptTemplate {
 ---
 
 ### SubAccountPromptTemplate Model
-**Location**: `project/prisma/schema.prisma:190-202`
+**Location**: `backend-api/prisma/schema.prisma:190-202`
 
 Junction table for per-subaccount prompt template activation.
 
@@ -207,7 +207,7 @@ model SubAccountPromptTemplate {
 ---
 
 ### Strategy Model
-**Location**: `project/prisma/schema.prisma:105-127`
+**Location**: `backend-api/prisma/schema.prisma:105-127`
 
 Links strategies to prompt templates with customization overrides.
 
@@ -244,7 +244,7 @@ model Strategy {
 ## Service Layer
 
 ### 1. PromptTemplatesService
-**Location**: `project/src/main-app/modules/prompt-templates/prompt-templates.service.ts`
+**Location**: `backend-api/src/main-app/modules/prompt-templates/prompt-templates.service.ts`
 
 **Responsibilities**:
 - CRUD operations for prompt templates
@@ -283,7 +283,7 @@ async ensureActiveExists(adminId: number): Promise<void>
 ---
 
 ### 2. OpenAIPromptBuilderService
-**Location**: `project/src/main-app/modules/chat/openai-prompt-builder.service.ts`
+**Location**: `backend-api/src/main-app/modules/chat/openai-prompt-builder.service.ts`
 
 **Purpose**: Low-level prompt builder with hierarchical structure and security features
 
@@ -339,7 +339,7 @@ generateSecurityReport(): string
 ---
 
 ### 3. StructuredPromptService
-**Location**: `project/src/main-app/modules/chat/structured-prompt.service.ts`
+**Location**: `backend-api/src/main-app/modules/chat/structured-prompt.service.ts`
 
 **Purpose**: High-level orchestration of prompt building with business logic
 
@@ -452,7 +452,7 @@ generateDefaultSchedule(days: number): AvailabilitySlot[]
 ---
 
 ### 4. PromptHelperService
-**Location**: `project/src/main-app/modules/chat/prompt-helper.service.ts`
+**Location**: `backend-api/src/main-app/modules/chat/prompt-helper.service.ts`
 
 **Purpose**: Message composition for OpenAI API calls
 
@@ -492,7 +492,7 @@ generateDefaultSchedule(days: number): AvailabilitySlot[]
 ---
 
 ### 5. SalesBotService
-**Location**: `project/src/main-app/modules/chat/sales-bot.service.ts`
+**Location**: `backend-api/src/main-app/modules/chat/sales-bot.service.ts`
 
 **Purpose**: Main orchestrator for AI response generation
 
@@ -567,7 +567,7 @@ async generateResponse(message: string, leadId: number): Promise<string> {
 ---
 
 ### 6. ConversationSummarizerService
-**Location**: `project/src/main-app/modules/chat/conversation-summarizer.service.ts`
+**Location**: `backend-api/src/main-app/modules/chat/conversation-summarizer.service.ts`
 
 **Purpose**: Automatic conversation summarization to manage token limits
 
@@ -603,7 +603,7 @@ async generateResponse(message: string, leadId: number): Promise<string> {
 ---
 
 ### 7. PromptSecurityService
-**Location**: `project/src/shared/security/prompt-security.service.ts`
+**Location**: `backend-api/src/shared/security/prompt-security.service.ts`
 
 **Purpose**: Jailbreak detection and input security
 
@@ -693,7 +693,7 @@ async logSecurityIncident(
 ---
 
 ### 8. StrategiesService
-**Location**: `project/src/main-app/modules/strategies/strategies.service.ts`
+**Location**: `backend-api/src/main-app/modules/strategies/strategies.service.ts`
 
 **Template Integration**:
 
@@ -1108,7 +1108,7 @@ model Lead {
 
 #### 2. AI Tools Service Updates
 
-**Location**: `project/src/main-app/modules/chat/ai-tools.service.ts`
+**Location**: `backend-api/src/main-app/modules/chat/ai-tools.service.ts`
 
 **Updated Tool Definitions**:
 
@@ -1285,7 +1285,7 @@ private getTimezoneInfo(date: string, time: string, timezone: string): {
 
 #### 3. System Prompt Updates
 
-**Location**: `project/src/main-app/modules/chat/structured-prompt.service.ts`
+**Location**: `backend-api/src/main-app/modules/chat/structured-prompt.service.ts`
 
 **Add Timezone Instructions to Tool Instructions Section**:
 
@@ -1352,7 +1352,7 @@ TOOL USAGE RULES:
 
 #### 4. Default Template Updates
 
-**Location**: `project/prisma/seed-data/defaults.ts`
+**Location**: `backend-api/prisma/seed-data/defaults.ts`
 
 **Add Timezone Instructions to Default Template**:
 

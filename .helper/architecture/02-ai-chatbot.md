@@ -20,7 +20,7 @@ The chatbot system uses **OpenAI GPT-4 with function calling** to create persona
 ### 1. Core Services
 
 #### SalesBotService
-**Location**: `project/src/main-app/modules/chat/sales-bot.service.ts`
+**Location**: `backend-api/src/main-app/modules/chat/sales-bot.service.ts`
 
 **Responsibilities**:
 - Generate AI responses to lead messages
@@ -37,7 +37,7 @@ createBotResponse(messages: ChatMessage[], user: any, leadId: number): Promise<s
 ```
 
 #### ChatService
-**Location**: `project/src/main-app/modules/chat/chat.service.ts`
+**Location**: `backend-api/src/main-app/modules/chat/chat.service.ts`
 
 **Responsibilities**:
 - Handle incoming chat messages
@@ -46,7 +46,7 @@ createBotResponse(messages: ChatMessage[], user: any, leadId: number): Promise<s
 - Return structured chat responses
 
 #### PromptHelperService
-**Location**: `project/src/main-app/modules/chat/prompt-helper.service.ts`
+**Location**: `backend-api/src/main-app/modules/chat/prompt-helper.service.ts`
 
 **Responsibilities**:
 - Compose system prompts from strategy data
@@ -54,7 +54,7 @@ createBotResponse(messages: ChatMessage[], user: any, leadId: number): Promise<s
 - Inject context (user info, lead info, current time)
 
 #### StructuredPromptService
-**Location**: `project/src/main-app/modules/chat/structured-prompt.service.ts`
+**Location**: `backend-api/src/main-app/modules/chat/structured-prompt.service.ts`
 
 **Responsibilities**:
 - Generate structured system prompts
@@ -64,7 +64,7 @@ createBotResponse(messages: ChatMessage[], user: any, leadId: number): Promise<s
 ### 2. Supporting Services
 
 #### PromptSecurityService
-**Location**: `project/src/shared/security/prompt-security.service.ts`
+**Location**: `backend-api/src/shared/security/prompt-security.service.ts`
 
 **Responsibilities**:
 - Detect prompt injection attempts
@@ -73,7 +73,7 @@ createBotResponse(messages: ChatMessage[], user: any, leadId: number): Promise<s
 - Log security incidents
 
 #### ConversationSummarizerService
-**Location**: `project/src/main-app/modules/chat/conversation-summarizer.service.ts`
+**Location**: `backend-api/src/main-app/modules/chat/conversation-summarizer.service.ts`
 
 **Responsibilities**:
 - Summarize long conversations
@@ -81,7 +81,7 @@ createBotResponse(messages: ChatMessage[], user: any, leadId: number): Promise<s
 - Maintain conversation context while trimming history
 
 #### AiToolsService
-**Location**: `project/src/main-app/modules/chat/ai-tools.service.ts`
+**Location**: `backend-api/src/main-app/modules/chat/ai-tools.service.ts`
 
 **Responsibilities**:
 - Define OpenAI function calling tools

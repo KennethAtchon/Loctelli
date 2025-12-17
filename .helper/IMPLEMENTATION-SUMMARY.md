@@ -42,8 +42,8 @@ This implementation addresses critical security vulnerabilities and creates a ce
 ### 3. Backend Tenant Isolation Enforcement ✅
 
 **Files**:
-- `project/src/main-app/infrastructure/prisma/prisma.service.ts`
-- `project/src/main-app/infrastructure/prisma/tenant-isolation.guard.ts`
+- `backend-api/src/main-app/infrastructure/prisma/prisma.service.ts`
+- `backend-api/src/main-app/infrastructure/prisma/tenant-isolation.guard.ts`
 - `.helper/architecture/04-tenant-isolation-enforcement.md`
 
 **Problem**: Developers could accidentally query across tenants without `subAccountId` filters.
