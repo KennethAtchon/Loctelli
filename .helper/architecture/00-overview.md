@@ -29,18 +29,18 @@ Loctelli is a **full-stack AI-powered CRM platform** designed to help businesses
 │  └──────────────┘  └──────────────┘  └──────────────┘             │
 └──────────────────────────────────────────────────────────────────────┘
                             │
-                            │ HTTPS + API Proxy
+                            │ HTTPS + Direct API Connection
                             ▼
 ┌──────────────────────────────────────────────────────────────────────┐
-│                      API Gateway Layer                               │
-│                    Next.js API Routes                                │
+│                       Backend Layer                                  │
+│                    NestJS 11 + Prisma                                │
 │                                                                      │
 │  ┌────────────────────────────────────────────────────────────────┐ │
-│  │  Proxy: /api/proxy/* → Backend (with API key injection)       │ │
+│  │  Direct API: Frontend → Backend (JWT Authentication)          │ │
 │  └────────────────────────────────────────────────────────────────┘ │
 └──────────────────────────────────────────────────────────────────────┘
                             │
-                            │ JWT + API Key Authentication
+                            │ JWT Authentication
                             ▼
 ┌──────────────────────────────────────────────────────────────────────┐
 │                       Backend Layer                                  │
@@ -411,9 +411,8 @@ TWILIO_AUTH_TOKEN=...
 
 **Frontend** (`my-app/.env.local`)
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:3000/api/proxy
+NEXT_PUBLIC_API_URL=http://localhost:8000
 BACKEND_URL=http://localhost:8000
-API_KEY=your-backend-api-key
 ```
 
 ## Performance Monitoring

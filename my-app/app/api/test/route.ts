@@ -2,10 +2,9 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   return NextResponse.json({
-    message: "API proxy is working!",
+    message: "API test endpoint is working!",
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
-    hasBackendUrl: !!process.env.BACKEND_URL,
-    hasApiKey: !!process.env.API_KEY,
+    apiUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
   });
 }

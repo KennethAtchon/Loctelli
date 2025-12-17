@@ -20,7 +20,6 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 // Guards and middleware
 import { JwtAuthGuard } from '../shared/auth/auth.guard';
-import { ApiKeyMiddleware } from '../shared/middleware/api-key.middleware';
 import { SecurityHeadersMiddleware } from '../shared/middleware/security-headers.middleware';
 import { RateLimitMiddleware } from '../shared/middleware/rate-limit.middleware';
 import { InputValidationMiddleware } from '../shared/middleware/input-validation.middleware';
@@ -80,18 +79,5 @@ export class AppModule implements NestModule {
         { path: 'auth/refresh', method: RequestMethod.POST },
         { path: 'auth/change-password', method: RequestMethod.POST },
       );
-
-    // Apply API key middleware to all routes except status/health, auth, debug, and ai-receptionist
-    consumer
-      .apply(ApiKeyMiddleware)
-      .exclude(
-        { path: '', method: RequestMethod.GET },
-        { path: 'status/health', method: RequestMethod.GET },
-        { path: 'debug/redis/(.*)', method: RequestMethod.GET },
-        { path: 'debug/redis/(.*)', method: RequestMethod.POST },
-        { path: 'debug/redis/(.*)', method: RequestMethod.DELETE },
-        { path: 'ai-receptionist/(.*)', method: RequestMethod.ALL },
-      )
-      .forRoutes('*');
   }
 }

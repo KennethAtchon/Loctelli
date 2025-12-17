@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { API_CONFIG } from "@/lib/utils/envUtils";
 
 interface AgentInfo {
   identity: {
@@ -98,7 +99,7 @@ export default function AgentInfoModal({
       setError(null);
 
       const response = await fetch(
-        `/api/proxy/ai-receptionist/dev/agent-info?userId=${userId}&leadId=${leadId}`
+        `${API_CONFIG.BASE_URL}/ai-receptionist/dev/agent-info?userId=${userId}&leadId=${leadId}`
       );
 
       if (!response.ok) {

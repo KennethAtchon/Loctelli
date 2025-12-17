@@ -229,7 +229,6 @@ curl -v -H "x-api-key: $(cat .env | grep API_KEY | cut -d= -f2)" \
 
 - **Frontend Route**: `http://localhost:3000/forms/wake-up` (page)
 - **Backend API**: `http://localhost:8000/forms/public/wake-up` (endpoint)
-- **Proxy Route**: `http://localhost:3000/api/proxy/forms/public/wake-up` (Next.js proxy)
 
 The 404 error likely occurs because:
 1. API_KEY is not set in backend environment

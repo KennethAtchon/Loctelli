@@ -13,6 +13,7 @@ import { RefreshCw, Database, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import logger from "@/lib/logger";
+import { API_CONFIG } from "@/lib/utils/envUtils";
 
 interface SDKTable {
   name: string;
@@ -56,7 +57,7 @@ export default function SDKTables() {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch("/api/proxy/ai-receptionist/dev/tables");
+      const response = await fetch(`${API_CONFIG.BASE_URL}/ai-receptionist/dev/tables`);
       if (!response.ok) {
         throw new Error(`Failed to fetch SDK tables: ${response.statusText}`);
       }
@@ -100,7 +101,7 @@ export default function SDKTables() {
       setLoadingTables((prev) => new Set(prev).add(tableName));
 
       const response = await fetch(
-        `/api/proxy/ai-receptionist/dev/table-data?tableName=${encodeURIComponent(tableName)}&page=${page}&pageSize=${pageSize}`
+        `${API_CONFIG.BASE_URL}/ai-receptionist/dev/table-data?tableName=${encodeURIComponent(tableName)}&page=${page}&pageSize=${pageSize}`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch table data: ${response.statusText}`);

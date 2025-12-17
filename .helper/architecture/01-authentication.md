@@ -84,24 +84,23 @@ The authentication system uses **unified JWT-based authentication** with a hybri
 
 ### 2. Frontend Authentication (Next.js)
 
-#### API Proxy Layer
+#### Direct API Connection
 
-**Proxy Route** (`my-app/app/api/proxy/[...path]/route.ts`)
+**API Client** (`my-app/lib/api/client.ts`)
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Frontend (Next.js)                       │
 │                                                             │
-│  ┌──────────────┐         ┌──────────────────────┐        │
-│  │   Browser    │────────▶│   API Proxy Route    │        │
-│  │              │         │   /api/proxy/*       │        │
-│  └──────────────┘         └──────────────────────┘        │
-│                                    │                        │
-│                                    │ Adds:                  │
-│                                    │ - x-api-key           │
-│                                    │ - x-user-token        │
-└────────────────────────────────────┼────────────────────────┘
-                                     │
-                                     ▼
+│  ┌──────────────┐                                          │
+│  │   Browser    │                                          │
+│  └──────────────┘                                          │
+│         │                                                   │
+│         │ Direct connection with:                           │
+│         │ - x-user-token (JWT)                             │
+│         ▼                                                   │
+└─────────┼───────────────────────────────────────────────────┘
+          │
+          ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                   Backend (NestJS)                          │
 │                                                             │
@@ -208,14 +207,11 @@ The authentication system uses **unified JWT-based authentication** with a hybri
 ```mermaid
 sequenceDiagram
     participant Browser
-    participant NextJS as Next.js Proxy
     participant Backend as NestJS Backend
     participant DB as PostgreSQL
 
-    Browser->>NextJS: POST /api/proxy/auth/login
+    Browser->>Backend: POST /auth/login
     Note over Browser: { email, password, accountType: 'user'/'admin' }
-
-    NextJS->>Backend: POST /auth/login + x-api-key
     Backend->>Backend: SecurityService.checkAccountLockout()
     Backend->>DB: Find User/AdminUser by email + accountType
     DB-->>Backend: User data
@@ -224,15 +220,14 @@ sequenceDiagram
     Backend->>DB: Store refresh token hash
     Backend->>DB: Update lastLoginAt
     Backend->>DB: Log auth attempt (success)
-    Backend-->>NextJS: { access_token, refresh_token, user/admin }
-    NextJS-->>Browser: Set HTTP-only cookies + user data
+    Backend-->>Browser: { access_token, refresh_token, user/admin }
+    Note over Browser: Set HTTP-only cookies + user data
 
     Note over Browser,DB: Later request with expired access token
 
-    Browser->>NextJS: Request with expired access token
-    NextJS->>Browser: 401 Unauthorized
-    Browser->>NextJS: POST /api/proxy/auth/refresh
-    NextJS->>Backend: POST /auth/refresh + refresh_token
+    Browser->>Backend: Request with expired access token
+    Backend->>Browser: 401 Unauthorized
+    Browser->>Backend: POST /auth/refresh + refresh_token
     Backend->>DB: Verify refresh token hash exists & not expired
     DB-->>Backend: Token valid
     Backend->>DB: Verify user is active
@@ -480,9 +475,8 @@ JWT_REFRESH_EXPIRATION=7d
 
 **Frontend** (`my-app/.env.local`)
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:3000/api/proxy
+NEXT_PUBLIC_API_URL=http://localhost:8000
 BACKEND_URL=http://localhost:8000
-API_KEY=<backend-api-key>
 ```
 
 ## Error Handling

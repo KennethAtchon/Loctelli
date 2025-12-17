@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState } from "react";
+import { API_CONFIG } from "@/lib/utils/envUtils";
 
 export function ContactSection() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,7 +33,7 @@ export function ContactSection() {
     };
 
     try {
-      const response = await fetch("/api/proxy/contacts", {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/contacts`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -62,10 +62,6 @@ if (typeof window === "undefined") {
     logger.debug("✅ Environment validation passed");
   } catch (error) {
     logger.error("❌ Environment validation failed:", error);
-    // In development, we might want to show a more user-friendly error
-    if (process.env.NODE_ENV === "development") {
-      logger.error("Please ensure API_KEY is set in your .env.local file");
-    }
   }
 }
 
