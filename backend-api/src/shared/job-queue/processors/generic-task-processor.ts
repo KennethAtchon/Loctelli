@@ -171,11 +171,7 @@ export class GenericTaskProcessor extends BaseProcessor {
         };
       },
 
-      cleanupOldData: (
-        tableName: string,
-        daysOld: number,
-        context: any,
-      ) => {
+      cleanupOldData: (tableName: string, daysOld: number, context: any) => {
         // Simulate data cleanup
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - daysOld);
@@ -188,11 +184,7 @@ export class GenericTaskProcessor extends BaseProcessor {
         };
       },
 
-      generateReport: (
-        reportType: string,
-        filters: any,
-        context: any,
-      ) => {
+      generateReport: (reportType: string, filters: any, context: any) => {
         // Simulate report generation
         return {
           reportType,

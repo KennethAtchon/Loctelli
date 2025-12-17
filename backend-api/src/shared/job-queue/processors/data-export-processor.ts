@@ -136,13 +136,13 @@ export class DataExportProcessor extends BaseProcessor {
   private formatData(data: any[], format: string): Promise<any> {
     switch (format) {
       case 'csv':
-        return this.formatAsCsv(data);
+        return Promise.resolve(this.formatAsCsv(data));
       case 'excel':
-        return this.formatAsExcel(data);
+        return Promise.resolve(this.formatAsExcel(data));
       case 'pdf':
-        return this.formatAsPdf(data);
+        return Promise.resolve(this.formatAsPdf(data));
       default:
-        return data;
+        return Promise.resolve(data);
     }
   }
 

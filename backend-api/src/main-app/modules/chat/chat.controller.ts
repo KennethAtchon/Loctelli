@@ -146,10 +146,7 @@ export class ChatController {
   }
 
   @Delete('messages/:messageId')
-  deleteMessage(
-    @Param('messageId') messageId: string,
-    @CurrentUser() user,
-  ) {
+  deleteMessage(@Param('messageId') messageId: string, @CurrentUser() user) {
     this.logger.log(
       `🗑️ Delete message attempt for message ID: ${messageId} by user: ${user.email}`,
     );

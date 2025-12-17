@@ -295,7 +295,7 @@ export class WebhooksService {
 
     // Use leadId to consistently return the same response for the same lead
     const responseIndex = leadId % dummyResponses.length;
-    return dummyResponses[responseIndex];
+    return Promise.resolve(dummyResponses[responseIndex]);
   }
 
   /**

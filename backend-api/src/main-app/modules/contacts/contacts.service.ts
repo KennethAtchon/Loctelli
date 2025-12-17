@@ -50,11 +50,7 @@ export class ContactsService {
     });
   }
 
-  update(
-    id: string,
-    data: UpdateContactSubmissionDto,
-    subAccountId: number,
-  ) {
+  update(id: string, data: UpdateContactSubmissionDto, subAccountId: number) {
     // DTO fields now match Prisma schema exactly - no conversion needed
     return this.prisma.contactSubmission.update({
       where: { id, subAccountId },

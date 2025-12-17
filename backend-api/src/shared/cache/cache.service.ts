@@ -130,10 +130,10 @@ export class CacheService {
       // Note: cache-manager doesn't provide direct keys access
       // This would need to be implemented differently if needed
       this.logger.warn('Cache KEYS method not implemented with cache-manager');
-      return [];
+      return Promise.resolve([]);
     } catch (error) {
       this.logger.error('❌ Cache KEYS error:', error);
-      return [];
+      return Promise.resolve([]);
     }
   }
 }

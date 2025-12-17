@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { API_CONFIG } from "@/lib/utils/envUtils";
+import { api } from "@/lib/api";
 
 interface AgentInfo {
   identity: {
@@ -98,15 +98,13 @@ export default function AgentInfoModal({
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch(
-        `${API_CONFIG.BASE_URL}/ai-receptionist/dev/agent-info?userId=${userId}&leadId=${leadId}`
+      const queryParams = api.buildQueryString({
+        userId,
+        leadId,
+      });
+      const data: AgentInfo = await api.get<AgentInfo>(
+        `/ai-receptionist/dev/agent-info?${queryParams}`
       );
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch agent info: ${response.statusText}`);
-      }
-
-      const data: AgentInfo = await response.json();
       setAgentInfo(data);
     } catch (err) {
       logger.error("Failed to fetch agent info:", err);

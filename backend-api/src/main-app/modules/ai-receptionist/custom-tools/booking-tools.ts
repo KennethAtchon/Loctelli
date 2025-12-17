@@ -235,9 +235,12 @@ export class BookingTools {
           const bookedTimes = bookings
             .map((b) => {
               const details = b.details;
-              return details?.time;
+              if (details && typeof details === 'object' && 'time' in details) {
+                return details.time as string;
+              }
+              return null;
             })
-            .filter(Boolean);
+            .filter((time): time is string => time !== null);
 
           // Generate hourly slots
           for (

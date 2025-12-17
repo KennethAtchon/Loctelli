@@ -13,7 +13,6 @@ import { RefreshCw, Database, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import logger from "@/lib/logger";
-import { API_CONFIG } from "@/lib/utils/envUtils";
 
 interface SDKTable {
   name: string;
@@ -57,14 +56,9 @@ export default function SDKTables() {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch(
-        `${API_CONFIG.BASE_URL}/ai-receptionist/dev/tables`
+      const data: SDKTablesResponse = await api.get<SDKTablesResponse>(
+        "/ai-receptionist/dev/tables"
       );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch SDK tables: ${response.statusText}`);
-      }
-
-      const data: SDKTablesResponse = await response.json();
       const fetchedTables = data.tables || [];
       setTables(fetchedTables);
 
@@ -102,14 +96,14 @@ export default function SDKTables() {
     try {
       setLoadingTables((prev) => new Set(prev).add(tableName));
 
-      const response = await fetch(
-        `${API_CONFIG.BASE_URL}/ai-receptionist/dev/table-data?tableName=${encodeURIComponent(tableName)}&page=${page}&pageSize=${pageSize}`
+      const queryParams = api.buildQueryString({
+        tableName,
+        page,
+        pageSize,
+      });
+      const data: TableDataResponse = await api.get<TableDataResponse>(
+        `/ai-receptionist/dev/table-data?${queryParams}`
       );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch table data: ${response.statusText}`);
-      }
-
-      const data: TableDataResponse = await response.json();
       setTableData((prev) => ({ ...prev, [tableName]: data }));
     } catch (err) {
       logger.error(`Failed to fetch data for table ${tableName}:`, err);
