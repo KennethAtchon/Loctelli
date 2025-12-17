@@ -26,7 +26,7 @@ The authentication system uses **unified JWT-based authentication** with a hybri
 
 #### Services
 
-**UnifiedAuthService** (`project/src/shared/auth/services/unified-auth.service.ts`)
+**UnifiedAuthService** (`backend-api/src/shared/auth/services/unified-auth.service.ts`)
 - Handles authentication for both users and admins
 - Discriminates by `accountType: 'user' | 'admin'` parameter
 - Methods:
@@ -44,18 +44,18 @@ The authentication system uses **unified JWT-based authentication** with a hybri
 - Authentication attempt logging (audit trail)
 - Refresh token management (storage, validation, revocation)
 
-**AdminAuthCodeService** (`project/src/shared/auth/services/admin-auth-code.service.ts`)
+**AdminAuthCodeService** (`backend-api/src/shared/auth/services/admin-auth-code.service.ts`)
 - Manages temporary admin registration codes
 - Super admins generate time-limited codes for new admin registration
 
 #### Controllers
 
-**UnifiedAuthController** (`project/src/main-app/controllers/unified-auth.controller.ts`)
+**UnifiedAuthController** (`backend-api/src/main-app/controllers/unified-auth.controller.ts`)
 - Single controller for all authentication operations
 - All endpoints under `/auth/*`
 - Throttle guards on all endpoints
 
-**AdminManagementController** (`project/src/main-app/controllers/admin-management.controller.ts`)
+**AdminManagementController** (`backend-api/src/main-app/controllers/admin-management.controller.ts`)
 - Admin-only operations under `/admin/*`
 - User management (CRUD operations)
 - Admin account management
@@ -64,17 +64,17 @@ The authentication system uses **unified JWT-based authentication** with a hybri
 
 #### Guards & Strategy
 
-**JwtStrategy** (`project/src/shared/auth/strategies/jwt.strategy.ts`)
+**JwtStrategy** (`backend-api/src/shared/auth/strategies/jwt.strategy.ts`)
 - Extracts JWT from `Authorization: Bearer <token>` OR `x-user-token` header
 - Validates token signature and expiration
 - Returns user object: `{ userId, email, role, accountType, subAccountId?, systemUserId? }`
 - Handles admin `systemUserId` for user-scoped operations
 
-**JwtAuthGuard** (`project/src/shared/auth/auth.guard.ts`)
+**JwtAuthGuard** (`backend-api/src/shared/auth/auth.guard.ts`)
 - Global APP_GUARD (all routes protected by default)
 - Respects `@Public()` decorator for public routes
 
-**RolesGuard** (`project/src/shared/guards/roles.guard.ts`)
+**RolesGuard** (`backend-api/src/shared/guards/roles.guard.ts`)
 - Checks `user.role` against `@Roles()` decorator requirements
 - Works for both users and admins
 
@@ -466,7 +466,7 @@ Admin-only operations (require `@Roles('admin', 'super_admin')`):
 
 ### Environment Variables
 
-**Backend** (`project/.env`)
+**Backend** (`backend-api/.env`)
 ```env
 JWT_SECRET=<secret-key>
 JWT_EXPIRATION=15m

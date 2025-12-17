@@ -399,7 +399,7 @@ npx prisma migrate reset
 
 ### Environment Configuration
 
-**Backend** (`project/.env`)
+**Backend** (`backend-api/.env`)
 ```env
 DATABASE_URL=postgresql://postgres:password@localhost:5432/loctelli
 REDIS_URL=redis://localhost:6379

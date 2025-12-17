@@ -18,7 +18,7 @@ interface Model {
 }
 
 export function generateMermaidERD(
-  schemaPath: string = "../project/prisma/schema.prisma"
+  schemaPath: string = "../backend-api/prisma/schema.prisma"
 ): string {
   try {
     const fullPath = path.resolve(__dirname, schemaPath);

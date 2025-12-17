@@ -9,7 +9,7 @@ This guide shows how to test the NestJS backend API endpoints using curl command
 **IMPORTANT: All commands must be run from the `/backend-api` directory**
 
 ```bash
-cd /path/to/your/project/Loctelli/backend-api
+cd /path/to/your/Loctelli/backend-api
 ```
 
 ### 2. API Key Setup

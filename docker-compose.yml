@@ -13,7 +13,7 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./project/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - ./backend-api/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-loctelli}"]
       interval: 10s
@@ -50,7 +50,7 @@ services:
   # Backend API
   api:
     build:
-      context: ./project
+      context: ./backend-api
       dockerfile: Dockerfile
     container_name: loctelli_api
     restart: unless-stopped
@@ -67,7 +67,7 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-your-super-secret-refresh-key-change-in-production}
       DEFAULT_ADMIN_PASSWORD: "defaultAdmin123!CANTUNA"
     env_file:
-      - ./project/.env
+      - ./backend-api/.env
     depends_on:
       db:
         condition: service_healthy

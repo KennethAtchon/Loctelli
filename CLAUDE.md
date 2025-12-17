@@ -89,7 +89,7 @@ docker-compose down -v
   * **`api/`** - API client and endpoint definitions
 * **`contexts/`** - React context providers (auth, theme, filters)
 
-### Backend (`project/`)
+### Backend (`backend-api/`)
 * **`src/main-app/`** - Main application modules
   * **`modules/`** - Core business modules (leads, chat, bookings, etc.)
   * **`integrations/`** - External service integrations (GHL, webhooks)
