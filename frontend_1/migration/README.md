@@ -26,6 +26,10 @@ This directory contains comprehensive migration documentation for the Loctelli f
 10. **[09-step-by-step-guide.md](./09-step-by-step-guide.md)** - Complete sequential migration process
 11. **[10-troubleshooting.md](./10-troubleshooting.md)** - Common issues and solutions
 
+### Major Stack Migrations
+
+12. **[11-vite-tanstack-migration.md](./11-vite-tanstack-migration.md)** - **NEW**: Migration from Next.js to Vite + React + TanStack Router + TanStack Query
+
 ## Quick Start
 
 ### For First-Time Migrators
@@ -57,12 +61,21 @@ Estimated timeline: **13 days**
 
 ## Key Technologies
 
+### Current Stack (Next.js)
 - **Next.js 15.4.7** - App Router
 - **React 19.2.1** - UI Library
 - **TypeScript 5** - Type Safety
 - **Tailwind CSS 4.0** - Styling
 - **TanStack React Query 5** - Data Fetching
 - **Jest 29** - Testing
+
+### Alternative Stack (Vite + TanStack Router)
+See **[11-vite-tanstack-migration.md](./11-vite-tanstack-migration.md)** for migration to:
+- **Vite 5.x** - Build tool
+- **React 19.2.1** - UI Library
+- **TanStack Router** - Type-safe routing
+- **TanStack Query 5** - Data Fetching
+- **TypeScript 5** - Type Safety
 
 ## Important Notes
 
