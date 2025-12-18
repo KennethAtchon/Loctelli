@@ -1,6 +1,8 @@
 # Loctelli Frontend
 
-Modern frontend application built with Vite, React, TanStack Router, and TanStack Query.
+✅ **Migration Completed**: December 18, 2025
+
+Modern frontend application built with Vite, React, TanStack Router, and TanStack Query. Successfully migrated from Next.js 15.4.7.
 
 ## Tech Stack
 

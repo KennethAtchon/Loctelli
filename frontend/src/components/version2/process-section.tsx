@@ -163,7 +163,7 @@ export function ProcessSection() {
 
   return (
     <>
-      <style jsx>{`
+      <style>{`
         @keyframes wiggle {
           0%,
           7% {

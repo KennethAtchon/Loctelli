@@ -49,52 +49,52 @@ export function Footer() {
             </h4>
             <ul className="space-y-2">
               <li>
-                <Link
+                <a
                   href="#"
                   className="text-gray-600 hover:text-blue-500 transition-colors"
                 >
                   Home
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
+                <a
                   href="#how-it-works"
                   className="text-gray-600 hover:text-blue-500 transition-colors"
                 >
                   How It Works
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
+                <a
                   href="#features"
                   className="text-gray-600 hover:text-blue-500 transition-colors"
                 >
                   Features
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
+                <a
                   href="#pricing"
                   className="text-gray-600 hover:text-blue-500 transition-colors"
                 >
                   Pricing
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
+                <a
                   href="#testimonials"
                   className="text-gray-600 hover:text-blue-500 transition-colors"
                 >
                   Testimonials
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
+                <a
                   href="#contact"
                   className="text-gray-600 hover:text-blue-500 transition-colors"
                 >
                   Contact
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
@@ -120,24 +120,24 @@ export function Footer() {
               <h4 className="text-lg font-bold text-gray-900 mb-4">Legal</h4>
               <ul className="space-y-2">
                 <li>
-                  <Link
+                  <a
                     href="https://calendly.com/privacy"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-gray-600 hover:text-blue-500 transition-colors"
                   >
                     Calendly Privacy Policy
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link
+                  <a
                     href="https://calendly.com/terms"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-gray-600 hover:text-blue-500 transition-colors"
                   >
                     Calendly Terms of Use
-                  </Link>
+                  </a>
                 </li>
               </ul>
             </div>

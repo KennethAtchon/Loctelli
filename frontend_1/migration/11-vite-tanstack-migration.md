@@ -1,5 +1,9 @@
 # Migration to Vite + React + TanStack Router + TanStack Query
 
+## ✅ MIGRATION COMPLETED - December 18, 2025
+
+The migration from Next.js 15.4.7 to Vite + React + TanStack Router has been **successfully completed**. The new frontend is located in the `frontend/` directory and is fully functional.
+
 ## Overview
 
 This guide provides comprehensive documentation for migrating the Loctelli frontend from **Next.js 15.4.7** to a modern stack using **Vite**, **React**, **TanStack Router**, and **TanStack Query**.

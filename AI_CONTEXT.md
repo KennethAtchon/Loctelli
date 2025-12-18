@@ -2,12 +2,16 @@
 
 ## 🏗️ System Architecture
 
-### **Frontend (Next.js 15.2.4)**
-- **Framework**: Next.js with App Router
-- **UI Library**: Shadcn/ui components with Tailwind CSS
+### **Frontend (Vite + React + TanStack)**
+- **Build Tool**: Vite 6.x for fast development and optimized builds
+- **Framework**: React 19.2.1 with modern hooks
+- **Routing**: TanStack Router 1.95.0 (type-safe, file-based routing)
+- **Data Fetching**: TanStack Query 5.62.11 (React Query)
+- **UI Library**: Shadcn/ui components with Tailwind CSS 4.0
 - **State Management**: React Context for auth state
 - **API Client**: Custom API client with AuthService for token management and automatic refresh
-- **Authentication**: JWT tokens stored in HTTP-only cookies with separate AuthService
+- **Authentication**: JWT tokens with automatic refresh handling
+- **Development**: Fast HMR (Hot Module Replacement) with Vite
 
 ### **Backend (NestJS 11)**
 - **Framework**: NestJS with TypeScript

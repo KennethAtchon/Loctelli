@@ -34,48 +34,48 @@ export function Navigation() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          <Link
+          <a
             href="#"
             className="font-medium text-gray-800 hover:text-blue-500 transition-colors"
           >
             Home
-          </Link>
-          <Link
+          </a>
+          <a
             href="#how-it-works"
             className="font-medium text-gray-800 hover:text-blue-500 transition-colors"
           >
             How It Works
-          </Link>
-          <Link
+          </a>
+          <a
             href="#features"
             className="font-medium text-gray-800 hover:text-blue-500 transition-colors"
           >
             Features
-          </Link>
-          <Link
+          </a>
+          <a
             href="#demo"
             className="font-medium text-gray-800 hover:text-blue-500 transition-colors"
           >
             Demo
-          </Link>
-          {/* <Link
+          </a>
+          {/* <a
             href="#pricing"
             className="font-medium text-gray-800 hover:text-blue-500 transition-colors"
           >
             Pricing
-          </Link>
-          <Link
+          </a>
+          <a
             href="#testimonials"
             className="font-medium text-gray-800 hover:text-blue-500 transition-colors"
           >
             Testimonials
-          </Link> */}
-          <Link
+          </a> */}
+          <a
             href="#contact"
             className="font-medium text-gray-800 hover:text-blue-500 transition-colors"
           >
             Contact
-          </Link>
+          </a>
           <Button
             className="bg-teal-500 hover:bg-teal-600 text-white"
             onClick={() => open("https://calendly.com/loctelli-info/45min")}
@@ -97,48 +97,48 @@ export function Navigation() {
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-md py-4">
           <div className="container flex flex-col space-y-4">
-            <Link
+            <a
               href="#"
               className="font-medium text-gray-800 hover:text-blue-500 transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Home
-            </Link>
-            <Link
+            </a>
+            <a
               href="#how-it-works"
               className="font-medium text-gray-800 hover:text-blue-500 transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               How It Works
-            </Link>
-            <Link
+            </a>
+            <a
               href="#features"
               className="font-medium text-gray-800 hover:text-blue-500 transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Features
-            </Link>
-            <Link
+            </a>
+            <a
               href="#pricing"
               className="font-medium text-gray-800 hover:text-blue-500 transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Pricing
-            </Link>
-            <Link
+            </a>
+            <a
               href="#testimonials"
               className="font-medium text-gray-800 hover:text-blue-500 transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Testimonials
-            </Link>
-            <Link
+            </a>
+            <a
               href="#contact"
               className="font-medium text-gray-800 hover:text-blue-500 transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Contact
-            </Link>
+            </a>
             <Button
               className="bg-teal-500 hover:bg-teal-600 text-white w-full"
               onClick={() => {

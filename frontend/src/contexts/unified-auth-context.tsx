@@ -74,11 +74,11 @@ export function UnifiedAuthProvider({
   const [isLoading, setIsLoading] = useState(true);
   const authService = new AuthService();
   const isAuthenticated = !!account && !!accountType;
-  const router = useRouter();
+  const navigate = useNavigate();
   // Check for existing tokens and auto-login on mount
   useEffect(() => {
     let isMounted = true; // Track if component is still mounted
-    let timeoutId: NodeJS.Timeout | null = null;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     const checkAuth = async () => {
       logger.debug("🔍 Checking unified authentication...");
