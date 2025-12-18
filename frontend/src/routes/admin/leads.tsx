@@ -1,5 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router"
-import { createFileRoute, useNavigate } from '@tantml:router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";

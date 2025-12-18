@@ -227,8 +227,9 @@ function AdminContactsPage() {
     if (confirm("Are you sure you want to delete this contact?")) {
       try {
         setError(null);
-        await api.contacts.deleteContact(contact.id);
-        setSuccess("Contact deleted successfully");
+        // Note: Delete endpoint not available in API, commenting out
+        // await api.contacts.deleteContact(contact.id);
+        setSuccess("Contact deletion not implemented");
         loadContacts();
         setTimeout(() => setSuccess(null), 3000);
       } catch (error) {
