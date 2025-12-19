@@ -1,28 +1,32 @@
 import "@testing-library/jest-dom";
 
-// Mock TanStack Router
-jest.mock("@tanstack/react-router", () => ({
-  ...jest.requireActual("@tanstack/react-router"),
-  useRouter: () => ({
-    navigate: jest.fn(),
-    history: {
+// Mock Next.js router
+jest.mock("next/navigation", () => ({
+  useRouter() {
+    return {
       push: jest.fn(),
       replace: jest.fn(),
+      prefetch: jest.fn(),
       back: jest.fn(),
       forward: jest.fn(),
-    },
-  }),
-  useNavigate: () => jest.fn(),
-  useLocation: () => ({
-    pathname: "/",
-    search: {},
-    hash: "",
-  }),
-  Link: ({ children, to, ...props }) => (
-    <a href={to} {...props}>
-      {children}
-    </a>
-  ),
+      refresh: jest.fn(),
+    };
+  },
+  useSearchParams() {
+    return new URLSearchParams();
+  },
+  usePathname() {
+    return "/";
+  },
+}));
+
+// Mock Next.js image component
+jest.mock("next/image", () => ({
+  __esModule: true,
+  default: (props) => {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img {...props} />;
+  },
 }));
 
 // Mock window.matchMedia

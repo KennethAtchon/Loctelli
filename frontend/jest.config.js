@@ -1,42 +1,32 @@
-module.exports = {
-  testEnvironment: "jsdom",
+const nextJest = require("next/jest");
+
+const createJestConfig = nextJest({
+  // Provide the path to your Next.js app to load next.config.js and .env files
+  dir: "./",
+});
+
+// Add any custom config to be passed to Jest
+const customJestConfig = {
   setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
+  testEnvironment: "jsdom",
+  testPathIgnorePatterns: ["<rootDir>/.next/", "<rootDir>/node_modules/"],
   moduleNameMapper: {
-    "^@/(.*)$": "<rootDir>/src/$1",
-    "^@/components/(.*)$": "<rootDir>/src/components/$1",
-    "^@/lib/(.*)$": "<rootDir>/src/lib/$1",
-    "^@/contexts/(.*)$": "<rootDir>/src/contexts/$1",
-    "^@/hooks/(.*)$": "<rootDir>/src/hooks/$1",
-    "^@/types/(.*)$": "<rootDir>/src/types/$1",
-  },
-  testPathIgnorePatterns: ["<rootDir>/dist/", "<rootDir>/node_modules/"],
-  transform: {
-    "^.+\\.(ts|tsx)$": [
-      "@swc/jest",
-      {
-        jsc: {
-          parser: {
-            syntax: "typescript",
-            tsx: true,
-          },
-          transform: {
-            react: {
-              runtime: "automatic",
-            },
-          },
-        },
-      },
-    ],
+    "^@/(.*)$": "<rootDir>/$1",
+    "^@/components/(.*)$": "<rootDir>/components/$1",
+    "^@/lib/(.*)$": "<rootDir>/lib/$1",
+    "^@/contexts/(.*)$": "<rootDir>/contexts/$1",
+    "^@/hooks/(.*)$": "<rootDir>/hooks/$1",
+    "^@/types/(.*)$": "<rootDir>/types/$1",
   },
   collectCoverageFrom: [
-    "src/components/**/*.{js,jsx,ts,tsx}",
-    "src/contexts/**/*.{js,jsx,ts,tsx}",
-    "src/hooks/**/*.{js,jsx,ts,tsx}",
-    "src/lib/**/*.{js,jsx,ts,tsx}",
-    "src/routes/**/*.{js,jsx,ts,tsx}",
+    "components/**/*.{js,jsx,ts,tsx}",
+    "contexts/**/*.{js,jsx,ts,tsx}",
+    "hooks/**/*.{js,jsx,ts,tsx}",
+    "lib/**/*.{js,jsx,ts,tsx}",
+    "app/**/*.{js,jsx,ts,tsx}",
     "!**/*.d.ts",
     "!**/node_modules/**",
-    "!**/dist/**",
+    "!**/.next/**",
   ],
   coverageThreshold: {
     global: {
@@ -46,5 +36,7 @@ module.exports = {
       statements: 80,
     },
   },
-  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
 };
+
+// createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
+module.exports = createJestConfig(customJestConfig);

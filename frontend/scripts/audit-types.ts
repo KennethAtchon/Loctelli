@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env ts-node
 /**
  * Frontend Types Audit Script
  *
@@ -8,15 +8,11 @@
  * 3. Required fields are present
  * 4. No unnecessary field mappings are needed
  *
- * Usage: pnpm run audit:types
+ * Usage: ts-node scripts/audit-types.ts
  */
 
 import * as fs from "fs";
 import * as path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 interface PrismaField {
   name: string;
@@ -172,8 +168,6 @@ class FrontendTypesAuditor {
             ".git",
             "coverage",
             ".turbo",
-            ".vite",
-            "scripts",
           ].includes(file)
         ) {
           this.findTypeScriptFiles(filePath, fileList);
@@ -645,5 +639,6 @@ async function main() {
   }
 }
 
-main();
-
+if (require.main === module) {
+  main();
+}

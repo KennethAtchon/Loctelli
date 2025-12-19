@@ -1,10 +1,11 @@
-# Build stage
+# Stage 1: Build
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
+# Install pnpm and dependencies for native modules
+RUN apk add --no-cache python3 build-base g++ make \
+    && npm install -g pnpm
 
 # Copy package files and install dependencies
 COPY package.json pnpm-lock.yaml ./
@@ -14,26 +15,36 @@ RUN pnpm install
 COPY . .
 
 # Define arguments for environment variables needed at build time
-ARG VITE_API_URL
+ARG NEXT_PUBLIC_API_URL
 
 # Set environment variables for the build
-ENV VITE_API_URL=$VITE_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
-# Build the Vite app
+# Build the Next.js app
 RUN pnpm run build
 
-# Production stage
-FROM nginx:alpine
+# Stage 2: Production
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install pnpm and runtime dependencies
+RUN apk add --no-cache libc6-compat \
+    && npm install -g pnpm
+
+# Copy package files
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
+
+# Install production dependencies
+RUN pnpm install --prod
 
 # Copy built application
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
 
 # Expose port
 EXPOSE 3000
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
-
+# Start the app
+CMD ["pnpm", "start"]

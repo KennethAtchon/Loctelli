@@ -1,130 +1,36 @@
-# Loctelli Frontend
-
-✅ **Migration Completed**: December 18, 2025
-
-Modern frontend application built with Vite, React, TanStack Router, and TanStack Query. Successfully migrated from Next.js 15.4.7.
-
-## Tech Stack
-
-- **Vite** - Build tool and dev server
-- **React 19** - UI library
-- **TanStack Router** - Type-safe routing
-- **TanStack Query** - Data fetching and state management
-- **TypeScript** - Type safety
-- **Tailwind CSS 4** - Styling
-- **Shadcn/ui** - UI components
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js 20+
-- pnpm (recommended) or npm
-
-### Installation
+First, run the development server:
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Copy environment variables
-cp .env.example .env
-
-# Edit .env with your configuration
-VITE_API_URL=http://localhost:8000
-```
-
-### Development
-
-```bash
-# Start dev server
+npm run dev
+# or
+yarn dev
+# or
 pnpm dev
-
-# The app will be available at http://localhost:3000
+# or
+bun dev
 ```
 
-### Building
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-```bash
-# Build for production (automatically generates sitemap.xml)
-pnpm build
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-# Or build with all checks
-pnpm build:all
-```
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-### Utility Scripts
+## Learn More
 
-```bash
-# Generate sitemap.xml for SEO (runs automatically during build)
-pnpm run generate:sitemap
+To learn more about Next.js, take a look at the following resources:
 
-# Generate Mermaid ERD diagram from Prisma schema
-pnpm run generate:schema
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-# Audit TypeScript types against Prisma schema
-pnpm run audit:types
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-# Preview production build
-pnpm preview
-```
+## Deploy on Vercel
 
-### Testing
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-```bash
-# Run tests
-pnpm test
-
-# Run tests in watch mode
-pnpm test:watch
-
-# Run tests with coverage
-pnpm test:coverage
-```
-
-## Project Structure
-
-```
-frontend/
-├── src/
-│   ├── routes/          # TanStack Router routes
-│   ├── components/       # React components
-│   ├── lib/             # Utilities and API client
-│   ├── contexts/        # React contexts
-│   ├── hooks/           # Custom hooks
-│   ├── types/           # TypeScript types
-│   ├── main.tsx         # Entry point
-│   └── index.css        # Global styles
-├── public/              # Static assets
-├── vite.config.ts       # Vite configuration
-├── tsconfig.json        # TypeScript configuration
-└── package.json         # Dependencies
-```
-
-## Environment Variables
-
-All public environment variables must be prefixed with `VITE_`:
-
-- `VITE_API_URL` - Backend API URL (default: http://localhost:8000)
-- `VITE_APP_NAME` - Application name
-
-## Routing
-
-Routes are defined in `src/routes/` using TanStack Router's file-based routing:
-
-- `__root.tsx` - Root layout
-- `index.tsx` - Home page (`/`)
-- `auth/login.tsx` - Login page (`/auth/login`)
-- `auth/register.tsx` - Register page (`/auth/register`)
-
-## API Client
-
-The API client is located in `src/lib/api/` and uses the `/api/proxy` prefix for all backend calls.
-
-## Migration from Next.js
-
-This project was migrated from Next.js. See `migration/11-vite-tanstack-migration.md` for details.
-
-## License
-
-Private - Loctelli
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
