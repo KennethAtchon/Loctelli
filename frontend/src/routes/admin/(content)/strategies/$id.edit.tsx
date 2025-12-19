@@ -26,9 +26,14 @@ import type { UserProfile } from "@/lib/api/endpoints/admin-auth";
 import type { PromptTemplate } from "@/lib/api/endpoints/prompt-templates";
 import logger from "@/lib/logger";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.STRATEGY_EDIT)({
-  component: EditStrategyPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <EditStrategyPage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function EditStrategyPage() {

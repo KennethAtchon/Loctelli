@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "pnpm run generate:sitemap && tsc && vite build",
     "build:all": "pnpm run format:check && pnpm run lint && tsc --noEmit && pnpm run build",
     "preview": "vite preview",
-    "lint": "echo 'Linting disabled'",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "clean": "rm -rf dist .vite && rm -rf pnpm-lock.yaml && rm -rf node_modules",
@@ -16,7 +17,9 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:ci": "jest --ci --coverage --watchAll=false",
-    "audit:types": "npx tsx scripts/audit-types.ts"
+    "audit:types": "tsx scripts/audit-types.ts",
+    "generate:sitemap": "tsx scripts/generate-sitemap.ts",
+    "generate:schema": "tsx scripts/generate-schema.ts"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
@@ -98,6 +101,7 @@
     "postcss": "^8",
     "prettier": "^3.7.4",
     "tailwindcss": "^4.0.0",
+    "tsx": "^4.21.0",
     "tw-animate-css": "^1.0.0",
     "typescript": "^5",
     "vite": "^6.0.5"

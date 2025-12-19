@@ -17,9 +17,14 @@ import { FileText, Users, Calendar, CheckCircle } from "lucide-react";
 import { useTenant } from "@/contexts/tenant-context";
 import { toast } from "sonner";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.FORMS_INDEX)({
-  component: AdminFormsPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <AdminFormsPage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function AdminFormsPage() {

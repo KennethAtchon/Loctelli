@@ -15,9 +15,14 @@ import { Separator } from "@/components/ui/separator";
 import { User, Lock, Save, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.SETTINGS)({
-  component: AdminSettingsPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <AdminSettingsPage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function AdminSettingsPage() {

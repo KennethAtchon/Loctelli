@@ -15,13 +15,17 @@ export function AdminProtectedRoute({
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Immediately redirect if not authenticated (after loading completes)
     if (!isLoading && !isAuthenticated) {
-      navigate({ to: "/admin/login" });
+      navigate({ 
+        to: "/admin/login",
+        replace: true, // Replace current history entry to prevent back button issues
+      });
     }
   }, [isAuthenticated, isLoading, navigate]);
 
-  // Show loading state while checking authentication or during redirect
-  if (isLoading || (!isAuthenticated && !isLoading)) {
+  // Show loading state only while checking authentication
+  if (isLoading) {
     return (
       fallback || (
         <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
@@ -57,6 +61,12 @@ export function AdminProtectedRoute({
         </div>
       )
     );
+  }
+
+  // If not authenticated (and not loading), don't render children
+  // The redirect will happen via useEffect
+  if (!isAuthenticated) {
+    return null; // Or return a minimal loading state while redirect happens
   }
 
   return <>{children}</>;

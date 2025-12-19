@@ -17,9 +17,14 @@ import { Mail, Phone, User, Calendar, MessageSquare } from "lucide-react";
 import { ContactSubmission, CreateContactNoteDto } from "@/types";
 import { useTenant } from "@/contexts/tenant-context";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.CONTACTS)({
-  component: AdminContactsPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <AdminContactsPage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function AdminContactsPage() {

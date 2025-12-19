@@ -15,9 +15,14 @@ import {
 } from "lucide-react";
 import { useTenant } from "@/contexts/tenant-context";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.FORM_SUBMISSIONS)({
-  component: FormSubmissionsPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <FormSubmissionsPage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function FormSubmissionsPage() {

@@ -35,9 +35,14 @@ import type {
   UpdateFormSubmissionDto,
 } from "@/lib/api/endpoints/forms";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.FORM_SUBMISSION_DETAIL)({
-  component: FormSubmissionDetailPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <FormSubmissionDetailPage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function FormSubmissionDetailPage() {

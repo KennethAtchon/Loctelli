@@ -17,9 +17,14 @@ import { Booking } from "@/types";
 import logger from "@/lib/logger";
 import { useTenant } from "@/contexts/tenant-context";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.BOOKINGS)({
-  component: BookingsPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <BookingsPage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function BookingsPage() {

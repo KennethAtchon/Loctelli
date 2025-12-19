@@ -28,9 +28,14 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import type { IntegrationTemplate, CreateIntegrationDto } from "@/lib/api";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.INTEGRATION_NEW)({
-  component: NewIntegrationPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <NewIntegrationPage />
+    </AdminLayoutWrapper>
+  ),
   validateSearch: (search: Record<string, unknown>) => {
     return {
       template: search.template ? String(search.template) : undefined,

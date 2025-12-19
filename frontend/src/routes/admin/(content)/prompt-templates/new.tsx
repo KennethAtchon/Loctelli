@@ -19,9 +19,14 @@ import { api } from "@/lib/api";
 import type { CreatePromptTemplateDto } from "@/lib/api/endpoints/prompt-templates";
 import { Badge } from "@/components/ui/badge";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.PROMPT_TEMPLATE_NEW)({
-  component: NewPromptTemplatePage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <NewPromptTemplatePage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function NewPromptTemplatePage() {

@@ -26,9 +26,14 @@ import { toast } from "sonner";
 import logger from "@/lib/logger";
 import { useTenant } from "@/contexts/tenant-context";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.BOOKING_EDIT)({
-  component: EditBookingPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <EditBookingPage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function EditBookingPage() {

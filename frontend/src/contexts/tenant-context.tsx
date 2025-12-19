@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useMemo } from "react";
 import { useUnifiedAuth } from "./unified-auth-context";
-import { useSubaccountFilter } from "./subaccount-filter-context";
+import { SubaccountFilterContext } from "./subaccount-filter-context";
 import logger from "@/lib/logger";
 
 /**
@@ -60,21 +60,84 @@ export interface TenantContextType {
   validateTenantAccess: (subAccountId?: number) => void;
 }
 
-const TenantContext = createContext<TenantContextType | undefined>(undefined);
+// Initialize with default value so context is always available
+// This prevents "useTenant must be used within a TenantProvider" errors
+const TenantContext = createContext<TenantContextType>({
+  mode: "USER_SCOPED",
+  subAccountId: null,
+  shouldFilterByTenant: false,
+  isGlobalView: false,
+  adminFilter: null,
+  availableSubaccounts: [],
+  setAdminFilter: null,
+  isSubaccountsLoading: false,
+  refreshSubaccounts: null,
+  setSubAccountId: null,
+  getCurrentSubaccount: null,
+  getTenantQueryParams: () => ({}),
+  getTenantHeaders: () => ({}),
+  canAccessSubAccount: () => false,
+  validateTenantAccess: () => {
+    logger.warn("Tenant access validation called but context is not initialized");
+  },
+});
 
-export function TenantProvider({ children }: { children: React.ReactNode }) {
-  const { account, accountType, isAuthenticated } = useUnifiedAuth();
+// Default fallback context value
+const DEFAULT_TENANT_CONTEXT: TenantContextType = {
+  mode: "USER_SCOPED",
+  subAccountId: null,
+  shouldFilterByTenant: false,
+  isGlobalView: false,
+  adminFilter: null,
+  availableSubaccounts: [],
+  setAdminFilter: null,
+  isSubaccountsLoading: false,
+  refreshSubaccounts: null,
+  setSubAccountId: null,
+  getCurrentSubaccount: null,
+  getTenantQueryParams: () => ({}),
+  getTenantHeaders: () => ({}),
+  canAccessSubAccount: () => false,
+  validateTenantAccess: () => {
+    logger.warn("Tenant access validation called but context is not initialized");
+  },
+};
 
+function TenantProviderInner({ children }: { children: React.ReactNode }) {
+  // Hooks must be called unconditionally - always call them
+  // These should always be available since they're in the root layout
+  const { account, accountType, isAuthenticated, isLoading } = useUnifiedAuth();
+  
   // Admin context (only available for admins)
-  let subaccountFilterContext;
-  try {
-    subaccountFilterContext = useSubaccountFilter();
-  } catch (e) {
-    // Not in SubaccountFilterProvider - that's ok for regular users
-    subaccountFilterContext = null;
-  }
+  // Use useContext directly instead of the hook to avoid throwing errors
+  // This returns undefined if not in provider, which we handle gracefully
+  const subaccountFilterContext = useContext(SubaccountFilterContext);
 
   const value = useMemo<TenantContextType>(() => {
+    try {
+      // Still loading - provide a safe default context
+      if (isLoading) {
+        return {
+          mode: "USER_SCOPED",
+          subAccountId: null,
+          shouldFilterByTenant: false,
+          isGlobalView: false,
+          adminFilter: null,
+          availableSubaccounts: [],
+          setAdminFilter: null,
+          isSubaccountsLoading: false,
+          refreshSubaccounts: null,
+          setSubAccountId: null,
+          getCurrentSubaccount: null,
+          getTenantQueryParams: () => ({}),
+          getTenantHeaders: () => ({}),
+          canAccessSubAccount: () => false,
+          validateTenantAccess: () => {
+            // Don't throw during loading - just log
+            logger.debug("Tenant access validation skipped - auth still loading");
+          },
+        };
+      }
     // Not authenticated - no tenant context
     if (!isAuthenticated || !account) {
       return {
@@ -101,8 +164,8 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     // Admin user
     if (accountType === "admin") {
       const isGlobal =
-        !subaccountFilterContext || subaccountFilterContext.isGlobalView();
-      const currentSubAccount = subaccountFilterContext?.getCurrentSubaccount();
+        !subaccountFilterContext || subaccountFilterContext.isGlobalView?.() || false;
+      const currentSubAccount = subaccountFilterContext?.getCurrentSubaccount?.() || null;
 
       return {
         mode: isGlobal ? "ADMIN_GLOBAL" : "ADMIN_FILTERED",
@@ -118,7 +181,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         refreshSubaccounts: subaccountFilterContext?.refreshSubaccounts || null,
         setSubAccountId: subaccountFilterContext?.setFilter
           ? (id: number | null) => {
-              subaccountFilterContext.setFilter(
+              subaccountFilterContext?.setFilter?.(
                 id === null ? "GLOBAL" : id.toString(),
               );
             }
@@ -199,10 +262,102 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         logger.debug(`User accessing subAccount ${userSubAccountId}`);
       },
     };
-  }, [account, accountType, isAuthenticated, subaccountFilterContext]);
+    } catch (error) {
+      logger.error("Error creating tenant context value:", error);
+      // Return a safe fallback context
+      return {
+        mode: "USER_SCOPED",
+        subAccountId: null,
+        shouldFilterByTenant: false,
+        isGlobalView: false,
+        adminFilter: null,
+        availableSubaccounts: [],
+        setAdminFilter: null,
+        isSubaccountsLoading: false,
+        refreshSubaccounts: null,
+        setSubAccountId: null,
+        getCurrentSubaccount: null,
+        getTenantQueryParams: () => ({}),
+        getTenantHeaders: () => ({}),
+        canAccessSubAccount: () => false,
+        validateTenantAccess: () => {
+          logger.warn("Tenant access validation called but context initialization failed");
+        },
+      };
+    }
+  }, [account, accountType, isAuthenticated, isLoading, subaccountFilterContext]);
+
+  // Always render the provider - ensure value is never undefined
+  // This prevents "useTenant must be used within a TenantProvider" errors
+  if (!value) {
+    logger.error("TenantProvider: value is undefined, using fallback");
+    const fallbackValue: TenantContextType = {
+      mode: "USER_SCOPED",
+      subAccountId: null,
+      shouldFilterByTenant: false,
+      isGlobalView: false,
+      adminFilter: null,
+      availableSubaccounts: [],
+      setAdminFilter: null,
+      isSubaccountsLoading: false,
+      refreshSubaccounts: null,
+      setSubAccountId: null,
+      getCurrentSubaccount: null,
+      getTenantQueryParams: () => ({}),
+      getTenantHeaders: () => ({}),
+      canAccessSubAccount: () => false,
+      validateTenantAccess: () => {
+        logger.warn("Tenant access validation called but context value is undefined");
+      },
+    };
+    return (
+      <TenantContext.Provider value={fallbackValue}>{children}</TenantContext.Provider>
+    );
+  }
 
   return (
     <TenantContext.Provider value={value}>{children}</TenantContext.Provider>
+  );
+}
+
+// Error boundary component to catch any errors during provider initialization
+class TenantProviderErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    logger.error("TenantProvider: Error caught in error boundary:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      // If there's an error, still render the provider with default value
+      // This ensures useTenant() never throws
+      return (
+        <TenantContext.Provider value={DEFAULT_TENANT_CONTEXT}>
+          {this.props.children}
+        </TenantContext.Provider>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+export function TenantProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <TenantProviderErrorBoundary>
+      <TenantProviderInner>{children}</TenantProviderInner>
+    </TenantProviderErrorBoundary>
   );
 }
 
@@ -224,11 +379,8 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
  * }
  */
 export function useTenant() {
-  const context = useContext(TenantContext);
-  if (context === undefined) {
-    throw new Error("useTenant must be used within a TenantProvider");
-  }
-  return context;
+  // Context always has a value (default or provided), so no need to check for undefined
+  return useContext(TenantContext);
 }
 
 /**

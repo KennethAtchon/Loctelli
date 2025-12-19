@@ -12,9 +12,14 @@ import { DetailedLead } from "@/lib/api/endpoints/admin-auth";
 import { useTenant } from "@/contexts/tenant-context";
 import { LeadDetailsContent } from "@/components/admin/lead-details-content";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.LEADS_INDEX)({
-  component: AdminLeadsPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <AdminLeadsPage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function AdminLeadsPage() {

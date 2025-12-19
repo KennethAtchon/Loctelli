@@ -32,9 +32,14 @@ import { Strategy } from "@/types";
 import logger from "@/lib/logger";
 import { toast } from "sonner";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.STRATEGY_DETAIL)({
-  component: StrategyDetailsPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <StrategyDetailsPage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function StrategyDetailsPage() {

@@ -18,9 +18,14 @@ import { useTenant } from "@/contexts/tenant-context";
 import { CreateUserDialog } from "@/components/admin/create-user-dialog";
 import { EditUserDialog } from "@/components/admin/edit-user-dialog";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.USERS)({
-  component: AdminUsersPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <AdminUsersPage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function AdminUsersPage() {

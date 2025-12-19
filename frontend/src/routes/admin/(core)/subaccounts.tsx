@@ -32,9 +32,14 @@ import { useTenant } from "@/contexts/tenant-context";
 import { CreateSubAccountDialog } from "@/components/admin/create-subaccount-dialog";
 import { EditSubAccountDialog } from "@/components/admin/edit-subaccount-dialog";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.SUBACCOUNTS)({
-  component: AdminSubAccountsPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <AdminSubAccountsPage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function AdminSubAccountsPage() {

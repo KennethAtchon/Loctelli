@@ -22,9 +22,14 @@ import type {
 } from "@/lib/api/endpoints/prompt-templates";
 import { Badge } from "@/components/ui/badge";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.PROMPT_TEMPLATE_EDIT)({
-  component: EditPromptTemplatePage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <EditPromptTemplatePage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function EditPromptTemplatePage() {

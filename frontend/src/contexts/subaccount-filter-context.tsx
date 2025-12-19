@@ -17,7 +17,7 @@ interface SubaccountFilterContextType {
   refreshFilter: () => void;
 }
 
-const SubaccountFilterContext = createContext<
+export const SubaccountFilterContext = createContext<
   SubaccountFilterContextType | undefined
 >(undefined);
 

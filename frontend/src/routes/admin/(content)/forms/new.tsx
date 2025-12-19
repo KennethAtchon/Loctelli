@@ -43,9 +43,14 @@ import type {
   FormField,
 } from "@/lib/api/endpoints/forms";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.FORM_NEW)({
-  component: NewFormTemplatePage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <NewFormTemplatePage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 const fieldTypes = [

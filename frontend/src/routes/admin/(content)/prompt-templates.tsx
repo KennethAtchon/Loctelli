@@ -33,9 +33,14 @@ import type { PromptTemplate } from "@/lib/api/endpoints/prompt-templates";
 import { useTenant } from "@/contexts/tenant-context";
 import { Badge } from "@/components/ui/badge";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.PROMPT_TEMPLATES)({
-  component: AdminPromptTemplatesPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <AdminPromptTemplatesPage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function AdminPromptTemplatesPage() {

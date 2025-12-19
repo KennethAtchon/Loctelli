@@ -36,9 +36,14 @@ import logger from "@/lib/logger";
 import { useTenant } from "@/contexts/tenant-context";
 import { toast } from "sonner";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.STRATEGY_NEW)({
-  component: NewStrategyPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <NewStrategyPage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function NewStrategyPage() {

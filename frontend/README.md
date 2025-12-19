@@ -46,8 +46,24 @@ pnpm dev
 ### Building
 
 ```bash
-# Build for production
+# Build for production (automatically generates sitemap.xml)
 pnpm build
+
+# Or build with all checks
+pnpm build:all
+```
+
+### Utility Scripts
+
+```bash
+# Generate sitemap.xml for SEO (runs automatically during build)
+pnpm run generate:sitemap
+
+# Generate Mermaid ERD diagram from Prisma schema
+pnpm run generate:schema
+
+# Audit TypeScript types against Prisma schema
+pnpm run audit:types
 
 # Preview production build
 pnpm preview

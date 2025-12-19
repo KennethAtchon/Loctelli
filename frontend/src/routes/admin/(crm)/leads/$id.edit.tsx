@@ -25,9 +25,14 @@ import { Lead, CreateLeadDto, Strategy } from "@/types";
 import type { UserProfile } from "@/lib/api/endpoints/admin-auth";
 import { useTenant } from "@/contexts/tenant-context";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.LEAD_EDIT)({
-  component: EditLeadPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <EditLeadPage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function EditLeadPage() {

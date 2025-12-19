@@ -25,9 +25,14 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import type { IntegrationTemplate, Integration } from "@/lib/api";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.INTEGRATIONS)({
-  component: AdminIntegrationsPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <AdminIntegrationsPage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function AdminIntegrationsPage() {

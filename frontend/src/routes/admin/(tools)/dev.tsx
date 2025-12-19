@@ -24,9 +24,14 @@ import { toast } from "sonner";
 import DatabaseSchema from "@/components/admin/database-schema";
 import SDKTables from "@/components/admin/sdk-tables";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.DEV)({
-  component: AdminDevPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <AdminDevPage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function AdminDevPage() {

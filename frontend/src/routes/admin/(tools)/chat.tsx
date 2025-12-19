@@ -23,9 +23,14 @@ import ChatInterface, {
 import AgentInfoModal from "@/components/admin/agent-info-modal";
 import { toast } from "sonner";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.CHAT)({
-  component: AdminChatPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <AdminChatPage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 interface ChatMessage {

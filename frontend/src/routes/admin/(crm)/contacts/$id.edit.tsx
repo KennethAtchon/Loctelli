@@ -25,9 +25,14 @@ import { ContactSubmission, UpdateContactSubmissionDto, User } from "@/types";
 import logger from "@/lib/logger";
 import { toast } from "sonner";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.CONTACT_EDIT)({
-  component: ContactEditPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <ContactEditPage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function ContactEditPage() {

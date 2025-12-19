@@ -9,9 +9,14 @@ import { Strategy } from "@/types";
 import { useTenant } from "@/contexts/tenant-context";
 import { toast } from "sonner";
 import { ROUTES } from "@/lib/routes";
+import { AdminLayoutWrapper } from "@/components/admin/admin-layout-wrapper";
 
 export const Route = createFileRoute(ROUTES.ADMIN.STRATEGIES)({
-  component: AdminStrategiesPage,
+  component: () => (
+    <AdminLayoutWrapper>
+      <AdminStrategiesPage />
+    </AdminLayoutWrapper>
+  ),
 });
 
 function AdminStrategiesPage() {
