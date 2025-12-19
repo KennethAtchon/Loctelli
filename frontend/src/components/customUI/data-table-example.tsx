@@ -143,7 +143,7 @@ export function UsersTableExample() {
       setIsRefreshing(true);
       setError("");
       const usersData = await api.adminAuth.getAllUsers(
-        adminFilter ?? undefined
+        adminFilter ?? undefined,
       );
       setUsers(usersData);
       setFilteredUsers(usersData);
@@ -163,7 +163,7 @@ export function UsersTableExample() {
       (user) =>
         user.name.toLowerCase().includes(term.toLowerCase()) ||
         user.email.toLowerCase().includes(term.toLowerCase()) ||
-        user.company?.toLowerCase().includes(term.toLowerCase())
+        user.company?.toLowerCase().includes(term.toLowerCase()),
     );
     setFilteredUsers(filtered);
     setTotalItems(filtered.length);

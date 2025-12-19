@@ -11,7 +11,7 @@ interface LeadDetailsContentProps {
   lead: DetailedLead;
   formatDate: (dateInput: string | Date) => string;
   getStatusBadgeVariant: (
-    status: string
+    status: string,
   ) => "default" | "secondary" | "outline" | "destructive";
 }
 
@@ -156,7 +156,7 @@ export function LeadDetailsContent({
                           >
                             {point}
                           </Badge>
-                        )
+                        ),
                       )}
                     </div>
                   </div>
@@ -177,7 +177,7 @@ export function LeadDetailsContent({
                           >
                             {objection}
                           </Badge>
-                        )
+                        ),
                       )}
                     </div>
                   </div>

@@ -103,13 +103,13 @@ export default function AgentInfoModal({
         leadId,
       });
       const data: AgentInfo = await api.get<AgentInfo>(
-        `/ai-receptionist/dev/agent-info?${queryParams}`
+        `/ai-receptionist/dev/agent-info?${queryParams}`,
       );
       setAgentInfo(data);
     } catch (err) {
       logger.error("Failed to fetch agent info:", err);
       setError(
-        err instanceof Error ? err.message : "Failed to fetch agent info"
+        err instanceof Error ? err.message : "Failed to fetch agent info",
       );
     } finally {
       setIsLoading(false);
@@ -459,7 +459,7 @@ export default function AgentInfoModal({
                       <span className="text-sm font-medium">Created At:</span>
                       <span className="text-sm">
                         {new Date(
-                          agentInfo.metadata.createdAt
+                          agentInfo.metadata.createdAt,
                         ).toLocaleString()}
                       </span>
                     </div>

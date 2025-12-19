@@ -124,7 +124,7 @@ export function useSubaccountFilter() {
   const context = useContext(SubaccountFilterContext);
   if (context === undefined) {
     throw new Error(
-      "useSubaccountFilter must be used within a SubaccountFilterProvider"
+      "useSubaccountFilter must be used within a SubaccountFilterProvider",
     );
   }
   return context;

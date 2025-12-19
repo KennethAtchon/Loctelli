@@ -55,7 +55,7 @@ export class PromptTemplatesApi {
 
   async getAllForSubAccount(subAccountId: number): Promise<PromptTemplate[]> {
     return this.client.get<PromptTemplate[]>(
-      `/admin/prompt-templates/subaccount/${subAccountId}`
+      `/admin/prompt-templates/subaccount/${subAccountId}`,
     );
   }
 
@@ -71,7 +71,7 @@ export class PromptTemplatesApi {
     console.log("API: Creating prompt template with data:", data);
     const result = await this.client.post<PromptTemplate>(
       "/admin/prompt-templates",
-      data
+      data,
     );
     console.log("API: Prompt template created successfully:", result);
     return result;
@@ -79,12 +79,12 @@ export class PromptTemplatesApi {
 
   async update(
     id: number,
-    data: UpdatePromptTemplateDto
+    data: UpdatePromptTemplateDto,
   ): Promise<PromptTemplate> {
     console.log("API: Updating prompt template with data:", { id, data });
     const result = await this.client.patch<PromptTemplate>(
       `/admin/prompt-templates/${id}`,
-      data
+      data,
     );
     console.log("API: Prompt template updated successfully:", result);
     return result;
@@ -93,7 +93,7 @@ export class PromptTemplatesApi {
   async activate(id: number, subAccountId: number): Promise<PromptTemplate> {
     return this.client.patch<PromptTemplate>(
       `/admin/prompt-templates/${id}/activate`,
-      { subAccountId }
+      { subAccountId },
     );
   }
 

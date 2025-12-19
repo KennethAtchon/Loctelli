@@ -49,7 +49,7 @@ export class AuthApi {
   }
 
   async register(
-    data: RegisterDto
+    data: RegisterDto,
   ): Promise<Omit<UserProfile, "lastLoginAt" | "createdAt" | "updatedAt">> {
     // Default to 'user' account type if not specified
     const registerData = { ...data, accountType: data.accountType || "user" };
@@ -59,11 +59,11 @@ export class AuthApi {
   }
 
   async refreshToken(
-    refreshToken: string
+    refreshToken: string,
   ): Promise<{ access_token: string; refresh_token: string }> {
     return this.client.post<{ access_token: string; refresh_token: string }>(
       "/auth/refresh",
-      { refresh_token: refreshToken }
+      { refresh_token: refreshToken },
     );
   }
 
@@ -77,7 +77,7 @@ export class AuthApi {
 
   async changePassword(
     oldPassword: string,
-    newPassword: string
+    newPassword: string,
   ): Promise<{ message: string }> {
     return this.client.post<{ message: string }>("/auth/change-password", {
       oldPassword,

@@ -21,7 +21,7 @@ export class LeadsApi {
     }
     const queryString = queryParams.toString();
     return this.client.get<Lead[]>(
-      `/lead${queryString ? `?${queryString}` : ""}`
+      `/lead${queryString ? `?${queryString}` : ""}`,
     );
   }
 

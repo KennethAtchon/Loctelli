@@ -21,7 +21,7 @@ interface BulkActionsProps<T> {
   onBulkUpdate?: (
     items: T[],
     field: string,
-    value: string | number | boolean
+    value: string | number | boolean,
   ) => Promise<void>;
   onBulkArchive?: (items: T[]) => Promise<void>;
   updateFields?: Array<{
@@ -61,7 +61,7 @@ export function BulkActions<T extends { id: number | string }>({
 
     if (
       !confirm(
-        `Are you sure you want to delete ${selectedItems.length} item(s)?`
+        `Are you sure you want to delete ${selectedItems.length} item(s)?`,
       )
     ) {
       return;

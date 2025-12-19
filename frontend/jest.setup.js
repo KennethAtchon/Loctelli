@@ -1,8 +1,8 @@
-import '@testing-library/jest-dom';
+import "@testing-library/jest-dom";
 
 // Mock TanStack Router
-jest.mock('@tanstack/react-router', () => ({
-  ...jest.requireActual('@tanstack/react-router'),
+jest.mock("@tanstack/react-router", () => ({
+  ...jest.requireActual("@tanstack/react-router"),
   useRouter: () => ({
     navigate: jest.fn(),
     history: {
@@ -14,9 +14,9 @@ jest.mock('@tanstack/react-router', () => ({
   }),
   useNavigate: () => jest.fn(),
   useLocation: () => ({
-    pathname: '/',
+    pathname: "/",
     search: {},
-    hash: '',
+    hash: "",
   }),
   Link: ({ children, to, ...props }) => (
     <a href={to} {...props}>
@@ -26,7 +26,7 @@ jest.mock('@tanstack/react-router', () => ({
 }));
 
 // Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: jest.fn().mockImplementation((query) => ({
     matches: false,
@@ -63,8 +63,8 @@ const originalWarn = console.warn;
 beforeAll(() => {
   console.error = (...args) => {
     if (
-      typeof args[0] === 'string' &&
-      args[0].includes('Warning: ReactDOM.render is no longer supported')
+      typeof args[0] === "string" &&
+      args[0].includes("Warning: ReactDOM.render is no longer supported")
     ) {
       return;
     }
@@ -72,8 +72,8 @@ beforeAll(() => {
   };
   console.warn = (...args) => {
     if (
-      typeof args[0] === 'string' &&
-      args[0].includes('Warning: componentWillReceiveProps has been renamed')
+      typeof args[0] === "string" &&
+      args[0].includes("Warning: componentWillReceiveProps has been renamed")
     ) {
       return;
     }
@@ -85,4 +85,3 @@ afterAll(() => {
   console.error = originalError;
   console.warn = originalWarn;
 });
-

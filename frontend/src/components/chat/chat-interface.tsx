@@ -103,7 +103,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
       loading = false,
       onAgentInfoClick,
     },
-    ref
+    ref,
   ) => {
     // Default configuration
     const defaultConfig: Required<ChatInterfaceConfig> = {
@@ -132,16 +132,16 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
     const [hasTyped, setHasTyped] = useState(false);
     const [activeButton, setActiveButton] = useState<ActiveButton>("none");
     const [messageSections, setMessageSections] = useState<MessageSection[]>(
-      []
+      [],
     );
     const [isStreaming, setIsStreaming] = useState(externalIsStreaming);
     const [streamingWords, setStreamingWords] = useState<StreamingWord[]>([]);
     const [streamingMessageId, setStreamingMessageId] = useState<string | null>(
-      null
+      null,
     );
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [completedMessages, setCompletedMessages] = useState<Set<string>>(
-      new Set()
+      new Set(),
     );
     const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
     const inputContainerRef = useRef<HTMLDivElement>(null);
@@ -196,7 +196,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
     // Public method to start streaming a message
     const startStreamingMessage = async (
       messageId: string,
-      content: string
+      content: string,
     ) => {
       // Add vibration when streaming begins
       if (typeof window !== "undefined" && navigator.vibrate) {
@@ -225,7 +225,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
       () => ({
         startStreamingMessage,
       }),
-      [startStreamingMessage]
+      [startStreamingMessage],
     );
 
     // Update internal streaming state when external prop changes
@@ -418,7 +418,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
         // Send message with images via callback
         onSendMessage(
           userMessage,
-          imagesToSend.length > 0 ? imagesToSend : undefined
+          imagesToSend.length > 0 ? imagesToSend : undefined,
         );
       }
     };
@@ -533,7 +533,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
 
       // Check if message contains an image (base64 data URL)
       const imageMatch = message.content.match(
-        /!\[Image\]\((data:image\/[^)]+)\)/
+        /!\[Image\]\((data:image\/[^)]+)\)/,
       );
       const hasImage = imageMatch && imageMatch[1];
       const textContent = hasImage
@@ -545,7 +545,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
           key={message.id}
           className={cn(
             "flex flex-col",
-            message.type === "user" ? "items-end" : "items-start"
+            message.type === "user" ? "items-end" : "items-start",
           )}
         >
           <div
@@ -553,7 +553,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
               "max-w-[80%] px-4 py-2 rounded-2xl",
               message.type === "user"
                 ? "bg-white border border-gray-200 rounded-br-none"
-                : "text-gray-900"
+                : "text-gray-900",
             )}
           >
             {/* Render image if present */}
@@ -657,7 +657,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
               ref={inputContainerRef}
               className={cn(
                 "relative w-full rounded-3xl border border-gray-200 bg-white p-3 cursor-text",
-                (isStreaming || disabled || loading) && "opacity-80"
+                (isStreaming || disabled || loading) && "opacity-80",
               )}
               onClick={handleInputContainerClick}
             >
@@ -758,7 +758,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                         "rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200",
                         hasTyped || attachedImages.length > 0
                           ? "bg-black scale-110"
-                          : "bg-gray-200"
+                          : "bg-gray-200",
                       )}
                       disabled={
                         (!inputValue.trim() && attachedImages.length === 0) ||
@@ -770,7 +770,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                       <ArrowUp
                         className={cn(
                           "h-4 w-4 transition-colors",
-                          hasTyped ? "text-white" : "text-gray-500"
+                          hasTyped ? "text-white" : "text-gray-500",
                         )}
                       />
                       <span className="sr-only">Submit</span>
@@ -814,7 +814,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                       "rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200",
                       hasTyped || attachedImages.length > 0
                         ? "bg-black scale-110"
-                        : "bg-gray-200"
+                        : "bg-gray-200",
                     )}
                     disabled={
                       (!inputValue.trim() && attachedImages.length === 0) ||
@@ -826,7 +826,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                     <ArrowUp
                       className={cn(
                         "h-4 w-4 transition-colors",
-                        hasTyped ? "text-white" : "text-gray-500"
+                        hasTyped ? "text-white" : "text-gray-500",
                       )}
                     />
                     <span className="sr-only">Submit</span>
@@ -838,7 +838,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
         </div>
       </div>
     );
-  }
+  },
 );
 
 ChatInterface.displayName = "ChatInterface";

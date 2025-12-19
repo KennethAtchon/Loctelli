@@ -80,17 +80,17 @@ export class IntegrationsApi {
 
   async getBySubAccount(subAccountId: number): Promise<Integration[]> {
     return this.client.get<Integration[]>(
-      `/admin/integrations/subaccount/${subAccountId}`
+      `/admin/integrations/subaccount/${subAccountId}`,
     );
   }
 
   async getByStatus(
     status: string,
-    subAccountId?: number
+    subAccountId?: number,
   ): Promise<Integration[]> {
     const params = subAccountId ? `?subAccountId=${subAccountId}` : "";
     return this.client.get<Integration[]>(
-      `/admin/integrations/status/${status}${params}`
+      `/admin/integrations/status/${status}${params}`,
     );
   }
 
@@ -98,7 +98,7 @@ export class IntegrationsApi {
     console.log("API: Creating integration with data:", data);
     const result = await this.client.post<Integration>(
       "/admin/integrations",
-      data
+      data,
     );
     console.log("API: Integration created successfully:", result);
     return result;
@@ -108,7 +108,7 @@ export class IntegrationsApi {
     console.log("API: Updating integration with data:", { id, data });
     const result = await this.client.patch<Integration>(
       `/admin/integrations/${id}`,
-      data
+      data,
     );
     console.log("API: Integration updated successfully:", result);
     return result;
@@ -117,7 +117,7 @@ export class IntegrationsApi {
   async updateStatus(
     id: number,
     status: string,
-    errorMessage?: string
+    errorMessage?: string,
   ): Promise<Integration> {
     return this.client.patch<Integration>(`/admin/integrations/${id}/status`, {
       status,
@@ -127,7 +127,7 @@ export class IntegrationsApi {
 
   async testConnection(id: number): Promise<TestConnectionResponse> {
     return this.client.post<TestConnectionResponse>(
-      `/admin/integrations/${id}/test`
+      `/admin/integrations/${id}/test`,
     );
   }
 

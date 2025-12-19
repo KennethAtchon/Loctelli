@@ -55,35 +55,35 @@ export class IntegrationTemplatesApi {
 
   async getAll(): Promise<IntegrationTemplate[]> {
     return this.client.get<IntegrationTemplate[]>(
-      "/admin/integration-templates"
+      "/admin/integration-templates",
     );
   }
 
   async getById(id: number): Promise<IntegrationTemplate> {
     return this.client.get<IntegrationTemplate>(
-      `/admin/integration-templates/${id}`
+      `/admin/integration-templates/${id}`,
     );
   }
 
   async getActive(): Promise<IntegrationTemplate[]> {
     return this.client.get<IntegrationTemplate[]>(
-      "/admin/integration-templates/active"
+      "/admin/integration-templates/active",
     );
   }
 
   async getByCategory(category: string): Promise<IntegrationTemplate[]> {
     return this.client.get<IntegrationTemplate[]>(
-      `/admin/integration-templates/category/${category}`
+      `/admin/integration-templates/category/${category}`,
     );
   }
 
   async create(
-    data: CreateIntegrationTemplateDto
+    data: CreateIntegrationTemplateDto,
   ): Promise<IntegrationTemplate> {
     console.log("API: Creating integration template with data:", data);
     const result = await this.client.post<IntegrationTemplate>(
       "/admin/integration-templates",
-      data
+      data,
     );
     console.log("API: Integration template created successfully:", result);
     return result;
@@ -91,12 +91,12 @@ export class IntegrationTemplatesApi {
 
   async update(
     id: number,
-    data: UpdateIntegrationTemplateDto
+    data: UpdateIntegrationTemplateDto,
   ): Promise<IntegrationTemplate> {
     console.log("API: Updating integration template with data:", { id, data });
     const result = await this.client.patch<IntegrationTemplate>(
       `/admin/integration-templates/${id}`,
-      data
+      data,
     );
     console.log("API: Integration template updated successfully:", result);
     return result;

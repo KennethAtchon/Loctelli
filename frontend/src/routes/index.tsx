@@ -1,14 +1,15 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { Helmet } from 'react-helmet-async';
-import { HeroSection } from '@/components/version2/hero-section';
-import { ServicesSection } from '@/components/version2/services-section';
-import { ProcessSection } from '@/components/version2/process-section';
-import { ContactSection } from '@/components/version2/contact-section';
-import { Footer } from '@/components/version2/footer';
-import { Navigation } from '@/components/version2/navigation';
-import { StructuredData } from '@/components/seo/structured-data';
+import { createFileRoute } from "@tanstack/react-router";
+import { Helmet } from "react-helmet-async";
+import { HeroSection } from "@/components/version2/hero-section";
+import { ServicesSection } from "@/components/version2/services-section";
+import { ProcessSection } from "@/components/version2/process-section";
+import { ContactSection } from "@/components/version2/contact-section";
+import { Footer } from "@/components/version2/footer";
+import { Navigation } from "@/components/version2/navigation";
+import { StructuredData } from "@/components/seo/structured-data";
+import { ROUTES } from "@/lib/routes";
 
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute(ROUTES.HOME)({
   component: HomePage,
 });
 
@@ -60,4 +61,3 @@ function HomePage() {
     </>
   );
 }
-

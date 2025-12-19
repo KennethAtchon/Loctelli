@@ -17,7 +17,7 @@ export function ContactSection() {
   });
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormState((prev) => ({ ...prev, [name]: value }));
@@ -27,10 +27,10 @@ export function ContactSection() {
     e.preventDefault();
     const { name, email, company, message } = formState;
     const subject = encodeURIComponent(
-      `Contact from ${name}${company ? ` at ${company}` : ""}`
+      `Contact from ${name}${company ? ` at ${company}` : ""}`,
     );
     const body = encodeURIComponent(
-      `Name: ${name}\nEmail: ${email}\nCompany: ${company}\n\nMessage:\n${message}`
+      `Name: ${name}\nEmail: ${email}\nCompany: ${company}\n\nMessage:\n${message}`,
     );
     window.location.href = `mailto:info@loctelli.com?subject=${subject}&body=${body}`;
   };

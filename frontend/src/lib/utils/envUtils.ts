@@ -1,7 +1,7 @@
 /**
  * Centralized environment variable management
  * All environment variables should be accessed through this file
- * 
+ *
  * Note: Vite uses VITE_ prefix for public environment variables
  * Access via import.meta.env.VITE_* instead of process.env
  */
@@ -34,7 +34,7 @@ export function validateEnvironmentVariables(): void {
   if (missingVars.length > 0) {
     const missingVarNames = missingVars.map(({ name }) => name).join(", ");
     throw new Error(
-      `Missing required environment variables: ${missingVarNames}`
+      `Missing required environment variables: ${missingVarNames}`,
     );
   }
 }
@@ -43,7 +43,7 @@ export function validateEnvironmentVariables(): void {
 // Note: For Vite, use VITE_ prefix and access via import.meta.env
 export function getEnvVar(
   key: string,
-  defaultValue?: string
+  defaultValue?: string,
 ): string | undefined {
   // For Vite, we need to access import.meta.env
   // This is a simplified version - in practice, you'd map VITE_ prefixed vars

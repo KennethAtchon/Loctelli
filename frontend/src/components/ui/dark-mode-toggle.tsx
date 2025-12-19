@@ -43,7 +43,7 @@ export function DarkModeToggle({
         isDark
           ? "bg-gradient-to-r from-slate-700 to-slate-800 shadow-slate-900/30"
           : "bg-gradient-to-r from-blue-400 to-blue-600 shadow-blue-500/30",
-        className
+        className,
       )}
       type="button"
       role="switch"
@@ -56,7 +56,7 @@ export function DarkModeToggle({
           "absolute inset-0 rounded-full transition-all duration-300",
           isDark
             ? "bg-gradient-to-r from-slate-600/50 to-slate-700/50"
-            : "bg-gradient-to-r from-blue-300/50 to-blue-500/50"
+            : "bg-gradient-to-r from-blue-300/50 to-blue-500/50",
         )}
       />
 
@@ -68,7 +68,7 @@ export function DarkModeToggle({
           size === "sm" && (isDark ? "translate-x-6" : "translate-x-0.5"),
           size === "md" && (isDark ? "translate-x-7" : "translate-x-0.5"),
           size === "lg" && (isDark ? "translate-x-8" : "translate-x-0.5"),
-          isDark ? "shadow-slate-900/20" : "shadow-blue-900/20"
+          isDark ? "shadow-slate-900/20" : "shadow-blue-900/20",
         )}
       >
         {/* Simple indicator dot */}
@@ -76,7 +76,7 @@ export function DarkModeToggle({
           className={cn(
             "rounded-full transition-all duration-300",
             "w-2 h-2",
-            isDark ? "bg-slate-600" : "bg-blue-500"
+            isDark ? "bg-slate-600" : "bg-blue-500",
           )}
         />
       </div>

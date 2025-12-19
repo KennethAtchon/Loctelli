@@ -21,7 +21,7 @@ export class RateLimitBlocker {
     const retryTime = Date.now() + retryAfterSeconds * 1000;
     this.blockedEndpoints.set(endpoint, retryTime);
     logger.debug(
-      `🚫 Blocked endpoint ${endpoint} until ${new Date(retryTime).toISOString()}`
+      `🚫 Blocked endpoint ${endpoint} until ${new Date(retryTime).toISOString()}`,
     );
   }
 

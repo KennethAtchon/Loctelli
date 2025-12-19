@@ -16,7 +16,7 @@ export function AdminProtectedRoute({
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      navigate({ to: "/admin/auth/login" });
+      navigate({ to: "/admin/login" });
     }
   }, [isAuthenticated, isLoading, navigate]);
 

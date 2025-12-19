@@ -27,7 +27,7 @@ export class CookieManager {
   static setCookie(
     name: string,
     value: string,
-    options: CookieOptions = {}
+    options: CookieOptions = {},
   ): void {
     const opts = { ...DEFAULT_COOKIE_OPTIONS, ...options };
 

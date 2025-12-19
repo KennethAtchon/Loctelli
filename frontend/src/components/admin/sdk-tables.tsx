@@ -41,11 +41,11 @@ interface SDKTablesResponse {
 export default function SDKTables() {
   const [tables, setTables] = useState<SDKTable[]>([]);
   const [tableData, setTableData] = useState<Record<string, TableDataResponse>>(
-    {}
+    {},
   );
   const [tablePages, setTablePages] = useState<Record<string, number>>({});
   const [tablePageSizes, setTablePageSizes] = useState<Record<string, number>>(
-    {}
+    {},
   );
   const [isLoading, setIsLoading] = useState(true);
   const [loadingTables, setLoadingTables] = useState<Set<string>>(new Set());
@@ -57,7 +57,7 @@ export default function SDKTables() {
       setError(null);
 
       const data: SDKTablesResponse = await api.get<SDKTablesResponse>(
-        "/ai-receptionist/dev/tables"
+        "/ai-receptionist/dev/tables",
       );
       const fetchedTables = data.tables || [];
       setTables(fetchedTables);
@@ -81,7 +81,7 @@ export default function SDKTables() {
     } catch (err) {
       logger.error("Failed to fetch SDK tables:", err);
       setError(
-        err instanceof Error ? err.message : "Failed to fetch SDK tables"
+        err instanceof Error ? err.message : "Failed to fetch SDK tables",
       );
     } finally {
       setIsLoading(false);
@@ -91,7 +91,7 @@ export default function SDKTables() {
   const fetchTableData = async (
     tableName: string,
     page: number,
-    pageSize: number
+    pageSize: number,
   ) => {
     try {
       setLoadingTables((prev) => new Set(prev).add(tableName));
@@ -102,7 +102,7 @@ export default function SDKTables() {
         pageSize,
       });
       const data: TableDataResponse = await api.get<TableDataResponse>(
-        `/ai-receptionist/dev/table-data?${queryParams}`
+        `/ai-receptionist/dev/table-data?${queryParams}`,
       );
       setTableData((prev) => ({ ...prev, [tableName]: data }));
     } catch (err) {
@@ -279,7 +279,7 @@ export default function SDKTables() {
                             onChange={(e) =>
                               handlePageSizeChange(
                                 table.name,
-                                parseInt(e.target.value)
+                                parseInt(e.target.value),
                               )
                             }
                             className="text-xs border rounded px-2 py-1"
@@ -356,7 +356,7 @@ export default function SDKTables() {
                                         );
                                       })}
                                     </tr>
-                                  )
+                                  ),
                                 )}
                               </tbody>
                             </table>
@@ -374,7 +374,7 @@ export default function SDKTables() {
                                 {Math.min(
                                   tableData[table.name].page *
                                     tableData[table.name].pageSize,
-                                  tableData[table.name].totalRows
+                                  tableData[table.name].totalRows,
                                 )}{" "}
                                 of{" "}
                                 {tableData[
@@ -389,7 +389,7 @@ export default function SDKTables() {
                                   onClick={() =>
                                     handlePageChange(
                                       table.name,
-                                      tableData[table.name].page - 1
+                                      tableData[table.name].page - 1,
                                     )
                                   }
                                   disabled={tableData[table.name].page === 1}
@@ -406,7 +406,7 @@ export default function SDKTables() {
                                   onClick={() =>
                                     handlePageChange(
                                       table.name,
-                                      tableData[table.name].page + 1
+                                      tableData[table.name].page + 1,
                                     )
                                   }
                                   disabled={

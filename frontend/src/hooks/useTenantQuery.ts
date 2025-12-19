@@ -42,7 +42,7 @@ export function useTenantQuery<TData = unknown, TError = Error>(
     queryKey: readonly unknown[];
     queryFn: (context: { subAccountId: number | null }) => Promise<TData>;
     enabled?: boolean;
-  } & Omit<UseQueryOptions<TData, TError>, "queryKey" | "queryFn">
+  } & Omit<UseQueryOptions<TData, TError>, "queryKey" | "queryFn">,
 ) {
   const { subAccountId, mode, validateTenantAccess } = useTenant();
 
@@ -90,14 +90,14 @@ export function useTenantMutation<
 >(
   options: {
     mutationFn: (
-      variables: TVariables & { subAccountId: number | null }
+      variables: TVariables & { subAccountId: number | null },
     ) => Promise<TData>;
     invalidateQueries?: readonly (readonly unknown[])[];
     requireSubAccount?: boolean; // If true, throws error if subAccountId is null
   } & Omit<
     UseMutationOptions<TData, TError, TVariables, TContext>,
     "mutationFn"
-  >
+  >,
 ) {
   const { subAccountId, mode, validateTenantAccess } = useTenant();
   const queryClient = useQueryClient();

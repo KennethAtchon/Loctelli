@@ -17,7 +17,7 @@ export class StrategiesApi {
     }
     const queryString = queryParams.toString();
     return this.client.get<Strategy[]>(
-      `/strategy${queryString ? `?${queryString}` : ""}`
+      `/strategy${queryString ? `?${queryString}` : ""}`,
     );
   }
 
@@ -31,7 +31,7 @@ export class StrategiesApi {
 
   async updateStrategy(
     id: number,
-    data: Partial<CreateStrategyDto>
+    data: Partial<CreateStrategyDto>,
   ): Promise<Strategy> {
     return this.client.patch<Strategy>(`/strategy/${id}`, data);
   }
@@ -42,7 +42,7 @@ export class StrategiesApi {
 
   async getStrategiesByUser(regularUserId: number): Promise<Strategy[]> {
     return this.client.get<Strategy[]>(
-      `/strategy?regularUserId=${regularUserId}`
+      `/strategy?regularUserId=${regularUserId}`,
     );
   }
 

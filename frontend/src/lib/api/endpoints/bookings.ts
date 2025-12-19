@@ -29,7 +29,7 @@ export class BookingsApi {
     }
     const queryString = queryParams.toString();
     return this.client.get<Booking[]>(
-      `/booking${queryString ? `?${queryString}` : ""}`
+      `/booking${queryString ? `?${queryString}` : ""}`,
     );
   }
 
@@ -43,7 +43,7 @@ export class BookingsApi {
 
   async updateBooking(
     id: number,
-    data: Partial<CreateBookingDto>
+    data: Partial<CreateBookingDto>,
   ): Promise<Booking> {
     return this.client.patch<Booking>(`/booking/${id}`, data);
   }
@@ -62,10 +62,10 @@ export class BookingsApi {
 
   async getBookingsByDateRange(
     startDate: string,
-    endDate: string
+    endDate: string,
   ): Promise<Booking[]> {
     return this.client.get<Booking[]>(
-      `/booking?startDate=${startDate}&endDate=${endDate}`
+      `/booking?startDate=${startDate}&endDate=${endDate}`,
     );
   }
 

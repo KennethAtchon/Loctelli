@@ -64,7 +64,7 @@ export function SubaccountFilter({
             size="sm"
             className={cn(
               "flex items-center gap-2 min-w-[120px] justify-between bg-white/80 dark:bg-slate-700/50 backdrop-blur-sm border-gray-200/60 dark:border-slate-600/60 hover:bg-blue-50 dark:hover:bg-slate-600 transition-all duration-200 dark:text-gray-200",
-              className
+              className,
             )}
             disabled={isSubaccountsLoading}
           >
@@ -90,7 +90,7 @@ export function SubaccountFilter({
             onClick={() => handleFilterChange(null)}
             className={cn(
               "flex items-center gap-2 hover:bg-blue-50 transition-colors duration-200",
-              isGlobalView && "bg-blue-50 text-blue-700"
+              isGlobalView && "bg-blue-50 text-blue-700",
             )}
           >
             <Globe className="h-4 w-4" />
@@ -108,7 +108,7 @@ export function SubaccountFilter({
               onClick={() => handleFilterChange(subaccount.id)}
               className={cn(
                 "flex items-center gap-2 hover:bg-blue-50 transition-colors duration-200",
-                subAccountId === subaccount.id && "bg-blue-50 text-blue-700"
+                subAccountId === subaccount.id && "bg-blue-50 text-blue-700",
               )}
             >
               <Building2 className="h-4 w-4" />
@@ -170,7 +170,7 @@ export function SubaccountFilter({
           onClick={() => handleFilterChange(null)}
           className={cn(
             "flex items-center gap-3 py-3",
-            isGlobalView && "bg-blue-50 text-blue-700"
+            isGlobalView && "bg-blue-50 text-blue-700",
           )}
         >
           <Globe className="h-5 w-5" />
@@ -193,7 +193,7 @@ export function SubaccountFilter({
             onClick={() => handleFilterChange(subaccount.id)}
             className={cn(
               "flex items-center gap-3 py-3",
-              subAccountId === subaccount.id && "bg-blue-50 text-blue-700"
+              subAccountId === subaccount.id && "bg-blue-50 text-blue-700",
             )}
           >
             <Building2 className="h-5 w-5" />

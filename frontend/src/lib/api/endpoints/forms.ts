@@ -152,7 +152,7 @@ export class FormsApi {
     }
     const queryString = queryParams.toString();
     return this.client.get<FormTemplate[]>(
-      `/forms/templates${queryString ? `?${queryString}` : ""}`
+      `/forms/templates${queryString ? `?${queryString}` : ""}`,
     );
   }
 
@@ -166,7 +166,7 @@ export class FormsApi {
 
   async updateFormTemplate(
     id: string,
-    data: UpdateFormTemplateDto
+    data: UpdateFormTemplateDto,
   ): Promise<FormTemplate> {
     return this.client.patch<FormTemplate>(`/forms/templates/${id}`, data);
   }
@@ -183,20 +183,20 @@ export class FormsApi {
   async submitPublicForm(slug: string, data: any): Promise<FormSubmission> {
     return this.client.post<FormSubmission>(
       `/forms/public/${slug}/submit`,
-      data
+      data,
     );
   }
 
   async wakeUpDatabase(): Promise<{ status: string; timestamp: string }> {
     return this.client.get<{ status: string; timestamp: string }>(
-      "/forms/public/wake-up"
+      "/forms/public/wake-up",
     );
   }
 
   async uploadFormFile(slug: string, formData: FormData): Promise<any> {
     return this.client.uploadFile<any>(
       `/forms/public/${slug}/upload`,
-      formData
+      formData,
     );
   }
 
@@ -204,7 +204,7 @@ export class FormsApi {
   async getFormSubmissions(
     subAccountId?: number,
     formTemplateId?: string,
-    status?: string
+    status?: string,
   ): Promise<FormSubmission[]> {
     const queryParams = new URLSearchParams();
     if (subAccountId) {
@@ -218,7 +218,7 @@ export class FormsApi {
     }
     const queryString = queryParams.toString();
     return this.client.get<FormSubmission[]>(
-      `/forms/submissions${queryString ? `?${queryString}` : ""}`
+      `/forms/submissions${queryString ? `?${queryString}` : ""}`,
     );
   }
 
@@ -228,7 +228,7 @@ export class FormsApi {
 
   async updateFormSubmission(
     id: string,
-    data: UpdateFormSubmissionDto
+    data: UpdateFormSubmissionDto,
   ): Promise<FormSubmission> {
     return this.client.patch<FormSubmission>(`/forms/submissions/${id}`, data);
   }

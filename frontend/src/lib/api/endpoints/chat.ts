@@ -12,7 +12,7 @@ export class ChatApi {
   constructor(private client: ApiClient) {}
 
   async sendMessage(
-    data: ChatMessageDto
+    data: ChatMessageDto,
   ): Promise<{ userMessage: unknown; aiMessage: unknown; lead: unknown }> {
     return this.client.post<{
       userMessage: unknown;
@@ -28,10 +28,10 @@ export class ChatApi {
   async getChatHistoryByDateRange(
     leadId: number,
     startDate: string,
-    endDate: string
+    endDate: string,
   ): Promise<ChatMessage[]> {
     return this.client.get<ChatMessage[]>(
-      `/chat/messages/${leadId}?startDate=${startDate}&endDate=${endDate}`
+      `/chat/messages/${leadId}?startDate=${startDate}&endDate=${endDate}`,
     );
   }
 
@@ -56,7 +56,7 @@ export class ChatApi {
   }
 
   async initiateConversation(
-    leadId: number
+    leadId: number,
   ): Promise<{ success: boolean; message: string; leadId: number }> {
     return this.client.post<{
       success: boolean;

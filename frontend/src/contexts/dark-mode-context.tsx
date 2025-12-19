@@ -9,7 +9,7 @@ interface DarkModeContextType {
 }
 
 const DarkModeContext = createContext<DarkModeContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export function DarkModeProvider({ children }: { children: React.ReactNode }) {
@@ -25,7 +25,7 @@ export function DarkModeProvider({ children }: { children: React.ReactNode }) {
     } else {
       // Check system preference
       const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)"
+        "(prefers-color-scheme: dark)",
       ).matches;
       setIsDark(prefersDark);
       updateDocumentClass(prefersDark);

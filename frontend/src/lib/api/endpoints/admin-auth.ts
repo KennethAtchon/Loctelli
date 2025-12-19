@@ -239,7 +239,7 @@ export class AdminAuthApi {
   }
 
   async adminRegister(
-    data: AdminRegisterDto
+    data: AdminRegisterDto,
   ): Promise<Omit<AdminProfile, "lastLoginAt" | "createdAt" | "updatedAt">> {
     // Use unified /auth/register endpoint with accountType: 'admin'
     const registerData = { ...data, accountType: "admin" as const };
@@ -249,12 +249,12 @@ export class AdminAuthApi {
   }
 
   async adminRefreshToken(
-    refreshToken: string
+    refreshToken: string,
   ): Promise<{ access_token: string; refresh_token: string }> {
     // Use unified /auth/refresh endpoint
     return this.client.post<{ access_token: string; refresh_token: string }>(
       "/auth/refresh",
-      { refresh_token: refreshToken }
+      { refresh_token: refreshToken },
     );
   }
 
@@ -273,12 +273,12 @@ export class AdminAuthApi {
   // TODO: Implement admin profile update endpoint in backend if needed
   async updateAdminProfile(data: UpdateAdminProfileDto): Promise<AdminProfile> {
     throw new Error(
-      "Admin profile updates are not currently supported. Please contact a super admin."
+      "Admin profile updates are not currently supported. Please contact a super admin.",
     );
   }
 
   async changeAdminPassword(
-    data: ChangeAdminPasswordDto
+    data: ChangeAdminPasswordDto,
   ): Promise<{ message: string }> {
     // Use unified /auth/change-password endpoint
     return this.client.post<{ message: string }>("/auth/change-password", data);
@@ -293,7 +293,7 @@ export class AdminAuthApi {
   }
 
   async createUser(
-    data: CreateUserDto
+    data: CreateUserDto,
   ): Promise<
     Omit<
       UserProfile,
@@ -310,11 +310,11 @@ export class AdminAuthApi {
 
   async updateUser(
     userId: number,
-    data: UpdateUserDto
+    data: UpdateUserDto,
   ): Promise<Omit<UserProfile, "createdByAdmin">> {
     return this.client.put<Omit<UserProfile, "createdByAdmin">>(
       `/admin/users/${userId}`,
-      data
+      data,
     );
   }
 
@@ -336,7 +336,7 @@ export class AdminAuthApi {
 
   async getCurrentAuthCode(): Promise<{ authCode: string; message: string }> {
     return this.client.get<{ authCode: string; message: string }>(
-      "/admin/auth-code/current"
+      "/admin/auth-code/current",
     );
   }
 
@@ -346,7 +346,7 @@ export class AdminAuthApi {
 
   async deleteAdminAccount(adminId: number): Promise<{ message: string }> {
     return this.client.delete<{ message: string }>(
-      `/admin/accounts/${adminId}`
+      `/admin/accounts/${adminId}`,
     );
   }
 

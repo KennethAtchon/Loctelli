@@ -68,34 +68,41 @@ frontend/
 ## Key Differences from Next.js
 
 ### Environment Variables
+
 - **Next.js**: `process.env.NEXT_PUBLIC_*`
 - **Vite**: `import.meta.env.VITE_*`
 
 ### Routing
+
 - **Next.js**: File-based routing with `app/` directory
 - **Vite**: TanStack Router with `src/routes/` directory
 
 ### Navigation
+
 - **Next.js**: `next/link` and `next/navigation`
 - **Vite**: `@tanstack/react-router` `Link` and hooks
 
 ### Images
+
 - **Next.js**: `next/image` component
 - **Vite**: Standard `<img>` tag or import
 
 ## Troubleshooting
 
 ### Route Not Found
+
 - Ensure route file follows TanStack Router naming convention
 - Run `pnpm dev` to regenerate route tree
 - Check route file exports `Route` correctly
 
 ### Environment Variables Not Working
+
 - Ensure variables start with `VITE_` prefix
 - Restart dev server after adding variables
 - Check `src/vite-env.d.ts` type definitions
 
 ### Build Fails
+
 - Run `tsc --noEmit` to check types
 - Clear `.vite` cache: `rm -rf .vite`
 - Check `vite.config.ts` for errors
@@ -107,4 +114,3 @@ frontend/
 3. Run dev server: `pnpm dev`
 4. Test all routes
 5. Create remaining admin routes as needed
-

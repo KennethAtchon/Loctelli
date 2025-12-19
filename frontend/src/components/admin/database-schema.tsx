@@ -259,7 +259,7 @@ export default function DatabaseSchema({ className }: DatabaseSchemaProps) {
       logger.error("Generated code was:", code);
       setError(
         "Failed to render database diagram: " +
-          (err instanceof Error ? err.message : String(err))
+          (err instanceof Error ? err.message : String(err)),
       );
     }
   };

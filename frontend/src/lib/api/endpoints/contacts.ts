@@ -23,7 +23,7 @@ export class ContactsApi {
     }
     const queryString = queryParams.toString();
     return this.client.get<ContactSubmission[]>(
-      `/contacts${queryString ? `?${queryString}` : ""}`
+      `/contacts${queryString ? `?${queryString}` : ""}`,
     );
   }
 
@@ -32,25 +32,25 @@ export class ContactsApi {
   }
 
   async createContact(
-    data: CreateContactSubmissionDto
+    data: CreateContactSubmissionDto,
   ): Promise<ContactSubmission> {
     return this.client.post<ContactSubmission>("/contacts", data);
   }
 
   async updateContact(
     id: string,
-    data: UpdateContactSubmissionDto
+    data: UpdateContactSubmissionDto,
   ): Promise<ContactSubmission> {
     return this.client.patch<ContactSubmission>(`/contacts/${id}`, data);
   }
 
   async addNote(
     contactId: string,
-    data: CreateContactNoteDto
+    data: CreateContactNoteDto,
   ): Promise<ContactSubmission> {
     return this.client.post<ContactSubmission>(
       `/contacts/${contactId}/notes`,
-      data
+      data,
     );
   }
 

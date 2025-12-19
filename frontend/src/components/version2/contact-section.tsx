@@ -55,7 +55,7 @@ export function ContactSection() {
       } else {
         const error = await response.json();
         setSubmitMessage(
-          error.message || "Failed to submit form. Please try again."
+          error.message || "Failed to submit form. Please try again.",
         );
       }
     } catch (error) {

@@ -112,16 +112,16 @@ export class AuthService {
             const errorText = await response.text();
             logger.debug(
               `❌ Admin refresh failed with status ${response.status}:`,
-              errorText
+              errorText,
             );
             throw new Error(
-              `Refresh failed: ${response.status} - ${errorText}`
+              `Refresh failed: ${response.status} - ${errorText}`,
             );
           }
 
           const data: TokenRefreshResponse = await response.json();
           logger.debug(
-            "✅ Admin token refresh successful, updating cookies..."
+            "✅ Admin token refresh successful, updating cookies...",
           );
           AuthCookies.setAdminAccessToken(data.access_token);
           AuthCookies.setAdminRefreshToken(data.refresh_token);
@@ -155,10 +155,10 @@ export class AuthService {
             const errorText = await response.text();
             logger.debug(
               `❌ User refresh failed with status ${response.status}:`,
-              errorText
+              errorText,
             );
             throw new Error(
-              `Refresh failed: ${response.status} - ${errorText}`
+              `Refresh failed: ${response.status} - ${errorText}`,
             );
           }
 

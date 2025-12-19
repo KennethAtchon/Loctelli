@@ -68,7 +68,7 @@ export function EditSubAccountDialog({
 
   const handleInputChange = (
     field: keyof UpdateSubAccountDto,
-    value: string | boolean
+    value: string | boolean,
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -136,4 +136,3 @@ export function EditSubAccountDialog({
     </Dialog>
   );
 }
-

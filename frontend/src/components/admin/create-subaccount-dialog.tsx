@@ -52,7 +52,7 @@ export function CreateSubAccountDialog({
 
   const handleInputChange = (
     field: keyof CreateSubAccountDto,
-    value: string
+    value: string,
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -108,4 +108,3 @@ export function CreateSubAccountDialog({
     </Dialog>
   );
 }
-

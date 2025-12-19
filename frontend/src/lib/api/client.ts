@@ -38,7 +38,7 @@ export class ApiClient {
 
   protected async request<T = unknown>(
     endpoint: string,
-    options: RequestInit & ApiRequestOptions = {}
+    options: RequestInit & ApiRequestOptions = {},
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     const isAuthEndpoint = this.authService.isAuthEndpoint(endpoint);
@@ -83,7 +83,7 @@ export class ApiClient {
       const controller = new AbortController();
       const timeoutId = setTimeout(
         () => controller.abort(),
-        options.timeout || this.defaultOptions.timeout
+        options.timeout || this.defaultOptions.timeout,
       );
 
       const response = await fetch(url, {
@@ -124,13 +124,13 @@ export class ApiClient {
           logger.debug(
             "🔄 Retry response status:",
             retryResponse.status,
-            retryResponse.statusText
+            retryResponse.statusText,
           );
 
           if (!retryResponse.ok) {
             // If retry fails after refresh, redirect to login page
             logger.debug(
-              "❌ Retry failed after token refresh, redirecting to login..."
+              "❌ Retry failed after token refresh, redirecting to login...",
             );
 
             // Clear all tokens since refresh failed
@@ -141,12 +141,12 @@ export class ApiClient {
             if (currentPath.startsWith("/admin")) {
               window.location.href = "/admin/login";
             } else {
-              window.location.href = "/auth/login";
+              window.location.href = "/login";
             }
 
             // Throw error to stop execution
             throw new Error(
-              "Authentication failed. Redirecting to login page."
+              "Authentication failed. Redirecting to login page.",
             );
           }
 
@@ -226,7 +226,7 @@ export class ApiClient {
       if (error instanceof Error) {
         if (error.name === "AbortError") {
           throw new Error(
-            "Request timeout. Please check your connection and try again."
+            "Request timeout. Please check your connection and try again.",
           );
         }
         if (
@@ -234,7 +234,7 @@ export class ApiClient {
           error.message.includes("NetworkError")
         ) {
           throw new Error(
-            "Network error. Please check your connection and try again."
+            "Network error. Please check your connection and try again.",
           );
         }
       }
@@ -245,7 +245,7 @@ export class ApiClient {
 
   public async get<T>(
     endpoint: string,
-    options?: ApiRequestOptions
+    options?: ApiRequestOptions,
   ): Promise<T> {
     return this.request<T>(endpoint, { method: "GET", ...options });
   }
@@ -253,7 +253,7 @@ export class ApiClient {
   public async post<T>(
     endpoint: string,
     data?: unknown,
-    options?: ApiRequestOptions
+    options?: ApiRequestOptions,
   ): Promise<T> {
     logger.debug("📤 POST Request:", {
       endpoint,
@@ -270,7 +270,7 @@ export class ApiClient {
   public async patch<T>(
     endpoint: string,
     data?: unknown,
-    options?: ApiRequestOptions
+    options?: ApiRequestOptions,
   ): Promise<T> {
     return this.request<T>(endpoint, {
       method: "PATCH",
@@ -281,7 +281,7 @@ export class ApiClient {
 
   public async delete<T>(
     endpoint: string,
-    options?: ApiRequestOptions
+    options?: ApiRequestOptions,
   ): Promise<T> {
     return this.request<T>(endpoint, { method: "DELETE", ...options });
   }
@@ -289,7 +289,7 @@ export class ApiClient {
   public async put<T>(
     endpoint: string,
     data?: unknown,
-    options?: ApiRequestOptions
+    options?: ApiRequestOptions,
   ): Promise<T> {
     return this.request<T>(endpoint, {
       method: "PUT",
@@ -301,7 +301,7 @@ export class ApiClient {
   public async uploadFile<T>(
     endpoint: string,
     formData: FormData,
-    options?: ApiRequestOptions
+    options?: ApiRequestOptions,
   ): Promise<T> {
     // Use the main request method but with special handling for FormData
     return this.request<T>(endpoint, {

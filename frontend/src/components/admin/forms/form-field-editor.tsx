@@ -48,7 +48,7 @@ export function FormFieldEditor({
   const updateOption = (optionIndex: number, value: string) => {
     const options = field.options || [];
     const updatedOptions = options.map((opt, i) =>
-      i === optionIndex ? value : opt
+      i === optionIndex ? value : opt,
     );
     onUpdate({ options: updatedOptions });
   };

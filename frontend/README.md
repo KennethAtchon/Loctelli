@@ -112,4 +112,3 @@ This project was migrated from Next.js. See `migration/11-vite-tanstack-migratio
 ## License
 
 Private - Loctelli
-

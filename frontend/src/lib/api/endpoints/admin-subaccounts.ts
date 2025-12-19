@@ -83,7 +83,7 @@ export class AdminSubAccountsApi {
 
   async updateSubAccount(
     id: number,
-    data: UpdateSubAccountDto
+    data: UpdateSubAccountDto,
   ): Promise<SubAccount> {
     return this.client.patch(`/admin/subaccounts/${id}`, data);
   }

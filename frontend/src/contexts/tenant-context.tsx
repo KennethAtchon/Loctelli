@@ -119,7 +119,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         setSubAccountId: subaccountFilterContext?.setFilter
           ? (id: number | null) => {
               subaccountFilterContext.setFilter(
-                id === null ? "GLOBAL" : id.toString()
+                id === null ? "GLOBAL" : id.toString(),
               );
             }
           : null,
@@ -148,7 +148,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         validateTenantAccess: (subAccountId?: number) => {
           // Admins can access anything
           logger.debug(
-            `Admin accessing ${subAccountId ? `subAccount ${subAccountId}` : "global view"}`
+            `Admin accessing ${subAccountId ? `subAccount ${subAccountId}` : "global view"}`,
           );
         },
       };
@@ -192,7 +192,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         if (subAccountId && subAccountId !== userSubAccountId) {
           logger.error(
             `Security violation: User ${account.id} (subAccount ${userSubAccountId}) ` +
-              `attempted to access subAccount ${subAccountId}`
+              `attempted to access subAccount ${subAccountId}`,
           );
           throw new Error("Access denied: Cannot access other tenant data");
         }
@@ -284,7 +284,7 @@ export function RequireTenant({ children }: { children: React.ReactNode }) {
  * Higher-order component to inject tenant context
  */
 export function withTenant<P extends object>(
-  Component: React.ComponentType<P & { tenant: TenantContextType }>
+  Component: React.ComponentType<P & { tenant: TenantContextType }>,
 ) {
   return function WithTenantComponent(props: P) {
     const tenant = useTenant();

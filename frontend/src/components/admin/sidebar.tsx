@@ -24,19 +24,19 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const navigation = [
-  { name: "Dashboard", href: "/admin/core/dashboard", icon: LayoutDashboard },
-  { name: "SubAccounts", href: "/admin/core/subaccounts", icon: Building2 },
-  { name: "Users", href: "/admin/core/users", icon: Users },
-  { name: "Contacts", href: "/admin/crm/contacts", icon: Mail },
-  { name: "Forms", href: "/admin/content/forms", icon: ClipboardList },
-  { name: "Strategies", href: "/admin/content/strategies", icon: Target },
-  { name: "Leads", href: "/admin/crm/leads", icon: Users },
-  { name: "Bookings", href: "/admin/crm/bookings", icon: Calendar },
-  { name: "Chat", href: "/admin/tools/chat", icon: MessageSquare },
-  { name: "Prompt Builder", href: "/admin/content/prompt-templates", icon: FileText },
-  { name: "Integrations", href: "/admin/integrations/integrations", icon: Link2 },
-  { name: "Dev", href: "/admin/tools/dev", icon: Database },
-  { name: "Settings", href: "/admin/core/settings", icon: Settings },
+  { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+  { name: "SubAccounts", href: "/admin/subaccounts", icon: Building2 },
+  { name: "Users", href: "/admin/users", icon: Users },
+  { name: "Contacts", href: "/admin/contacts", icon: Mail },
+  { name: "Forms", href: "/admin/forms", icon: ClipboardList },
+  { name: "Strategies", href: "/admin/strategies", icon: Target },
+  { name: "Leads", href: "/admin/leads", icon: Users },
+  { name: "Bookings", href: "/admin/bookings", icon: Calendar },
+  { name: "Chat", href: "/admin/chat", icon: MessageSquare },
+  { name: "Prompt Builder", href: "/admin/prompt-templates", icon: FileText },
+  { name: "Integrations", href: "/admin/integrations", icon: Link2 },
+  { name: "Dev", href: "/admin/dev", icon: Database },
+  { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 export function Sidebar() {
@@ -48,7 +48,7 @@ export function Sidebar() {
 
   const handleLogout = async () => {
     await adminLogout();
-    navigate({ to: "/admin/auth/login" });
+    navigate({ to: "/admin/login" });
     setIsOpen(false);
   };
 
@@ -72,7 +72,7 @@ export function Sidebar() {
                 "group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
                 isActive
                   ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-200/50 dark:shadow-blue-900/30 transform scale-[1.02]"
-                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-gray-900 dark:hover:text-white hover:shadow-md hover:transform hover:scale-[1.01]"
+                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-gray-900 dark:hover:text-white hover:shadow-md hover:transform hover:scale-[1.01]",
               )}
             >
               <item.icon
@@ -80,7 +80,7 @@ export function Sidebar() {
                   "mr-3 h-5 w-5 flex-shrink-0",
                   isActive
                     ? "text-white"
-                    : "text-gray-400 dark:text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-400"
+                    : "text-gray-400 dark:text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-400",
                 )}
               />
               {item.name}

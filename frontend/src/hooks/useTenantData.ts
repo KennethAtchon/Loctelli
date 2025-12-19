@@ -70,7 +70,7 @@ export function useTenantMutation<
   TVariables extends Record<string, any>,
 >(options: {
   mutationFn: (
-    variables: TVariables & { subAccountId: number | null }
+    variables: TVariables & { subAccountId: number | null },
   ) => Promise<TData>;
   requireSubAccount?: boolean;
   onSuccess?: (data: TData) => void;
@@ -118,7 +118,7 @@ export function useTenantMutation<
         setIsLoading(false);
       }
     },
-    [subAccountId, mode, options]
+    [subAccountId, mode, options],
   );
 
   return {

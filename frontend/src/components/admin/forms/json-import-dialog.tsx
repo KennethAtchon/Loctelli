@@ -77,7 +77,7 @@ export function JsonImportDialog({ onImport }: JsonImportDialogProps) {
         },
       ],
       null,
-      2
+      2,
     );
   };
 
@@ -92,14 +92,14 @@ export function JsonImportDialog({ onImport }: JsonImportDialogProps) {
       for (const field of parsedSchema) {
         if (!field.id || !field.type || !field.label) {
           throw new Error(
-            "Each field must have id, type, and label properties"
+            "Each field must have id, type, and label properties",
           );
         }
 
         const validTypes = fieldTypes.map((t) => t.value);
         if (!validTypes.includes(field.type)) {
           throw new Error(
-            `Invalid field type: ${field.type}. Valid types are: ${validTypes.join(", ")}`
+            `Invalid field type: ${field.type}. Valid types are: ${validTypes.join(", ")}`,
           );
         }
       }
@@ -113,7 +113,7 @@ export function JsonImportDialog({ onImport }: JsonImportDialogProps) {
           }
           usedIds.add(fieldId);
           return { ...field, id: fieldId };
-        }
+        },
       );
 
       onImport(schemaWithUniqueIds);

@@ -91,7 +91,7 @@ export function CreateUserDialog({
 
   const handleInputChange = (
     field: keyof CreateUserDto,
-    value: string | number
+    value: string | number,
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -218,4 +218,3 @@ export function CreateUserDialog({
     </Dialog>
   );
 }
-

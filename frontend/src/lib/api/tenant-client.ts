@@ -22,7 +22,7 @@ export class TenantAwareApiClient extends ApiClient {
    */
   setTenantContext(
     subAccountId: number | null,
-    mode: "USER_SCOPED" | "ADMIN_GLOBAL" | "ADMIN_FILTERED"
+    mode: "USER_SCOPED" | "ADMIN_GLOBAL" | "ADMIN_FILTERED",
   ) {
     this.tenantContext = { subAccountId, mode };
     logger.debug("🏢 Tenant context set:", this.tenantContext);
@@ -55,7 +55,7 @@ export class TenantAwareApiClient extends ApiClient {
    */
   protected async request<T = unknown>(
     endpoint: string,
-    options: RequestInit & ApiRequestOptions = {}
+    options: RequestInit & ApiRequestOptions = {},
   ): Promise<T> {
     // Add tenant headers to the request
     const tenantHeaders = this.getTenantHeaders();
@@ -79,7 +79,7 @@ export class TenantAwareApiClient extends ApiClient {
    * Helper to build query params with optional tenant filtering
    */
   buildTenantQueryParams(
-    additionalParams: Record<string, unknown> = {}
+    additionalParams: Record<string, unknown> = {},
   ): string {
     const params: Record<string, unknown> = { ...additionalParams };
 
@@ -97,7 +97,7 @@ export class TenantAwareApiClient extends ApiClient {
   async getTenantScoped<T>(
     endpoint: string,
     params?: Record<string, unknown>,
-    options?: ApiRequestOptions
+    options?: ApiRequestOptions,
   ): Promise<T> {
     const queryString = this.buildTenantQueryParams(params);
     const url = queryString ? `${endpoint}?${queryString}` : endpoint;
@@ -111,7 +111,7 @@ export class TenantAwareApiClient extends ApiClient {
   async postTenantScoped<T>(
     endpoint: string,
     data: Record<string, unknown>,
-    options?: ApiRequestOptions
+    options?: ApiRequestOptions,
   ): Promise<T> {
     // Add subAccountId to the data if in tenant scope
     const enhancedData = { ...data };

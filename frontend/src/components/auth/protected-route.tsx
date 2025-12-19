@@ -13,7 +13,7 @@ export function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      navigate({ to: "/auth/login" });
+      navigate({ to: "/login" });
     }
   }, [isAuthenticated, isLoading, navigate]);
 

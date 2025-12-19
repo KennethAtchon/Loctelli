@@ -90,7 +90,7 @@ export function EditUserDialog({
 
   const handleInputChange = (
     field: keyof UpdateUserDto,
-    value: string | boolean | number | null
+    value: string | boolean | number | null,
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -221,4 +221,3 @@ export function EditUserDialog({
     </Dialog>
   );
 }
-

@@ -65,7 +65,7 @@ export function BookingsTimeEditor({
         // Format 3: Nested structures
         if (parsedValue.dates && Array.isArray(parsedValue.dates)) {
           slots = parsedValue.dates.filter(
-            (item: any) => item.date && item.slots
+            (item: any) => item.date && item.slots,
           );
         }
       }
@@ -179,7 +179,7 @@ export function BookingsTimeEditor({
 
   const copyFromPrevious = (currentDate: string) => {
     const currentIndex = timeSlots.findIndex(
-      (slot) => slot.date === currentDate
+      (slot) => slot.date === currentDate,
     );
     if (currentIndex <= 0) {
       toast.error("No previous date to copy from");
@@ -227,7 +227,7 @@ export function BookingsTimeEditor({
 
     if (nextWeek.length > 0) {
       const newSlots = [...timeSlots, ...nextWeek].sort((a, b) =>
-        a.date.localeCompare(b.date)
+        a.date.localeCompare(b.date),
       );
       setTimeSlots(newSlots);
       updateParent(newSlots);
@@ -303,7 +303,7 @@ export function BookingsTimeEditor({
                             year: "numeric",
                             month: "long",
                             day: "numeric",
-                          }
+                          },
                         )}
                       </CardTitle>
                       <div className="flex gap-1">

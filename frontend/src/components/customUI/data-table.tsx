@@ -107,7 +107,7 @@ export interface DataTableProps<T extends { id: number | string }> {
     onBulkUpdate?: (
       items: T[],
       field: string,
-      value: string | number | boolean
+      value: string | number | boolean,
     ) => Promise<void>;
     updateFields?: Array<{
       value: string;
@@ -481,7 +481,7 @@ export function DataTable<T extends { id: number | string }>({
                           <input
                             type="checkbox"
                             checked={selectedItems.some(
-                              (i) => i.id === item.id
+                              (i) => i.id === item.id,
                             )}
                             onChange={(e) =>
                               handleItemSelect(item, e.target.checked)
@@ -564,7 +564,7 @@ export function DataTable<T extends { id: number | string }>({
                       {/* Page numbers */}
                       {Array.from(
                         { length: pagination.totalPages },
-                        (_, i) => i + 1
+                        (_, i) => i + 1,
                       ).map((page) => (
                         <PaginationItem key={page}>
                           <PaginationLink
@@ -601,7 +601,7 @@ export function DataTable<T extends { id: number | string }>({
                         to{" "}
                         {Math.min(
                           pagination.currentPage * pagination.pageSize,
-                          pagination.totalItems
+                          pagination.totalItems,
                         )}{" "}
                         of {pagination.totalItems} items
                       </>

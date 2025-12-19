@@ -61,7 +61,7 @@ interface UnifiedAuthContextType {
 }
 
 const UnifiedAuthContext = createContext<UnifiedAuthContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export function UnifiedAuthProvider({
@@ -87,7 +87,7 @@ export function UnifiedAuthProvider({
       timeoutId = setTimeout(() => {
         if (isMounted) {
           logger.warn(
-            "⚠️ Unified auth check timeout - forcing loading to false"
+            "⚠️ Unified auth check timeout - forcing loading to false",
           );
           setIsLoading(false);
         }
@@ -103,7 +103,7 @@ export function UnifiedAuthProvider({
 
             logger.debug(
               "✅ Admin profile retrieved successfully:",
-              profile.email
+              profile.email,
             );
             setAccount(normalizeAdminProfile(profile));
             setAccountType("admin");
@@ -120,20 +120,20 @@ export function UnifiedAuthProvider({
                 error.message.includes("Authentication"))
             ) {
               logger.debug(
-                "🔒 Auth error detected, attempting token refresh..."
+                "🔒 Auth error detected, attempting token refresh...",
               );
               try {
                 await authService.refreshTokens();
                 // Retry the profile request after successful refresh
                 logger.debug(
-                  "🔄 Retrying admin profile request after token refresh..."
+                  "🔄 Retrying admin profile request after token refresh...",
                 );
                 const profile = await api.adminAuth.getAdminProfile();
                 if (!isMounted) return;
 
                 logger.debug(
                   "✅ Admin profile retrieved successfully after refresh:",
-                  profile.email
+                  profile.email,
                 );
                 setAccount(normalizeAdminProfile(profile));
                 setAccountType("admin");
@@ -141,7 +141,7 @@ export function UnifiedAuthProvider({
                 if (!isMounted) return;
                 logger.error(
                   "❌ Token refresh failed, clearing admin tokens:",
-                  refreshError
+                  refreshError,
                 );
                 AuthCookies.clearAdminTokens();
               }
@@ -161,7 +161,7 @@ export function UnifiedAuthProvider({
 
             logger.debug(
               "✅ User profile retrieved successfully:",
-              profile.email
+              profile.email,
             );
             setAccount(normalizeUserProfile(profile));
             setAccountType("user");
@@ -178,20 +178,20 @@ export function UnifiedAuthProvider({
                 error.message.includes("Authentication"))
             ) {
               logger.debug(
-                "🔒 Auth error detected, attempting token refresh..."
+                "🔒 Auth error detected, attempting token refresh...",
               );
               try {
                 await authService.refreshTokens();
                 // Retry the profile request after successful refresh
                 logger.debug(
-                  "🔄 Retrying user profile request after token refresh..."
+                  "🔄 Retrying user profile request after token refresh...",
                 );
                 const profile = await api.auth.getProfile();
                 if (!isMounted) return;
 
                 logger.debug(
                   "✅ User profile retrieved successfully after refresh:",
-                  profile.email
+                  profile.email,
                 );
                 setAccount(normalizeUserProfile(profile));
                 setAccountType("user");
@@ -199,7 +199,7 @@ export function UnifiedAuthProvider({
                 if (!isMounted) return;
                 logger.error(
                   "❌ Token refresh failed, clearing user tokens:",
-                  refreshError
+                  refreshError,
                 );
                 AuthCookies.clearUserTokens();
               }
@@ -343,7 +343,7 @@ export function UnifiedAuthProvider({
           error.message.includes("Authentication"))
       ) {
         logger.debug(
-          "🔒 Auth error during refresh, attempting token refresh..."
+          "🔒 Auth error during refresh, attempting token refresh...",
         );
         try {
           await authService.refreshTokens();
@@ -352,19 +352,19 @@ export function UnifiedAuthProvider({
             const profile = await api.adminAuth.getAdminProfile();
             setAccount(normalizeAdminProfile(profile));
             logger.debug(
-              "✅ Admin profile refreshed successfully after token refresh"
+              "✅ Admin profile refreshed successfully after token refresh",
             );
           } else if (accountType === "user") {
             const profile = await api.auth.getProfile();
             setAccount(normalizeUserProfile(profile));
             logger.debug(
-              "✅ User profile refreshed successfully after token refresh"
+              "✅ User profile refreshed successfully after token refresh",
             );
           }
         } catch (refreshError) {
           logger.error(
             "❌ Token refresh failed during account refresh:",
-            refreshError
+            refreshError,
           );
           // Only clear tokens and logout if refresh also fails
           setAccount(null);
@@ -375,7 +375,7 @@ export function UnifiedAuthProvider({
         // For non-auth errors, don't logout - just log the error
         logger.error(
           "❌ Non-auth error during account refresh, keeping session:",
-          error
+          error,
         );
       }
     }

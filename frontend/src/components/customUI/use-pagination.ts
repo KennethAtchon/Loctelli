@@ -29,7 +29,7 @@ export interface UsePaginationReturn<T> {
 
 export function usePagination<T>(
   data: T[],
-  options: UsePaginationOptions = {}
+  options: UsePaginationOptions = {},
 ): UsePaginationReturn<T> {
   const { pageSize = 10, initialPage = 1 } = options;
 
