@@ -58,7 +58,7 @@ function IntegrationDetailsPage() {
     } catch (error) {
       console.error("Failed to load integration:", error);
       toast.error("Failed to load integration");
-      navigate({ to: '/admin/integrations' });
+      navigate({ to: '/admin/integrations/integrations' });
     } finally {
       setLoading(false);
     }
@@ -103,7 +103,7 @@ function IntegrationDetailsPage() {
       setDeleting(true);
       await api.integrations.deleteIntegration(integration.id);
       toast.success("Integration deleted successfully");
-      navigate({ to: '/admin/integrations' });
+      navigate({ to: '/admin/integrations/integrations' });
     } catch (error) {
       console.error("Failed to delete integration:", error);
       toast.error("Failed to delete integration");
@@ -171,7 +171,7 @@ function IntegrationDetailsPage() {
           <AlertCircle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
           <p className="text-gray-500">Integration not found</p>
           <Button
-            onClick={() => navigate({ to: '/admin/integrations' })}
+            onClick={() => navigate({ to: '/admin/integrations/integrations' })}
             className="mt-4"
           >
             Back to Integrations
@@ -186,7 +186,7 @@ function IntegrationDetailsPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => navigate({ to: '/admin/integrations' })}>
+          <Button variant="outline" size="sm" onClick={() => navigate({ to: '/admin/integrations/integrations' })}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>

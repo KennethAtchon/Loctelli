@@ -191,7 +191,7 @@ function StrategyDetailsPage() {
         </div>
 
         <div className="flex gap-3 justify-start lg:justify-end">
-          <Link to={`/admin/content/strategies/${strategy.id}/edit`}>
+          <Link to="/admin/content/strategies/$id/edit" params={{ id: strategy.id.toString() }}>
             <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-200">
               <Edit className="mr-2 h-4 w-4" />
               Edit

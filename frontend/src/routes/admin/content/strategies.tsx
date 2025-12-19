@@ -175,12 +175,12 @@ function AdminStrategiesPage() {
   // Handle actions
   const handleView = (strategy: Strategy) => {
     // Navigate to strategy details page
-    navigate({ to: `/admin/content/strategies/${strategy.id}` });
+    navigate({ to: '/admin/content/strategies/$id', params: { id: strategy.id.toString() } });
   };
 
   const handleEdit = (strategy: Strategy) => {
     // Navigate to edit page
-    navigate({ to: `/admin/content/strategies/${strategy.id}/edit` });
+    navigate({ to: '/admin/content/strategies/$id/edit', params: { id: strategy.id.toString() } });
   };
 
   const handleDelete = async (strategy: Strategy) => {

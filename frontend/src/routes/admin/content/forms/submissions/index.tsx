@@ -334,7 +334,7 @@ function FormSubmissionsPage() {
         onRefresh={loadData}
         stats={statsCards}
         searchPlaceholder="Search submissions..."
-        onCreateClick={() => navigate({ to: '/admin/forms' })}
+        onCreateClick={() => navigate({ to: '/admin/content/forms' })}
       />
     </div>
   );

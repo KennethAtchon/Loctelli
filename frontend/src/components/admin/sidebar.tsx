@@ -24,19 +24,19 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const navigation = [
-  { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-  { name: "SubAccounts", href: "/admin/subaccounts", icon: Building2 },
-  { name: "Users", href: "/admin/users", icon: Users },
+  { name: "Dashboard", href: "/admin/core/dashboard", icon: LayoutDashboard },
+  { name: "SubAccounts", href: "/admin/core/subaccounts", icon: Building2 },
+  { name: "Users", href: "/admin/core/users", icon: Users },
   { name: "Contacts", href: "/admin/crm/contacts", icon: Mail },
   { name: "Forms", href: "/admin/content/forms", icon: ClipboardList },
   { name: "Strategies", href: "/admin/content/strategies", icon: Target },
   { name: "Leads", href: "/admin/crm/leads", icon: Users },
   { name: "Bookings", href: "/admin/crm/bookings", icon: Calendar },
-  { name: "Chat", href: "/admin/chat", icon: MessageSquare },
+  { name: "Chat", href: "/admin/tools/chat", icon: MessageSquare },
   { name: "Prompt Builder", href: "/admin/content/prompt-templates", icon: FileText },
-  { name: "Integrations", href: "/admin/integrations", icon: Link2 },
-  { name: "Dev", href: "/admin/dev", icon: Database },
-  { name: "Settings", href: "/admin/settings", icon: Settings },
+  { name: "Integrations", href: "/admin/integrations/integrations", icon: Link2 },
+  { name: "Dev", href: "/admin/tools/dev", icon: Database },
+  { name: "Settings", href: "/admin/core/settings", icon: Settings },
 ];
 
 export function Sidebar() {
@@ -48,7 +48,7 @@ export function Sidebar() {
 
   const handleLogout = async () => {
     await adminLogout();
-    navigate({ to: "/admin/login" });
+    navigate({ to: "/admin/auth/login" });
     setIsOpen(false);
   };
 

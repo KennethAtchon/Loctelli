@@ -217,7 +217,7 @@ function FormSubmissionDetailPage() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => navigate({ to: '/admin/forms/submissions' })}
+          onClick={() => navigate({ to: '/admin/content/forms/submissions' })}
           className="flex items-center gap-2"
         >
           <ArrowLeft className="h-4 w-4" />

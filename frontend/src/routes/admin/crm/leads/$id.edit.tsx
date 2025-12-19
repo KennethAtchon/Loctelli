@@ -152,7 +152,7 @@ function EditLeadPage() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <p className="text-red-600 mb-4">{error}</p>
-          <Button onClick={() => navigate({ to: "/admin/leads" })}>
+          <Button onClick={() => navigate({ to: "/admin/crm/leads" })}>
             Back to Leads
           </Button>
         </div>
@@ -166,7 +166,7 @@ function EditLeadPage() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => navigate({ to: "/admin/leads" })}
+          onClick={() => navigate({ to: "/admin/crm/leads" })}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Leads
@@ -379,7 +379,7 @@ function EditLeadPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate({ to: "/admin/leads" })}
+                onClick={() => navigate({ to: "/admin/crm/leads" })}
               >
                 Cancel
               </Button>

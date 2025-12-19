@@ -4,7 +4,7 @@ export const Route = createFileRoute('/admin/')({
   beforeLoad: () => {
     // Redirect admin root to dashboard
     throw redirect({
-      to: '/admin/dashboard',
+      to: '/admin/core/dashboard',
     });
   },
 });

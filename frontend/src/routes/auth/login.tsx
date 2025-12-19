@@ -41,9 +41,9 @@ function LoginPage() {
     if (!isLoading && isAuthenticated) {
       // Check if user is admin via the auth context
       if (isAdmin()) {
-        navigate({ to: '/admin/dashboard' });
+        navigate({ to: '/admin/core/dashboard' });
       } else {
-        navigate({ to: '/account' });
+        navigate({ to: '/customer' });
       }
     }
   }, [isAuthenticated, isLoading, isAdmin, navigate]);
@@ -95,7 +95,7 @@ function LoginPage() {
       await loginUser(formData);
       logger.debug('✅ Login successful, redirecting...');
       // Redirect to account page (useEffect will handle admin redirect if needed)
-      navigate({ to: '/account' });
+      navigate({ to: '/customer' });
     } catch (error) {
       logger.error('❌ Login failed:', error);
       const errorMessage =

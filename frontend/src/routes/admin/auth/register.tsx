@@ -109,7 +109,7 @@ function AdminRegisterPage() {
 
       // Redirect to dashboard after 2 seconds
       setTimeout(() => {
-        navigate({ to: '/admin/dashboard' });
+        navigate({ to: '/admin/core/dashboard' });
       }, 2000);
     } catch (error) {
       logger.error('❌ Admin registration failed:', error);
@@ -370,7 +370,7 @@ function AdminRegisterPage() {
 
             <div className="mt-6 text-center">
               <Link
-                to="/admin/login"
+                to="/admin/auth/login"
                 className="text-sm text-blue-300 hover:text-blue-200 transition-colors"
               >
                 Already have an account? Sign in

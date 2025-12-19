@@ -342,7 +342,7 @@ function EditFormTemplatePage() {
       <div className="space-y-6">
         <div className="text-center py-12">
           <p className="text-gray-500">Form template not found</p>
-          <Button onClick={() => navigate({ to: '/admin/forms' })} className="mt-4">
+          <Button onClick={() => navigate({ to: '/admin/content/forms' })} className="mt-4">
             Back to Forms
           </Button>
         </div>
@@ -356,7 +356,7 @@ function EditFormTemplatePage() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => navigate({ to: '/admin/forms' })}
+          onClick={() => navigate({ to: '/admin/content/forms' })}
           className="flex items-center gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -737,7 +737,7 @@ function EditFormTemplatePage() {
 
         {/* Submit Button */}
         <div className="flex items-center justify-end gap-4">
-          <Button type="button" variant="outline" onClick={() => navigate({ to: '/admin/forms' })}>
+          <Button type="button" variant="outline" onClick={() => navigate({ to: '/admin/content/forms' })}>
             Cancel
           </Button>
           <Button type="submit" disabled={loading}>

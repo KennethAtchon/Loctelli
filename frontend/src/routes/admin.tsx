@@ -3,7 +3,7 @@ import { AdminProtectedRoute } from '@/components/auth/admin-protected-route';
 import { Sidebar } from '@/components/admin/sidebar';
 import { Header } from '@/components/admin/header';
 
-export const Route = createFileRoute('/admin/admin')({
+export const Route = createFileRoute('/admin')({
   component: AdminLayout,
 });
 

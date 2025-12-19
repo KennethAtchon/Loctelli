@@ -148,7 +148,7 @@ function NewLeadPage() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => navigate({ to: "/admin/leads" })}
+          onClick={() => navigate({ to: "/admin/crm/leads" })}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Leads
@@ -360,7 +360,7 @@ function NewLeadPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate({ to: "/admin/leads" })}
+                onClick={() => navigate({ to: "/admin/crm/leads" })}
               >
                 Cancel
               </Button>

@@ -156,7 +156,7 @@ function NewIntegrationPage() {
       setSaving(true);
       await api.integrations.create(formData);
       toast.success("Integration created successfully");
-      navigate({ to: '/admin/integrations' });
+      navigate({ to: '/admin/integrations/integrations' });
     } catch (error) {
       console.error("Failed to create integration:", error);
       toast.error("Failed to create integration");
@@ -254,7 +254,7 @@ function NewIntegrationPage() {
     <div className="container mx-auto py-6">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" size="sm" onClick={() => navigate({ to: '/admin/integrations' })}>
+        <Button variant="outline" size="sm" onClick={() => navigate({ to: '/admin/integrations/integrations' })}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>

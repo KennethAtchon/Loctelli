@@ -19,11 +19,11 @@ export function Header() {
 
   const handleLogout = async () => {
     await adminLogout();
-    navigate({ to: "/admin/login" });
+    navigate({ to: "/admin/auth/login" });
   };
 
   const handleProfileClick = () => {
-    navigate({ to: "/admin/settings" });
+    navigate({ to: "/admin/core/settings" });
   };
 
   return (

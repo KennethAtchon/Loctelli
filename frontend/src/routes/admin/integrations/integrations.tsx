@@ -111,7 +111,7 @@ function AdminIntegrationsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Integrations</h1>
           <p className="text-gray-600">Manage external service integrations</p>
         </div>
-        <Button onClick={() => navigate({ to: '/admin/integrations/new' })}>
+        <Button onClick={() => navigate({ to: '/admin/integrations/new', search: { template: undefined } })}>
           <Plus className="mr-2 h-4 w-4" />
           Add Integration
         </Button>

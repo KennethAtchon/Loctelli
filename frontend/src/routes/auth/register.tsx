@@ -90,7 +90,7 @@ function RegisterPage() {
 
       // Redirect to account page after 2 seconds
       setTimeout(() => {
-        navigate({ to: '/account' });
+        navigate({ to: '/customer' });
       }, 2000);
     } catch (error) {
       logger.error('❌ Registration failed:', error);

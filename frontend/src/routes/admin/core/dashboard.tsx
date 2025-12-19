@@ -276,7 +276,7 @@ function AdminDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         <Card
           className="group relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-50/50 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800/50 border-blue-200/60 dark:border-slate-600/60 hover:shadow-xl hover:shadow-blue-100/50 dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-          onClick={() => navigate({ to: '/admin/users' })}
+          onClick={() => navigate({ to: '/admin/core/users' })}
         >
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
@@ -312,7 +312,7 @@ function AdminDashboardPage() {
 
         <Card
           className="group relative overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-emerald-50/50 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800/50 border-emerald-200/60 dark:border-slate-600/60 hover:shadow-xl hover:shadow-emerald-100/50 dark:hover:shadow-slate-900/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-          onClick={() => navigate({ to: '/admin/users' })}
+          onClick={() => navigate({ to: '/admin/core/users' })}
         >
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
@@ -432,7 +432,7 @@ function AdminDashboardPage() {
                 Latest users who joined the platform
               </CardDescription>
             </div>
-            <Link to="/admin/users">
+            <Link to="/admin/core/users">
               <Button
                 variant="outline"
                 size="sm"
