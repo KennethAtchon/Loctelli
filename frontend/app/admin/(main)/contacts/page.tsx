@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { api } from "@/lib/api";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
 import { usePagination } from "@/components/customUI";
@@ -40,6 +40,7 @@ export default function ContactsPage() {
     useState<ContactSubmission | null>(null);
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [newNote, setNewNote] = useState("");
+  const isLoadingRef = useRef(false);
 
   // Use the pagination hook
   const { pagination, paginatedData, setCurrentPage, setTotalItems } =
@@ -169,7 +170,14 @@ export default function ContactsPage() {
   ];
 
   const loadContacts = useCallback(async () => {
+    // Prevent multiple simultaneous calls
+    if (isLoadingRef.current) {
+      logger.debug("⏸️ loadContacts already in progress, skipping");
+      return;
+    }
+
     try {
+      isLoadingRef.current = true;
       setIsRefreshing(true);
       setError(null);
 
@@ -193,6 +201,7 @@ export default function ContactsPage() {
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
+      isLoadingRef.current = false;
     }
   }, [setTotalItems]);
 
@@ -259,9 +268,11 @@ export default function ContactsPage() {
     }
   };
 
+  // Load contacts on mount
   useEffect(() => {
     loadContacts();
-  }, [loadContacts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { api } from "@/lib/api";
 import type { CreateUserDto, UpdateUserDto } from "@/lib/api";
 import type { UserProfile, DetailedUser } from "@/lib/api/endpoints/admin-auth";
+import type { SubAccount } from "@/lib/api/endpoints/admin-subaccounts";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
 import { usePagination } from "@/components/customUI";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +33,7 @@ export default function UsersPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
   const [selectedUser, setSelectedUser] = useState<DetailedUser | null>(null);
+  const isLoadingRef = useRef(false);
 
   // Use the pagination hook
   const { pagination, paginatedData, setCurrentPage, setTotalItems } =
@@ -143,7 +145,14 @@ export default function UsersPage() {
   ];
 
   const loadUsers = useCallback(async () => {
+    // Prevent multiple simultaneous calls
+    if (isLoadingRef.current) {
+      logger.debug("⏸️ loadUsers already in progress, skipping");
+      return;
+    }
+
     try {
+      isLoadingRef.current = true;
       setIsRefreshing(true);
       setError("");
 
@@ -160,6 +169,7 @@ export default function UsersPage() {
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
+      isLoadingRef.current = false;
     }
   }, [adminFilter, setTotalItems]);
 
@@ -257,9 +267,11 @@ export default function UsersPage() {
     }
   };
 
+  // Load users on mount and when adminFilter changes
   useEffect(() => {
     loadUsers();
-  }, [loadUsers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminFilter]);
 
   // Helper functions
   const getRoleBadgeVariant = (role: string) => {
@@ -563,7 +575,7 @@ export default function UsersPage() {
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
         onSubmit={handleCreateUser}
-        availableSubaccounts={availableSubaccounts}
+        availableSubaccounts={availableSubaccounts as unknown as SubAccount[]}
       />
 
       <EditUserDialog

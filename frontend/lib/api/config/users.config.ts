@@ -40,6 +40,6 @@ export const usersConfig: EndpointGroup = {
     method: "DELETE",
     path: "/user/:id",
     pathParams: [{ name: "id", required: true, type: "number" }],
-    responseType: {} as void,
+    responseType: undefined as unknown as void,
   },
 };

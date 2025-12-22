@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { api } from "@/lib/api";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
 import { usePagination } from "@/components/customUI";
@@ -22,6 +22,7 @@ export default function LeadsPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedLead, setSelectedLead] = useState<DetailedLead | null>(null);
+  const isLoadingRef = useRef(false);
 
   // Use the pagination hook
   const { pagination, paginatedData, setCurrentPage, setTotalItems } =
@@ -152,7 +153,14 @@ export default function LeadsPage() {
   ];
 
   const loadLeads = useCallback(async () => {
+    // Prevent multiple simultaneous calls
+    if (isLoadingRef.current) {
+      logger.debug("⏸️ loadLeads already in progress, skipping");
+      return;
+    }
+
     try {
+      isLoadingRef.current = true;
       setIsRefreshing(true);
       setError(null);
 
@@ -170,6 +178,7 @@ export default function LeadsPage() {
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
+      isLoadingRef.current = false;
     }
   }, [getTenantQueryParams, setTotalItems]);
 
@@ -234,9 +243,11 @@ export default function LeadsPage() {
     window.location.href = "/admin/leads/new";
   };
 
+  // Load leads on mount and when tenant params change
   useEffect(() => {
     loadLeads();
-  }, [loadLeads]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getTenantQueryParams]);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {

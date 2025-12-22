@@ -59,18 +59,20 @@ export function BookingsTimeEditor({
           .filter(([, value]) => Array.isArray(value))
           .map(([date, times]) => ({
             date,
-            slots: times as string[],
+            slots: times as unknown as string[],
           }));
 
         // Format 3: Nested structures
         if (parsedValue.dates && Array.isArray(parsedValue.dates)) {
-          slots = parsedValue.dates.filter(
-            (item: unknown) =>
-              typeof item === "object" &&
-              item !== null &&
-              "date" in item &&
-              "slots" in item
-          ) as TimeSlot[];
+          slots = parsedValue.dates
+            .filter(
+              (item: unknown) =>
+                typeof item === "object" &&
+                item !== null &&
+                "date" in item &&
+                "slots" in item
+            )
+            .map((item: unknown) => item as TimeSlot);
         }
       }
 
@@ -208,7 +210,7 @@ export function BookingsTimeEditor({
 
   const generateNextWeek = () => {
     const today = new Date();
-    const nextWeek = [];
+    const nextWeek: TimeSlot[] = [];
 
     for (let i = 1; i <= 7; i++) {
       const date = new Date(today);
@@ -216,7 +218,7 @@ export function BookingsTimeEditor({
       const dateStr = date.toISOString().split("T")[0];
 
       if (!timeSlots.some((slot) => slot.date === dateStr)) {
-        const businessSlots = [];
+        const businessSlots: string[] = [];
         for (let hour = 9; hour < 17; hour++) {
           businessSlots.push(`${hour.toString().padStart(2, "0")}:00`);
           businessSlots.push(`${hour.toString().padStart(2, "0")}:30`);

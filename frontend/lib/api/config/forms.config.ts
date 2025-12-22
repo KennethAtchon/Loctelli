@@ -51,7 +51,7 @@ export const formsConfig: EndpointGroup = {
     method: "DELETE",
     path: "/forms/templates/:id",
     pathParams: [{ name: "id", required: true, type: "string" }],
-    responseType: {} as void,
+    responseType: undefined as unknown as void,
   },
 
   // Public form access
@@ -117,7 +117,7 @@ export const formsConfig: EndpointGroup = {
     method: "DELETE",
     path: "/forms/submissions/:id",
     pathParams: [{ name: "id", required: true, type: "string" }],
-    responseType: {} as void,
+    responseType: undefined as unknown as void,
   },
 
   getFormStats: {

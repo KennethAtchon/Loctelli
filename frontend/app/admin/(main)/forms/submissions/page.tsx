@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
@@ -35,6 +35,7 @@ export default function FormSubmissionsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const isLoadingRef = useRef(false);
 
   // Use the pagination hook
   const {
@@ -198,7 +199,14 @@ export default function FormSubmissionsPage() {
   ];
 
   const loadData = useCallback(async () => {
+    // Prevent multiple simultaneous calls
+    if (isLoadingRef.current) {
+      logger.debug("⏸️ loadData already in progress, skipping");
+      return;
+    }
+
     try {
+      isLoadingRef.current = true;
       setIsRefreshing(true);
       setError(null);
 
@@ -278,9 +286,11 @@ export default function FormSubmissionsPage() {
     router.push(`/admin/forms/submissions/${submission.id}`);
   };
 
+  // Load data on mount and when subAccountId changes
   useEffect(() => {
     loadData();
-  }, [loadData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subAccountId]);
 
   // Show error message if there's an error
   useEffect(() => {

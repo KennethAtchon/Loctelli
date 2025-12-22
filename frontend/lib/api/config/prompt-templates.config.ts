@@ -66,6 +66,6 @@ export const promptTemplatesConfig: EndpointGroup = {
     method: "DELETE",
     path: "/admin/prompt-templates/:id",
     pathParams: [{ name: "id", required: true, type: "number" }],
-    responseType: {} as void,
+    responseType: undefined as unknown as void,
   },
 };

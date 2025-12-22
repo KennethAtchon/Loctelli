@@ -114,11 +114,13 @@ export function SubaccountFilter({
               <Building2 className="h-4 w-4" />
               <div className="flex-1 min-w-0">
                 <div className="truncate">{subaccount.name}</div>
-                {subaccount.description && (
+                {"description" in subaccount &&
+                subaccount.description &&
+                typeof subaccount.description === "string" ? (
                   <div className="text-xs text-gray-500 truncate">
                     {subaccount.description}
                   </div>
-                )}
+                ) : null}
               </div>
               {subAccountId === subaccount.id && (
                 <Badge variant="secondary" className="ml-auto text-xs">
@@ -200,12 +202,34 @@ export function SubaccountFilter({
             <div className="flex-1 min-w-0">
               <div className="font-medium truncate">{subaccount.name}</div>
               <div className="text-sm text-gray-500 truncate">
-                {subaccount.description || "No description"}
+                {"description" in subaccount &&
+                subaccount.description &&
+                typeof subaccount.description === "string"
+                  ? subaccount.description
+                  : "No description"}
               </div>
-              <div className="text-xs text-gray-400">
-                {subaccount._count.users} users • {subaccount._count.strategies}{" "}
-                strategies
-              </div>
+              {(() => {
+                if (
+                  "_count" in subaccount &&
+                  subaccount._count &&
+                  typeof subaccount._count === "object" &&
+                  subaccount._count !== null &&
+                  "users" in subaccount._count &&
+                  "strategies" in subaccount._count
+                ) {
+                  const count = subaccount._count as {
+                    users: unknown;
+                    strategies: unknown;
+                  };
+                  return (
+                    <div className="text-xs text-gray-400">
+                      {String(count.users)} users • {String(count.strategies)}{" "}
+                      strategies
+                    </div>
+                  );
+                }
+                return null;
+              })()}
             </div>
             {subAccountId === subaccount.id && (
               <Badge variant="secondary" className="ml-auto">

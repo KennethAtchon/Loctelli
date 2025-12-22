@@ -47,7 +47,7 @@ export const bookingsConfig: EndpointGroup = {
     method: "DELETE",
     path: "/booking/:id",
     pathParams: [{ name: "id", required: true, type: "number" }],
-    responseType: {} as void,
+    responseType: undefined as unknown as void,
   },
 
   getBookingsByUser: {

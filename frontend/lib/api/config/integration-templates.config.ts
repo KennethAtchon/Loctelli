@@ -57,6 +57,6 @@ export const integrationTemplatesConfig: EndpointGroup = {
     method: "DELETE",
     path: "/admin/integration-templates/:id",
     pathParams: [{ name: "id", required: true, type: "number" }],
-    responseType: {} as void,
+    responseType: undefined as unknown as void,
   },
 };

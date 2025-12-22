@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { api } from "@/lib/api";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
 import { usePagination } from "@/components/customUI";
@@ -28,6 +28,7 @@ export default function BookingsPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const isLoadingRef = useRef(false);
 
   // Use the pagination hook
   const { pagination, paginatedData, setCurrentPage, setTotalItems } =
@@ -141,7 +142,14 @@ export default function BookingsPage() {
   ];
 
   const loadBookings = useCallback(async () => {
+    // Prevent multiple simultaneous calls
+    if (isLoadingRef.current) {
+      logger.debug("⏸️ loadBookings already in progress, skipping");
+      return;
+    }
+
     try {
+      isLoadingRef.current = true;
       setIsRefreshing(true);
       setError(null);
 
@@ -205,9 +213,11 @@ export default function BookingsPage() {
     window.location.href = `/admin/bookings/${booking.id}/edit`;
   };
 
+  // Load bookings on mount and when tenant params change
   useEffect(() => {
     loadBookings();
-  }, [loadBookings]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getTenantQueryParams]);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {

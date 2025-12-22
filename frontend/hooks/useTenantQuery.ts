@@ -194,11 +194,14 @@ export function useInvalidateTenantQueries() {
 
           // Check if query key includes our tenant context
           return (
-            lastItem &&
+            lastItem !== null &&
+            lastItem !== undefined &&
             typeof lastItem === "object" &&
             "tenantMode" in lastItem &&
-            lastItem.tenantMode === mode &&
-            lastItem.subAccountId === subAccountId
+            (lastItem as { tenantMode: unknown; subAccountId?: unknown })
+              .tenantMode === mode &&
+            (lastItem as { tenantMode: unknown; subAccountId?: unknown })
+              .subAccountId === subAccountId
           );
         },
       });

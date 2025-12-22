@@ -19,7 +19,9 @@ export class ContactsApi {
   }
 
   async getContacts(filters?: ContactFiltersDto): Promise<ContactSubmission[]> {
-    return this.api.getContacts(filters) as Promise<ContactSubmission[]>;
+    return this.api.getContacts(filters as Record<string, unknown>) as Promise<
+      ContactSubmission[]
+    >;
   }
 
   async getContact(id: string): Promise<ContactSubmission> {

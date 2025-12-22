@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
@@ -43,6 +43,7 @@ export default function FormsPage() {
   const [activeTab, setActiveTab] = useState<"templates" | "submissions">(
     "templates"
   );
+  const isLoadingRef = useRef(false);
 
   // Use the pagination hook for templates
   const {
@@ -162,7 +163,14 @@ export default function FormsPage() {
   ];
 
   const loadData = useCallback(async () => {
+    // Prevent multiple simultaneous calls
+    if (isLoadingRef.current) {
+      logger.debug("⏸️ loadData already in progress, skipping");
+      return;
+    }
+
     try {
+      isLoadingRef.current = true;
       setIsRefreshing(true);
       setError(null);
 
@@ -257,9 +265,11 @@ export default function FormsPage() {
     setActiveTab("submissions");
   };
 
+  // Load data on mount and when subAccountId changes
   useEffect(() => {
     loadData();
-  }, [loadData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subAccountId]);
 
   const formatDate = (dateInput: string | Date) => {
     if (!dateInput) return "N/A";

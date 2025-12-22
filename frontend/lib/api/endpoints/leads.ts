@@ -16,23 +16,23 @@ export class LeadsApi {
     userId?: number;
     strategyId?: number;
   }): Promise<Lead[]> {
-    return this.api.getLeads(params);
+    return this.api.getLeads(params) as Promise<Lead[]>;
   }
 
   async getLead(id: number): Promise<Lead> {
-    return this.api.getLead({ id });
+    return this.api.getLead({ id }) as Promise<Lead>;
   }
 
   async createLead(data: CreateLeadDto): Promise<Lead> {
-    return this.api.createLead(undefined, data);
+    return this.api.createLead(undefined, data) as Promise<Lead>;
   }
 
   async updateLead(id: number, data: Partial<CreateLeadDto>): Promise<Lead> {
-    return this.api.updateLead({ id }, data);
+    return this.api.updateLead({ id }, data) as Promise<Lead>;
   }
 
   async deleteLead(id: number): Promise<void> {
-    return this.api.deleteLead({ id });
+    return this.api.deleteLead({ id }) as Promise<void>;
   }
 
   async getLeadsByUser(userId: number): Promise<Lead[]> {

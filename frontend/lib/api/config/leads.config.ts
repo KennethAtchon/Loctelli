@@ -45,7 +45,7 @@ export const leadsConfig: EndpointGroup = {
     method: "DELETE",
     path: "/lead/:id",
     pathParams: [{ name: "id", required: true, type: "number" }],
-    responseType: {} as void,
+    responseType: undefined as unknown as void,
   },
 
   getLeadsByUser: {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { api } from "@/lib/api";
 import {
   Card,
@@ -97,6 +97,7 @@ export default function AdminDashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<DetailedUser | null>(null);
   const [selectedLead, setSelectedLead] = useState<DetailedLead | null>(null);
+  const isLoadingRef = useRef(false);
 
   const loadDashboardData = useCallback(async () => {
     try {
@@ -123,9 +124,11 @@ export default function AdminDashboardPage() {
     }
   }, [adminFilter]);
 
+  // Load dashboard data on mount and when adminFilter changes
   useEffect(() => {
     loadDashboardData();
-  }, [loadDashboardData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminFilter]);
 
   // Cleanup error state on unmount
   useEffect(() => {

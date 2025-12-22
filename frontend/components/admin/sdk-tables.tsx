@@ -43,6 +43,7 @@ export default function SDKTables() {
   const [tableData, setTableData] = useState<Record<string, TableDataResponse>>(
     {}
   );
+  const [tablePages, setTablePages] = useState<Record<string, number>>({});
   const [tablePageSizes, setTablePageSizes] = useState<Record<string, number>>(
     {}
   );

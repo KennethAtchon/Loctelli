@@ -41,14 +41,14 @@ export const chatConfig: EndpointGroup = {
     method: "PATCH",
     path: "/chat/messages/:messageId/read",
     pathParams: [{ name: "messageId", required: true, type: "string" }],
-    responseType: {} as void,
+    responseType: undefined as unknown as void,
   },
 
   deleteMessage: {
     method: "DELETE",
     path: "/chat/messages/:messageId",
     pathParams: [{ name: "messageId", required: true, type: "string" }],
-    responseType: {} as void,
+    responseType: undefined as unknown as void,
   },
 
   getUnreadMessagesCount: {
@@ -62,14 +62,14 @@ export const chatConfig: EndpointGroup = {
     method: "PATCH",
     path: "/chat/mark-all-read/:leadId",
     pathParams: [{ name: "leadId", required: true, type: "number" }],
-    responseType: {} as void,
+    responseType: undefined as unknown as void,
   },
 
   clearChatHistory: {
     method: "DELETE",
     path: "/chat/messages/lead/:leadId",
     pathParams: [{ name: "leadId", required: true, type: "number" }],
-    responseType: {} as void,
+    responseType: undefined as unknown as void,
   },
 
   initiateConversation: {

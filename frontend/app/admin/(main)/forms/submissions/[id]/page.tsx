@@ -160,36 +160,37 @@ export default function FormSubmissionDetailPage() {
       case "email":
         return (
           <a
-            href={`mailto:${value}`}
+            href={`mailto:${String(value)}`}
             className="text-blue-600 hover:text-blue-800"
           >
-            {value}
+            {String(value)}
           </a>
         );
       case "phone":
         return (
           <a
-            href={`tel:${value}`}
+            href={`tel:${String(value)}`}
             className="text-blue-600 hover:text-blue-800"
           >
-            {value}
+            {String(value)}
           </a>
         );
       case "checkbox":
         return value ? "Yes" : "No";
       case "file":
       case "image":
-        if (typeof value === "object" && value.url) {
+        if (typeof value === "object" && value !== null && "url" in value) {
+          const fileValue = value as UploadedFile;
           return (
             <a
-              href={value.url}
+              href={fileValue.url}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-800"
             >
-              {value.originalName || "View File"}
+              {fileValue.originalName || "View File"}
             </a>
-          );
+          ) as React.ReactNode;
         }
         return String(value);
       default:
@@ -366,8 +367,8 @@ export default function FormSubmissionDetailPage() {
                             {fileInfo.originalName || "Unknown File"}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {fileInfo.size
-                              ? `${Math.round(fileInfo.size / 1024)} KB`
+                            {"size" in fileInfo && fileInfo.size
+                              ? `${Math.round((fileInfo.size as number) / 1024)} KB`
                               : "Unknown size"}
                           </div>
                         </div>

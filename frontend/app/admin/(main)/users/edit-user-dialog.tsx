@@ -198,7 +198,12 @@ export function EditUserDialog({
               {formData.bookingEnabled === 1 ? (
                 <BookingsTimeEditor
                   value={formData.bookingsTime}
-                  onChange={(value) => handleInputChange("bookingsTime", value)}
+                  onChange={(value) =>
+                    handleInputChange(
+                      "bookingsTime",
+                      value as unknown as string | number | boolean
+                    )
+                  }
                 />
               ) : (
                 <div className="text-center py-8 text-gray-500">

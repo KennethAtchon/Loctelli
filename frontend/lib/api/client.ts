@@ -38,6 +38,23 @@ export class ApiClient {
     }
   }
 
+  /**
+   * Normalize endpoint for deduplication by sorting query parameters
+   */
+  private normalizeEndpointForDedup(endpoint: string): string {
+    const [path, queryString] = endpoint.split("?");
+    if (!queryString) return endpoint;
+
+    // Parse and sort query parameters for consistent deduplication
+    const params = new URLSearchParams(queryString);
+    const sortedParams = Array.from(params.entries()).sort(([a], [b]) =>
+      a.localeCompare(b)
+    );
+    const normalizedQuery = new URLSearchParams(sortedParams).toString();
+
+    return normalizedQuery ? `${path}?${normalizedQuery}` : path;
+  }
+
   protected async request<T = unknown>(
     endpoint: string,
     options: RequestInit & ApiRequestOptions = {}
@@ -47,8 +64,11 @@ export class ApiClient {
     const method = options.method || "GET";
 
     // Create a unique key for request deduplication (only for GET requests)
-    // Use endpoint + query string, but not headers (which may include changing auth tokens)
-    const requestKey = method === "GET" ? `${method}:${endpoint}` : null;
+    // Normalize endpoint to handle query parameter ordering differences
+    const normalizedEndpoint =
+      method === "GET" ? this.normalizeEndpointForDedup(endpoint) : endpoint;
+    const requestKey =
+      method === "GET" ? `${method}:${normalizedEndpoint}` : null;
 
     // Check if there's already an identical request in flight
     if (requestKey && this.pendingRequests.has(requestKey)) {
@@ -148,10 +168,12 @@ export class ApiClient {
       logger.debug("📡 Response status:", response.status, response.statusText);
 
       // Handle 401 Unauthorized - but NOT for auth endpoints or refresh requests
+      // Also skip if we're already rate limited to prevent cascading failures
       if (
         response.status === 401 &&
         !this.authService.isInRefreshRequest() &&
-        !isAuthEndpoint
+        !isAuthEndpoint &&
+        !rateLimiter.isBlocked(endpoint)
       ) {
         logger.debug("🔒 401 Unauthorized, attempting token refresh...");
         try {

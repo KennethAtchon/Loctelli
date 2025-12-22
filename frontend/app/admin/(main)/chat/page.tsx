@@ -67,6 +67,7 @@ export default function ChatPage() {
   const [isLoadinglead, setIsLoadinglead] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [leads, setLeads] = useState<Lead[]>([]);
+  const isLoadingLeadsRef = useRef(false);
   const [isLoadingLeads, setIsLoadingLeads] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const chatInterfaceRef = useRef<ChatInterfaceRef>(null);
@@ -114,7 +115,14 @@ export default function ChatPage() {
   // Load leads for dropdown
   useEffect(() => {
     const loadLeads = async () => {
+      // Prevent multiple simultaneous calls
+      if (isLoadingLeadsRef.current) {
+        logger.debug("⏸️ loadLeads already in progress, skipping");
+        return;
+      }
+
       try {
+        isLoadingLeadsRef.current = true;
         setIsLoadingLeads(true);
         setError(null);
 

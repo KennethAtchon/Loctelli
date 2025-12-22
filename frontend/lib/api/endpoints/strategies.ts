@@ -38,7 +38,9 @@ export class StrategiesApi {
   }
 
   async getStrategiesByUser(regularUserId: number): Promise<Strategy[]> {
-    return this.api.getStrategiesByUser({ regularUserId }) as Promise<Strategy[]>;
+    return this.api.getStrategiesByUser({ regularUserId }) as Promise<
+      Strategy[]
+    >;
   }
 
   async duplicateStrategy(id: number): Promise<Strategy> {
