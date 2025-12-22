@@ -64,29 +64,37 @@ This document traces the complete flow of a login response from the backend serv
 **What Happens**:
 1. Proxy receives the backend response via `fetch(backendUrl, requestOptions)`
 2. Reads response body as text: `await response.text()`
+   - **Why `text()`?** JSON is a text format (a string). The proxy's job is to forward the response, not parse it. Reading as text preserves the JSON string exactly as the backend sent it.
 3. Forwards all response headers (except excluded ones like `host`, `connection`, etc.)
 4. Adds CORS headers
 5. Returns `NextResponse` with the same body and status
 
 **Transformation**:
-- **Input**: Backend HTTP response with JSON body
-- **Output**: Next.js `NextResponse` with same JSON body (as string)
+- **Input**: Backend HTTP response with JSON body (as string)
+- **Output**: Next.js `NextResponse` with same JSON body (still as string)
 - **Headers**: All backend headers + CORS headers added
+- **Note**: The body remains a JSON string - no parsing happens here!
 
 **Code Flow**:
 ```typescript
 // Line 121: Fetch from backend
 const response = await fetch(backendUrl, requestOptions);
 
-// Line 137: Read body as text
-responseBody = await response.text();  // JSON string
+// Line 137: Read body as text (JSON is text!)
+responseBody = await response.text();  // JSON string, e.g., '{"access_token":"...","user":{...}}'
 
-// Line 161: Return NextResponse
+// Line 161: Return NextResponse with the string body
 return new NextResponse(responseBody, {
   status: response.status,  // 200
   headers: responseHeaders  // Backend headers + CORS
 });
 ```
+
+**Why `text()` Instead of `json()`?**
+- The proxy is a **pass-through** - it shouldn't parse or modify the response
+- JSON is text, so `text()` correctly reads it as a string
+- If we used `json()`, we'd parse it, then NextResponse would stringify it again (wasteful)
+- The actual JSON parsing happens in the API Client layer where it's needed
 
 **At This Point**:
 - Body is still a JSON string (not parsed)

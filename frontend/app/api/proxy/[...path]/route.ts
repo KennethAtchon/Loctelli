@@ -23,8 +23,9 @@ const FORWARD_HEADERS = [
 const EXCLUDE_HEADERS = [
   "host",
   "connection",
-  "content-length",
+  "content-length",      // Will be recalculated by NextResponse
   "transfer-encoding",
+  "content-encoding",   // Remove compression header since we decompress the body
 ];
 
 export async function GET(
