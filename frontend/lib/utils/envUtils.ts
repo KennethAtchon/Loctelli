@@ -4,8 +4,18 @@
  */
 
 // API Configuration
+// Always use /api/proxy to avoid CORS issues
+// The proxy route will forward requests to the backend using BACKEND_URL or NEXT_PUBLIC_API_URL
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+  BASE_URL: "/api/proxy",
+  // Backend URL for server-side proxy (used by /api/proxy route)
+  // Prefer BACKEND_URL (server-side only), fallback to NEXT_PUBLIC_API_URL
+  BACKEND_URL:
+    process.env.BACKEND_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:8000",
+  // API Key for server-side requests (used by proxy route)
+  API_KEY: process.env.API_KEY,
 } as const;
 
 // Authentication Configuration

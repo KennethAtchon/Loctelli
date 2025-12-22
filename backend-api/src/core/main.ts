@@ -53,6 +53,7 @@ async function bootstrap() {
         'http://loctelli_frontend:3000',
         'http://frontend:3000',
         'http://loctelli.com',
+        'https://loctelli.com', // Add HTTPS version for production
         process.env.FRONTEND_URL,
       ].filter(Boolean),
       credentials: true,

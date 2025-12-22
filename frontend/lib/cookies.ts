@@ -1,6 +1,8 @@
 // Cookie utility for authentication tokens
 // Uses secure, httpOnly cookies for better security
 
+import { ENV_CONFIG } from "./utils/envUtils";
+
 interface CookieOptions {
   expires?: Date;
   maxAge?: number;
@@ -13,7 +15,7 @@ interface CookieOptions {
 
 const DEFAULT_COOKIE_OPTIONS: CookieOptions = {
   path: "/",
-  secure: process.env.NODE_ENV === "production",
+  secure: ENV_CONFIG.IS_PRODUCTION,
   sameSite: "lax", // Changed from 'strict' to 'lax' to allow cross-port sharing
   domain:
     typeof window !== "undefined" && window.location.hostname === "localhost"

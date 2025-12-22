@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+import { ENV_CONFIG, API_CONFIG } from "@/lib/utils/envUtils";
 
 export async function GET() {
   return NextResponse.json({
     message: "API test endpoint is working!",
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
-    apiUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+    environment: ENV_CONFIG.NODE_ENV,
+    apiUrl: API_CONFIG.BACKEND_URL,
   });
 }
