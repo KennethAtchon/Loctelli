@@ -7,6 +7,7 @@ Before starting the migration, complete this checklist to ensure a smooth transi
 ## 1. Codebase Backup
 
 ### Create Backup
+
 ```bash
 # Create a backup branch
 git checkout -b backup/pre-migration-$(date +%Y%m%d)
@@ -17,6 +18,7 @@ cp -r frontend frontend-backup-$(date +%Y%m%d)
 ```
 
 ### Verify Backup
+
 - [ ] Backup branch created and pushed
 - [ ] All uncommitted changes are committed
 - [ ] Current state is tagged: `git tag pre-migration-v1.0`
@@ -24,12 +26,14 @@ cp -r frontend frontend-backup-$(date +%Y%m%d)
 ## 2. Dependency Audit
 
 ### Current Dependency Versions
+
 ```bash
 cd frontend
 pnpm list --depth=0 > dependency-audit-$(date +%Y%m%d).txt
 ```
 
 ### Check for Updates
+
 ```bash
 # Check outdated packages
 pnpm outdated
@@ -39,12 +43,14 @@ pnpm audit
 ```
 
 ### Document Findings
+
 - [ ] List all outdated packages
 - [ ] Identify breaking changes in major version updates
 - [ ] Document security vulnerabilities
 - [ ] Note any deprecated packages
 
 ### Key Dependencies to Audit
+
 - [ ] `next@^15.4.7` - Check Next.js 15 breaking changes
 - [ ] `react@^19.2.1` - Check React 19 breaking changes
 - [ ] `@tanstack/react-query@^5.62.11` - Check React Query changes
@@ -55,6 +61,7 @@ pnpm audit
 ## 3. Environment Variables Documentation
 
 ### Document Current Environment Variables
+
 ```bash
 # Check environment files
 cat .env.local 2>/dev/null || echo "No .env.local"
@@ -63,13 +70,16 @@ cat .env.production 2>/dev/null || echo "No .env.production"
 ```
 
 ### Required Variables
+
 Document all environment variables used in:
+
 - [ ] `lib/utils/envUtils.ts`
 - [ ] `next.config.ts`
 - [ ] `app/api/proxy/` routes
 - [ ] Any component using `process.env`
 
 ### Environment Variable Checklist
+
 - [ ] `NEXT_PUBLIC_API_URL` - Backend API URL
 - [ ] Any other `NEXT_PUBLIC_*` variables
 - [ ] Server-side only variables
@@ -78,6 +88,7 @@ Document all environment variables used in:
 ## 4. Configuration Files Review
 
 ### Review Current Configurations
+
 - [ ] `package.json` - Scripts and dependencies
 - [ ] `tsconfig.json` - TypeScript configuration
 - [ ] `next.config.ts` - Next.js configuration
@@ -87,6 +98,7 @@ Document all environment variables used in:
 - [ ] `components.json` - Shadcn/ui configuration
 
 ### Document Custom Configurations
+
 - [ ] Note any custom webpack configurations
 - [ ] Document custom image optimization settings
 - [ ] Note any experimental features enabled
@@ -95,6 +107,7 @@ Document all environment variables used in:
 ## 5. Codebase Analysis
 
 ### File Structure Analysis
+
 ```bash
 # Count files by type
 find . -name "*.tsx" | wc -l
@@ -104,12 +117,14 @@ find . -name "*.test.tsx" | wc -l
 ```
 
 ### Component Inventory
+
 - [ ] List all components in `components/` directory
 - [ ] Document component dependencies
 - [ ] Note any third-party component libraries
 - [ ] Identify custom hooks
 
 ### API Integration Points
+
 - [ ] List all API endpoints used
 - [ ] Document API client usage patterns
 - [ ] Note any custom API middleware
@@ -118,18 +133,21 @@ find . -name "*.test.tsx" | wc -l
 ## 6. Testing Status
 
 ### Current Test Coverage
+
 ```bash
 # Run tests to establish baseline
 pnpm test:coverage
 ```
 
 ### Test Inventory
+
 - [ ] Count total test files
 - [ ] Document test utilities
 - [ ] Note any test mocks or fixtures
 - [ ] Check MSW (Mock Service Worker) setup
 
 ### Test Results
+
 - [ ] All tests passing before migration
 - [ ] Document any flaky tests
 - [ ] Note any skipped tests
@@ -137,6 +155,7 @@ pnpm test:coverage
 ## 7. Build Verification
 
 ### Current Build Status
+
 ```bash
 # Test production build
 pnpm run build
@@ -146,6 +165,7 @@ ls -la .next/
 ```
 
 ### Build Checklist
+
 - [ ] Production build succeeds
 - [ ] No TypeScript errors
 - [ ] No ESLint errors (if enabled)
@@ -155,6 +175,7 @@ ls -la .next/
 ## 8. Runtime Dependencies
 
 ### Node.js Version
+
 ```bash
 node --version
 # Should be Node.js 20+ for Next.js 15
@@ -165,6 +186,7 @@ node --version
 - [ ] Docker version (if using containers)
 
 ### System Requirements
+
 - [ ] Sufficient disk space for node_modules
 - [ ] Network access for package downloads
 - [ ] Access to private registries (if any)
@@ -172,6 +194,7 @@ node --version
 ## 9. Migration Branch Setup
 
 ### Create Migration Branch
+
 ```bash
 git checkout -b migration/frontend-upgrade
 git push -u origin migration/frontend-upgrade
@@ -184,13 +207,16 @@ git push -u origin migration/frontend-upgrade
 ## 10. Documentation Review
 
 ### Review Existing Documentation
+
 - [ ] `README.md` - Current setup instructions
 - [ ] `AI_CONTEXT.md` - System architecture
 - [ ] Any migration guides from dependencies
 - [ ] Changelogs for major dependencies
 
 ### Create Migration Log
+
 Create a file to track migration progress:
+
 ```bash
 touch migration/migration-log.md
 ```
@@ -198,6 +224,7 @@ touch migration/migration-log.md
 ## 11. Team Communication
 
 ### Notify Team
+
 - [ ] Inform team about migration timeline
 - [ ] Schedule migration window (if needed)
 - [ ] Document rollback procedure
@@ -206,6 +233,7 @@ touch migration/migration-log.md
 ## 12. Rollback Plan
 
 ### Rollback Preparation
+
 - [ ] Document rollback steps
 - [ ] Test rollback procedure
 - [ ] Ensure backup is accessible
@@ -214,6 +242,7 @@ touch migration/migration-log.md
 ## 13. Migration Tools
 
 ### Required Tools
+
 - [ ] Git for version control
 - [ ] pnpm for package management
 - [ ] Code editor with TypeScript support
@@ -223,7 +252,9 @@ touch migration/migration-log.md
 ## 14. Pre-Migration Testing
 
 ### Smoke Tests
+
 Create a list of critical user flows to test after migration:
+
 - [ ] User login/registration
 - [ ] Admin login/registration
 - [ ] Dashboard loading
@@ -235,6 +266,7 @@ Create a list of critical user flows to test after migration:
 ## Completion Checklist
 
 Before proceeding to the next phase:
+
 - [ ] All items above completed
 - [ ] Backup verified and accessible
 - [ ] Dependencies audited
@@ -246,6 +278,7 @@ Before proceeding to the next phase:
 ## Next Steps
 
 Once this checklist is complete, proceed to:
+
 - **[02-dependencies-migration.md](./02-dependencies-migration.md)** - Start migrating dependencies
 
 ## Notes
@@ -255,4 +288,3 @@ Document any issues or concerns discovered during this phase:
 ```
 [Add your notes here]
 ```
-

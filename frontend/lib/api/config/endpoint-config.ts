@@ -1,6 +1,6 @@
 /**
  * Config-driven API endpoint system
- * 
+ *
  * This system allows defining API endpoints declaratively using configs,
  * reducing boilerplate and making the API layer more maintainable.
  */
@@ -26,32 +26,32 @@ export interface PathParam {
 export interface EndpointConfig<TResponse = unknown, TBody = unknown> {
   /** HTTP method */
   method: HttpMethod;
-  
+
   /** Endpoint path template (e.g., "/strategy/:id" or "/strategy") */
   path: string;
-  
+
   /** Path parameters (e.g., { id: "123" } becomes /strategy/123) */
   pathParams?: PathParam[];
-  
+
   /** Query parameters */
   queryParams?: QueryParam[];
-  
+
   /** Whether this endpoint requires a body */
   requiresBody?: boolean;
-  
+
   /** Response type (for TypeScript) */
   responseType?: TResponse;
-  
+
   /** Body type (for TypeScript) */
   bodyType?: TBody;
-  
+
   /** Custom handler function for special cases (e.g., file uploads) */
   customHandler?: (
     client: ApiClient,
     params: Record<string, unknown>,
     body?: unknown
   ) => Promise<TResponse>;
-  
+
   /** Whether to use uploadFile instead of regular request */
   isFileUpload?: boolean;
 }
@@ -75,11 +75,13 @@ export function buildQueryString(
 
   for (const paramDef of queryParamDefs) {
     const value = params[paramDef.name];
-    
+
     // Skip undefined/null values unless required
     if (value === undefined || value === null) {
       if (paramDef.required) {
-        throw new Error(`Required query parameter '${paramDef.name}' is missing`);
+        throw new Error(
+          `Required query parameter '${paramDef.name}' is missing`
+        );
       }
       continue;
     }
@@ -117,10 +119,12 @@ export function buildPath(
 
   for (const paramDef of pathParams) {
     const value = paramValues?.[paramDef.name];
-    
+
     if (value === undefined || value === null) {
       if (paramDef.required) {
-        throw new Error(`Required path parameter '${paramDef.name}' is missing`);
+        throw new Error(
+          `Required path parameter '${paramDef.name}' is missing`
+        );
       }
       continue;
     }
@@ -133,4 +137,3 @@ export function buildPath(
 
   return path;
 }
-

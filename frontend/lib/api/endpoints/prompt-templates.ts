@@ -61,7 +61,9 @@ export class PromptTemplatesApi {
   }
 
   async getAllForSubAccount(subAccountId: number): Promise<PromptTemplate[]> {
-    return this.api.getAllForSubAccount({ subAccountId }) as Promise<PromptTemplate[]>;
+    return this.api.getAllForSubAccount({ subAccountId }) as Promise<
+      PromptTemplate[]
+    >;
   }
 
   async getById(id: number): Promise<PromptTemplate> {
@@ -74,7 +76,7 @@ export class PromptTemplatesApi {
 
   async create(data: CreatePromptTemplateDto): Promise<PromptTemplate> {
     console.log("API: Creating prompt template with data:", data);
-    const result = await this.api.create(undefined, data) as PromptTemplate;
+    const result = (await this.api.create(undefined, data)) as PromptTemplate;
     console.log("API: Prompt template created successfully:", result);
     return result;
   }
@@ -84,13 +86,16 @@ export class PromptTemplatesApi {
     data: UpdatePromptTemplateDto
   ): Promise<PromptTemplate> {
     console.log("API: Updating prompt template with data:", { id, data });
-    const result = await this.api.update({ id }, data) as PromptTemplate;
+    const result = (await this.api.update({ id }, data)) as PromptTemplate;
     console.log("API: Prompt template updated successfully:", result);
     return result;
   }
 
   async activate(id: number, subAccountId: number): Promise<PromptTemplate> {
-    return this.api.activate({ id }, { subAccountId }) as Promise<PromptTemplate>;
+    return this.api.activate(
+      { id },
+      { subAccountId }
+    ) as Promise<PromptTemplate>;
   }
 
   async deleteTemplate(id: number): Promise<void> {

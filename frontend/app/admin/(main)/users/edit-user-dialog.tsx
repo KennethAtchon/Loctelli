@@ -59,9 +59,11 @@ export function EditUserDialog({
         isActive: user.isActive,
         bookingEnabled: user.bookingEnabled || 1,
         bookingsTime:
-          (user as UserProfile & {
-            bookingsTime?: Array<{ date: string; slots: string[] }> | null;
-          }).bookingsTime || null,
+          (
+            user as UserProfile & {
+              bookingsTime?: Array<{ date: string; slots: string[] }> | null;
+            }
+          ).bookingsTime || null,
       });
     }
   }, [user]);

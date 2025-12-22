@@ -60,4 +60,3 @@ export const integrationTemplatesConfig: EndpointGroup = {
     responseType: {} as void,
   },
 };
-

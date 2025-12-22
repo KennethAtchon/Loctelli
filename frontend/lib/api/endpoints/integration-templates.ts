@@ -73,14 +73,19 @@ export class IntegrationTemplatesApi {
   }
 
   async getByCategory(category: string): Promise<IntegrationTemplate[]> {
-    return this.api.getByCategory({ category }) as Promise<IntegrationTemplate[]>;
+    return this.api.getByCategory({ category }) as Promise<
+      IntegrationTemplate[]
+    >;
   }
 
   async create(
     data: CreateIntegrationTemplateDto
   ): Promise<IntegrationTemplate> {
     console.log("API: Creating integration template with data:", data);
-    const result = await this.api.create(undefined, data) as IntegrationTemplate;
+    const result = (await this.api.create(
+      undefined,
+      data
+    )) as IntegrationTemplate;
     console.log("API: Integration template created successfully:", result);
     return result;
   }
@@ -90,7 +95,7 @@ export class IntegrationTemplatesApi {
     data: UpdateIntegrationTemplateDto
   ): Promise<IntegrationTemplate> {
     console.log("API: Updating integration template with data:", { id, data });
-    const result = await this.api.update({ id }, data) as IntegrationTemplate;
+    const result = (await this.api.update({ id }, data)) as IntegrationTemplate;
     console.log("API: Integration template updated successfully:", result);
     return result;
   }

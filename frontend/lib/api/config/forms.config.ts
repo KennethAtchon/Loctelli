@@ -126,4 +126,3 @@ export const formsConfig: EndpointGroup = {
     responseType: {} as FormStats,
   },
 };
-

@@ -58,17 +58,24 @@ export function TenantAwareLeadsList() {
       <CardContent>
         {leads && leads.length > 0 ? (
           <ul className="space-y-2">
-            {leads.map((lead: { id: number; name: string; email?: string; subAccountId?: number }) => (
-              <li key={lead.id} className="p-2 border rounded">
-                <div className="font-medium">{lead.name}</div>
-                <div className="text-sm text-gray-600">{lead.email}</div>
-                {isGlobalView && (
-                  <Badge variant="secondary" className="mt-1">
-                    SubAccount: {lead.subAccountId}
-                  </Badge>
-                )}
-              </li>
-            ))}
+            {leads.map(
+              (lead: {
+                id: number;
+                name: string;
+                email?: string;
+                subAccountId?: number;
+              }) => (
+                <li key={lead.id} className="p-2 border rounded">
+                  <div className="font-medium">{lead.name}</div>
+                  <div className="text-sm text-gray-600">{lead.email}</div>
+                  {isGlobalView && (
+                    <Badge variant="secondary" className="mt-1">
+                      SubAccount: {lead.subAccountId}
+                    </Badge>
+                  )}
+                </li>
+              )
+            )}
           </ul>
         ) : (
           <p className="text-gray-500">No leads found</p>

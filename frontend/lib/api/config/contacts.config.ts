@@ -8,7 +8,6 @@ import {
   CreateContactSubmissionDto,
   UpdateContactSubmissionDto,
   CreateContactNoteDto,
-  ContactFiltersDto,
   ContactStats,
 } from "@/types";
 
@@ -63,4 +62,3 @@ export const contactsConfig: EndpointGroup = {
     responseType: {} as ContactStats,
   },
 };
-

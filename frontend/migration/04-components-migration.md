@@ -28,6 +28,7 @@ components/
 #### Component Inventory
 
 These are the base UI components from Shadcn/ui:
+
 - Accordion, Alert, Alert Dialog, Avatar, Badge
 - Breadcrumb, Button, Calendar, Card, Carousel
 - Checkbox, Collapsible, Command, Context Menu
@@ -66,16 +67,19 @@ npx shadcn@latest add --help
 #### Component-Specific Updates
 
 **Button Component**
+
 - [ ] Verify button variants work
 - [ ] Check disabled states
 - [ ] Test loading states
 
 **Form Components**
+
 - [ ] Verify form integration
 - [ ] Check validation display
 - [ ] Test error states
 
 **Dialog/Modal Components**
+
 - [ ] Verify portal rendering
 - [ ] Check focus management
 - [ ] Test accessibility
@@ -101,6 +105,7 @@ npx shadcn@latest add --help
 **1. Review Each Component**
 
 For each admin component:
+
 - [ ] Check React 19 compatibility
 - [ ] Verify TypeScript types
 - [ ] Test component functionality
@@ -123,6 +128,7 @@ For each admin component:
 #### Key Components to Migrate
 
 **agent-info-modal.tsx**
+
 ```typescript
 // Check for:
 // - Modal/dialog API changes
@@ -132,6 +138,7 @@ For each admin component:
 ```
 
 **sdk-tables.tsx**
+
 ```typescript
 // Check for:
 // - Table component updates
@@ -141,6 +148,7 @@ For each admin component:
 ```
 
 **subaccount-filter.tsx**
+
 ```typescript
 // Check for:
 // - Context usage
@@ -179,7 +187,7 @@ For each admin component:
 // Verify protected route pattern
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
-  
+
   // Check React 19 compatibility
   // Verify useAuth hook works
   // Test redirect logic
@@ -321,6 +329,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 #### Current Pattern
 
 Components using `"use client"`:
+
 - [ ] List all client components
 - [ ] Verify client directive usage
 - [ ] Check for unnecessary client components
@@ -436,6 +445,7 @@ After migration, verify:
 ### Issue: Hydration Mismatch
 
 **Solution:**
+
 1. Check for client/server component mismatch
 2. Verify `suppressHydrationWarning` usage
 3. Check for date/time rendering
@@ -444,6 +454,7 @@ After migration, verify:
 ### Issue: Context Not Working
 
 **Solution:**
+
 1. Verify context provider is in component tree
 2. Check context value updates
 3. Verify context consumption
@@ -452,6 +463,7 @@ After migration, verify:
 ### Issue: Form Not Submitting
 
 **Solution:**
+
 1. Verify React Hook Form setup
 2. Check form validation
 3. Verify API integration
@@ -460,6 +472,7 @@ After migration, verify:
 ## Next Steps
 
 After component migration:
+
 - **[05-api-state-migration.md](./05-api-state-migration.md)** - Migrate API and state management
 
 ## Notes
@@ -469,4 +482,3 @@ Document component changes:
 ```
 [Add component migration notes here]
 ```
-

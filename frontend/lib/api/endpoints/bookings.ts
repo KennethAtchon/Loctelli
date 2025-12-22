@@ -52,7 +52,9 @@ export class BookingsApi {
     startDate: string,
     endDate: string
   ): Promise<Booking[]> {
-    return this.api.getBookingsByDateRange({ startDate, endDate }) as Promise<Booking[]>;
+    return this.api.getBookingsByDateRange({ startDate, endDate }) as Promise<
+      Booking[]
+    >;
   }
 
   async updateBookingStatus(id: number, status: string): Promise<Booking> {

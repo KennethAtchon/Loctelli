@@ -153,10 +153,7 @@ export default function FormSubmissionDetailPage() {
   };
 
   // Helper function to render form field value
-  const renderFieldValue = (
-    field: FormField | undefined,
-    value: unknown
-  ) => {
+  const renderFieldValue = (field: FormField | undefined, value: unknown) => {
     if (!value && value !== false && value !== 0) return "N/A";
 
     switch (field?.type) {

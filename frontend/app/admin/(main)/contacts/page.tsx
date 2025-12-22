@@ -14,12 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Mail,
-  MessageSquare,
-  User,
-  Calendar,
-} from "lucide-react";
+import { Mail, MessageSquare, User, Calendar } from "lucide-react";
 import { ContactSubmission } from "@/types";
 import logger from "@/lib/logger";
 import { useTenant } from "@/contexts/tenant-context";

@@ -24,4 +24,3 @@ export const statusConfig: EndpointGroup = {
     responseType: {} as { version: string },
   },
 };
-

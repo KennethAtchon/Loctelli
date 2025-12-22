@@ -1,6 +1,6 @@
 /**
  * Generic endpoint API builder
- * 
+ *
  * Creates API methods from endpoint configs automatically
  */
 
@@ -22,9 +22,8 @@ export class EndpointApiBuilder {
     const api = {} as EndpointApi<T>;
 
     for (const [methodName, endpointConfig] of Object.entries(config)) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       api[methodName as keyof T] = this.createMethod(
-        endpointConfig as EndpointConfig<any>
+        endpointConfig as EndpointConfig<unknown>
       ) as EndpointApi<T>[keyof T];
     }
 
@@ -34,9 +33,7 @@ export class EndpointApiBuilder {
   /**
    * Creates a single API method from an endpoint config
    */
-  private createMethod<T = unknown>(
-    config: EndpointConfig<T>
-  ) {
+  private createMethod<T = unknown>(config: EndpointConfig<T>) {
     return async (
       params?: Record<string, unknown>,
       body?: unknown
@@ -68,11 +65,7 @@ export class EndpointApiBuilder {
       }
 
       // Build the path
-      const path = buildPath(
-        config.path,
-        config.pathParams,
-        pathParams
-      );
+      const path = buildPath(config.path, config.pathParams, pathParams);
 
       // Build query string
       const queryString = buildQueryString(queryParams, config.queryParams);
@@ -87,28 +80,28 @@ export class EndpointApiBuilder {
       switch (config.method) {
         case "GET":
           return this.client.get<T>(fullPath);
-        
+
         case "POST":
           if (config.requiresBody && !body) {
             throw new Error(`Body is required for ${config.path}`);
           }
           return this.client.post<T>(fullPath, body);
-        
+
         case "PATCH":
           if (config.requiresBody && !body) {
             throw new Error(`Body is required for ${config.path}`);
           }
           return this.client.patch<T>(fullPath, body);
-        
+
         case "DELETE":
           return this.client.delete<T>(fullPath);
-        
+
         case "PUT":
           if (config.requiresBody && !body) {
             throw new Error(`Body is required for ${config.path}`);
           }
           return this.client.put<T>(fullPath, body);
-        
+
         default:
           throw new Error(`Unsupported HTTP method: ${config.method}`);
       }
@@ -121,10 +114,6 @@ export class EndpointApiBuilder {
  */
 export type EndpointApi<T extends EndpointGroup> = {
   [K in keyof T]: T[K] extends EndpointConfig<infer R>
-    ? (
-        params?: Record<string, unknown>,
-        body?: unknown
-      ) => Promise<R>
+    ? (params?: Record<string, unknown>, body?: unknown) => Promise<R>
     : never;
 };
-

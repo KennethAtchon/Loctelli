@@ -46,7 +46,7 @@ export default function EditBookingPage() {
     regularUserId: 0,
     leadId: undefined,
     bookingType: "",
-    details: {},
+    details: {} as Record<string, unknown>,
     status: "pending",
   });
 
@@ -70,7 +70,9 @@ export default function EditBookingPage() {
           regularUserId: userId,
           leadId: bookingData.leadId || undefined,
           bookingType: bookingData.bookingType,
-          details: bookingData.details || {},
+          details:
+            (bookingData.details as Record<string, unknown>) ||
+            ({} as Record<string, unknown>),
           status: bookingData.status,
         });
 
@@ -115,7 +117,7 @@ export default function EditBookingPage() {
     setFormData((prev) => ({
       ...prev,
       details: {
-        ...prev.details,
+        ...((prev.details as Record<string, unknown>) || {}),
         [key]: value,
       },
     }));
@@ -341,7 +343,10 @@ export default function EditBookingPage() {
               <Input
                 id="date"
                 type="datetime-local"
-                value={formData.details?.date || ""}
+                value={
+                  ((formData.details as Record<string, unknown>)
+                    ?.date as string) || ""
+                }
                 onChange={(e) => handleDetailsChange("date", e.target.value)}
                 placeholder="Select date and time"
               />
@@ -352,7 +357,10 @@ export default function EditBookingPage() {
               <Input
                 id="duration"
                 type="number"
-                value={formData.details?.duration || ""}
+                value={
+                  ((formData.details as Record<string, unknown>)
+                    ?.duration as string) || ""
+                }
                 onChange={(e) =>
                   handleDetailsChange("duration", e.target.value)
                 }
@@ -367,7 +375,10 @@ export default function EditBookingPage() {
               <Input
                 id="location"
                 type="text"
-                value={formData.details?.location || ""}
+                value={
+                  ((formData.details as Record<string, unknown>)
+                    ?.location as string) || ""
+                }
                 onChange={(e) =>
                   handleDetailsChange("location", e.target.value)
                 }
@@ -379,7 +390,10 @@ export default function EditBookingPage() {
               <Label htmlFor="notes">Notes</Label>
               <Textarea
                 id="notes"
-                value={formData.details?.notes || ""}
+                value={
+                  ((formData.details as Record<string, unknown>)
+                    ?.notes as string) || ""
+                }
                 onChange={(e) => handleDetailsChange("notes", e.target.value)}
                 placeholder="Additional notes about the booking"
                 rows={3}
@@ -390,7 +404,10 @@ export default function EditBookingPage() {
               <Label htmlFor="agenda">Agenda</Label>
               <Textarea
                 id="agenda"
-                value={formData.details?.agenda || ""}
+                value={
+                  ((formData.details as Record<string, unknown>)
+                    ?.agenda as string) || ""
+                }
                 onChange={(e) => handleDetailsChange("agenda", e.target.value)}
                 placeholder="Meeting agenda or discussion points"
                 rows={3}

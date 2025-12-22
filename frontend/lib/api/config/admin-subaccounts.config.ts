@@ -48,4 +48,3 @@ export const adminSubAccountsConfig: EndpointGroup = {
     responseType: {} as { message: string },
   },
 };
-

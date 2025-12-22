@@ -12,4 +12,3 @@ export const generalConfig: EndpointGroup = {
     responseType: {} as SchemaResponse,
   },
 };
-

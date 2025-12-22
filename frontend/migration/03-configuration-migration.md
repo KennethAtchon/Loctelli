@@ -11,6 +11,7 @@ This guide covers migrating all configuration files in the frontend application,
 #### Current Configuration Review
 
 Review the current `next.config.ts` for:
+
 - ESLint configuration
 - TypeScript configuration
 - Image optimization
@@ -21,6 +22,7 @@ Review the current `next.config.ts` for:
 #### Migration Steps
 
 **1. Update ESLint Configuration**
+
 ```typescript
 // Next.js 15 may have updated ESLint handling
 eslint: {
@@ -29,6 +31,7 @@ eslint: {
 ```
 
 **2. Update TypeScript Configuration**
+
 ```typescript
 typescript: {
   ignoreBuildErrors: true, // Review if this should be false
@@ -36,6 +39,7 @@ typescript: {
 ```
 
 **3. Image Optimization**
+
 ```typescript
 images: {
   formats: ["image/webp", "image/avif"],
@@ -45,6 +49,7 @@ images: {
 ```
 
 **4. Experimental Features**
+
 ```typescript
 experimental: {
   optimizePackageImports: ["lucide-react"],
@@ -53,6 +58,7 @@ experimental: {
 ```
 
 **5. Security Headers**
+
 ```typescript
 async headers() {
   return [
@@ -127,18 +133,22 @@ async headers() {
 #### Migration Steps
 
 **1. Update Target**
+
 - Consider updating `target` to `ES2020` or `ES2022` for better optimization
 - Keep `ES2017` if browser support is required
 
 **2. Module Resolution**
+
 - `moduleResolution: "bundler"` is correct for Next.js 15
 - Verify this works with your setup
 
 **3. Strict Mode**
+
 - Currently `strict: true` but some strict checks are disabled
 - Consider enabling `noImplicitAny`, `noUnusedLocals`, `noUnusedParameters` gradually
 
 **4. Path Aliases**
+
 - Verify `@/*` alias works correctly
 - Test imports using the alias
 
@@ -158,11 +168,13 @@ Tailwind CSS v4 is a major rewrite with significant changes.
 #### File: `postcss.config.mjs`
 
 **Current Configuration:**
+
 ```javascript
 // Review current PostCSS config
 ```
 
 **Tailwind v4 Changes:**
+
 - [ ] May use `@tailwindcss/postcss` plugin
 - [ ] Configuration may move to CSS file
 - [ ] Check `@tailwindcss/postcss@^4.0.0` usage
@@ -208,6 +220,7 @@ Tailwind v4 may require CSS import changes:
 #### Current Configuration Review
 
 Review for:
+
 - Test environment
 - Module name mapping
 - Setup files
@@ -217,24 +230,27 @@ Review for:
 #### Migration Steps
 
 **1. Update Jest Configuration**
+
 ```javascript
 // Jest 29 may have configuration changes
 module.exports = {
-  testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  testEnvironment: "jsdom",
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/$1',
+    "^@/(.*)$": "<rootDir>/$1",
   },
   // ... other config
 };
 ```
 
 **2. Update Setup File**
+
 - Review `jest.setup.js`
 - Update testing library setup
 - Check for deprecated APIs
 
 **3. Test Configuration**
+
 ```bash
 # Verify Jest works
 pnpm test
@@ -261,12 +277,14 @@ ESLint 9 uses a new flat config format.
 #### Current Configuration Review
 
 Check if using:
+
 - Flat config format (`.mjs`)
 - Legacy format (`.eslintrc.*`)
 
 #### Migration Steps
 
 **1. Verify Flat Config**
+
 ```javascript
 // ESLint 9 flat config format
 export default [
@@ -275,11 +293,13 @@ export default [
 ```
 
 **2. Update Plugins**
+
 - [ ] Update `eslint-config-next`
 - [ ] Update `eslint-config-prettier`
 - [ ] Verify plugin compatibility
 
 **3. Test Linting**
+
 ```bash
 # Note: Linting is currently disabled
 # If re-enabling, test:
@@ -293,11 +313,13 @@ pnpm run lint
 #### Migration Steps
 
 **1. Check Configuration**
+
 - [ ] Verify Prettier config exists
 - [ ] Review formatting rules
 - [ ] Test formatting: `pnpm run format`
 
 **2. Update if Needed**
+
 ```json
 {
   "semi": true,
@@ -319,6 +341,7 @@ This file configures Shadcn/ui component generation.
 #### Migration Steps
 
 **1. Review Configuration**
+
 ```json
 {
   "$schema": "https://ui.shadcn.com/schema.json",
@@ -335,6 +358,7 @@ This file configures Shadcn/ui component generation.
 ```
 
 **2. Update for Tailwind v4**
+
 - [ ] Check if Shadcn supports Tailwind v4
 - [ ] Update configuration if needed
 - [ ] Test component generation
@@ -346,11 +370,13 @@ This file configures Shadcn/ui component generation.
 #### Migration Steps
 
 **1. Review Environment Variable Validation**
+
 - [ ] Check validation logic
 - [ ] Verify all required variables
 - [ ] Update validation if needed
 
 **2. Environment Files**
+
 - [ ] `.env.local` - Local development
 - [ ] `.env.development` - Development
 - [ ] `.env.production` - Production
@@ -363,12 +389,14 @@ This file configures Shadcn/ui component generation.
 #### Migration Steps
 
 **1. Review Dockerfile**
+
 - [ ] Node.js version (currently 20)
 - [ ] Build arguments
 - [ ] Multi-stage build
 - [ ] Production dependencies
 
 **2. Update if Needed**
+
 ```dockerfile
 # Verify Node.js version compatibility
 FROM node:20-alpine AS builder
@@ -410,11 +438,13 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 #### Migration Steps
 
 **1. Verify Scripts Work**
+
 - [ ] Test each script
 - [ ] Update if dependencies change
 - [ ] Add new scripts if needed
 
 **2. Consider Adding**
+
 ```json
 {
   "scripts": {
@@ -444,6 +474,7 @@ After migration, verify:
 ### Issue: TypeScript Path Aliases Not Working
 
 **Solution:**
+
 1. Verify `tsconfig.json` paths configuration
 2. Check `next.config.ts` for alias configuration (if needed)
 3. Restart TypeScript server in IDE
@@ -451,6 +482,7 @@ After migration, verify:
 ### Issue: Tailwind Classes Not Working
 
 **Solution:**
+
 1. Verify Tailwind v4 migration completed
 2. Check CSS imports in `globals.css`
 3. Verify PostCSS configuration
@@ -459,6 +491,7 @@ After migration, verify:
 ### Issue: Jest Module Resolution Errors
 
 **Solution:**
+
 1. Update `moduleNameMapper` in `jest.config.js`
 2. Verify path aliases match TypeScript config
 3. Check `jest.setup.js` for correct imports
@@ -466,6 +499,7 @@ After migration, verify:
 ## Next Steps
 
 After configuration migration:
+
 - **[04-components-migration.md](./04-components-migration.md)** - Migrate components
 
 ## Notes
@@ -475,4 +509,3 @@ Document configuration changes:
 ```
 [Add configuration notes here]
 ```
-

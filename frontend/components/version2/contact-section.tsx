@@ -48,9 +48,25 @@ export function ContactSection() {
         if (
           typeof window !== "undefined" &&
           "gtag" in window &&
-          typeof (window as { gtag?: (command: string, event: string, params: Record<string, string>) => void }).gtag === "function"
+          typeof (
+            window as {
+              gtag?: (
+                command: string,
+                event: string,
+                params: Record<string, string>
+              ) => void;
+            }
+          ).gtag === "function"
         ) {
-          (window as { gtag: (command: string, event: string, params: Record<string, string>) => void }).gtag("event", "form_submit", {
+          (
+            window as {
+              gtag: (
+                command: string,
+                event: string,
+                params: Record<string, string>
+              ) => void;
+            }
+          ).gtag("event", "form_submit", {
             event_category: "Contact",
             event_label: "Website Contact Form",
           });

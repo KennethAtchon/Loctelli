@@ -7,12 +7,14 @@ This guide covers migrating all npm/pnpm dependencies in the frontend applicatio
 ## Migration Strategy
 
 ### Approach
+
 1. **Group by Category**: Migrate related dependencies together
 2. **Test Incrementally**: Test after each group migration
 3. **Version Pinning**: Pin exact versions initially, then relax constraints
 4. **Breaking Changes**: Document and address breaking changes immediately
 
 ### Migration Order
+
 1. Core framework (Next.js, React)
 2. Build tools and TypeScript
 3. UI libraries (Radix UI, Shadcn)
@@ -27,6 +29,7 @@ This guide covers migrating all npm/pnpm dependencies in the frontend applicatio
 ### Next.js and React
 
 #### Current Versions
+
 - `next@^15.4.7`
 - `react@^19.2.1`
 - `react-dom@^19.2.1`
@@ -44,6 +47,7 @@ pnpm list next react react-dom
 #### Breaking Changes to Address
 
 **Next.js 15:**
+
 - [ ] App Router is now default (already using it)
 - [ ] `next/image` may have new props
 - [ ] Metadata API changes
@@ -51,12 +55,14 @@ pnpm list next react react-dom
 - [ ] Turbopack improvements
 
 **React 19:**
+
 - [ ] New JSX transform (already enabled)
 - [ ] `useFormState` and `useFormStatus` hooks
 - [ ] Server Components improvements
 - [ ] Automatic batching changes
 
 #### Verification
+
 ```bash
 # Test build
 pnpm run build
@@ -70,6 +76,7 @@ pnpm run dev 2>&1 | grep -i "deprecated\|warning"
 ### TypeScript Configuration
 
 #### Current Setup
+
 - `typescript@^5`
 - `@types/node@^22`
 - `@types/react@^19.2.0`
@@ -88,6 +95,7 @@ pnpm exec tsc --noEmit
 #### TypeScript Configuration Updates
 
 Check `tsconfig.json` for:
+
 - [ ] `target` - Should be ES2017 or higher
 - [ ] `lib` - Should include "dom", "dom.iterable", "esnext"
 - [ ] `module` - Should be "esnext"
@@ -99,6 +107,7 @@ Check `tsconfig.json` for:
 ### Radix UI Packages
 
 #### Current Versions
+
 All `@radix-ui/*` packages are at various versions. Check for consistency.
 
 #### Migration Steps
@@ -135,6 +144,7 @@ pnpm add @radix-ui/react-accordion@latest \
 ```
 
 #### Breaking Changes
+
 - [ ] Check Radix UI v2 migration guide (if applicable)
 - [ ] Update component props if needed
 - [ ] Test all UI components
@@ -156,6 +166,7 @@ pnpm add class-variance-authority@latest \
 ### TanStack React Query
 
 #### Current Version
+
 - `@tanstack/react-query@^5.62.11`
 
 #### Migration Steps
@@ -166,12 +177,15 @@ pnpm add @tanstack/react-query@latest
 ```
 
 #### Breaking Changes (v5)
+
 - [ ] Query client setup may need updates
 - [ ] Mutation API changes
 - [ ] DevTools integration changes
 
 #### Verification
+
 Check all React Query usage:
+
 - [ ] `useQuery` hooks
 - [ ] `useMutation` hooks
 - [ ] Query client configuration
@@ -182,6 +196,7 @@ Check all React Query usage:
 ### React Hook Form and Zod
 
 #### Current Versions
+
 - `react-hook-form@^7.54.1`
 - `@hookform/resolvers@^3.9.1`
 - `zod@^3.24.1`
@@ -194,12 +209,15 @@ pnpm add react-hook-form@latest @hookform/resolvers@latest zod@latest
 ```
 
 #### Breaking Changes
+
 - [ ] React Hook Form v7 API changes
 - [ ] Zod v3 schema changes
 - [ ] Resolver updates
 
 #### Verification
+
 Test all forms:
+
 - [ ] Login forms
 - [ ] Registration forms
 - [ ] Admin forms
@@ -210,6 +228,7 @@ Test all forms:
 ### Tailwind CSS
 
 #### Current Version
+
 - `tailwindcss@^4.0.0` (Major version!)
 
 #### Migration Steps
@@ -228,12 +247,13 @@ Tailwind CSS v4 has significant changes:
    - [ ] Check `postcss.config.mjs` for Tailwind plugin
 
 2. **CSS Import Changes**
+
    ```css
    /* Old (v3) */
    @tailwind base;
    @tailwind components;
    @tailwind utilities;
-   
+
    /* New (v4) - May need to update */
    @import "tailwindcss";
    ```
@@ -247,6 +267,7 @@ Tailwind CSS v4 has significant changes:
    - [ ] Check `tw-animate-css` compatibility
 
 #### Verification
+
 ```bash
 # Test Tailwind compilation
 pnpm run build
@@ -266,6 +287,7 @@ pnpm add -D autoprefixer@latest
 ### Jest and Testing Library
 
 #### Current Versions
+
 - `jest@^29.7.0`
 - `@testing-library/react@^16.1.0`
 - `@testing-library/jest-dom@^6.6.3`
@@ -284,6 +306,7 @@ pnpm add -D jest@latest \
 ```
 
 #### Breaking Changes
+
 - [ ] Jest 29 configuration changes
 - [ ] Testing Library v16 API changes
 - [ ] User Event v14 API changes
@@ -299,6 +322,7 @@ pnpm add -D msw@latest
 ### ESLint and Prettier
 
 #### Current Versions
+
 - `eslint@^9.39.1`
 - `eslint-config-next@^15.3.4`
 - `prettier@^3.7.4`
@@ -314,6 +338,7 @@ pnpm add -D eslint@latest \
 ```
 
 #### ESLint 9 Changes
+
 - [ ] New flat config format (check `eslint.config.mjs`)
 - [ ] Plugin system changes
 - [ ] Rule updates
@@ -404,6 +429,7 @@ pnpm run dev
 ### Issue: Peer Dependency Warnings
 
 **Solution:**
+
 ```bash
 # Install missing peer dependencies
 pnpm add --save-peer <missing-package>@<version>
@@ -412,6 +438,7 @@ pnpm add --save-peer <missing-package>@<version>
 ### Issue: Type Errors After Update
 
 **Solution:**
+
 1. Update `@types/*` packages
 2. Check TypeScript version compatibility
 3. Review breaking changes in type definitions
@@ -419,6 +446,7 @@ pnpm add --save-peer <missing-package>@<version>
 ### Issue: Build Failures
 
 **Solution:**
+
 1. Clear `.next` directory: `rm -rf .next`
 2. Clear node_modules: `rm -rf node_modules`
 3. Reinstall: `pnpm install`
@@ -427,6 +455,7 @@ pnpm add --save-peer <missing-package>@<version>
 ### Issue: Runtime Errors
 
 **Solution:**
+
 1. Check browser console for errors
 2. Review dependency changelogs
 3. Check for API changes in libraries
@@ -464,6 +493,7 @@ pnpm install
 ## Next Steps
 
 After dependencies are migrated:
+
 - **[03-configuration-migration.md](./03-configuration-migration.md)** - Update configuration files
 
 ## Notes
@@ -473,4 +503,3 @@ Document any issues encountered:
 ```
 [Add migration notes here]
 ```
-

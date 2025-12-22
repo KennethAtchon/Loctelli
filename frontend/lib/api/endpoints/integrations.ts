@@ -92,19 +92,21 @@ export class IntegrationsApi {
     status: string,
     subAccountId?: number
   ): Promise<Integration[]> {
-    return this.api.getByStatus({ status, subAccountId }) as Promise<Integration[]>;
+    return this.api.getByStatus({ status, subAccountId }) as Promise<
+      Integration[]
+    >;
   }
 
   async create(data: CreateIntegrationDto): Promise<Integration> {
     console.log("API: Creating integration with data:", data);
-    const result = await this.api.create(undefined, data) as Integration;
+    const result = (await this.api.create(undefined, data)) as Integration;
     console.log("API: Integration created successfully:", result);
     return result;
   }
 
   async update(id: number, data: UpdateIntegrationDto): Promise<Integration> {
     console.log("API: Updating integration with data:", { id, data });
-    const result = await this.api.update({ id }, data) as Integration;
+    const result = (await this.api.update({ id }, data)) as Integration;
     console.log("API: Integration updated successfully:", result);
     return result;
   }
@@ -114,7 +116,10 @@ export class IntegrationsApi {
     status: string,
     errorMessage?: string
   ): Promise<Integration> {
-    return this.api.updateStatus({ id }, { status, errorMessage }) as Promise<Integration>;
+    return this.api.updateStatus(
+      { id },
+      { status, errorMessage }
+    ) as Promise<Integration>;
   }
 
   async testConnection(id: number): Promise<TestConnectionResponse> {

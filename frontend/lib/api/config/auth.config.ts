@@ -58,4 +58,3 @@ export const authConfig: EndpointGroup = {
     responseType: {} as { message: string },
   },
 };
-

@@ -1,6 +1,6 @@
 /**
  * Config-driven API endpoint system
- * 
+ *
  * Export all configs and utilities
  */
 
@@ -23,4 +23,3 @@ export { statusConfig } from "./status.config";
 export { authConfig } from "./auth.config";
 export { adminAuthConfig } from "./admin-auth.config";
 export { adminSubAccountsConfig } from "./admin-subaccounts.config";
-

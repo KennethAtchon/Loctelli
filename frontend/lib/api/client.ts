@@ -45,12 +45,10 @@ export class ApiClient {
     const url = `${this.baseUrl}${endpoint}`;
     const isAuthEndpoint = this.authService.isAuthEndpoint(endpoint);
     const method = options.method || "GET";
-    
+
     // Create a unique key for request deduplication (only for GET requests)
     // Use endpoint + query string, but not headers (which may include changing auth tokens)
-    const requestKey = method === "GET" 
-      ? `${method}:${endpoint}`
-      : null;
+    const requestKey = method === "GET" ? `${method}:${endpoint}` : null;
 
     // Check if there's already an identical request in flight
     if (requestKey && this.pendingRequests.has(requestKey)) {
@@ -95,7 +93,7 @@ export class ApiClient {
       failureKey,
       failureCount
     );
-    
+
     // Store the promise for GET requests to enable deduplication
     if (requestKey) {
       this.pendingRequests.set(requestKey, requestPromise);

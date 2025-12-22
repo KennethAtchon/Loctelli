@@ -24,12 +24,7 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
-import {
-  FormTemplate,
-  FormField,
-  api,
-  UploadedFile,
-} from "@/lib/api";
+import { FormTemplate, FormField, api, UploadedFile } from "@/lib/api";
 import logger from "@/lib/logger";
 import { Navigation } from "@/components/version2/navigation";
 import { Footer } from "@/components/version2/footer";
@@ -126,7 +121,7 @@ export default function PublicFormPage() {
     checked: boolean
   ) => {
     setFormData((prev) => {
-      const currentValues = prev[fieldId] || [];
+      const currentValues = (prev[fieldId] as string[] | undefined) || [];
       if (checked) {
         return {
           ...prev,
@@ -175,7 +170,7 @@ export default function PublicFormPage() {
 
     for (const field of template.schema) {
       if (field.required) {
-        const value = formData[field.id];
+        const value = formData[field.id] as string | string[] | undefined;
         if (
           !value ||
           (Array.isArray(value) && value.length === 0) ||
@@ -216,7 +211,7 @@ export default function PublicFormPage() {
   };
 
   const renderField = (field: FormField) => {
-    const value = formData[field.id] || "";
+    const value = (formData[field.id] as string | undefined) || "";
 
     switch (field.type) {
       case "text":
@@ -317,7 +312,8 @@ export default function PublicFormPage() {
         );
 
       case "checkbox":
-        const selectedValues = formData[field.id] || [];
+        const selectedValues =
+          (formData[field.id] as string[] | undefined) || [];
         return (
           <div key={field.id} className="space-y-3">
             <Label>

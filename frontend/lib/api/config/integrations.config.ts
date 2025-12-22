@@ -88,4 +88,3 @@ export const integrationsConfig: EndpointGroup = {
     responseType: {} as void,
   },
 };
-

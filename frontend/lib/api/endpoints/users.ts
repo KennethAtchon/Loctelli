@@ -12,22 +12,22 @@ export class UsersApi {
   }
 
   async getUsers(): Promise<User[]> {
-    return this.api.getUsers();
+    return this.api.getUsers() as Promise<User[]>;
   }
 
   async getUser(id: number): Promise<User> {
-    return this.api.getUser({ id });
+    return this.api.getUser({ id }) as Promise<User>;
   }
 
   async createUser(data: CreateUserDto): Promise<User> {
-    return this.api.createUser(undefined, data);
+    return this.api.createUser(undefined, data) as Promise<User>;
   }
 
   async updateUser(id: number, data: Partial<CreateUserDto>): Promise<User> {
-    return this.api.updateUser({ id }, data);
+    return this.api.updateUser({ id }, data) as Promise<User>;
   }
 
   async deleteUser(id: number): Promise<void> {
-    return this.api.deleteUser({ id });
+    return this.api.deleteUser({ id }) as Promise<void>;
   }
 }

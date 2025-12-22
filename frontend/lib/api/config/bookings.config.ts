@@ -53,18 +53,14 @@ export const bookingsConfig: EndpointGroup = {
   getBookingsByUser: {
     method: "GET",
     path: "/booking",
-    queryParams: [
-      { name: "userId", required: true, type: "number" },
-    ],
+    queryParams: [{ name: "userId", required: true, type: "number" }],
     responseType: {} as Booking[],
   },
 
   getBookingsByLead: {
     method: "GET",
     path: "/booking",
-    queryParams: [
-      { name: "leadId", required: true, type: "number" },
-    ],
+    queryParams: [{ name: "leadId", required: true, type: "number" }],
     responseType: {} as Booking[],
   },
 
@@ -87,4 +83,3 @@ export const bookingsConfig: EndpointGroup = {
     responseType: {} as Booking,
   },
 };
-

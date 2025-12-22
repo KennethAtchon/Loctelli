@@ -159,7 +159,9 @@ export class FormsApi {
 
   // Form Templates
   async getFormTemplates(subAccountId?: number): Promise<FormTemplate[]> {
-    return this.api.getFormTemplates({ subAccountId }) as Promise<FormTemplate[]>;
+    return this.api.getFormTemplates({ subAccountId }) as Promise<
+      FormTemplate[]
+    >;
   }
 
   async getFormTemplate(id: string): Promise<FormTemplate> {
@@ -167,7 +169,10 @@ export class FormsApi {
   }
 
   async createFormTemplate(data: CreateFormTemplateDto): Promise<FormTemplate> {
-    return this.api.createFormTemplate(undefined, data) as Promise<FormTemplate>;
+    return this.api.createFormTemplate(
+      undefined,
+      data
+    ) as Promise<FormTemplate>;
   }
 
   async updateFormTemplate(
@@ -194,7 +199,10 @@ export class FormsApi {
   }
 
   async wakeUpDatabase(): Promise<{ status: string; timestamp: string }> {
-    return this.api.wakeUpDatabase() as Promise<{ status: string; timestamp: string }>;
+    return this.api.wakeUpDatabase() as Promise<{
+      status: string;
+      timestamp: string;
+    }>;
   }
 
   async uploadFormFile(
@@ -210,7 +218,11 @@ export class FormsApi {
     formTemplateId?: string,
     status?: string
   ): Promise<FormSubmission[]> {
-    return this.api.getFormSubmissions({ subAccountId, formTemplateId, status }) as Promise<FormSubmission[]>;
+    return this.api.getFormSubmissions({
+      subAccountId,
+      formTemplateId,
+      status,
+    }) as Promise<FormSubmission[]>;
   }
 
   async getFormSubmission(id: string): Promise<FormSubmission> {
@@ -221,7 +233,10 @@ export class FormsApi {
     id: string,
     data: UpdateFormSubmissionDto
   ): Promise<FormSubmission> {
-    return this.api.updateFormSubmission({ id }, data) as Promise<FormSubmission>;
+    return this.api.updateFormSubmission(
+      { id },
+      data
+    ) as Promise<FormSubmission>;
   }
 
   async deleteFormSubmission(id: string): Promise<void> {

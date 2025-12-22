@@ -7,6 +7,7 @@ This migration guide provides comprehensive documentation for migrating the Loct
 ## Current Architecture
 
 ### Core Technologies
+
 - **Framework**: Next.js 15.4.7 with App Router
 - **React**: 19.2.1
 - **TypeScript**: 5.x
@@ -21,6 +22,7 @@ This migration guide provides comprehensive documentation for migrating the Loct
 ### Key Architectural Patterns
 
 #### 1. **API Client Architecture**
+
 - Centralized `ApiClient` class in `lib/api/client.ts`
 - Modular endpoint APIs in `lib/api/endpoints/`
 - Automatic token refresh on 401 errors
@@ -28,17 +30,20 @@ This migration guide provides comprehensive documentation for migrating the Loct
 - Auth service for token management
 
 #### 2. **Authentication System**
+
 - Unified auth context supporting both user and admin accounts
 - JWT tokens stored in HTTP-only cookies
 - Automatic token refresh mechanism
 - Separate auth endpoints for users (`/auth/*`) and admins (`/admin/auth/*`)
 
 #### 3. **Multi-Tenant Support**
+
 - SubAccount filtering context
 - Tenant-aware data fetching
 - Admin subaccount management
 
 #### 4. **Component Structure**
+
 ```
 components/
 ├── admin/          # Admin-specific components
@@ -52,6 +57,7 @@ components/
 ```
 
 #### 5. **App Router Structure**
+
 ```
 app/
 ├── (main)/         # Main routes (blog, forms)
@@ -66,6 +72,7 @@ app/
 ## Migration Strategy
 
 ### Phase 1: Pre-Migration Assessment
+
 1. Audit current dependencies and versions
 2. Identify breaking changes in dependencies
 3. Document current environment variables
@@ -73,12 +80,14 @@ app/
 5. Set up migration branch
 
 ### Phase 2: Core Infrastructure
+
 1. Update dependencies systematically
 2. Migrate configuration files
 3. Update TypeScript configuration
 4. Verify build process
 
 ### Phase 3: Application Code
+
 1. Migrate API client and endpoints
 2. Update authentication system
 3. Migrate components
@@ -86,12 +95,14 @@ app/
 5. Migrate state management
 
 ### Phase 4: Testing & Validation
+
 1. Update test configuration
 2. Migrate test files
 3. Run test suite
 4. Fix breaking tests
 
 ### Phase 5: Build & Deployment
+
 1. Update build configuration
 2. Update Dockerfile
 3. Test production build
@@ -113,6 +124,7 @@ app/
 ## Critical Dependencies
 
 ### Production Dependencies
+
 - `next@^15.4.7` - Core framework
 - `react@^19.2.1` - UI library
 - `react-dom@^19.2.1` - React DOM
@@ -123,6 +135,7 @@ app/
 - `lucide-react@^0.454.0` - Icons
 
 ### Development Dependencies
+
 - `typescript@^5` - Type checking
 - `jest@^29.7.0` - Testing framework
 - `@testing-library/react@^16.1.0` - React testing utilities
@@ -132,6 +145,7 @@ app/
 ## Environment Variables
 
 The frontend requires these environment variables:
+
 - `NEXT_PUBLIC_API_URL` - Backend API base URL
 - Additional variables defined in `lib/utils/envUtils.ts`
 
@@ -146,4 +160,3 @@ The frontend requires these environment variables:
 ## Next Steps
 
 Start with **[01-pre-migration-checklist.md](./01-pre-migration-checklist.md)** to prepare for migration.
-

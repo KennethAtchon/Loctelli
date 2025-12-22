@@ -50,9 +50,7 @@ export const strategiesConfig: EndpointGroup = {
   getStrategiesByUser: {
     method: "GET",
     path: "/strategy",
-    queryParams: [
-      { name: "regularUserId", required: true, type: "number" },
-    ],
+    queryParams: [{ name: "regularUserId", required: true, type: "number" }],
     responseType: {} as Strategy[],
   },
 
@@ -63,4 +61,3 @@ export const strategiesConfig: EndpointGroup = {
     responseType: {} as Strategy,
   },
 };
-

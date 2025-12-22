@@ -7,6 +7,7 @@ This guide provides a complete, sequential step-by-step process for migrating th
 ## Prerequisites
 
 Before starting, ensure you have:
+
 - [ ] Completed the pre-migration checklist ([01-pre-migration-checklist.md](./01-pre-migration-checklist.md))
 - [ ] Created a backup branch
 - [ ] Documented current state
@@ -518,18 +519,18 @@ docker build -t frontend .
 
 ## Migration Timeline Summary
 
-| Phase | Duration | Tasks |
-|-------|----------|-------|
-| Phase 1: Preparation | Day 1 | Setup and documentation |
-| Phase 2: Dependencies | Day 2-3 | Update all packages |
-| Phase 3: Configuration | Day 4 | Update config files |
-| Phase 4: Components | Day 5-6 | Update components |
-| Phase 5: API and State | Day 7-8 | Update API and state |
-| Phase 6: Routing | Day 9 | Update routing |
-| Phase 7: Testing | Day 10 | Update tests |
-| Phase 8: Build | Day 11 | Update build process |
-| Phase 9: Verification | Day 12 | Final testing |
-| Phase 10: Deployment | Day 13 | Deploy to production |
+| Phase                  | Duration | Tasks                   |
+| ---------------------- | -------- | ----------------------- |
+| Phase 1: Preparation   | Day 1    | Setup and documentation |
+| Phase 2: Dependencies  | Day 2-3  | Update all packages     |
+| Phase 3: Configuration | Day 4    | Update config files     |
+| Phase 4: Components    | Day 5-6  | Update components       |
+| Phase 5: API and State | Day 7-8  | Update API and state    |
+| Phase 6: Routing       | Day 9    | Update routing          |
+| Phase 7: Testing       | Day 10   | Update tests            |
+| Phase 8: Build         | Day 11   | Update build process    |
+| Phase 9: Verification  | Day 12   | Final testing           |
+| Phase 10: Deployment   | Day 13   | Deploy to production    |
 
 **Total Estimated Time: 13 days**
 
@@ -581,4 +582,3 @@ Document your migration progress:
 ```
 [Add your migration notes here]
 ```
-

@@ -15,12 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { FormTemplate, FormSubmission } from "@/lib/api";
-import {
-  FileText,
-  Users,
-  Calendar,
-  CheckCircle,
-} from "lucide-react";
+import { FileText, Users, Calendar, CheckCircle } from "lucide-react";
 import logger from "@/lib/logger";
 import { useTenant } from "@/contexts/tenant-context";
 

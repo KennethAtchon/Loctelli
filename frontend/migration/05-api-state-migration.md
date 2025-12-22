@@ -40,6 +40,7 @@ lib/api/
 #### Current Implementation
 
 The `ApiClient` class provides:
+
 - Base URL configuration
 - Request/response handling
 - Authentication header management
@@ -75,6 +76,7 @@ The `ApiClient` class provides:
 #### Key Methods to Review
 
 **request() Method**
+
 ```typescript
 protected async request<T = unknown>(
   endpoint: string,
@@ -88,6 +90,7 @@ protected async request<T = unknown>(
 - [ ] Verify abort controller usage
 
 **Token Refresh Logic**
+
 ```typescript
 // Handle 401 Unauthorized
 if (response.status === 401 && !isAuthEndpoint) {
@@ -107,6 +110,7 @@ if (response.status === 401 && !isAuthEndpoint) {
 #### Current Implementation
 
 The `AuthService` provides:
+
 - Token management
 - Cookie handling
 - Token refresh
@@ -139,6 +143,7 @@ The `AuthService` provides:
 #### Key Methods to Review
 
 **getAuthHeaders()**
+
 ```typescript
 getAuthHeaders(): Record<string, string>
 ```
@@ -148,6 +153,7 @@ getAuthHeaders(): Record<string, string>
 - [ ] Test missing token handling
 
 **handleUnauthorized()**
+
 ```typescript
 async handleUnauthorized(endpoint: string): Promise<Record<string, string>>
 ```
@@ -208,7 +214,7 @@ export class AuthApi {
   constructor(private client: ApiClient) {}
 
   async login(credentials: LoginDto): Promise<AuthResponse> {
-    return this.client.post<AuthResponse>('/auth/login', credentials);
+    return this.client.post<AuthResponse>("/auth/login", credentials);
   }
 }
 ```
@@ -252,6 +258,7 @@ export class AuthApi {
 #### Current Usage
 
 React Query is used for:
+
 - Data fetching
 - Caching
 - Background updates
@@ -292,7 +299,7 @@ React Query is used for:
 ```typescript
 export function useLeads(filters?: LeadFilters) {
   return useQuery({
-    queryKey: ['leads', filters],
+    queryKey: ["leads", filters],
     queryFn: () => api.leads.getAll(filters),
   });
 }
@@ -312,6 +319,7 @@ export function useLeads(filters?: LeadFilters) {
 #### Current Implementation
 
 Provides:
+
 - Unified authentication for users and admins
 - Account state management
 - Login/register methods
@@ -351,6 +359,7 @@ Provides:
 #### Key Methods to Review
 
 **loginUser() / loginAdmin()**
+
 ```typescript
 async loginUser(credentials: LoginDto): Promise<void>
 async loginAdmin(credentials: AdminLoginDto): Promise<void>
@@ -362,6 +371,7 @@ async loginAdmin(credentials: AdminLoginDto): Promise<void>
 - [ ] Verify redirect logic
 
 **refreshAccount()**
+
 ```typescript
 async refreshAccount(): Promise<void>
 ```
@@ -374,12 +384,14 @@ async refreshAccount(): Promise<void>
 ### Other Contexts
 
 #### Tenant Context
+
 - [ ] Verify tenant context works
 - [ ] Check tenant switching
 - [ ] Test data isolation
 - [ ] Verify context updates
 
 #### SubAccount Filter Context
+
 - [ ] Verify filter context
 - [ ] Check filter state
 - [ ] Test filter updates
@@ -529,6 +541,7 @@ After migration, verify:
 ### Issue: CORS Errors
 
 **Solution:**
+
 1. Verify backend CORS configuration
 2. Check API proxy setup
 3. Verify request headers
@@ -537,6 +550,7 @@ After migration, verify:
 ### Issue: Token Refresh Loop
 
 **Solution:**
+
 1. Check refresh token logic
 2. Verify token expiration
 3. Test concurrent refresh attempts
@@ -545,6 +559,7 @@ After migration, verify:
 ### Issue: Type Mismatches
 
 **Solution:**
+
 1. Verify DTO types match backend
 2. Update type definitions
 3. Check response parsing
@@ -553,6 +568,7 @@ After migration, verify:
 ## Next Steps
 
 After API and state migration:
+
 - **[06-routing-migration.md](./06-routing-migration.md)** - Migrate routing
 
 ## Notes
@@ -562,4 +578,3 @@ Document API changes:
 ```
 [Add API migration notes here]
 ```
-

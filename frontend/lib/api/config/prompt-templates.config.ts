@@ -69,4 +69,3 @@ export const promptTemplatesConfig: EndpointGroup = {
     responseType: {} as void,
   },
 };
-

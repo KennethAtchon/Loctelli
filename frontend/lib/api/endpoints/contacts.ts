@@ -29,7 +29,10 @@ export class ContactsApi {
   async createContact(
     data: CreateContactSubmissionDto
   ): Promise<ContactSubmission> {
-    return this.api.createContact(undefined, data) as Promise<ContactSubmission>;
+    return this.api.createContact(
+      undefined,
+      data
+    ) as Promise<ContactSubmission>;
   }
 
   async updateContact(

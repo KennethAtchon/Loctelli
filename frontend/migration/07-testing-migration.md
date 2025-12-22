@@ -22,6 +22,7 @@ This guide covers migrating the testing infrastructure, including Jest configura
 #### Current Configuration Review
 
 Review for:
+
 - Test environment
 - Module name mapping
 - Setup files
@@ -35,15 +36,12 @@ Review for:
 
 ```javascript
 module.exports = {
-  testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  testEnvironment: "jsdom",
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/$1',
+    "^@/(.*)$": "<rootDir>/$1",
   },
-  testMatch: [
-    '**/__tests__/**/*.[jt]s?(x)',
-    '**/?(*.)+(spec|test).[jt]s?(x)',
-  ],
+  testMatch: ["**/__tests__/**/*.[jt]s?(x)", "**/?(*.)+(spec|test).[jt]s?(x)"],
   // ... other config
 };
 ```
@@ -74,6 +72,7 @@ module.exports = {
 #### Current Setup
 
 Provides:
+
 - Testing Library DOM matchers
 - MSW setup (if used)
 - Global test utilities
@@ -105,8 +104,8 @@ Provides:
 #### Example: Setup File
 
 ```javascript
-import '@testing-library/jest-dom';
-import { server } from './test-utils/msw';
+import "@testing-library/jest-dom";
+import { server } from "./test-utils/msw";
 
 // Setup MSW
 beforeAll(() => server.listen());
@@ -194,7 +193,7 @@ export function renderWithProviders(ui: React.ReactElement) {
 
 ```typescript
 export const handlers = [
-  rest.get('/api/users', (req, res, ctx) => {
+  rest.get("/api/users", (req, res, ctx) => {
     return res(ctx.json({ users: [] }));
   }),
 ];
@@ -415,6 +414,7 @@ After testing migration, verify:
 ### Issue: Tests Failing After Update
 
 **Solution:**
+
 1. Review dependency changelogs
 2. Check for breaking changes
 3. Update test utilities
@@ -423,6 +423,7 @@ After testing migration, verify:
 ### Issue: MSW Not Intercepting
 
 **Solution:**
+
 1. Verify MSW setup
 2. Check handler registration
 3. Test handler matching
@@ -431,6 +432,7 @@ After testing migration, verify:
 ### Issue: Async Test Failures
 
 **Solution:**
+
 1. Check async/await usage
 2. Verify waitFor usage
 3. Test timeout settings
@@ -439,6 +441,7 @@ After testing migration, verify:
 ### Issue: Type Errors in Tests
 
 **Solution:**
+
 1. Update type definitions
 2. Check test type imports
 3. Verify TypeScript config
@@ -460,6 +463,7 @@ After testing migration, verify:
 ## Next Steps
 
 After testing migration:
+
 - **[08-build-deployment-migration.md](./08-build-deployment-migration.md)** - Migrate build and deployment
 
 ## Notes
@@ -469,4 +473,3 @@ Document testing changes:
 ```
 [Add testing migration notes here]
 ```
-

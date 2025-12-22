@@ -240,21 +240,27 @@ export class AdminAuthApi {
   }
 
   async adminLogin(data: AdminLoginDto): Promise<AdminAuthResponse> {
-    return this.api.adminLogin(undefined, data as AdminLoginDto & { accountType: "admin" }) as Promise<AdminAuthResponse>;
+    return this.api.adminLogin(
+      undefined,
+      data as AdminLoginDto & { accountType: "admin" }
+    ) as Promise<AdminAuthResponse>;
   }
 
   async adminRegister(
     data: AdminRegisterDto
   ): Promise<Omit<AdminProfile, "lastLoginAt" | "createdAt" | "updatedAt">> {
-    return this.api.adminRegister(undefined, data as AdminRegisterDto & { accountType: "admin" }) as Promise<
-      Omit<AdminProfile, "lastLoginAt" | "createdAt" | "updatedAt">
-    >;
+    return this.api.adminRegister(
+      undefined,
+      data as AdminRegisterDto & { accountType: "admin" }
+    ) as Promise<Omit<AdminProfile, "lastLoginAt" | "createdAt" | "updatedAt">>;
   }
 
   async adminRefreshToken(
     refreshToken: string
   ): Promise<{ access_token: string; refresh_token: string }> {
-    return this.api.adminRefreshToken(undefined, { refresh_token: refreshToken }) as Promise<{
+    return this.api.adminRefreshToken(undefined, {
+      refresh_token: refreshToken,
+    }) as Promise<{
       access_token: string;
       refresh_token: string;
     }>;
@@ -272,17 +278,23 @@ export class AdminAuthApi {
   // Admins should use the unified /auth endpoints for password changes
   // TODO: Implement admin profile update endpoint in backend if needed
   async updateAdminProfile(data: UpdateAdminProfileDto): Promise<AdminProfile> {
-    return this.api.updateAdminProfile(undefined, data) as Promise<AdminProfile>;
+    return this.api.updateAdminProfile(
+      undefined,
+      data
+    ) as Promise<AdminProfile>;
   }
 
   async changeAdminPassword(
     data: ChangeAdminPasswordDto
   ): Promise<{ message: string }> {
-    return this.api.changeAdminPassword(undefined, data) as Promise<{ message: string }>;
+    return this.api.changeAdminPassword(undefined, data) as Promise<{
+      message: string;
+    }>;
   }
 
   async getAllUsers(subaccountId?: string): Promise<UserProfile[]> {
-    const params = subaccountId && subaccountId !== "GLOBAL" ? { subaccountId } : undefined;
+    const params =
+      subaccountId && subaccountId !== "GLOBAL" ? { subaccountId } : undefined;
     return this.api.getAllUsers(params) as Promise<UserProfile[]>;
   }
 
@@ -306,7 +318,9 @@ export class AdminAuthApi {
     userId: number,
     data: UpdateUserDto
   ): Promise<Omit<UserProfile, "createdByAdmin">> {
-    return this.api.updateUser({ userId }, data) as Promise<Omit<UserProfile, "createdByAdmin">>;
+    return this.api.updateUser({ userId }, data) as Promise<
+      Omit<UserProfile, "createdByAdmin">
+    >;
   }
 
   async deleteUser(userId: number): Promise<{ message: string }> {
@@ -326,7 +340,10 @@ export class AdminAuthApi {
   }
 
   async getCurrentAuthCode(): Promise<{ authCode: string; message: string }> {
-    return this.api.getCurrentAuthCode() as Promise<{ authCode: string; message: string }>;
+    return this.api.getCurrentAuthCode() as Promise<{
+      authCode: string;
+      message: string;
+    }>;
   }
 
   async getAllAdminAccounts(): Promise<AdminProfile[]> {
@@ -334,11 +351,14 @@ export class AdminAuthApi {
   }
 
   async deleteAdminAccount(adminId: number): Promise<{ message: string }> {
-    return this.api.deleteAdminAccount({ adminId }) as Promise<{ message: string }>;
+    return this.api.deleteAdminAccount({ adminId }) as Promise<{
+      message: string;
+    }>;
   }
 
   async getDashboardStats(subaccountId?: string): Promise<DashboardStats> {
-    const params = subaccountId && subaccountId !== "GLOBAL" ? { subaccountId } : undefined;
+    const params =
+      subaccountId && subaccountId !== "GLOBAL" ? { subaccountId } : undefined;
     return this.api.getDashboardStats(params) as Promise<DashboardStats>;
   }
 
@@ -347,7 +367,8 @@ export class AdminAuthApi {
   }
 
   async getRecentLeads(subaccountId?: string): Promise<DetailedLead[]> {
-    const params = subaccountId && subaccountId !== "GLOBAL" ? { subaccountId } : undefined;
+    const params =
+      subaccountId && subaccountId !== "GLOBAL" ? { subaccountId } : undefined;
     return this.api.getRecentLeads(params) as Promise<DetailedLead[]>;
   }
 

@@ -51,19 +51,14 @@ export const leadsConfig: EndpointGroup = {
   getLeadsByUser: {
     method: "GET",
     path: "/lead",
-    queryParams: [
-      { name: "userId", required: true, type: "number" },
-    ],
+    queryParams: [{ name: "userId", required: true, type: "number" }],
     responseType: {} as Lead[],
   },
 
   getLeadsByStrategy: {
     method: "GET",
     path: "/lead",
-    queryParams: [
-      { name: "strategyId", required: true, type: "number" },
-    ],
+    queryParams: [{ name: "strategyId", required: true, type: "number" }],
     responseType: {} as Lead[],
   },
 };
-

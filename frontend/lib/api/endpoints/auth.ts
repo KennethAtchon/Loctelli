@@ -69,7 +69,9 @@ export class AuthApi {
   async refreshToken(
     refreshToken: string
   ): Promise<{ access_token: string; refresh_token: string }> {
-    return this.api.refreshToken(undefined, { refresh_token: refreshToken }) as Promise<{
+    return this.api.refreshToken(undefined, {
+      refresh_token: refreshToken,
+    }) as Promise<{
       access_token: string;
       refresh_token: string;
     }>;
@@ -87,7 +89,10 @@ export class AuthApi {
     oldPassword: string,
     newPassword: string
   ): Promise<{ message: string }> {
-    return this.api.changePassword(undefined, { oldPassword, newPassword }) as Promise<{
+    return this.api.changePassword(undefined, {
+      oldPassword,
+      newPassword,
+    }) as Promise<{
       message: string;
     }>;
   }

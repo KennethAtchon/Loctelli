@@ -81,4 +81,3 @@ export const chatConfig: EndpointGroup = {
     responseType: {} as { success: boolean; message: string; leadId: number },
   },
 };
-

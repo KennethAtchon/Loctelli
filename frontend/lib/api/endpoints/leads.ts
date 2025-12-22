@@ -36,10 +36,10 @@ export class LeadsApi {
   }
 
   async getLeadsByUser(userId: number): Promise<Lead[]> {
-    return this.api.getLeadsByUser({ userId });
+    return this.api.getLeadsByUser({ userId }) as Promise<Lead[]>;
   }
 
   async getLeadsByStrategy(strategyId: number): Promise<Lead[]> {
-    return this.api.getLeadsByStrategy({ strategyId });
+    return this.api.getLeadsByStrategy({ strategyId }) as Promise<Lead[]>;
   }
 }

@@ -319,7 +319,10 @@ export default function SDKTables() {
                               </thead>
                               <tbody>
                                 {tableData[table.name].data.map(
-                                  (row: Record<string, unknown>, idx: number) => (
+                                  (
+                                    row: Record<string, unknown>,
+                                    idx: number
+                                  ) => (
                                     <tr
                                       key={idx}
                                       className="border-b hover:bg-gray-50"

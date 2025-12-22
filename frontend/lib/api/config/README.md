@@ -95,8 +95,8 @@ export class StrategiesApi {
 Path parameters are defined in the path template using `:paramName` or `{paramName}`:
 
 ```typescript
-path: "/strategy/:id/edit"
-pathParams: [{ name: "id", required: true, type: "number" }]
+path: "/strategy/:id/edit";
+pathParams: [{ name: "id", required: true, type: "number" }];
 ```
 
 ### Query Parameters
@@ -107,7 +107,7 @@ Query parameters are automatically converted to query strings:
 queryParams: [
   { name: "subAccountId", type: "number" },
   { name: "regularUserId", type: "number" },
-]
+];
 ```
 
 ## Benefits
@@ -186,4 +186,3 @@ uploadFormFile: {
   responseType: {} as UploadedFile,
 }
 ```
-

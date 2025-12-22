@@ -205,7 +205,6 @@ export default function BookingsPage() {
     window.location.href = `/admin/bookings/${booking.id}/edit`;
   };
 
-
   useEffect(() => {
     loadBookings();
   }, [loadBookings]);

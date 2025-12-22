@@ -22,6 +22,7 @@ This guide provides solutions to common issues encountered during frontend migra
 ### Issue: Peer Dependency Warnings
 
 **Symptoms:**
+
 - Warnings about missing peer dependencies
 - Package installation fails
 - Runtime errors about missing packages
@@ -40,6 +41,7 @@ pnpm list <package>
 ```
 
 **Prevention:**
+
 - Review peer dependency requirements before updating
 - Check package documentation for compatibility
 - Use `pnpm install` to see all warnings
@@ -49,6 +51,7 @@ pnpm list <package>
 ### Issue: Version Conflicts
 
 **Symptoms:**
+
 - Multiple versions of same package
 - Inconsistent behavior
 - Type errors
@@ -68,6 +71,7 @@ pnpm install
 ```
 
 **Prevention:**
+
 - Use exact versions for critical packages
 - Review dependency tree regularly
 - Use `pnpm why <package>` to understand dependencies
@@ -77,6 +81,7 @@ pnpm install
 ### Issue: Package Not Found
 
 **Symptoms:**
+
 - `MODULE_NOT_FOUND` errors
 - Package installation fails
 - Import errors
@@ -96,6 +101,7 @@ pnpm search <package-name>
 ```
 
 **Prevention:**
+
 - Verify package names before installing
 - Check package registry
 - Verify network connectivity
@@ -105,6 +111,7 @@ pnpm search <package-name>
 ### Issue: Build Fails with TypeScript Errors
 
 **Symptoms:**
+
 - TypeScript compilation errors
 - Build process stops
 - Type errors in console
@@ -124,6 +131,7 @@ pnpm add -D @types/<package>@latest
 ```
 
 **Common Type Errors:**
+
 - Missing type definitions: Install `@types/<package>`
 - Generic type issues: Update TypeScript version
 - Import type errors: Check module resolution
@@ -133,6 +141,7 @@ pnpm add -D @types/<package>@latest
 ### Issue: Build Fails with Module Resolution Errors
 
 **Symptoms:**
+
 - `Cannot find module` errors
 - Path alias not working
 - Import errors
@@ -152,6 +161,7 @@ pnpm run build
 ```
 
 **Prevention:**
+
 - Verify path aliases in `tsconfig.json`
 - Use absolute imports consistently
 - Check file extensions in imports
@@ -161,6 +171,7 @@ pnpm run build
 ### Issue: Build Output Too Large
 
 **Symptoms:**
+
 - Large bundle sizes
 - Slow page loads
 - Performance issues
@@ -178,6 +189,7 @@ pnpm remove <unused-package>
 ```
 
 **Optimization Tips:**
+
 - Use dynamic imports for large components
 - Enable code splitting
 - Remove unused dependencies
@@ -189,6 +201,7 @@ pnpm remove <unused-package>
 ### Issue: Build Hangs or Times Out
 
 **Symptoms:**
+
 - Build process stops
 - No output for long time
 - Timeout errors
@@ -209,6 +222,7 @@ npx madge --circular src/
 ```
 
 **Prevention:**
+
 - Monitor system resources
 - Check for infinite loops
 - Review build configuration
@@ -219,6 +233,7 @@ npx madge --circular src/
 ### Issue: Type Errors After Update
 
 **Symptoms:**
+
 - Type errors in previously working code
 - Type inference issues
 - Generic type errors
@@ -237,6 +252,7 @@ pnpm add -D typescript@latest
 ```
 
 **Common Solutions:**
+
 - Update `@types/*` packages
 - Check TypeScript version compatibility
 - Review breaking changes
@@ -247,6 +263,7 @@ pnpm add -D typescript@latest
 ### Issue: Path Aliases Not Working
 
 **Symptoms:**
+
 - `Cannot find module '@/...'` errors
 - TypeScript can't resolve paths
 - IDE shows errors
@@ -268,6 +285,7 @@ pnpm add -D typescript@latest
 ```
 
 **Prevention:**
+
 - Verify path aliases match file structure
 - Use consistent import paths
 - Check TypeScript configuration
@@ -277,6 +295,7 @@ pnpm add -D typescript@latest
 ### Issue: Generic Type Inference Fails
 
 **Symptoms:**
+
 - Generic types not inferred
 - Type errors with generics
 - `any` type warnings
@@ -290,10 +309,11 @@ function example<T>(value: T): T {
 }
 
 // Use type parameters
-const result = example<string>('value');
+const result = example<string>("value");
 ```
 
 **Prevention:**
+
 - Use explicit types when needed
 - Avoid `any` types
 - Review generic constraints
@@ -303,6 +323,7 @@ const result = example<string>('value');
 ### Issue: Hydration Mismatch
 
 **Symptoms:**
+
 - Console warnings about hydration
 - UI flickering
 - Content mismatch between server and client
@@ -323,6 +344,7 @@ useEffect(() => {
 ```
 
 **Common Causes:**
+
 - Date/time rendering differences
 - Random values
 - Browser-only APIs
@@ -333,6 +355,7 @@ useEffect(() => {
 ### Issue: Component Not Rendering
 
 **Symptoms:**
+
 - Component doesn't appear
 - Blank screen
 - No errors in console
@@ -355,6 +378,7 @@ console.log('Component rendering');
 ```
 
 **Debugging:**
+
 - Check component exports
 - Verify imports
 - Check for errors
@@ -365,6 +389,7 @@ console.log('Component rendering');
 ### Issue: State Not Updating
 
 **Symptoms:**
+
 - State changes don't reflect in UI
 - Component doesn't re-render
 - Stale state
@@ -381,10 +406,11 @@ setState(newValue);
 // Check for state mutations
 // Don't mutate state directly
 // Use functional updates
-setState(prev => ({ ...prev, newValue }));
+setState((prev) => ({ ...prev, newValue }));
 ```
 
 **Common Causes:**
+
 - State mutation
 - Missing dependencies in useEffect
 - Incorrect state updates
@@ -395,6 +421,7 @@ setState(prev => ({ ...prev, newValue }));
 ### Issue: CORS Errors
 
 **Symptoms:**
+
 - CORS errors in console
 - API requests fail
 - Network errors
@@ -408,10 +435,11 @@ setState(prev => ({ ...prev, newValue }));
 // Check API URL
 
 // Use API proxy route
-fetch('/api/proxy/endpoint')
+fetch("/api/proxy/endpoint");
 ```
 
 **Prevention:**
+
 - Use API proxy for all backend calls
 - Verify backend CORS settings
 - Check API URL configuration
@@ -421,6 +449,7 @@ fetch('/api/proxy/endpoint')
 ### Issue: Token Refresh Loop
 
 **Symptoms:**
+
 - Infinite refresh requests
 - 401 errors repeatedly
 - Performance issues
@@ -443,6 +472,7 @@ async function refreshToken() {
 ```
 
 **Prevention:**
+
 - Add refresh lock mechanism
 - Check token expiration
 - Verify refresh token validity
@@ -453,6 +483,7 @@ async function refreshToken() {
 ### Issue: API Response Type Mismatch
 
 **Symptoms:**
+
 - Type errors with API responses
 - Runtime errors
 - Data not accessible
@@ -466,13 +497,14 @@ interface ApiResponse {
 }
 
 // Use type assertions carefully
-const response = await api.get<ApiResponse>('/endpoint');
+const response = await api.get<ApiResponse>("/endpoint");
 
 // Verify backend DTOs match
 // Update types if backend changed
 ```
 
 **Prevention:**
+
 - Keep types in sync with backend
 - Use TypeScript for type safety
 - Verify API contracts
@@ -483,6 +515,7 @@ const response = await api.get<ApiResponse>('/endpoint');
 ### Issue: Route Not Found
 
 **Symptoms:**
+
 - 404 errors
 - Route not accessible
 - Navigation fails
@@ -501,6 +534,7 @@ const response = await api.get<ApiResponse>('/endpoint');
 ```
 
 **Prevention:**
+
 - Follow Next.js App Router conventions
 - Verify file structure
 - Test routes after creation
@@ -511,6 +545,7 @@ const response = await api.get<ApiResponse>('/endpoint');
 ### Issue: Dynamic Route Not Working
 
 **Symptoms:**
+
 - Dynamic parameters not accessible
 - Route params undefined
 - 404 for dynamic routes
@@ -522,11 +557,7 @@ const response = await api.get<ApiResponse>('/endpoint');
 // app/[slug]/page.tsx
 
 // Check params type
-export default function Page({
-  params,
-}: {
-  params: { slug: string };
-}) {
+export default function Page({ params }: { params: { slug: string } }) {
   // Use params
 }
 
@@ -534,6 +565,7 @@ export default function Page({
 ```
 
 **Prevention:**
+
 - Follow Next.js dynamic route conventions
 - Verify params type
 - Test dynamic routes
@@ -544,6 +576,7 @@ export default function Page({
 ### Issue: Metadata Not Working
 
 **Symptoms:**
+
 - SEO metadata missing
 - Open Graph tags not showing
 - Metadata not updating
@@ -553,8 +586,8 @@ export default function Page({
 ```typescript
 // Verify metadata export
 export const metadata: Metadata = {
-  title: 'Page Title',
-  description: 'Page Description',
+  title: "Page Title",
+  description: "Page Description",
 };
 
 // Check metadata structure
@@ -563,6 +596,7 @@ export const metadata: Metadata = {
 ```
 
 **Prevention:**
+
 - Follow Next.js metadata API
 - Verify metadata structure
 - Test metadata generation
@@ -573,6 +607,7 @@ export const metadata: Metadata = {
 ### Issue: Tests Failing After Update
 
 **Symptoms:**
+
 - Previously passing tests fail
 - Test errors
 - Mock failures
@@ -593,6 +628,7 @@ pnpm add -D @testing-library/react@latest
 ```
 
 **Common Causes:**
+
 - API changes in testing libraries
 - Mock setup changes
 - Component API changes
@@ -603,6 +639,7 @@ pnpm add -D @testing-library/react@latest
 ### Issue: MSW Not Intercepting Requests
 
 **Symptoms:**
+
 - Real API calls instead of mocks
 - Network errors in tests
 - Tests fail with API errors
@@ -611,7 +648,7 @@ pnpm add -D @testing-library/react@latest
 
 ```typescript
 // Verify MSW setup
-import { server } from './test-utils/msw';
+import { server } from "./test-utils/msw";
 
 beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
@@ -623,6 +660,7 @@ afterAll(() => server.close());
 ```
 
 **Prevention:**
+
 - Verify MSW setup
 - Check handler registration
 - Match request URLs exactly
@@ -633,6 +671,7 @@ afterAll(() => server.close());
 ### Issue: Async Test Failures
 
 **Symptoms:**
+
 - Tests timeout
 - Async operations not completing
 - Flaky tests
@@ -641,10 +680,10 @@ afterAll(() => server.close());
 
 ```typescript
 // Use waitFor for async operations
-import { waitFor } from '@testing-library/react';
+import { waitFor } from "@testing-library/react";
 
 await waitFor(() => {
-  expect(screen.getByText('Text')).toBeInTheDocument();
+  expect(screen.getByText("Text")).toBeInTheDocument();
 });
 
 // Increase timeout if needed
@@ -655,6 +694,7 @@ jest.setTimeout(10000);
 ```
 
 **Prevention:**
+
 - Use proper async utilities
 - Wait for async operations
 - Avoid race conditions
@@ -665,6 +705,7 @@ jest.setTimeout(10000);
 ### Issue: Tailwind Classes Not Working
 
 **Symptoms:**
+
 - Styles not applying
 - Classes not recognized
 - Styling missing
@@ -685,6 +726,7 @@ pnpm run build
 ```
 
 **Common Causes:**
+
 - Tailwind v4 migration issues
 - CSS import problems
 - Configuration errors
@@ -695,6 +737,7 @@ pnpm run build
 ### Issue: Styles Not Loading
 
 **Symptoms:**
+
 - No styles applied
 - CSS not loading
 - Styling completely missing
@@ -703,7 +746,7 @@ pnpm run build
 
 ```typescript
 // Verify globals.css import in layout
-import './globals.css';
+import "./globals.css";
 
 // Check CSS file exists
 // Verify PostCSS configuration
@@ -711,6 +754,7 @@ import './globals.css';
 ```
 
 **Prevention:**
+
 - Verify CSS imports
 - Check PostCSS configuration
 - Test styling after changes
@@ -721,6 +765,7 @@ import './globals.css';
 ### Issue: Slow Page Loads
 
 **Symptoms:**
+
 - Slow initial load
 - Poor performance metrics
 - User complaints
@@ -738,6 +783,7 @@ pnpm add -D @next/bundle-analyzer
 ```
 
 **Optimization Tips:**
+
 - Use code splitting
 - Optimize images
 - Enable compression
@@ -749,6 +795,7 @@ pnpm add -D @next/bundle-analyzer
 ### Issue: Memory Leaks
 
 **Symptoms:**
+
 - Memory usage increasing
 - Performance degradation over time
 - Browser crashes
@@ -770,6 +817,7 @@ useEffect(() => {
 ```
 
 **Prevention:**
+
 - Clean up effects
 - Remove event listeners
 - Clear intervals
@@ -781,6 +829,7 @@ useEffect(() => {
 ### Issue: Environment Variables Not Working
 
 **Symptoms:**
+
 - Environment variables undefined
 - API calls fail
 - Configuration missing
@@ -799,6 +848,7 @@ useEffect(() => {
 ```
 
 **Prevention:**
+
 - Use `NEXT_PUBLIC_` prefix for client variables
 - Verify environment setup
 - Test variables in staging
@@ -809,6 +859,7 @@ useEffect(() => {
 ### Issue: Docker Build Fails
 
 **Symptoms:**
+
 - Docker build errors
 - Build timeout
 - Image not created
@@ -827,6 +878,7 @@ docker build -t frontend .
 ```
 
 **Prevention:**
+
 - Test Docker builds locally
 - Verify all files included
 - Check build arguments
@@ -837,6 +889,7 @@ docker build -t frontend .
 ### Issue: Production Build Different from Development
 
 **Symptoms:**
+
 - Different behavior in production
 - Errors only in production
 - Features not working
@@ -855,6 +908,7 @@ pnpm start
 ```
 
 **Prevention:**
+
 - Test production builds locally
 - Verify environment setup
 - Check build configuration
@@ -900,4 +954,3 @@ Document issues and solutions:
 ```
 [Add troubleshooting notes here]
 ```
-

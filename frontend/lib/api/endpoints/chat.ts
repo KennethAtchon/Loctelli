@@ -37,7 +37,11 @@ export class ChatApi {
     startDate: string,
     endDate: string
   ): Promise<ChatMessage[]> {
-    return this.api.getChatHistoryByDateRange({ leadId, startDate, endDate }) as Promise<ChatMessage[]>;
+    return this.api.getChatHistoryByDateRange({
+      leadId,
+      startDate,
+      endDate,
+    }) as Promise<ChatMessage[]>;
   }
 
   async markMessageAsRead(messageId: string): Promise<void> {

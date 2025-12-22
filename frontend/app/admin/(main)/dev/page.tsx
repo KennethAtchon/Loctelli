@@ -27,7 +27,6 @@ import DatabaseSchema from "@/components/admin/database-schema";
 import SDKTables from "@/components/admin/sdk-tables";
 
 export default function DevPage() {
-
   // Debug section state
   const [debugMethod, setDebugMethod] = useState("GET");
   const [debugUrl, setDebugUrl] = useState("");

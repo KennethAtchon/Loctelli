@@ -43,4 +43,3 @@ export const usersConfig: EndpointGroup = {
     responseType: {} as void,
   },
 };
-

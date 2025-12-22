@@ -28,7 +28,10 @@ export const adminAuthConfig: EndpointGroup = {
     responseType: {} as AdminAuthResponse,
     customHandler: async (client, params, body) => {
       // Use unified /auth/login endpoint with accountType: 'admin'
-      const loginData = { ...(body as AdminLoginDto), accountType: "admin" as const };
+      const loginData = {
+        ...(body as AdminLoginDto),
+        accountType: "admin" as const,
+      };
       return client.post<AdminAuthResponse>("/auth/login", loginData);
     },
   },
@@ -38,14 +41,19 @@ export const adminAuthConfig: EndpointGroup = {
     path: "/auth/register",
     requiresBody: true,
     bodyType: {} as AdminRegisterDto & { accountType: "admin" },
-    responseType: {} as Omit<AdminProfile, "lastLoginAt" | "createdAt" | "updatedAt">,
+    responseType: {} as Omit<
+      AdminProfile,
+      "lastLoginAt" | "createdAt" | "updatedAt"
+    >,
     customHandler: async (client, params, body) => {
       // Use unified /auth/register endpoint with accountType: 'admin'
-      const registerData = { ...(body as AdminRegisterDto), accountType: "admin" as const };
-      return client.post<Omit<AdminProfile, "lastLoginAt" | "createdAt" | "updatedAt">>(
-        "/auth/register",
-        registerData
-      );
+      const registerData = {
+        ...(body as AdminRegisterDto),
+        accountType: "admin" as const,
+      };
+      return client.post<
+        Omit<AdminProfile, "lastLoginAt" | "createdAt" | "updatedAt">
+      >("/auth/register", registerData);
     },
   },
 
@@ -127,7 +135,11 @@ export const adminAuthConfig: EndpointGroup = {
   generateAuthCode: {
     method: "POST",
     path: "/admin/auth-code/generate",
-    responseType: {} as { authCode: string; message: string; expiresIn: string },
+    responseType: {} as {
+      authCode: string;
+      message: string;
+      expiresIn: string;
+    },
   },
 
   getCurrentAuthCode: {
@@ -183,4 +195,3 @@ export const adminAuthConfig: EndpointGroup = {
     responseType: {} as DetailedLead,
   },
 };
-

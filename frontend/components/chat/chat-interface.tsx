@@ -1,13 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import {
-  ArrowUp,
-  Image,
-  X,
-  Info,
-  InfoIcon,
-} from "lucide-react";
+import { ArrowUp, Image, X, Info, InfoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";

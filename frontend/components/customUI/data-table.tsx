@@ -498,7 +498,10 @@ export function DataTable<T extends { id: number | string }>({
                         >
                           {column.render
                             ? column.render(item)
-                            : String((item as Record<string, unknown>)[column.key] ?? "")}
+                            : String(
+                                (item as Record<string, unknown>)[column.key] ??
+                                  ""
+                              )}
                         </TableCell>
                       ))}
                       {/* Action buttons */}

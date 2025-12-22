@@ -153,8 +153,8 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Regular user
-    const userSubAccountId =
-      (account as { subAccountId?: number }).subAccountId;
+    const userSubAccountId = (account as { subAccountId?: number })
+      .subAccountId;
 
     if (!userSubAccountId) {
       logger.error("Regular user without subAccountId!", account);

@@ -7,12 +7,7 @@ import type { UserProfile, DetailedUser } from "@/lib/api/endpoints/admin-auth";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
 import { usePagination } from "@/components/customUI";
 import { Badge } from "@/components/ui/badge";
-import {
-  Users,
-  UserCheck,
-  UserX,
-  UserPlus,
-} from "lucide-react";
+import { Users, UserCheck, UserX, UserPlus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
