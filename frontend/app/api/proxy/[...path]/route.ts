@@ -139,36 +139,68 @@ async function handleRequest(
     // Make the request to the backend
     const response = await fetch(backendUrl, requestOptions);
 
-    // Get response body
-    let responseBody: BodyInit;
-    const contentType = response.headers.get("content-type");
+    // Get Content-Type header first
+    const contentType = response.headers.get("content-type") || "";
 
-    if (contentType?.includes("application/json")) {
-      responseBody = await response.text();
-    } else if (contentType?.includes("application/octet-stream") || contentType?.includes("application/pdf")) {
-      responseBody = await response.blob();
-    } else {
-      responseBody = await response.text();
-    }
-
-    // Prepare response headers
+    // Prepare response headers first to preserve Content-Type
     const responseHeaders = new Headers();
 
-    // Forward relevant response headers
+    // Forward relevant response headers (including Content-Type)
     response.headers.forEach((value, key) => {
-      // Exclude headers that shouldn't be forwarded
+      const lowerKey = key.toLowerCase();
+      // Exclude headers that shouldn't be forwarded, but keep content-type
       if (
-        !EXCLUDE_HEADERS.includes(key.toLowerCase()) &&
-        !key.toLowerCase().startsWith("x-")
+        !EXCLUDE_HEADERS.includes(lowerKey) &&
+        (lowerKey === "content-type" || !lowerKey.startsWith("x-"))
       ) {
         responseHeaders.set(key, value);
       }
     });
 
+    // Get response body based on content type
+    let responseBody: BodyInit;
+    
+    if (contentType.includes("application/json")) {
+      // For JSON, read as text and ensure Content-Type is set
+      const text = await response.text();
+      responseBody = text;
+      // Always set Content-Type for JSON responses
+      responseHeaders.set("content-type", "application/json; charset=utf-8");
+      
+      // Validate JSON if response is not empty
+      if (text && text.trim()) {
+        try {
+          JSON.parse(text); // Validate it's valid JSON
+        } catch (e) {
+          console.error("Invalid JSON response from backend:", text.substring(0, 200));
+          throw new Error("Invalid JSON response from backend");
+        }
+      }
+    } else if (
+      contentType.includes("application/octet-stream") ||
+      contentType.includes("application/pdf")
+    ) {
+      // For binary data, use blob
+      responseBody = await response.blob();
+    } else {
+      // For other types, read as text
+      responseBody = await response.text();
+      // If no content-type was set, try to preserve it or set a default
+      if (!responseHeaders.has("content-type") && contentType) {
+        responseHeaders.set("content-type", contentType);
+      }
+    }
+
     // Add CORS headers for the frontend
     responseHeaders.set("Access-Control-Allow-Origin", "*");
-    responseHeaders.set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
-    responseHeaders.set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key, x-api-key, X-User-Token, x-user-token");
+    responseHeaders.set(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+    );
+    responseHeaders.set(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, X-API-Key, x-api-key, X-User-Token, x-user-token"
+    );
 
     // Return the response
     return new NextResponse(responseBody, {
