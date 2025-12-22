@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { api } from "@/lib/api";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
 import { usePagination } from "@/components/customUI";
@@ -122,8 +122,18 @@ export default function StrategiesPage() {
     },
   ];
 
+  // Use ref to prevent multiple simultaneous calls
+  const isLoadingRef = useRef(false);
+
   const loadStrategies = useCallback(async () => {
+    // Prevent multiple simultaneous calls
+    if (isLoadingRef.current) {
+      logger.debug("⏸️ Load strategies already in progress, skipping...");
+      return;
+    }
+
     try {
+      isLoadingRef.current = true;
       setIsRefreshing(true);
       setError(null);
 
@@ -141,6 +151,7 @@ export default function StrategiesPage() {
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
+      isLoadingRef.current = false;
     }
   }, [getTenantQueryParams, setTotalItems]);
 
@@ -203,8 +214,13 @@ export default function StrategiesPage() {
   };
 
   useEffect(() => {
-    loadStrategies();
-  }, [loadStrategies]);
+    // Only load on mount, not when loadStrategies changes
+    // This prevents infinite loops from React strict mode or dependency changes
+    if (!isLoadingRef.current) {
+      loadStrategies();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps - only run on mount
 
   const formatDate = (dateInput: string | Date) => {
     if (!dateInput) return "N/A";

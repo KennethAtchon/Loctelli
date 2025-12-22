@@ -1,4 +1,6 @@
 import { ApiClient } from "../client";
+import { EndpointApiBuilder, EndpointApi } from "../config/endpoint-builder";
+import { formsConfig } from "../config/forms.config";
 
 // Form Template types
 export interface FormField {
@@ -148,68 +150,58 @@ export interface UploadedFile {
 }
 
 export class FormsApi {
-  constructor(private client: ApiClient) {}
+  private api: EndpointApi<typeof formsConfig>;
+
+  constructor(private client: ApiClient) {
+    const builder = new EndpointApiBuilder(client);
+    this.api = builder.buildApi(formsConfig);
+  }
 
   // Form Templates
   async getFormTemplates(subAccountId?: number): Promise<FormTemplate[]> {
-    const queryParams = new URLSearchParams();
-    if (subAccountId) {
-      queryParams.append("subAccountId", subAccountId.toString());
-    }
-    const queryString = queryParams.toString();
-    return this.client.get<FormTemplate[]>(
-      `/forms/templates${queryString ? `?${queryString}` : ""}`
-    );
+    return this.api.getFormTemplates({ subAccountId }) as Promise<FormTemplate[]>;
   }
 
   async getFormTemplate(id: string): Promise<FormTemplate> {
-    return this.client.get<FormTemplate>(`/forms/templates/${id}`);
+    return this.api.getFormTemplate({ id }) as Promise<FormTemplate>;
   }
 
   async createFormTemplate(data: CreateFormTemplateDto): Promise<FormTemplate> {
-    return this.client.post<FormTemplate>("/forms/templates", data);
+    return this.api.createFormTemplate(undefined, data) as Promise<FormTemplate>;
   }
 
   async updateFormTemplate(
     id: string,
     data: UpdateFormTemplateDto
   ): Promise<FormTemplate> {
-    return this.client.patch<FormTemplate>(`/forms/templates/${id}`, data);
+    return this.api.updateFormTemplate({ id }, data) as Promise<FormTemplate>;
   }
 
   async deleteFormTemplate(id: string): Promise<void> {
-    return this.client.delete(`/forms/templates/${id}`);
+    return this.api.deleteFormTemplate({ id }) as Promise<void>;
   }
 
   // Public form access
   async getPublicForm(slug: string): Promise<FormTemplate> {
-    return this.client.get<FormTemplate>(`/forms/public/${slug}`);
+    return this.api.getPublicForm({ slug }) as Promise<FormTemplate>;
   }
 
   async submitPublicForm(
     slug: string,
     data: CreateFormSubmissionDto
   ): Promise<FormSubmission> {
-    return this.client.post<FormSubmission>(
-      `/forms/public/${slug}/submit`,
-      data
-    );
+    return this.api.submitPublicForm({ slug }, data) as Promise<FormSubmission>;
   }
 
   async wakeUpDatabase(): Promise<{ status: string; timestamp: string }> {
-    return this.client.get<{ status: string; timestamp: string }>(
-      "/forms/public/wake-up"
-    );
+    return this.api.wakeUpDatabase() as Promise<{ status: string; timestamp: string }>;
   }
 
   async uploadFormFile(
     slug: string,
     formData: FormData
   ): Promise<UploadedFile> {
-    return this.client.uploadFile<UploadedFile>(
-      `/forms/public/${slug}/upload`,
-      formData
-    );
+    return this.api.uploadFormFile({ slug }, formData) as Promise<UploadedFile>;
   }
 
   // Form Submissions
@@ -218,38 +210,25 @@ export class FormsApi {
     formTemplateId?: string,
     status?: string
   ): Promise<FormSubmission[]> {
-    const queryParams = new URLSearchParams();
-    if (subAccountId) {
-      queryParams.append("subAccountId", subAccountId.toString());
-    }
-    if (formTemplateId) {
-      queryParams.append("formTemplateId", formTemplateId);
-    }
-    if (status) {
-      queryParams.append("status", status);
-    }
-    const queryString = queryParams.toString();
-    return this.client.get<FormSubmission[]>(
-      `/forms/submissions${queryString ? `?${queryString}` : ""}`
-    );
+    return this.api.getFormSubmissions({ subAccountId, formTemplateId, status }) as Promise<FormSubmission[]>;
   }
 
   async getFormSubmission(id: string): Promise<FormSubmission> {
-    return this.client.get<FormSubmission>(`/forms/submissions/${id}`);
+    return this.api.getFormSubmission({ id }) as Promise<FormSubmission>;
   }
 
   async updateFormSubmission(
     id: string,
     data: UpdateFormSubmissionDto
   ): Promise<FormSubmission> {
-    return this.client.patch<FormSubmission>(`/forms/submissions/${id}`, data);
+    return this.api.updateFormSubmission({ id }, data) as Promise<FormSubmission>;
   }
 
   async deleteFormSubmission(id: string): Promise<void> {
-    return this.client.delete(`/forms/submissions/${id}`);
+    return this.api.deleteFormSubmission({ id }) as Promise<void>;
   }
 
   async getFormStats(): Promise<FormStats> {
-    return this.client.get<FormStats>("/forms/submissions/stats");
+    return this.api.getFormStats() as Promise<FormStats>;
   }
 }

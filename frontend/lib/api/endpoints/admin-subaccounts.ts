@@ -1,4 +1,6 @@
 import { ApiClient } from "../client";
+import { EndpointApiBuilder, EndpointApi } from "../config/endpoint-builder";
+import { adminSubAccountsConfig } from "../config/admin-subaccounts.config";
 
 export interface SubAccount {
   id: number;
@@ -67,28 +69,33 @@ export interface UpdateSubAccountDto {
 }
 
 export class AdminSubAccountsApi {
-  constructor(private client: ApiClient) {}
+  private api: EndpointApi<typeof adminSubAccountsConfig>;
+
+  constructor(private client: ApiClient) {
+    const builder = new EndpointApiBuilder(client);
+    this.api = builder.buildApi(adminSubAccountsConfig);
+  }
 
   async getAllSubAccounts(): Promise<SubAccount[]> {
-    return this.client.get("/admin/subaccounts");
+    return this.api.getAllSubAccounts() as Promise<SubAccount[]>;
   }
 
   async getSubAccount(id: number): Promise<DetailedSubAccount> {
-    return this.client.get(`/admin/subaccounts/${id}`);
+    return this.api.getSubAccount({ id }) as Promise<DetailedSubAccount>;
   }
 
   async createSubAccount(data: CreateSubAccountDto): Promise<SubAccount> {
-    return this.client.post("/admin/subaccounts", data);
+    return this.api.createSubAccount(undefined, data) as Promise<SubAccount>;
   }
 
   async updateSubAccount(
     id: number,
     data: UpdateSubAccountDto
   ): Promise<SubAccount> {
-    return this.client.patch(`/admin/subaccounts/${id}`, data);
+    return this.api.updateSubAccount({ id }, data) as Promise<SubAccount>;
   }
 
   async deleteSubAccount(id: number): Promise<{ message: string }> {
-    return this.client.delete(`/admin/subaccounts/${id}`);
+    return this.api.deleteSubAccount({ id }) as Promise<{ message: string }>;
   }
 }

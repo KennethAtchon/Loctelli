@@ -1,52 +1,47 @@
 import { ApiClient } from "../client";
 import { Strategy, CreateStrategyDto } from "@/types";
+import { EndpointApiBuilder, EndpointApi } from "../config/endpoint-builder";
+import { strategiesConfig } from "../config/strategies.config";
 
 export class StrategiesApi {
-  constructor(private client: ApiClient) {}
+  private api: EndpointApi<typeof strategiesConfig>;
+
+  constructor(private client: ApiClient) {
+    const builder = new EndpointApiBuilder(client);
+    this.api = builder.buildApi(strategiesConfig);
+  }
 
   async getStrategies(params?: {
     subAccountId?: number;
     regularUserId?: number;
   }): Promise<Strategy[]> {
-    const queryParams = new URLSearchParams();
-    if (params?.subAccountId) {
-      queryParams.append("subAccountId", params.subAccountId.toString());
-    }
-    if (params?.regularUserId !== undefined && params?.regularUserId !== null) {
-      queryParams.append("regularUserId", params.regularUserId.toString());
-    }
-    const queryString = queryParams.toString();
-    return this.client.get<Strategy[]>(
-      `/strategy${queryString ? `?${queryString}` : ""}`
-    );
+    return this.api.getStrategies(params);
   }
 
   async getStrategy(id: number): Promise<Strategy> {
-    return this.client.get<Strategy>(`/strategy/${id}`);
+    return this.api.getStrategy({ id });
   }
 
   async createStrategy(data: CreateStrategyDto): Promise<Strategy> {
-    return this.client.post<Strategy>("/strategy", data);
+    return this.api.createStrategy(undefined, data);
   }
 
   async updateStrategy(
     id: number,
     data: Partial<CreateStrategyDto>
   ): Promise<Strategy> {
-    return this.client.patch<Strategy>(`/strategy/${id}`, data);
+    return this.api.updateStrategy({ id }, data);
   }
 
   async deleteStrategy(id: number): Promise<void> {
-    return this.client.delete<void>(`/strategy/${id}`);
+    return this.api.deleteStrategy({ id });
   }
 
   async getStrategiesByUser(regularUserId: number): Promise<Strategy[]> {
-    return this.client.get<Strategy[]>(
-      `/strategy?regularUserId=${regularUserId}`
-    );
+    return this.api.getStrategiesByUser({ regularUserId });
   }
 
   async duplicateStrategy(id: number): Promise<Strategy> {
-    return this.client.post<Strategy>(`/strategy/${id}/duplicate`);
+    return this.api.duplicateStrategy({ id });
   }
 }

@@ -1,4 +1,6 @@
 import { ApiClient } from "../client";
+import { EndpointApiBuilder, EndpointApi } from "../config/endpoint-builder";
+import { authConfig } from "../config/auth.config";
 
 export interface LoginDto {
   email: string;
@@ -41,11 +43,17 @@ export interface UserProfile {
 }
 
 export class AuthApi {
-  constructor(private client: ApiClient) {}
+  private api: EndpointApi<typeof authConfig>;
+
+  constructor(private client: ApiClient) {
+    const builder = new EndpointApiBuilder(client);
+    this.api = builder.buildApi(authConfig);
+  }
+
   async login(data: LoginDto): Promise<AuthResponse> {
     // Default to 'user' account type if not specified
     const loginData = { ...data, accountType: data.accountType || "user" };
-    return this.client.post<AuthResponse>("/auth/login", loginData);
+    return this.api.login(undefined, loginData) as Promise<AuthResponse>;
   }
 
   async register(
@@ -53,35 +61,34 @@ export class AuthApi {
   ): Promise<Omit<UserProfile, "lastLoginAt" | "createdAt" | "updatedAt">> {
     // Default to 'user' account type if not specified
     const registerData = { ...data, accountType: data.accountType || "user" };
-    return this.client.post<
+    return this.api.register(undefined, registerData) as Promise<
       Omit<UserProfile, "lastLoginAt" | "createdAt" | "updatedAt">
-    >("/auth/register", registerData);
+    >;
   }
 
   async refreshToken(
     refreshToken: string
   ): Promise<{ access_token: string; refresh_token: string }> {
-    return this.client.post<{ access_token: string; refresh_token: string }>(
-      "/auth/refresh",
-      { refresh_token: refreshToken }
-    );
+    return this.api.refreshToken(undefined, { refresh_token: refreshToken }) as Promise<{
+      access_token: string;
+      refresh_token: string;
+    }>;
   }
 
   async logout(): Promise<{ message: string }> {
-    return this.client.post<{ message: string }>("/auth/logout");
+    return this.api.logout() as Promise<{ message: string }>;
   }
 
   async getProfile(): Promise<UserProfile> {
-    return this.client.get<UserProfile>("/auth/profile");
+    return this.api.getProfile() as Promise<UserProfile>;
   }
 
   async changePassword(
     oldPassword: string,
     newPassword: string
   ): Promise<{ message: string }> {
-    return this.client.post<{ message: string }>("/auth/change-password", {
-      oldPassword,
-      newPassword,
-    });
+    return this.api.changePassword(undefined, { oldPassword, newPassword }) as Promise<{
+      message: string;
+    }>;
   }
 }

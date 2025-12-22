@@ -1,4 +1,6 @@
 import { ApiClient } from "../client";
+import { EndpointApiBuilder, EndpointApi } from "../config/endpoint-builder";
+import { generalConfig } from "../config/general.config";
 
 export interface DatabaseSchema {
   models: Array<{
@@ -26,9 +28,14 @@ export interface SchemaResponse {
 }
 
 export class GeneralApi {
-  constructor(private client: ApiClient) {}
+  private api: EndpointApi<typeof generalConfig>;
+
+  constructor(private client: ApiClient) {
+    const builder = new EndpointApiBuilder(client);
+    this.api = builder.buildApi(generalConfig);
+  }
 
   async getDatabaseSchema(): Promise<SchemaResponse> {
-    return this.client.get<SchemaResponse>("/general/schema");
+    return this.api.getDatabaseSchema() as Promise<SchemaResponse>;
   }
 }

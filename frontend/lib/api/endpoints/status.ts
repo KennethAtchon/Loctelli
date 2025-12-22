@@ -1,4 +1,6 @@
 import { ApiClient } from "../client";
+import { EndpointApiBuilder, EndpointApi } from "../config/endpoint-builder";
+import { statusConfig } from "../config/status.config";
 
 export interface SystemStatus {
   status: string;
@@ -13,17 +15,22 @@ export interface SystemStatus {
 }
 
 export class StatusApi {
-  constructor(private client: ApiClient) {}
+  private api: EndpointApi<typeof statusConfig>;
+
+  constructor(private client: ApiClient) {
+    const builder = new EndpointApiBuilder(client);
+    this.api = builder.buildApi(statusConfig);
+  }
 
   async getStatus(): Promise<SystemStatus> {
-    return this.client.get<SystemStatus>("/status");
+    return this.api.getStatus() as Promise<SystemStatus>;
   }
 
   async getHealth(): Promise<{ status: string }> {
-    return this.client.get<{ status: string }>("/status/health");
+    return this.api.getHealth() as Promise<{ status: string }>;
   }
 
   async getVersion(): Promise<{ version: string }> {
-    return this.client.get<{ version: string }>("/status/version");
+    return this.api.getVersion() as Promise<{ version: string }>;
   }
 }

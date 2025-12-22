@@ -1,4 +1,6 @@
 import { ApiClient } from "../client";
+import { EndpointApiBuilder, EndpointApi } from "../config/endpoint-builder";
+import { adminAuthConfig } from "../config/admin-auth.config";
 
 export interface AdminLoginDto {
   email: string;
@@ -230,66 +232,58 @@ export interface ChangeAdminPasswordDto {
 }
 
 export class AdminAuthApi {
-  constructor(private client: ApiClient) {}
+  private api: EndpointApi<typeof adminAuthConfig>;
+
+  constructor(private client: ApiClient) {
+    const builder = new EndpointApiBuilder(client);
+    this.api = builder.buildApi(adminAuthConfig);
+  }
 
   async adminLogin(data: AdminLoginDto): Promise<AdminAuthResponse> {
-    // Use unified /auth/login endpoint with accountType: 'admin'
-    const loginData = { ...data, accountType: "admin" as const };
-    return this.client.post<AdminAuthResponse>("/auth/login", loginData);
+    return this.api.adminLogin(undefined, data as AdminLoginDto & { accountType: "admin" }) as Promise<AdminAuthResponse>;
   }
 
   async adminRegister(
     data: AdminRegisterDto
   ): Promise<Omit<AdminProfile, "lastLoginAt" | "createdAt" | "updatedAt">> {
-    // Use unified /auth/register endpoint with accountType: 'admin'
-    const registerData = { ...data, accountType: "admin" as const };
-    return this.client.post<
+    return this.api.adminRegister(undefined, data as AdminRegisterDto & { accountType: "admin" }) as Promise<
       Omit<AdminProfile, "lastLoginAt" | "createdAt" | "updatedAt">
-    >("/auth/register", registerData);
+    >;
   }
 
   async adminRefreshToken(
     refreshToken: string
   ): Promise<{ access_token: string; refresh_token: string }> {
-    // Use unified /auth/refresh endpoint
-    return this.client.post<{ access_token: string; refresh_token: string }>(
-      "/auth/refresh",
-      { refresh_token: refreshToken }
-    );
+    return this.api.adminRefreshToken(undefined, { refresh_token: refreshToken }) as Promise<{
+      access_token: string;
+      refresh_token: string;
+    }>;
   }
 
   async adminLogout(): Promise<{ message: string }> {
-    // Use unified /auth/logout endpoint
-    return this.client.post<{ message: string }>("/auth/logout");
+    return this.api.adminLogout() as Promise<{ message: string }>;
   }
 
   async getAdminProfile(): Promise<AdminProfile> {
-    // Use unified /auth/profile endpoint
-    return this.client.get<AdminProfile>("/auth/profile");
+    return this.api.getAdminProfile() as Promise<AdminProfile>;
   }
 
   // Note: Admin profile updates are not currently supported by the backend
   // Admins should use the unified /auth endpoints for password changes
   // TODO: Implement admin profile update endpoint in backend if needed
   async updateAdminProfile(data: UpdateAdminProfileDto): Promise<AdminProfile> {
-    throw new Error(
-      "Admin profile updates are not currently supported. Please contact a super admin."
-    );
+    return this.api.updateAdminProfile(undefined, data) as Promise<AdminProfile>;
   }
 
   async changeAdminPassword(
     data: ChangeAdminPasswordDto
   ): Promise<{ message: string }> {
-    // Use unified /auth/change-password endpoint
-    return this.client.post<{ message: string }>("/auth/change-password", data);
+    return this.api.changeAdminPassword(undefined, data) as Promise<{ message: string }>;
   }
 
   async getAllUsers(subaccountId?: string): Promise<UserProfile[]> {
-    const endpoint =
-      subaccountId && subaccountId !== "GLOBAL"
-        ? `/admin/users?subaccountId=${subaccountId}`
-        : "/admin/users";
-    return this.client.get<UserProfile[]>(endpoint);
+    const params = subaccountId && subaccountId !== "GLOBAL" ? { subaccountId } : undefined;
+    return this.api.getAllUsers(params) as Promise<UserProfile[]>;
   }
 
   async createUser(
@@ -300,26 +294,23 @@ export class AdminAuthApi {
       "lastLoginAt" | "createdAt" | "updatedAt" | "createdByAdmin"
     >
   > {
-    return this.client.post<
+    return this.api.createUser(undefined, data) as Promise<
       Omit<
         UserProfile,
         "lastLoginAt" | "createdAt" | "updatedAt" | "createdByAdmin"
       >
-    >("/admin/users", data);
+    >;
   }
 
   async updateUser(
     userId: number,
     data: UpdateUserDto
   ): Promise<Omit<UserProfile, "createdByAdmin">> {
-    return this.client.put<Omit<UserProfile, "createdByAdmin">>(
-      `/admin/users/${userId}`,
-      data
-    );
+    return this.api.updateUser({ userId }, data) as Promise<Omit<UserProfile, "createdByAdmin">>;
   }
 
   async deleteUser(userId: number): Promise<{ message: string }> {
-    return this.client.delete<{ message: string }>(`/admin/users/${userId}`);
+    return this.api.deleteUser({ userId }) as Promise<{ message: string }>;
   }
 
   async generateAuthCode(): Promise<{
@@ -327,54 +318,44 @@ export class AdminAuthApi {
     message: string;
     expiresIn: string;
   }> {
-    return this.client.post<{
+    return this.api.generateAuthCode() as Promise<{
       authCode: string;
       message: string;
       expiresIn: string;
-    }>("/admin/auth-code/generate");
+    }>;
   }
 
   async getCurrentAuthCode(): Promise<{ authCode: string; message: string }> {
-    return this.client.get<{ authCode: string; message: string }>(
-      "/admin/auth-code/current"
-    );
+    return this.api.getCurrentAuthCode() as Promise<{ authCode: string; message: string }>;
   }
 
   async getAllAdminAccounts(): Promise<AdminProfile[]> {
-    return this.client.get<AdminProfile[]>("/admin/accounts");
+    return this.api.getAllAdminAccounts() as Promise<AdminProfile[]>;
   }
 
   async deleteAdminAccount(adminId: number): Promise<{ message: string }> {
-    return this.client.delete<{ message: string }>(
-      `/admin/accounts/${adminId}`
-    );
+    return this.api.deleteAdminAccount({ adminId }) as Promise<{ message: string }>;
   }
 
   async getDashboardStats(subaccountId?: string): Promise<DashboardStats> {
-    const endpoint =
-      subaccountId && subaccountId !== "GLOBAL"
-        ? `/general/dashboard-stats?subaccountId=${subaccountId}`
-        : "/general/dashboard-stats";
-    return this.client.get<DashboardStats>(endpoint);
+    const params = subaccountId && subaccountId !== "GLOBAL" ? { subaccountId } : undefined;
+    return this.api.getDashboardStats(params) as Promise<DashboardStats>;
   }
 
   async getSystemStatus(): Promise<SystemStatus> {
-    return this.client.get<SystemStatus>("/general/system-status");
+    return this.api.getSystemStatus() as Promise<SystemStatus>;
   }
 
   async getRecentLeads(subaccountId?: string): Promise<DetailedLead[]> {
-    const endpoint =
-      subaccountId && subaccountId !== "GLOBAL"
-        ? `/general/recent-leads?subaccountId=${subaccountId}`
-        : "/general/recent-leads";
-    return this.client.get<DetailedLead[]>(endpoint);
+    const params = subaccountId && subaccountId !== "GLOBAL" ? { subaccountId } : undefined;
+    return this.api.getRecentLeads(params) as Promise<DetailedLead[]>;
   }
 
   async getDetailedUser(userId: number): Promise<DetailedUser> {
-    return this.client.get<DetailedUser>(`/general/users/${userId}/detailed`);
+    return this.api.getDetailedUser({ userId }) as Promise<DetailedUser>;
   }
 
   async getDetailedLead(leadId: number): Promise<DetailedLead> {
-    return this.client.get<DetailedLead>(`/general/leads/${leadId}/detailed`);
+    return this.api.getDetailedLead({ leadId }) as Promise<DetailedLead>;
   }
 }

@@ -1,8 +1,15 @@
 import { ApiClient } from "../client";
 import { Booking, CreateBookingDto } from "@/types";
+import { EndpointApiBuilder, EndpointApi } from "../config/endpoint-builder";
+import { bookingsConfig } from "../config/bookings.config";
 
 export class BookingsApi {
-  constructor(private client: ApiClient) {}
+  private api: EndpointApi<typeof bookingsConfig>;
+
+  constructor(private client: ApiClient) {
+    const builder = new EndpointApiBuilder(client);
+    this.api = builder.buildApi(bookingsConfig);
+  }
 
   async getBookings(params?: {
     subAccountId?: number;
@@ -11,65 +18,44 @@ export class BookingsApi {
     startDate?: string;
     endDate?: string;
   }): Promise<Booking[]> {
-    const queryParams = new URLSearchParams();
-    if (params?.subAccountId) {
-      queryParams.append("subAccountId", params.subAccountId.toString());
-    }
-    if (params?.userId !== undefined && params?.userId !== null) {
-      queryParams.append("userId", params.userId.toString());
-    }
-    if (params?.leadId) {
-      queryParams.append("leadId", params.leadId.toString());
-    }
-    if (params?.startDate) {
-      queryParams.append("startDate", params.startDate);
-    }
-    if (params?.endDate) {
-      queryParams.append("endDate", params.endDate);
-    }
-    const queryString = queryParams.toString();
-    return this.client.get<Booking[]>(
-      `/booking${queryString ? `?${queryString}` : ""}`
-    );
+    return this.api.getBookings(params) as Promise<Booking[]>;
   }
 
   async getBooking(id: number): Promise<Booking> {
-    return this.client.get<Booking>(`/booking/${id}`);
+    return this.api.getBooking({ id }) as Promise<Booking>;
   }
 
   async createBooking(data: CreateBookingDto): Promise<Booking> {
-    return this.client.post<Booking>("/booking", data);
+    return this.api.createBooking(undefined, data) as Promise<Booking>;
   }
 
   async updateBooking(
     id: number,
     data: Partial<CreateBookingDto>
   ): Promise<Booking> {
-    return this.client.patch<Booking>(`/booking/${id}`, data);
+    return this.api.updateBooking({ id }, data) as Promise<Booking>;
   }
 
   async deleteBooking(id: number): Promise<void> {
-    return this.client.delete<void>(`/booking/${id}`);
+    return this.api.deleteBooking({ id }) as Promise<void>;
   }
 
   async getBookingsByUser(userId: number): Promise<Booking[]> {
-    return this.client.get<Booking[]>(`/booking?userId=${userId}`);
+    return this.api.getBookingsByUser({ userId }) as Promise<Booking[]>;
   }
 
   async getBookingsByLead(leadId: number): Promise<Booking[]> {
-    return this.client.get<Booking[]>(`/booking?leadId=${leadId}`);
+    return this.api.getBookingsByLead({ leadId }) as Promise<Booking[]>;
   }
 
   async getBookingsByDateRange(
     startDate: string,
     endDate: string
   ): Promise<Booking[]> {
-    return this.client.get<Booking[]>(
-      `/booking?startDate=${startDate}&endDate=${endDate}`
-    );
+    return this.api.getBookingsByDateRange({ startDate, endDate }) as Promise<Booking[]>;
   }
 
   async updateBookingStatus(id: number, status: string): Promise<Booking> {
-    return this.client.patch<Booking>(`/booking/${id}/status`, { status });
+    return this.api.updateBookingStatus({ id }, { status }) as Promise<Booking>;
   }
 }

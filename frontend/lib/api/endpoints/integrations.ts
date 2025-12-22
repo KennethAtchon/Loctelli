@@ -1,4 +1,6 @@
 import { ApiClient } from "../client";
+import { EndpointApiBuilder, EndpointApi } from "../config/endpoint-builder";
+import { integrationsConfig } from "../config/integrations.config";
 
 export interface Integration {
   id: number;
@@ -67,49 +69,42 @@ export interface SyncDataResponse {
 }
 
 export class IntegrationsApi {
-  constructor(private client: ApiClient) {}
+  private api: EndpointApi<typeof integrationsConfig>;
+
+  constructor(private client: ApiClient) {
+    const builder = new EndpointApiBuilder(client);
+    this.api = builder.buildApi(integrationsConfig);
+  }
 
   async getAll(subAccountId?: number): Promise<Integration[]> {
-    const params = subAccountId ? `?subAccountId=${subAccountId}` : "";
-    return this.client.get<Integration[]>(`/admin/integrations${params}`);
+    return this.api.getAll({ subAccountId }) as Promise<Integration[]>;
   }
 
   async getById(id: number): Promise<Integration> {
-    return this.client.get<Integration>(`/admin/integrations/${id}`);
+    return this.api.getById({ id }) as Promise<Integration>;
   }
 
   async getBySubAccount(subAccountId: number): Promise<Integration[]> {
-    return this.client.get<Integration[]>(
-      `/admin/integrations/subaccount/${subAccountId}`
-    );
+    return this.api.getBySubAccount({ subAccountId }) as Promise<Integration[]>;
   }
 
   async getByStatus(
     status: string,
     subAccountId?: number
   ): Promise<Integration[]> {
-    const params = subAccountId ? `?subAccountId=${subAccountId}` : "";
-    return this.client.get<Integration[]>(
-      `/admin/integrations/status/${status}${params}`
-    );
+    return this.api.getByStatus({ status, subAccountId }) as Promise<Integration[]>;
   }
 
   async create(data: CreateIntegrationDto): Promise<Integration> {
     console.log("API: Creating integration with data:", data);
-    const result = await this.client.post<Integration>(
-      "/admin/integrations",
-      data
-    );
+    const result = await this.api.create(undefined, data) as Integration;
     console.log("API: Integration created successfully:", result);
     return result;
   }
 
   async update(id: number, data: UpdateIntegrationDto): Promise<Integration> {
     console.log("API: Updating integration with data:", { id, data });
-    const result = await this.client.patch<Integration>(
-      `/admin/integrations/${id}`,
-      data
-    );
+    const result = await this.api.update({ id }, data) as Integration;
     console.log("API: Integration updated successfully:", result);
     return result;
   }
@@ -119,23 +114,18 @@ export class IntegrationsApi {
     status: string,
     errorMessage?: string
   ): Promise<Integration> {
-    return this.client.patch<Integration>(`/admin/integrations/${id}/status`, {
-      status,
-      errorMessage,
-    });
+    return this.api.updateStatus({ id }, { status, errorMessage }) as Promise<Integration>;
   }
 
   async testConnection(id: number): Promise<TestConnectionResponse> {
-    return this.client.post<TestConnectionResponse>(
-      `/admin/integrations/${id}/test`
-    );
+    return this.api.testConnection({ id }) as Promise<TestConnectionResponse>;
   }
 
   async syncData(id: number): Promise<SyncDataResponse> {
-    return this.client.post<SyncDataResponse>(`/admin/integrations/${id}/sync`);
+    return this.api.syncData({ id }) as Promise<SyncDataResponse>;
   }
 
   async deleteIntegration(id: number): Promise<void> {
-    return this.client.delete<void>(`/admin/integrations/${id}`);
+    return this.api.deleteIntegration({ id }) as Promise<void>;
   }
 }

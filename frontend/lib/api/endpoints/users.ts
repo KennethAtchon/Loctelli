@@ -1,25 +1,33 @@
 import { ApiClient } from "../client";
 import { User, CreateUserDto } from "@/types";
+import { EndpointApiBuilder, EndpointApi } from "../config/endpoint-builder";
+import { usersConfig } from "../config/users.config";
 
 export class UsersApi {
-  constructor(private client: ApiClient) {}
+  private api: EndpointApi<typeof usersConfig>;
+
+  constructor(private client: ApiClient) {
+    const builder = new EndpointApiBuilder(client);
+    this.api = builder.buildApi(usersConfig);
+  }
+
   async getUsers(): Promise<User[]> {
-    return this.client.get<User[]>("/user");
+    return this.api.getUsers();
   }
 
   async getUser(id: number): Promise<User> {
-    return this.client.get<User>(`/user/${id}`);
+    return this.api.getUser({ id });
   }
 
   async createUser(data: CreateUserDto): Promise<User> {
-    return this.client.post<User>("/user", data);
+    return this.api.createUser(undefined, data);
   }
 
   async updateUser(id: number, data: Partial<CreateUserDto>): Promise<User> {
-    return this.client.patch<User>(`/user/${id}`, data);
+    return this.api.updateUser({ id }, data);
   }
 
   async deleteUser(id: number): Promise<void> {
-    return this.client.delete<void>(`/user/${id}`);
+    return this.api.deleteUser({ id });
   }
 }

@@ -1,4 +1,6 @@
 import { ApiClient } from "../client";
+import { EndpointApiBuilder, EndpointApi } from "../config/endpoint-builder";
+import { promptTemplatesConfig } from "../config/prompt-templates.config";
 
 export interface PromptTemplate {
   id: number;
@@ -47,32 +49,32 @@ export interface CreatePromptTemplateDto {
 export type UpdatePromptTemplateDto = Partial<CreatePromptTemplateDto>;
 
 export class PromptTemplatesApi {
-  constructor(private client: ApiClient) {}
+  private api: EndpointApi<typeof promptTemplatesConfig>;
+
+  constructor(private client: ApiClient) {
+    const builder = new EndpointApiBuilder(client);
+    this.api = builder.buildApi(promptTemplatesConfig);
+  }
 
   async getAll(): Promise<PromptTemplate[]> {
-    return this.client.get<PromptTemplate[]>("/admin/prompt-templates");
+    return this.api.getAll() as Promise<PromptTemplate[]>;
   }
 
   async getAllForSubAccount(subAccountId: number): Promise<PromptTemplate[]> {
-    return this.client.get<PromptTemplate[]>(
-      `/admin/prompt-templates/subaccount/${subAccountId}`
-    );
+    return this.api.getAllForSubAccount({ subAccountId }) as Promise<PromptTemplate[]>;
   }
 
   async getById(id: number): Promise<PromptTemplate> {
-    return this.client.get<PromptTemplate>(`/admin/prompt-templates/${id}`);
+    return this.api.getById({ id }) as Promise<PromptTemplate>;
   }
 
   async getActive(): Promise<PromptTemplate> {
-    return this.client.get<PromptTemplate>("/admin/prompt-templates/active");
+    return this.api.getActive() as Promise<PromptTemplate>;
   }
 
   async create(data: CreatePromptTemplateDto): Promise<PromptTemplate> {
     console.log("API: Creating prompt template with data:", data);
-    const result = await this.client.post<PromptTemplate>(
-      "/admin/prompt-templates",
-      data
-    );
+    const result = await this.api.create(undefined, data) as PromptTemplate;
     console.log("API: Prompt template created successfully:", result);
     return result;
   }
@@ -82,22 +84,16 @@ export class PromptTemplatesApi {
     data: UpdatePromptTemplateDto
   ): Promise<PromptTemplate> {
     console.log("API: Updating prompt template with data:", { id, data });
-    const result = await this.client.patch<PromptTemplate>(
-      `/admin/prompt-templates/${id}`,
-      data
-    );
+    const result = await this.api.update({ id }, data) as PromptTemplate;
     console.log("API: Prompt template updated successfully:", result);
     return result;
   }
 
   async activate(id: number, subAccountId: number): Promise<PromptTemplate> {
-    return this.client.patch<PromptTemplate>(
-      `/admin/prompt-templates/${id}/activate`,
-      { subAccountId }
-    );
+    return this.api.activate({ id }, { subAccountId }) as Promise<PromptTemplate>;
   }
 
   async deleteTemplate(id: number): Promise<void> {
-    return this.client.delete<void>(`/admin/prompt-templates/${id}`);
+    return this.api.deleteTemplate({ id }) as Promise<void>;
   }
 }

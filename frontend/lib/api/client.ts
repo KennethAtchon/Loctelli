@@ -14,6 +14,8 @@ export class ApiClient {
   };
   private authService: AuthService;
   private failedRequests = new Map<string, number>();
+  // Request deduplication: track in-flight requests to prevent duplicates
+  private pendingRequests = new Map<string, Promise<unknown>>();
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
@@ -42,21 +44,37 @@ export class ApiClient {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     const isAuthEndpoint = this.authService.isAuthEndpoint(endpoint);
+    const method = options.method || "GET";
+    
+    // Create a unique key for request deduplication (only for GET requests)
+    // Use endpoint + query string, but not headers (which may include changing auth tokens)
+    const requestKey = method === "GET" 
+      ? `${method}:${endpoint}`
+      : null;
+
+    // Check if there's already an identical request in flight
+    if (requestKey && this.pendingRequests.has(requestKey)) {
+      logger.debug("🔄 Deduplicating request:", requestKey);
+      const pendingRequest = this.pendingRequests.get(requestKey);
+      if (pendingRequest) {
+        return pendingRequest as Promise<T>;
+      }
+    }
 
     logger.debug("🌐 API Request:", {
       url,
-      method: options.method || "GET",
+      method,
       endpoint,
       isAuthEndpoint,
     });
 
     // Check for repeated failures to prevent infinite retries
-    const requestKey = `${options.method || "GET"}:${endpoint}`;
-    const failureCount = this.failedRequests.get(requestKey) || 0;
+    const failureKey = `${options.method || "GET"}:${endpoint}`;
+    const failureCount = this.failedRequests.get(failureKey) || 0;
     const maxFailures = options.retries || this.defaultOptions.retries || 3;
 
     if (failureCount >= maxFailures) {
-      logger.warn(`🚫 Request blocked due to repeated failures: ${requestKey}`);
+      logger.warn(`🚫 Request blocked due to repeated failures: ${failureKey}`);
       throw new Error(`Request failed too many times. Please try again later.`);
     }
 
@@ -67,6 +85,42 @@ export class ApiClient {
     const authHeaders = this.authService.getAuthHeaders();
     logger.debug("🔑 Auth headers:", authHeaders);
 
+    // Create the request promise and store it for deduplication
+    const requestPromise = this.executeRequest<T>(
+      endpoint,
+      options,
+      url,
+      isAuthEndpoint,
+      authHeaders,
+      failureKey,
+      failureCount
+    );
+    
+    // Store the promise for GET requests to enable deduplication
+    if (requestKey) {
+      this.pendingRequests.set(requestKey, requestPromise);
+      // Clean up after request completes (success or failure)
+      requestPromise
+        .finally(() => {
+          this.pendingRequests.delete(requestKey);
+        })
+        .catch(() => {
+          // Error already handled in executeRequest
+        });
+    }
+
+    return requestPromise;
+  }
+
+  private async executeRequest<T = unknown>(
+    endpoint: string,
+    options: RequestInit & ApiRequestOptions,
+    url: string,
+    isAuthEndpoint: boolean,
+    authHeaders: Record<string, string>,
+    failureKey: string,
+    failureCount: number
+  ): Promise<T> {
     const config: RequestInit = {
       headers: {
         // Only set Content-Type if body is not FormData
@@ -166,7 +220,7 @@ export class ApiClient {
 
       if (!response.ok) {
         // Track failure for this request
-        this.failedRequests.set(requestKey, failureCount + 1);
+        this.failedRequests.set(failureKey, failureCount + 1);
 
         const errorData = await response.json().catch(() => ({}));
 
@@ -203,7 +257,7 @@ export class ApiClient {
       }
 
       // Clear failure count on successful request
-      this.failedRequests.delete(requestKey);
+      this.failedRequests.delete(failureKey);
 
       // Handle blob responses (for file downloads)
       if (options.responseType === "blob") {
@@ -213,7 +267,7 @@ export class ApiClient {
       return await response.json();
     } catch (error) {
       // Track failure for this request
-      this.failedRequests.set(requestKey, failureCount + 1);
+      this.failedRequests.set(failureKey, failureCount + 1);
 
       // For auth endpoints, use simpler error logging to avoid noise
       if (isAuthEndpoint) {

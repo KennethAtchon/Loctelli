@@ -1,51 +1,45 @@
 import { ApiClient } from "../client";
 import { Lead, CreateLeadDto } from "@/types";
+import { EndpointApiBuilder, EndpointApi } from "../config/endpoint-builder";
+import { leadsConfig } from "../config/leads.config";
 
 export class LeadsApi {
-  constructor(private client: ApiClient) {}
+  private api: EndpointApi<typeof leadsConfig>;
+
+  constructor(private client: ApiClient) {
+    const builder = new EndpointApiBuilder(client);
+    this.api = builder.buildApi(leadsConfig);
+  }
 
   async getLeads(params?: {
     subAccountId?: number;
     userId?: number;
     strategyId?: number;
   }): Promise<Lead[]> {
-    const queryParams = new URLSearchParams();
-    if (params?.subAccountId) {
-      queryParams.append("subAccountId", params.subAccountId.toString());
-    }
-    if (params?.userId !== undefined && params?.userId !== null) {
-      queryParams.append("userId", params.userId.toString());
-    }
-    if (params?.strategyId) {
-      queryParams.append("strategyId", params.strategyId.toString());
-    }
-    const queryString = queryParams.toString();
-    return this.client.get<Lead[]>(
-      `/lead${queryString ? `?${queryString}` : ""}`
-    );
+    return this.api.getLeads(params);
   }
 
   async getLead(id: number): Promise<Lead> {
-    return this.client.get<Lead>(`/lead/${id}`);
+    return this.api.getLead({ id });
   }
 
   async createLead(data: CreateLeadDto): Promise<Lead> {
-    return this.client.post<Lead>("/lead", data);
+    return this.api.createLead(undefined, data);
   }
 
   async updateLead(id: number, data: Partial<CreateLeadDto>): Promise<Lead> {
-    return this.client.patch<Lead>(`/lead/${id}`, data);
+    return this.api.updateLead({ id }, data);
   }
 
   async deleteLead(id: number): Promise<void> {
-    return this.client.delete<void>(`/lead/${id}`);
+    return this.api.deleteLead({ id });
   }
 
   async getLeadsByUser(userId: number): Promise<Lead[]> {
-    return this.client.get<Lead[]>(`/lead?userId=${userId}`);
+    return this.api.getLeadsByUser({ userId });
   }
 
   async getLeadsByStrategy(strategyId: number): Promise<Lead[]> {
-    return this.client.get<Lead[]>(`/lead?strategyId=${strategyId}`);
+    return this.api.getLeadsByStrategy({ strategyId });
   }
 }
