@@ -14,7 +14,7 @@ import type {
   AdminAuthResponse,
 } from "@/lib/api";
 import logger from "@/lib/logger";
-import { AuthService } from "@/lib/api/auth-service";
+import { AuthManager } from "@/lib/api/auth-manager";
 import { useRouter } from "next/navigation";
 
 type AccountType = "user" | "admin";
@@ -72,7 +72,7 @@ export function UnifiedAuthProvider({
   const [account, setAccount] = useState<UnifiedAccount | null>(null);
   const [accountType, setAccountType] = useState<AccountType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const authService = new AuthService();
+  const authManager = new AuthManager();
   const isAuthenticated = !!account && !!accountType;
   const router = useRouter();
   // Check for existing tokens and auto-login on mount
@@ -123,7 +123,7 @@ export function UnifiedAuthProvider({
                 "🔒 Auth error detected, attempting token refresh..."
               );
               try {
-                await authService.refreshTokens();
+                await authManager.refreshToken();
                 // Retry the profile request after successful refresh
                 logger.debug(
                   "🔄 Retrying admin profile request after token refresh..."
@@ -181,7 +181,7 @@ export function UnifiedAuthProvider({
                 "🔒 Auth error detected, attempting token refresh..."
               );
               try {
-                await authService.refreshTokens();
+                await authManager.refreshToken();
                 // Retry the profile request after successful refresh
                 logger.debug(
                   "🔄 Retrying user profile request after token refresh..."
@@ -346,7 +346,7 @@ export function UnifiedAuthProvider({
           "🔒 Auth error during refresh, attempting token refresh..."
         );
         try {
-          await authService.refreshTokens();
+          await authManager.refreshToken();
           // Retry the profile request after successful refresh
           if (accountType === "admin") {
             const profile = await api.adminAuth.getAdminProfile();

@@ -36,7 +36,7 @@ export class Api extends ApiClient {
     super(baseUrl);
 
     // Initialize all endpoint APIs with shared client instance
-    // This ensures single AuthService, single cleanup interval, and shared state
+    // This ensures single AuthManager, single cleanup interval, and shared state
     this.auth = new AuthApi(this);
     this.adminAuth = new AdminAuthApi(this);
     this.adminSubAccounts = new AdminSubAccountsApi(this);

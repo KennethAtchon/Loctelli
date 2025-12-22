@@ -3,19 +3,11 @@ import { API_CONFIG } from "@/lib/utils/envUtils";
 
 /**
  * API Proxy Route
- * 
- * This route proxies all API requests from the frontend to the backend.
- * This avoids CORS issues by making requests server-side.
- * 
- * Flow:
- * 1. Frontend → POST /api/proxy/auth/login (to Next.js server)
- * 2. Next.js proxy → POST https://api.loctelli.com/auth/login (to backend)
- * 
- * Yes, POST requests will show up here - that's correct! The proxy receives
- * whatever method the frontend sends and forwards it to the backend.
+ *
+ * Simple pass-through proxy that forwards requests to the backend.
+ * Handles CORS and basic request/response forwarding.
  */
 
-// Get backend URL from centralized envUtils
 const BACKEND_URL = API_CONFIG.BACKEND_URL;
 
 // Headers to forward from the original request
@@ -23,7 +15,6 @@ const FORWARD_HEADERS = [
   "authorization",
   "content-type",
   "x-api-key",
-  "x-user-token",
   "accept",
   "accept-language",
 ];
@@ -84,51 +75,35 @@ async function handleRequest(
   method: string
 ) {
   try {
-    // Reconstruct the backend path from the catch-all route
+    // Build backend URL
     const pathSegments = params.path || [];
     const backendPath = `/${pathSegments.join("/")}`;
+    const queryString = request.nextUrl.searchParams.toString();
+    const backendUrl = `${BACKEND_URL}${backendPath}${queryString ? `?${queryString}` : ""}`;
 
-    // Get query string if present
-    const searchParams = request.nextUrl.searchParams.toString();
-    const queryString = searchParams ? `?${searchParams}` : "";
-
-    // Construct the full backend URL
-    const backendUrl = `${BACKEND_URL}${backendPath}${queryString}`;
-
-    // Prepare headers for the backend request
+    // Prepare headers
     const headers: HeadersInit = {};
-
-    // Forward relevant headers from the original request
     FORWARD_HEADERS.forEach((headerName) => {
-      const headerValue = request.headers.get(headerName);
-      if (headerValue) {
-        headers[headerName] = headerValue;
-      }
+      const value = request.headers.get(headerName);
+      if (value) headers[headerName] = value;
     });
 
-    // Add API key if available (server-side only)
+    // Add API key if available
     if (API_CONFIG.API_KEY && !headers["x-api-key"]) {
       headers["x-api-key"] = API_CONFIG.API_KEY;
     }
 
-    // Prepare request options
-    const requestOptions: RequestInit = {
-      method,
-      headers,
-    };
+    // Prepare request
+    const requestOptions: RequestInit = { method, headers };
 
-    // Add body for methods that support it
+    // Add body for POST/PUT/PATCH
     if (["POST", "PUT", "PATCH"].includes(method)) {
-      // Check if it's FormData
       const contentType = request.headers.get("content-type");
       if (contentType?.includes("multipart/form-data")) {
-        // For FormData, we need to get it as FormData
-        const formData = await request.formData();
-        requestOptions.body = formData;
-        // Don't set Content-Type header for FormData - browser will set it with boundary
+        requestOptions.body = await request.formData();
+        // Don't set Content-Type for FormData - browser will set it with boundary
         delete headers["content-type"];
       } else {
-        // For JSON or other content types, get as text and forward
         const body = await request.text();
         if (body) {
           requestOptions.body = body;
@@ -136,91 +111,36 @@ async function handleRequest(
       }
     }
 
-    // Make the request to the backend
+    // Make request to backend
     const response = await fetch(backendUrl, requestOptions);
 
-    // Get Content-Type header first
-    let contentType = response.headers.get("content-type") || "";
-
-    // Prepare response headers first to preserve Content-Type
-    const responseHeaders = new Headers();
-
-    // Forward relevant response headers (including Content-Type)
-    response.headers.forEach((value, key) => {
-      const lowerKey = key.toLowerCase();
-      // Exclude headers that shouldn't be forwarded, but keep content-type
-      if (
-        !EXCLUDE_HEADERS.includes(lowerKey) &&
-        (lowerKey === "content-type" || !lowerKey.startsWith("x-"))
-      ) {
-        responseHeaders.set(key, value);
-      }
-    });
-
-    // Get response body based on content type
+    // Get response body
+    const contentType = response.headers.get("content-type") || "";
     let responseBody: BodyInit;
-    
-    // Check if it's clearly binary data first
+
     if (
       contentType.includes("application/octet-stream") ||
       contentType.includes("application/pdf") ||
       contentType.includes("image/") ||
       contentType.includes("video/")
     ) {
-      // For binary data, use blob
+      // Binary data
       responseBody = await response.blob();
-      if (contentType) {
-        responseHeaders.set("content-type", contentType);
-      }
     } else {
-      // For text-based responses (including JSON), read as text
-      const text = await response.text();
-      
-      // If Content-Type is missing or unclear, try to detect JSON
-      if (!contentType || contentType.trim() === "") {
-        // Check if response looks like JSON
-        const trimmedText = text.trim();
-        if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
-          contentType = "application/json";
-        }
-      }
-      
-      if (contentType.includes("application/json")) {
-        responseBody = text;
-        // Always set Content-Type for JSON responses with proper charset
-        responseHeaders.set("content-type", "application/json; charset=utf-8");
-        
-        // Validate JSON if response is not empty (but don't throw - let client handle)
-        if (text && text.trim()) {
-          try {
-            JSON.parse(text); // Validate it's valid JSON
-          } catch (e) {
-            console.error("Invalid JSON response from backend:", {
-              status: response.status,
-              statusText: response.statusText,
-              preview: text.substring(0, 200),
-              originalContentType: response.headers.get("content-type"),
-            });
-            // Don't throw - still return the text so client can handle the error
-            // The client's safeJsonParse will handle this gracefully
-          }
-        }
-      } else {
-        // For other text types, use the text we read
-        responseBody = text;
-        // If no content-type was set, try to preserve it or set a default
-        if (!responseHeaders.has("content-type")) {
-          if (contentType) {
-            responseHeaders.set("content-type", contentType);
-          } else {
-            // Default to text/plain if no content type
-            responseHeaders.set("content-type", "text/plain; charset=utf-8");
-          }
-        }
-      }
+      // Text-based responses (including JSON)
+      responseBody = await response.text();
     }
 
-    // Add CORS headers for the frontend
+    // Prepare response headers
+    const responseHeaders = new Headers();
+    response.headers.forEach((value, key) => {
+      const lowerKey = key.toLowerCase();
+      if (!EXCLUDE_HEADERS.includes(lowerKey)) {
+        responseHeaders.set(key, value);
+      }
+    });
+
+    // Add CORS headers
     responseHeaders.set("Access-Control-Allow-Origin", "*");
     responseHeaders.set(
       "Access-Control-Allow-Methods",
@@ -228,10 +148,10 @@ async function handleRequest(
     );
     responseHeaders.set(
       "Access-Control-Allow-Headers",
-      "Content-Type, Authorization, X-API-Key, x-api-key, X-User-Token, x-user-token"
+      "Content-Type, Authorization, X-API-Key, x-api-key"
     );
 
-    // Return the response
+    // Return response
     return new NextResponse(responseBody, {
       status: response.status,
       statusText: response.statusText,
@@ -248,4 +168,3 @@ async function handleRequest(
     );
   }
 }
-

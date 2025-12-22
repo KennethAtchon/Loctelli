@@ -9,7 +9,11 @@
 - **Data Fetching**: TanStack Query 5.62.11 (React Query)
 - **UI Library**: Shadcn/ui components with Tailwind CSS 4.0
 - **State Management**: React Context for auth state
-- **API Client**: Custom API client with AuthService for token management and automatic refresh
+- **API Client**: Simplified API client with AuthManager for token management
+  - **Architecture**: Simplified architecture implemented (see `frontend/docs/architecture/api-client-rearchitecture.md`)
+  - **Auth Header**: Uses `Authorization: Bearer token` format (backend supports both Bearer and x-user-token)
+  - **401 Handling**: Moved to React Query error handlers (see `frontend/lib/api/react-query-error-handler.ts`)
+  - **Rate Limiting**: Client-side rate limiting for user feedback (backend handles actual rate limiting)
 - **Authentication**: JWT tokens with automatic refresh handling
 - **Development**: Fast HMR (Hot Module Replacement) with Vite
 

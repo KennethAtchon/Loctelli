@@ -1,5 +1,4 @@
 import { ApiClient } from "./client";
-import { ApiRequestOptions } from "./types";
 import logger from "@/lib/logger";
 
 /**
@@ -53,9 +52,9 @@ export class TenantAwareApiClient extends ApiClient {
   /**
    * Override request to include tenant headers
    */
-  protected async request<T = unknown>(
+  async request<T = unknown>(
     endpoint: string,
-    options: RequestInit & ApiRequestOptions = {}
+    options: RequestInit = {}
   ): Promise<T> {
     // Add tenant headers to the request
     const tenantHeaders = this.getTenantHeaders();
@@ -96,13 +95,12 @@ export class TenantAwareApiClient extends ApiClient {
    */
   async getTenantScoped<T>(
     endpoint: string,
-    params?: Record<string, unknown>,
-    options?: ApiRequestOptions
+    params?: Record<string, unknown>
   ): Promise<T> {
     const queryString = this.buildTenantQueryParams(params);
     const url = queryString ? `${endpoint}?${queryString}` : endpoint;
 
-    return this.get<T>(url, options);
+    return this.get<T>(url);
   }
 
   /**
@@ -110,8 +108,7 @@ export class TenantAwareApiClient extends ApiClient {
    */
   async postTenantScoped<T>(
     endpoint: string,
-    data: Record<string, unknown>,
-    options?: ApiRequestOptions
+    data: Record<string, unknown>
   ): Promise<T> {
     // Add subAccountId to the data if in tenant scope
     const enhancedData = { ...data };
@@ -119,7 +116,7 @@ export class TenantAwareApiClient extends ApiClient {
       enhancedData.subAccountId = this.tenantContext.subAccountId;
     }
 
-    return this.post<T>(endpoint, enhancedData, options);
+    return this.post<T>(endpoint, enhancedData);
   }
 }
 

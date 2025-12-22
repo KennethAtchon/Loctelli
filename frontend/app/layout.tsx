@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { UnifiedAuthProvider } from "@/contexts/unified-auth-context";
+import { Providers } from "@/components/providers";
 import { validateEnvironmentVariables } from "@/lib/utils/envUtils";
 import logger from "@/lib/logger";
 import { Toaster } from "@/components/ui/sonner";
@@ -76,15 +77,17 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
       <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <UnifiedAuthProvider>{children}</UnifiedAuthProvider>
-          <Toaster />
-        </ThemeProvider>
+        <Providers>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <UnifiedAuthProvider>{children}</UnifiedAuthProvider>
+            <Toaster />
+          </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );
