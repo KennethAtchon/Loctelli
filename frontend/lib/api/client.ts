@@ -130,24 +130,70 @@ export class ApiClient {
       throw new Error(error.message || response.statusText);
     }
 
+    // Get content type to determine how to handle the response
+    const contentType = response.headers.get("content-type") || "";
+    const isJson = contentType.includes("application/json");
+
     // Handle empty responses
-    const text = await response.text();
+    let text: string;
+    try {
+      text = await response.text();
+    } catch (readError) {
+      logger.error("❌ Failed to read response body:", {
+        endpoint,
+        error:
+          readError instanceof Error ? readError.message : String(readError),
+        status: response.status,
+        contentType,
+      });
+      throw new Error(
+        `Failed to read response body: ${
+          readError instanceof Error ? readError.message : "Unknown error"
+        }`
+      );
+    }
+
+    // Log response for debugging
+    logger.debug("📥 Response received:", {
+      endpoint,
+      status: response.status,
+      contentType,
+      bodyLength: text.length,
+      bodyPreview: text.substring(0, 200),
+    });
+
+    // Handle empty responses
     if (!text || !text.trim()) {
+      logger.debug("⚠️ Empty response body, returning empty object");
       return {} as T;
     }
 
-    // Parse JSON
-    try {
-      return JSON.parse(text) as T;
-    } catch (parseError) {
-      logger.error("❌ Failed to parse JSON response:", {
-        endpoint,
-        error:
-          parseError instanceof Error ? parseError.message : String(parseError),
-        preview: text.substring(0, 200),
-      });
-      throw new Error("Invalid JSON response from server");
+    // If content type indicates JSON, parse it
+    if (isJson) {
+      try {
+        const parsed = JSON.parse(text) as T;
+        logger.debug("✅ Successfully parsed JSON response");
+        return parsed;
+      } catch (parseError) {
+        logger.error("❌ Failed to parse JSON response:", {
+          endpoint,
+          error:
+            parseError instanceof Error ? parseError.message : String(parseError),
+          contentType,
+          preview: text.substring(0, 200),
+          fullText: text.length < 1000 ? text : `${text.substring(0, 1000)}...`,
+        });
+        throw new Error(
+          `Invalid JSON response from server: ${
+            parseError instanceof Error ? parseError.message : "Parse error"
+          }`
+        );
+      }
     }
+
+    // If not JSON, return as text (cast to T)
+    logger.debug("⚠️ Non-JSON response, returning as text");
+    return text as unknown as T;
   }
 
   private async parseError(

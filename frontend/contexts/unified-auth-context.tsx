@@ -237,6 +237,11 @@ export function UnifiedAuthProvider({
     try {
       const response: AuthResponse = await api.auth.login(credentials);
 
+      // Validate response structure
+      if (!response.user) {
+        throw new Error("Invalid login response: user data missing");
+      }
+
       // Store tokens in cookies
       AuthCookies.setAccessToken(response.access_token);
       AuthCookies.setRefreshToken(response.refresh_token);

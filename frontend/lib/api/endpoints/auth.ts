@@ -21,12 +21,20 @@ export interface RegisterDto {
 export interface AuthResponse {
   access_token: string;
   refresh_token: string;
-  user: {
+  user?: {
     id: number;
     name: string;
     email: string;
     role: string;
     company?: string;
+    subAccountId?: number;
+  };
+  admin?: {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    permissions?: any;
   };
 }
 
