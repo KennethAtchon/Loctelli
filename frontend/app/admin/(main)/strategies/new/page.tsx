@@ -257,7 +257,7 @@ export default function NewStrategyPage() {
       });
       setJsonInput("");
       setShowJsonImport(false);
-    } catch (error) {
+    } catch {
       toast({
         title: "Import Error",
         description: "Invalid JSON format. Please check your input.",

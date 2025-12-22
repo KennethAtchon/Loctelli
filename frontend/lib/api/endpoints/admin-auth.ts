@@ -71,7 +71,7 @@ export interface UpdateUserDto {
   company?: string;
   isActive?: boolean;
   bookingEnabled?: number;
-  bookingsTime?: any;
+  bookingsTime?: Array<{ date: string; slots: string[] }> | null;
 }
 
 export interface DashboardStats {
@@ -173,7 +173,7 @@ export interface DetailedLead {
   position?: string;
   customId?: string;
   timezone?: string;
-  messageHistory?: any;
+  messageHistory?: unknown;
   status: string;
   notes?: string;
   lastMessage?: string;

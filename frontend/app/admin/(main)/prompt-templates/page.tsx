@@ -45,6 +45,7 @@ export default function PromptTemplatesPage() {
 
   useEffect(() => {
     loadTemplates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subAccountId]);
 
   const loadTemplates = async () => {

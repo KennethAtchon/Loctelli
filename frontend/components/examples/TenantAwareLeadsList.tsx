@@ -58,7 +58,7 @@ export function TenantAwareLeadsList() {
       <CardContent>
         {leads && leads.length > 0 ? (
           <ul className="space-y-2">
-            {leads.map((lead: any) => (
+            {leads.map((lead: { id: number; name: string; email?: string; subAccountId?: number }) => (
               <li key={lead.id} className="p-2 border rounded">
                 <div className="font-medium">{lead.name}</div>
                 <div className="text-sm text-gray-600">{lead.email}</div>

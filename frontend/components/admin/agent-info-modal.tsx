@@ -86,6 +86,7 @@ export default function AgentInfoModal({
     if (open && userId && leadId) {
       fetchAgentInfo();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, userId, leadId]);
 
   const fetchAgentInfo = async () => {

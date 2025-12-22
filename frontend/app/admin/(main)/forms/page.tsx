@@ -16,9 +16,6 @@ import {
 } from "@/components/ui/dialog";
 import { FormTemplate, FormSubmission } from "@/lib/api";
 import {
-  Eye,
-  Edit,
-  Plus,
   FileText,
   Users,
   Calendar,
@@ -210,7 +207,7 @@ export default function FormsPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [subAccountId]);
+  }, [subAccountId, setTotalTemplates]);
 
   // Handle search for templates
   const handleTemplateSearch = (term: string) => {

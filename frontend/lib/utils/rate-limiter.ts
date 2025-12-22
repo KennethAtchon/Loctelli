@@ -64,7 +64,7 @@ export class RateLimiter {
   handleRateLimitError(
     endpoint: string,
     response: Response,
-    errorData: any
+    errorData: { retryAfter?: number }
   ): void {
     const retryAfter = errorData.retryAfter || 60;
     const waitTime = this.formatTime(retryAfter);

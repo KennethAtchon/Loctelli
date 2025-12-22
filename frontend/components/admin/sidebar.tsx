@@ -18,8 +18,6 @@ import {
   FileText,
   Building2,
   Link2,
-  Send,
-  Search,
   Mail,
   ClipboardList,
 } from "lucide-react";

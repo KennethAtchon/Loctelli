@@ -2,15 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import {
-  Search,
-  Plus,
-  Lightbulb,
   ArrowUp,
-  RefreshCcw,
-  Copy,
-  Share2,
-  ThumbsUp,
-  ThumbsDown,
   Image,
   X,
   Info,

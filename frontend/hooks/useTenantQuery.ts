@@ -189,7 +189,7 @@ export function useInvalidateTenantQueries() {
 
       queryClient.invalidateQueries({
         predicate: (query: Query) => {
-          const key = query.queryKey as any[];
+          const key = query.queryKey as readonly unknown[];
           const lastItem = key[key.length - 1];
 
           // Check if query key includes our tenant context
@@ -234,7 +234,7 @@ export function useTenantInfiniteQuery<
 >(options: {
   queryKey: readonly unknown[];
   queryFn: (context: {
-    pageParam?: any;
+    pageParam?: unknown;
     subAccountId: number | null;
   }) => Promise<TData>;
   getNextPageParam: (lastPage: TData) => unknown | undefined;

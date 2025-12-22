@@ -53,8 +53,8 @@ export interface FormTemplate {
 export interface FormSubmission {
   id: string;
   formTemplateId: string;
-  data: Record<string, any>;
-  files?: Record<string, any>;
+  data: Record<string, unknown>;
+  files?: Record<string, UploadedFile>;
   ipAddress?: string;
   userAgent?: string;
   source: string;
@@ -119,9 +119,9 @@ export interface UpdateFormTemplateDto {
 }
 
 export interface CreateFormSubmissionDto {
-  formTemplateId: string;
-  data: Record<string, any>;
-  files?: Record<string, any>;
+  formTemplateId?: string;
+  data: Record<string, unknown>;
+  files?: Record<string, UploadedFile>;
   source?: string;
   ipAddress?: string;
   userAgent?: string;
@@ -131,7 +131,7 @@ export interface UpdateFormSubmissionDto {
   status?: string;
   priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   assignedToId?: number;
-  notes?: Record<string, any>;
+  notes?: Record<string, unknown>;
 }
 
 export interface FormStats {
@@ -139,6 +139,12 @@ export interface FormStats {
   newCount: number;
   inProgress: number;
   completed: number;
+}
+
+export interface UploadedFile {
+  url: string;
+  originalName: string;
+  fieldId?: string;
 }
 
 export class FormsApi {
@@ -180,7 +186,10 @@ export class FormsApi {
     return this.client.get<FormTemplate>(`/forms/public/${slug}`);
   }
 
-  async submitPublicForm(slug: string, data: any): Promise<FormSubmission> {
+  async submitPublicForm(
+    slug: string,
+    data: CreateFormSubmissionDto
+  ): Promise<FormSubmission> {
     return this.client.post<FormSubmission>(
       `/forms/public/${slug}/submit`,
       data
@@ -193,8 +202,11 @@ export class FormsApi {
     );
   }
 
-  async uploadFormFile(slug: string, formData: FormData): Promise<any> {
-    return this.client.uploadFile<any>(
+  async uploadFormFile(
+    slug: string,
+    formData: FormData
+  ): Promise<UploadedFile> {
+    return this.client.uploadFile<UploadedFile>(
       `/forms/public/${slug}/upload`,
       formData
     );

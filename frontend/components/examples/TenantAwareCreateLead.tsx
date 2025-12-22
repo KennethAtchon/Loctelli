@@ -24,7 +24,7 @@ export function TenantAwareCreateLead() {
 
   // Automatic tenant context in mutations!
   const createLeadMutation = useTenantMutation<
-    any,
+    unknown,
     { name: string; email: string }
   >({
     mutationFn: async ({ name, email, subAccountId }) => {
@@ -36,7 +36,7 @@ export function TenantAwareCreateLead() {
         subAccountId: subAccountId!,
         regularUserId: 1, // Replace with actual user ID
         strategyId: 1, // Replace with actual strategy ID
-      } as any);
+      });
     },
     // Require subAccountId (fails for admin global view)
     requireSubAccount: true,

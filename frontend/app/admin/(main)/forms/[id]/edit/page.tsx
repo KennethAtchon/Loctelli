@@ -72,6 +72,7 @@ export default function EditFormTemplatePage() {
 
   useEffect(() => {
     loadTemplate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formId]);
 
   const loadTemplate = async () => {
@@ -91,7 +92,7 @@ export default function EditFormTemplatePage() {
         requiresWakeUp: templateData.requiresWakeUp,
         wakeUpInterval: templateData.wakeUpInterval,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to load template:", error);
       toast({
         title: "Error",
@@ -247,10 +248,11 @@ export default function EditFormTemplatePage() {
         title: "Success",
         description: `Imported ${schemaWithUniqueIds.length} form fields successfully`,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Import Error",
-        description: error.message || "Invalid JSON format",
+        description:
+          error instanceof Error ? error.message : "Invalid JSON format",
         variant: "destructive",
       });
     }
@@ -347,11 +349,14 @@ export default function EditFormTemplatePage() {
       });
 
       router.push("/admin/forms");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to update form template:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to update form template",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to update form template",
         variant: "destructive",
       });
     } finally {

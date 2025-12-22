@@ -166,11 +166,14 @@ export default function NewFormTemplatePage() {
       });
 
       router.push("/admin/forms");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to create form template:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to create form template",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to create form template",
         variant: "destructive",
       });
     } finally {

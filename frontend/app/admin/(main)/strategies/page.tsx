@@ -5,19 +5,10 @@ import { api } from "@/lib/api";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
 import { usePagination } from "@/components/customUI";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Target, Eye, Edit, Trash2 } from "lucide-react";
+import { Target } from "lucide-react";
 import { Strategy } from "@/types";
 import logger from "@/lib/logger";
 import { useTenant } from "@/contexts/tenant-context";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function StrategiesPage() {
@@ -151,7 +142,7 @@ export default function StrategiesPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [getTenantQueryParams]);
+  }, [getTenantQueryParams, setTotalItems]);
 
   // Handle search
   const handleSearch = (term: string) => {

@@ -132,7 +132,7 @@ const AllTheProviders = ({ children }: AllTheProvidersProps) => {
   );
 };
 
-interface CustomRenderOptions extends Omit<RenderOptions, "wrapper"> {}
+type CustomRenderOptions = Omit<RenderOptions, "wrapper">;
 
 const customRender = (ui: ReactElement, options: CustomRenderOptions = {}) => {
   return render(ui, {
@@ -189,7 +189,7 @@ export const waitForLoadingToFinish = () => {
   return new Promise((resolve) => setTimeout(resolve, 0));
 };
 
-export const createMockApiResponse = (data: any, status = 200) => {
+export const createMockApiResponse = <T,>(data: T, status = 200) => {
   return Promise.resolve({
     data,
     status,

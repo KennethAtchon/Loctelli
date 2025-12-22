@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,10 +24,16 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
-import { FormTemplate, FormField, api } from "@/lib/api";
+import {
+  FormTemplate,
+  FormField,
+  api,
+  UploadedFile,
+} from "@/lib/api";
 import logger from "@/lib/logger";
 import { Navigation } from "@/components/version2/navigation";
 import { Footer } from "@/components/version2/footer";
+import Image from "next/image";
 
 export default function PublicFormPage() {
   const params = useParams();
@@ -38,11 +44,13 @@ export default function PublicFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [formData, setFormData] = useState<Record<string, unknown>>({});
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>(
     {}
   );
-  const [uploadedFiles, setUploadedFiles] = useState<Record<string, any>>({});
+  const [uploadedFiles, setUploadedFiles] = useState<
+    Record<string, UploadedFile>
+  >({});
 
   // Wake-up mechanism
   const [wakeUpInterval, setWakeUpInterval] = useState<NodeJS.Timeout | null>(
@@ -57,7 +65,7 @@ export default function PublicFormPage() {
     } catch (error) {
       logger.error("Database wake-up failed:", error);
     }
-  }, []);
+  }, [formsApi]);
 
   const loadForm = useCallback(async () => {
     // Prevent loading reserved slugs
@@ -75,7 +83,7 @@ export default function PublicFormPage() {
       setTemplate(formTemplate);
 
       // Initialize form data with default values
-      const initialData: Record<string, any> = {};
+      const initialData: Record<string, unknown> = {};
       formTemplate.schema.forEach((field: FormField) => {
         if (field.type === "checkbox") {
           initialData[field.id] = [];
@@ -103,9 +111,9 @@ export default function PublicFormPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [slug, wakeUpDatabase]);
+  }, [slug, wakeUpDatabase, formsApi]);
 
-  const handleInputChange = (fieldId: string, value: any) => {
+  const handleInputChange = (fieldId: string, value: unknown) => {
     setFormData((prev) => ({
       ...prev,
       [fieldId]: value,
@@ -374,9 +382,11 @@ export default function PublicFormPage() {
                 {uploadedFile.originalName} uploaded successfully
                 {field.type === "image" && uploadedFile.url && (
                   <div className="mt-2">
-                    <img
+                    <Image
                       src={uploadedFile.url}
                       alt="Uploaded image"
+                      width={320}
+                      height={128}
                       className="max-w-xs max-h-32 object-contain border rounded"
                     />
                   </div>
@@ -405,7 +415,7 @@ export default function PublicFormPage() {
         clearInterval(wakeUpInterval);
       }
     };
-  }, [slug]);
+  }, [loadForm, wakeUpInterval]);
 
   if (isLoading) {
     return (

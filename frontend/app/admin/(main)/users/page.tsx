@@ -7,32 +7,26 @@ import type { UserProfile, DetailedUser } from "@/lib/api/endpoints/admin-auth";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
 import { usePagination } from "@/components/customUI";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Eye,
-  Edit,
-  Trash2,
   Users,
   UserCheck,
   UserX,
   UserPlus,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import logger from "@/lib/logger";
 import { useTenant } from "@/contexts/tenant-context";
 import { CreateUserDialog } from "./create-user-dialog";
 import { EditUserDialog } from "./edit-user-dialog";
 
 export default function UsersPage() {
-  const { getTenantQueryParams, adminFilter, availableSubaccounts } =
-    useTenant();
+  const { adminFilter, availableSubaccounts } = useTenant();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -172,7 +166,7 @@ export default function UsersPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [adminFilter]);
+  }, [adminFilter, setTotalItems]);
 
   // Handle search
   const handleSearch = (term: string) => {
@@ -498,7 +492,10 @@ export default function UsersPage() {
                   <div className="space-y-3">
                     {Array.isArray(selectedUser.bookingsTime) ? (
                       selectedUser.bookingsTime.map(
-                        (timeSlot: any, index: number) => (
+                        (
+                          timeSlot: { date: string; slots: string[] },
+                          index: number
+                        ) => (
                           <div key={index} className="p-3 border rounded-lg">
                             <div className="font-medium text-sm mb-2">
                               {new Date(timeSlot.date).toLocaleDateString(

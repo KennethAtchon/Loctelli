@@ -8,9 +8,7 @@ import {
   Calendar,
   User,
   Mail,
-  Phone,
   Building,
-  AlertCircle,
   CheckCircle,
   Clock,
   FileText,
@@ -24,7 +22,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -38,6 +35,8 @@ import { api } from "@/lib/api";
 import type {
   FormSubmission,
   UpdateFormSubmissionDto,
+  FormField,
+  UploadedFile,
 } from "@/lib/api/endpoints/forms";
 
 export default function FormSubmissionDetailPage() {
@@ -53,6 +52,7 @@ export default function FormSubmissionDetailPage() {
 
   useEffect(() => {
     loadSubmission();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [submissionId]);
 
   const loadSubmission = async () => {
@@ -64,7 +64,7 @@ export default function FormSubmissionDetailPage() {
         priority: submissionData.priority,
         assignedToId: submissionData.assignedToId,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to load submission:", error);
       toast({
         title: "Error",
@@ -92,11 +92,14 @@ export default function FormSubmissionDetailPage() {
         title: "Success",
         description: "Form submission updated successfully",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to update submission:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to update form submission",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to update form submission",
         variant: "destructive",
       });
     } finally {
@@ -150,7 +153,10 @@ export default function FormSubmissionDetailPage() {
   };
 
   // Helper function to render form field value
-  const renderFieldValue = (field: any, value: any) => {
+  const renderFieldValue = (
+    field: FormField | undefined,
+    value: unknown
+  ) => {
     if (!value && value !== false && value !== 0) return "N/A";
 
     switch (field?.type) {
@@ -223,7 +229,7 @@ export default function FormSubmissionDetailPage() {
     );
   }
 
-  const schema = (submission.formTemplate?.schema as any[]) || [];
+  const schema: FormField[] = submission.formTemplate?.schema || [];
 
   return (
     <div className="space-y-6">
@@ -352,8 +358,8 @@ export default function FormSubmissionDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {Object.entries(submission.files).map(
-                    ([fieldId, fileInfo]: [string, any]) => (
+                  {Object.entries(submission.files || {}).map(
+                    ([fieldId, fileInfo]: [string, UploadedFile]) => (
                       <div
                         key={fieldId}
                         className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
@@ -423,7 +429,11 @@ export default function FormSubmissionDetailPage() {
                       onValueChange={(value) =>
                         setUpdateData((prev) => ({
                           ...prev,
-                          priority: value as any,
+                          priority: value as
+                            | "LOW"
+                            | "MEDIUM"
+                            | "HIGH"
+                            | "URGENT",
                         }))
                       }
                     >

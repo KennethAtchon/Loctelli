@@ -8,7 +8,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -22,7 +21,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Save, Mail, Phone, Calendar } from "lucide-react";
+import { ArrowLeft, Save, Mail, Calendar } from "lucide-react";
 import { ContactSubmission, UpdateContactSubmissionDto, User } from "@/types";
 import logger from "@/lib/logger";
 
@@ -385,7 +384,10 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
                 <Select
                   value={formData.status}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, status: value as any })
+                    setFormData({
+                      ...formData,
+                      status: value as ContactSubmission["status"],
+                    })
                   }
                 >
                   <SelectTrigger id="status">
@@ -414,7 +416,10 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
                 <Select
                   value={formData.priority}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, priority: value as any })
+                    setFormData({
+                      ...formData,
+                      priority: value as ContactSubmission["priority"],
+                    })
                   }
                 >
                   <SelectTrigger id="priority">

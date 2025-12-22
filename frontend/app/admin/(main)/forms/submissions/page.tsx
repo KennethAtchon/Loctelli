@@ -7,20 +7,11 @@ import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
 import { usePagination } from "@/components/customUI";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { FormSubmission } from "@/lib/api";
 import {
   Eye,
   ArrowLeft,
   FileText,
-  Users,
-  Clock,
   CheckCircle,
   AlertCircle,
 } from "lucide-react";
@@ -44,8 +35,6 @@ export default function FormSubmissionsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [selectedSubmission, setSelectedSubmission] =
-    useState<FormSubmission | null>(null);
 
   // Use the pagination hook
   const {
@@ -245,7 +234,7 @@ export default function FormSubmissionsPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [subAccountId]);
+  }, [subAccountId, setTotalItems]);
 
   // Handle search for submissions
   const handleSubmissionSearch = (term: string) => {

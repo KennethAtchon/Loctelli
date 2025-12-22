@@ -118,4 +118,5 @@ export type {
   CreateFormSubmissionDto,
   UpdateFormSubmissionDto,
   FormStats,
+  UploadedFile,
 } from "./endpoints/forms";

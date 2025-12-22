@@ -21,8 +21,7 @@ export interface ApiError {
   message: string;
   status: number;
   code?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  details?: any;
+  details?: unknown;
 }
 
 // Query parameters
@@ -55,8 +54,7 @@ export interface ApiRequestOptions {
 // WebSocket/Real-time types
 export interface WebSocketMessage {
   type: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  payload: any;
+  payload: unknown;
   timestamp: string;
   userId?: number;
 }

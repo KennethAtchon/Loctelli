@@ -7,7 +7,7 @@ export interface User {
   isActive: boolean;
   company?: string;
   budget?: string;
-  bookingsTime?: any;
+  bookingsTime?: Array<{ date: string; slots: string[] }> | null;
   bookingEnabled: number;
   calendarId?: string;
   locationId?: string;
@@ -59,7 +59,7 @@ export interface Strategy {
   prohibitedBehaviors?: string;
 
   // Optional Structured Data
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 
   // Behavioral Settings
   delayMin?: number;
@@ -103,7 +103,7 @@ export interface Lead {
   position?: string;
   customId?: string;
   timezone?: string;
-  messageHistory?: any;
+  messageHistory?: unknown;
   conversationState?: ConversationState;
   status: string;
   notes?: string;
@@ -123,7 +123,7 @@ export interface Booking {
   leadId?: number;
   subAccountId: number;
   bookingType: string;
-  details: any;
+  details: Record<string, unknown>;
   status: string;
   createdAt: Date;
   updatedAt: Date;
@@ -196,7 +196,7 @@ export interface CreateStrategyDto {
   prohibitedBehaviors?: string;
 
   // Optional Structured Data
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 
   // Behavioral Settings
   delayMin?: number;
@@ -219,7 +219,7 @@ export interface CreateLeadDto {
   customId?: string;
   status?: string;
   notes?: string;
-  messageHistory?: any;
+  messageHistory?: unknown;
   lastMessage?: string;
   lastMessageDate?: string;
 }
@@ -229,7 +229,7 @@ export interface CreateBookingDto {
   leadId?: number;
   subAccountId: number;
   bookingType: string;
-  details: any;
+  details: Record<string, unknown>;
   status?: string;
 }
 
@@ -310,7 +310,7 @@ export interface GhlContact {
   country?: string;
   source?: string;
   tags?: string[];
-  customFields?: Record<string, any>;
+  customFields?: Record<string, unknown>;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -365,7 +365,7 @@ export interface ContactSubmission {
   assignedTo?: User;
   notes?: ContactNote[];
   subAccountId: number;
-  subAccount?: any;
+  subAccount?: { id: number; name: string };
 }
 
 export interface CreateContactSubmissionDto {

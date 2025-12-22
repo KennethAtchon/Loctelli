@@ -18,7 +18,6 @@ import { Lead } from "@/types";
 import logger from "@/lib/logger";
 import { useToast } from "@/hooks/use-toast";
 import { useTenant } from "@/contexts/tenant-context";
-import { cn } from "@/lib/utils";
 import ChatInterface, {
   type Message as ChatInterfaceMessage,
   type ChatInterfaceConfig,
@@ -345,7 +344,15 @@ export default function ChatPage() {
 
     // Convert images to base64 if present
     let imageBase64Array: string[] = [];
-    let imageMetadata: any = {};
+    let imageMetadata: {
+      images: Array<{ base64: string; name: string; type: string }>;
+      hasImages: boolean;
+      imageCount: number;
+    } = {
+      images: [],
+      hasImages: false,
+      imageCount: 0,
+    };
 
     if (images && images.length > 0) {
       const imagePromises = images.map((file) => {

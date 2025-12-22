@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -46,8 +45,12 @@ export function ContactSection() {
         (e.target as HTMLFormElement).reset();
 
         // Optional: Track conversion
-        if (typeof window !== "undefined" && (window as any).gtag) {
-          (window as any).gtag("event", "form_submit", {
+        if (
+          typeof window !== "undefined" &&
+          "gtag" in window &&
+          typeof (window as { gtag?: (command: string, event: string, params: Record<string, string>) => void }).gtag === "function"
+        ) {
+          (window as { gtag: (command: string, event: string, params: Record<string, string>) => void }).gtag("event", "form_submit", {
             event_category: "Contact",
             event_label: "Website Contact Form",
           });
@@ -58,7 +61,7 @@ export function ContactSection() {
           error.message || "Failed to submit form. Please try again."
         );
       }
-    } catch (error) {
+    } catch {
       setSubmitMessage("Failed to submit form. Please try again.");
     } finally {
       setIsSubmitting(false);

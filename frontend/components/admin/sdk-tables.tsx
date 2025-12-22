@@ -26,7 +26,7 @@ interface SDKTable {
 }
 
 interface TableDataResponse {
-  data: any[];
+  data: Record<string, unknown>[];
   totalRows: number;
   page: number;
   pageSize: number;
@@ -43,7 +43,6 @@ export default function SDKTables() {
   const [tableData, setTableData] = useState<Record<string, TableDataResponse>>(
     {}
   );
-  const [tablePages, setTablePages] = useState<Record<string, number>>({});
   const [tablePageSizes, setTablePageSizes] = useState<Record<string, number>>(
     {}
   );
@@ -130,6 +129,7 @@ export default function SDKTables() {
 
   useEffect(() => {
     fetchTables();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (isLoading) {
@@ -319,7 +319,7 @@ export default function SDKTables() {
                               </thead>
                               <tbody>
                                 {tableData[table.name].data.map(
-                                  (row: any, idx: number) => (
+                                  (row: Record<string, unknown>, idx: number) => (
                                     <tr
                                       key={idx}
                                       className="border-b hover:bg-gray-50"

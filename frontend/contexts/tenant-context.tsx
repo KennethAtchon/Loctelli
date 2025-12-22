@@ -2,7 +2,10 @@
 
 import React, { createContext, useContext, useMemo } from "react";
 import { useUnifiedAuth } from "./unified-auth-context";
-import { useSubaccountFilter } from "./subaccount-filter-context";
+import {
+  useSubaccountFilter,
+  useSubaccountFilterSafe,
+} from "./subaccount-filter-context";
 import logger from "@/lib/logger";
 
 /**
@@ -30,7 +33,7 @@ export interface TenantContextType {
   adminFilter: string | null;
 
   // For admin: available subaccounts
-  availableSubaccounts: any[];
+  availableSubaccounts: Array<{ id: number; name: string }>;
 
   // For admin: set filter
   setAdminFilter: ((filter: string) => void) | null;
@@ -45,7 +48,7 @@ export interface TenantContextType {
   setSubAccountId: ((id: number | null) => void) | null;
 
   // For admin: get current subaccount
-  getCurrentSubaccount: (() => any | null) | null;
+  getCurrentSubaccount: (() => { id: number; name: string } | null) | null;
 
   // Get query parameters for API calls
   getTenantQueryParams: () => { subAccountId?: number };
@@ -66,13 +69,8 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   const { account, accountType, isAuthenticated } = useUnifiedAuth();
 
   // Admin context (only available for admins)
-  let subaccountFilterContext;
-  try {
-    subaccountFilterContext = useSubaccountFilter();
-  } catch (e) {
-    // Not in SubaccountFilterProvider - that's ok for regular users
-    subaccountFilterContext = null;
-  }
+  // Use safe version that returns null if not in provider
+  const subaccountFilterContext = useSubaccountFilterSafe();
 
   const value = useMemo<TenantContextType>(() => {
     // Not authenticated - no tenant context
@@ -155,7 +153,8 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Regular user
-    const userSubAccountId = (account as any).subAccountId;
+    const userSubAccountId =
+      (account as { subAccountId?: number }).subAccountId;
 
     if (!userSubAccountId) {
       logger.error("Regular user without subAccountId!", account);

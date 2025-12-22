@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Calendar, Clock, User, Building, Eye, Edit } from "lucide-react";
+import { Calendar, Clock, User, Building, Edit } from "lucide-react";
 import { Booking } from "@/types";
 import logger from "@/lib/logger";
 import { useTenant } from "@/contexts/tenant-context";
@@ -26,7 +26,6 @@ export default function BookingsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [updatingStatus, setUpdatingStatus] = useState<number | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
 
@@ -161,7 +160,7 @@ export default function BookingsPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [getTenantQueryParams]);
+  }, [getTenantQueryParams, setTotalItems]);
 
   // Handle search
   const handleSearch = (term: string) => {
@@ -206,28 +205,6 @@ export default function BookingsPage() {
     window.location.href = `/admin/bookings/${booking.id}/edit`;
   };
 
-  const handleStatusUpdate = async (bookingId: number, newStatus: string) => {
-    try {
-      setUpdatingStatus(bookingId);
-      setError(null);
-      await api.bookings.updateBookingStatus(bookingId, newStatus);
-
-      // Update local state
-      setBookings((prev) =>
-        prev.map((booking) =>
-          booking.id === bookingId ? { ...booking, status: newStatus } : booking
-        )
-      );
-
-      setSuccess("Booking status updated successfully");
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (error) {
-      logger.error("Failed to update booking status:", error);
-      setError("Failed to update booking status");
-    } finally {
-      setUpdatingStatus(null);
-    }
-  };
 
   useEffect(() => {
     loadBookings();

@@ -129,3 +129,9 @@ export function useSubaccountFilter() {
   }
   return context;
 }
+
+// Safe version that returns null instead of throwing
+export function useSubaccountFilterSafe() {
+  const context = useContext(SubaccountFilterContext);
+  return context ?? null;
+}

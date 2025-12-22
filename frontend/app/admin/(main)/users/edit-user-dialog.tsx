@@ -58,7 +58,10 @@ export function EditUserDialog({
         company: user.company || "",
         isActive: user.isActive,
         bookingEnabled: user.bookingEnabled || 1,
-        bookingsTime: (user as any).bookingsTime || null,
+        bookingsTime:
+          (user as UserProfile & {
+            bookingsTime?: Array<{ date: string; slots: string[] }> | null;
+          }).bookingsTime || null,
       });
     }
   }, [user]);

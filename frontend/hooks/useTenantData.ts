@@ -67,7 +67,7 @@ export function useTenantData<T>(options: UseTenantDataOptions<T>) {
  */
 export function useTenantMutation<
   TData,
-  TVariables extends Record<string, any>,
+  TVariables extends Record<string, unknown>,
 >(options: {
   mutationFn: (
     variables: TVariables & { subAccountId: number | null }

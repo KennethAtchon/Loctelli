@@ -27,7 +27,6 @@ import DatabaseSchema from "@/components/admin/database-schema";
 import SDKTables from "@/components/admin/sdk-tables";
 
 export default function DevPage() {
-  const router = useRouter();
 
   // Debug section state
   const [debugMethod, setDebugMethod] = useState("GET");

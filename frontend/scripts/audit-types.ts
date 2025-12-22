@@ -65,7 +65,7 @@ class FrontendTypesAuditor {
 
     while ((match = modelRegex.exec(schemaContent)) !== null) {
       const modelName = match[1];
-      let modelBody = match[2];
+      const modelBody = match[2];
 
       const fields: PrismaField[] = [];
 
@@ -140,7 +140,7 @@ class FrontendTypesAuditor {
     };
 
     // Remove array brackets and @db modifiers
-    let cleanType = prismaType
+    const cleanType = prismaType
       .replace(/\[\]/g, "")
       .replace(/@db\.\w+/g, "")
       .trim();
@@ -360,7 +360,7 @@ class FrontendTypesAuditor {
    */
   normalizeTypeScriptType(tsType: string): string {
     // Remove union types, generics, etc. for comparison
-    let clean = tsType
+    const clean = tsType
       .replace(/\|.*/g, "") // Remove union types
       .replace(/<.*>/g, "") // Remove generics
       .replace(/\[\]/g, "") // Remove arrays

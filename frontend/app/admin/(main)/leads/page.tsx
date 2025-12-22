@@ -5,33 +5,24 @@ import { api } from "@/lib/api";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
 import { usePagination } from "@/components/customUI";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Building,
-  Eye,
-  Edit,
-  Trash2,
-  TrendingUp,
   AlertCircle,
   CheckCircle,
   Clock,
 } from "lucide-react";
-import { Lead, ConversationState } from "@/types";
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
+import { Lead } from "@/types";
 import { DetailedLead } from "@/lib/api/endpoints/admin-auth";
 import logger from "@/lib/logger";
 import { useTenant } from "@/contexts/tenant-context";
-import Link from "next/link";
 import { LeadDetailsContent } from "@/components/admin/lead-details-content";
 
 export default function LeadsPage() {
-  const { getTenantQueryParams, isGlobalView, subAccountId } = useTenant();
+  const { getTenantQueryParams } = useTenant();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -188,7 +179,7 @@ export default function LeadsPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [getTenantQueryParams]);
+  }, [getTenantQueryParams, setTotalItems]);
 
   // Handle search
   const handleSearch = (term: string) => {

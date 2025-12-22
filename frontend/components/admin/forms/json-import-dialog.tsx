@@ -123,10 +123,11 @@ export function JsonImportDialog({ onImport }: JsonImportDialogProps) {
         title: "Success",
         description: `Imported ${schemaWithUniqueIds.length} form fields successfully`,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Import Error",
-        description: error.message || "Invalid JSON format",
+        description:
+          error instanceof Error ? error.message : "Invalid JSON format",
         variant: "destructive",
       });
     }

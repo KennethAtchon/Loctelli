@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Menu, X } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -26,34 +27,34 @@ export function Navigation() {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
-            <a
+            <Link
               href="/#home"
               className="text-gray-700 hover:text-purple-600 transition-colors font-medium relative group"
             >
               Home
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full"></span>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/#services"
               className="text-gray-700 hover:text-purple-600 transition-colors font-medium relative group"
             >
               Services
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full"></span>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/#process"
               className="text-gray-700 hover:text-purple-600 transition-colors font-medium relative group"
             >
               Process
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full"></span>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/#contact"
               className="text-gray-700 hover:text-purple-600 transition-colors font-medium relative group"
             >
               Contact
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full"></span>
-            </a>
+            </Link>
           </div>
 
           <div className="flex items-center space-x-4">

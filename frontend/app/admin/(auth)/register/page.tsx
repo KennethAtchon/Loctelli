@@ -31,7 +31,6 @@ import {
   Shield,
   UserPlus,
   ChevronRight,
-  Building2,
   Loader2,
 } from "lucide-react";
 import logger from "@/lib/logger";

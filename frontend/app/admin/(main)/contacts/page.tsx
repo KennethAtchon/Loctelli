@@ -16,14 +16,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import {
   Mail,
-  Phone,
-  Eye,
-  Edit,
   MessageSquare,
   User,
   Calendar,
 } from "lucide-react";
-import { ContactSubmission, CreateContactNoteDto } from "@/types";
+import { ContactSubmission } from "@/types";
 import logger from "@/lib/logger";
 import { useTenant } from "@/contexts/tenant-context";
 
@@ -202,7 +199,7 @@ export default function ContactsPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, []);
+  }, [setTotalItems]);
 
   // Handle search
   const handleSearch = (term: string) => {

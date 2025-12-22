@@ -22,7 +22,6 @@ import {
   Target,
   Loader2,
   User,
-  Building2,
   MessageSquare,
   HelpCircle,
   TrendingUp,
@@ -39,29 +38,20 @@ export default function StrategyDetailsPage() {
   const router = useRouter();
   const params = useParams();
 
-  // Early return if params are not available yet
-  if (!params || !params.id) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="relative">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600"></div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Loader2 className="h-6 w-6 text-blue-600" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const strategyId = parseInt(params.id as string);
-
+  // All hooks must be called before any early returns
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [strategy, setStrategy] = useState<Strategy | null>(null);
 
-  // Load strategy data
+  // Load strategy data - must be before early return
   useEffect(() => {
+    // Early return if params are not available yet
+    if (!params || !params.id) {
+      return;
+    }
+
+    const strategyId = parseInt(params.id as string);
     const loadStrategy = async () => {
       try {
         setIsLoading(true);
@@ -82,7 +72,21 @@ export default function StrategyDetailsPage() {
       setError("Invalid strategy ID");
       setIsLoading(false);
     }
-  }, [strategyId]);
+  }, [params]);
+
+  // Early return if params are not available yet
+  if (!params || !params.id) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="relative">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600"></div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Loader2 className="h-6 w-6 text-blue-600" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleDelete = async () => {
     if (

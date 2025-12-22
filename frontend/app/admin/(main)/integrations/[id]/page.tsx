@@ -47,6 +47,7 @@ export default function IntegrationDetailsPage() {
     if (params.id) {
       loadIntegration(parseInt(params.id as string));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
   const loadIntegration = async (id: number) => {

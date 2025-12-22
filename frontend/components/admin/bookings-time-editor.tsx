@@ -21,8 +21,8 @@ interface TimeSlot {
 }
 
 interface BookingsTimeEditorProps {
-  value: any;
-  onChange: (value: any) => void;
+  value: TimeSlot[] | string | Record<string, string[]> | null | undefined;
+  onChange: (value: TimeSlot[]) => void;
   className?: string;
 }
 
@@ -56,7 +56,7 @@ export function BookingsTimeEditor({
       } else if (parsedValue && typeof parsedValue === "object") {
         // Format 2: Direct date keys
         slots = Object.entries(parsedValue)
-          .filter(([key, value]) => Array.isArray(value))
+          .filter(([, value]) => Array.isArray(value))
           .map(([date, times]) => ({
             date,
             slots: times as string[],
@@ -65,8 +65,12 @@ export function BookingsTimeEditor({
         // Format 3: Nested structures
         if (parsedValue.dates && Array.isArray(parsedValue.dates)) {
           slots = parsedValue.dates.filter(
-            (item: any) => item.date && item.slots
-          );
+            (item: unknown) =>
+              typeof item === "object" &&
+              item !== null &&
+              "date" in item &&
+              "slots" in item
+          ) as TimeSlot[];
         }
       }
 
