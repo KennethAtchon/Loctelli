@@ -24,6 +24,7 @@ Component → React Query Hook → API Client → /api/proxy → Backend API
 ```
 
 **Key Design Principles:**
+
 - **Proxy Pattern**: All API requests go through `/api/proxy` to avoid CORS issues
 - **Centralized Client**: Single `ApiClient` instance manages all HTTP requests
 - **React Query**: Handles caching, state management, and automatic refetching
@@ -81,6 +82,7 @@ Component → React Query Hook → API Client → /api/proxy → Backend API
 **Purpose**: Next.js API route handler that acts as a proxy between the frontend and backend.
 
 **Key Features:**
+
 - **CORS Handling**: Adds CORS headers to all responses
 - **Request Forwarding**: Forwards all HTTP methods (GET, POST, PUT, PATCH, DELETE, OPTIONS)
 - **Header Forwarding**: Forwards important headers like `Authorization`, `Content-Type`, `X-API-Key`
@@ -88,13 +90,15 @@ Component → React Query Hook → API Client → /api/proxy → Backend API
 - **Binary Support**: Handles binary responses (images, PDFs, etc.)
 
 **Configuration:**
+
 ```typescript
 // From envUtils.ts
-BASE_URL: "/api/proxy"  // Frontend uses this
-BACKEND_URL: process.env.BACKEND_URL || "http://localhost:8000"  // Proxy uses this
+BASE_URL: "/api/proxy"; // Frontend uses this
+BACKEND_URL: process.env.BACKEND_URL || "http://localhost:8000"; // Proxy uses this
 ```
 
 **Why Use a Proxy?**
+
 1. **CORS Avoidance**: Browsers can't make direct requests to different origins
 2. **Security**: Hides backend URL from client-side code
 3. **API Key Management**: Server-side API keys stay secure
@@ -105,6 +109,7 @@ BACKEND_URL: process.env.BACKEND_URL || "http://localhost:8000"  // Proxy uses t
 **Purpose**: Core HTTP client that handles all API requests.
 
 **Key Responsibilities:**
+
 - Making HTTP requests to `/api/proxy`
 - Adding authentication headers via `AuthManager`
 - Handling 401 errors with automatic token refresh
@@ -112,20 +117,22 @@ BACKEND_URL: process.env.BACKEND_URL || "http://localhost:8000"  // Proxy uses t
 - Error parsing and formatting
 
 **Key Methods:**
+
 ```typescript
 class ApiClient {
-  request<T>(endpoint: string, options: RequestInit): Promise<T>
-  get<T>(endpoint: string): Promise<T>
-  post<T>(endpoint: string, data?: unknown): Promise<T>
-  patch<T>(endpoint: string, data?: unknown): Promise<T>
-  put<T>(endpoint: string, data?: unknown): Promise<T>
-  delete<T>(endpoint: string): Promise<T>
-  uploadFile<T>(endpoint: string, formData: FormData): Promise<T>
+  request<T>(endpoint: string, options: RequestInit): Promise<T>;
+  get<T>(endpoint: string): Promise<T>;
+  post<T>(endpoint: string, data?: unknown): Promise<T>;
+  patch<T>(endpoint: string, data?: unknown): Promise<T>;
+  put<T>(endpoint: string, data?: unknown): Promise<T>;
+  delete<T>(endpoint: string): Promise<T>;
+  uploadFile<T>(endpoint: string, formData: FormData): Promise<T>;
 }
 ```
 
 **401 Error Handling:**
 When a 401 error occurs:
+
 1. Attempts to refresh the token using `AuthManager.refreshToken()`
 2. Retries the original request with the new token
 3. If refresh fails, clears tokens and redirects to login
@@ -135,15 +142,17 @@ When a 401 error occurs:
 **Purpose**: Manages authentication tokens and headers.
 
 **Key Features:**
+
 - **Token Storage**: Uses cookies via `AuthCookies` helper
 - **Dual Authentication**: Supports both user and admin tokens (admin takes precedence)
 - **Token Refresh**: Automatically refreshes expired tokens
 - **Header Generation**: Creates `Authorization: Bearer <token>` headers
 
 **Token Flow:**
+
 ```
-Login → Store tokens in cookies → 
-Get tokens from cookies → Add to headers → 
+Login → Store tokens in cookies →
+Get tokens from cookies → Add to headers →
 401 Error → Refresh token → Retry request
 ```
 
@@ -152,24 +161,26 @@ Get tokens from cookies → Add to headers →
 **Purpose**: Provides a unified API interface with domain-specific endpoints.
 
 **Structure:**
+
 ```typescript
 class Api extends ApiClient {
-  auth: AuthApi
-  adminAuth: AdminAuthApi
-  users: UsersApi
-  leads: LeadsApi
-  strategies: StrategiesApi
+  auth: AuthApi;
+  adminAuth: AdminAuthApi;
+  users: UsersApi;
+  leads: LeadsApi;
+  strategies: StrategiesApi;
   // ... more endpoints
 }
 
-export const api = new Api()  // Singleton instance
+export const api = new Api(); // Singleton instance
 ```
 
 **Usage:**
+
 ```typescript
 // In components
-await api.leads.getLeads({ subAccountId: 1 })
-await api.auth.login({ email, password })
+await api.leads.getLeads({ subAccountId: 1 });
+await api.auth.login({ email, password });
 ```
 
 ### 5. `/lib/api/tenant-client.ts` - TenantAwareApiClient
@@ -177,6 +188,7 @@ await api.auth.login({ email, password })
 **Purpose**: Extends `ApiClient` with automatic tenant context handling.
 
 **Key Features:**
+
 - Automatically includes `X-SubAccount-Id` and `X-Tenant-Mode` headers
 - Supports three modes:
   - `USER_SCOPED`: Regular user, automatically filtered by their subAccount
@@ -184,12 +196,13 @@ await api.auth.login({ email, password })
   - `ADMIN_FILTERED`: Admin viewing data for a specific subAccount
 
 **Usage:**
+
 ```typescript
 // Set tenant context (usually done by TenantProvider)
-tenantApiClient.setTenantContext(subAccountId, mode)
+tenantApiClient.setTenantContext(subAccountId, mode);
 
 // All subsequent requests include tenant headers
-await tenantApiClient.get('/leads')
+await tenantApiClient.get("/leads");
 ```
 
 ---
@@ -201,51 +214,57 @@ await tenantApiClient.get('/leads')
 Let's trace a complete request from component to backend:
 
 #### Step 1: Component Makes Request
+
 ```typescript
 // In a React component
 const { data: leads } = useQuery({
-  queryKey: ['leads', subAccountId],
-  queryFn: () => api.leads.getLeads({ subAccountId: 1 })
-})
+  queryKey: ["leads", subAccountId],
+  queryFn: () => api.leads.getLeads({ subAccountId: 1 }),
+});
 ```
 
 #### Step 2: React Query Executes Query Function
+
 ```typescript
 // React Query calls the queryFn
-api.leads.getLeads({ subAccountId: 1 })
+api.leads.getLeads({ subAccountId: 1 });
 ```
 
 #### Step 3: API Client Processes Request
+
 ```typescript
 // In ApiClient.request()
-const url = "/api/proxy/leads?subAccountId=1"
+const url = "/api/proxy/leads?subAccountId=1";
 const headers = {
   "Content-Type": "application/json",
-  "Authorization": "Bearer <token>"  // Added by AuthManager
-}
+  Authorization: "Bearer <token>", // Added by AuthManager
+};
 
-const response = await fetch(url, { method: "GET", headers })
+const response = await fetch(url, { method: "GET", headers });
 ```
 
 #### Step 4: Proxy Route Handles Request
+
 ```typescript
 // In /api/proxy/[...path]/route.ts
-const backendUrl = `${BACKEND_URL}/leads?subAccountId=1`
+const backendUrl = `${BACKEND_URL}/leads?subAccountId=1`;
 const headers = {
-  "Authorization": request.headers.get("authorization"),  // Forwarded
-  "Content-Type": "application/json"
-}
+  Authorization: request.headers.get("authorization"), // Forwarded
+  "Content-Type": "application/json",
+};
 
-const response = await fetch(backendUrl, { method: "GET", headers })
+const response = await fetch(backendUrl, { method: "GET", headers });
 ```
 
 #### Step 5: Backend Processes Request
+
 ```typescript
 // NestJS backend receives request
 // Validates token, processes request, returns data
 ```
 
 #### Step 6: Response Flows Back
+
 ```
 Backend → Proxy → ApiClient → React Query → Component
 ```
@@ -257,6 +276,7 @@ Backend → Proxy → ApiClient → React Query → Component
 ### What is React Query?
 
 **React Query** (TanStack Query) is a powerful data-fetching library that provides:
+
 - **Automatic Caching**: Stores API responses in memory
 - **Background Refetching**: Automatically refetches stale data
 - **Request Deduplication**: Multiple components requesting same data share one request
@@ -269,29 +289,30 @@ Backend → Proxy → ApiClient → React Query → Component
 **QueryClient** is the core instance that manages all queries and mutations.
 
 **Configuration in `providers.tsx`:**
+
 ```typescript
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60 * 1000,  // Data is fresh for 1 minute
-      refetchOnWindowFocus: false,  // Don't refetch when window regains focus
+      staleTime: 60 * 1000, // Data is fresh for 1 minute
+      refetchOnWindowFocus: false, // Don't refetch when window regains focus
       retry: (failureCount, error) => {
         // Don't retry 401 errors (API client handles refresh)
-        if (error.message.includes("401")) return false
-        return failureCount < 3  // Retry other errors up to 3 times
-      }
+        if (error.message.includes("401")) return false;
+        return failureCount < 3; // Retry other errors up to 3 times
+      },
     },
     mutations: {
       onError: async (error) => {
         // Handle 401 errors in mutations
         if (error.message.includes("401")) {
-          await authManager.refreshToken()
-          queryClient.invalidateQueries()  // Refetch all queries with new token
+          await authManager.refreshToken();
+          queryClient.invalidateQueries(); // Refetch all queries with new token
         }
-      }
-    }
-  }
-})
+      },
+    },
+  },
+});
 ```
 
 ### How Providers.tsx Ties Everything Together
@@ -301,12 +322,14 @@ const queryClient = new QueryClient({
 **Purpose**: Wraps the entire app with React Query's `QueryClientProvider`.
 
 **Key Responsibilities:**
+
 1. **Creates QueryClient**: Single instance for the entire app
 2. **Configures Defaults**: Sets up retry logic, stale time, error handling
 3. **Provides Context**: Makes QueryClient available to all components via React Context
 4. **DevTools Integration**: Includes React Query DevTools in development
 
 **Usage in `app/layout.tsx`:**
+
 ```typescript
 <Providers>  {/* QueryClientProvider wrapper */}
   <ThemeProvider>
@@ -318,6 +341,7 @@ const queryClient = new QueryClient({
 ```
 
 **Why This Matters:**
+
 - All components can use `useQuery`, `useMutation`, `useQueryClient` hooks
 - Shared cache across entire application
 - Centralized error handling and retry logic
@@ -325,16 +349,18 @@ const queryClient = new QueryClient({
 ### React Query Hooks
 
 #### useQuery - For Fetching Data
+
 ```typescript
 const { data, isLoading, error, refetch } = useQuery({
-  queryKey: ['leads', subAccountId],
+  queryKey: ["leads", subAccountId],
   queryFn: () => api.leads.getLeads({ subAccountId }),
-  staleTime: 5 * 60 * 1000,  // 5 minutes
-  enabled: !!subAccountId  // Only fetch if subAccountId exists
-})
+  staleTime: 5 * 60 * 1000, // 5 minutes
+  enabled: !!subAccountId, // Only fetch if subAccountId exists
+});
 ```
 
 **What Happens:**
+
 1. React Query checks cache for `['leads', subAccountId]`
 2. If cached and fresh, returns cached data
 3. If stale or missing, calls `queryFn`
@@ -342,37 +368,40 @@ const { data, isLoading, error, refetch } = useQuery({
 5. Returns `{ data, isLoading, error }`
 
 #### useMutation - For Creating/Updating Data
+
 ```typescript
 const createLead = useMutation({
   mutationFn: (data) => api.leads.createLead(data),
   onSuccess: () => {
     // Invalidate leads query to refetch
-    queryClient.invalidateQueries({ queryKey: ['leads'] })
-  }
-})
+    queryClient.invalidateQueries({ queryKey: ["leads"] });
+  },
+});
 
 // Usage
-createLead.mutate({ name: "John", email: "john@example.com" })
+createLead.mutate({ name: "John", email: "john@example.com" });
 ```
 
 **What Happens:**
+
 1. Calls `mutationFn` with provided data
 2. On success, calls `onSuccess` callback
 3. On error, calls `onError` callback (or global error handler)
 4. Returns `{ mutate, mutateAsync, isLoading, error, data }`
 
 #### useQueryClient - For Manual Cache Control
+
 ```typescript
-const queryClient = useQueryClient()
+const queryClient = useQueryClient();
 
 // Invalidate queries
-queryClient.invalidateQueries({ queryKey: ['leads'] })
+queryClient.invalidateQueries({ queryKey: ["leads"] });
 
 // Set query data directly
-queryClient.setQueryData(['leads', 1], newLeadsData)
+queryClient.setQueryData(["leads", 1], newLeadsData);
 
 // Get cached data
-const cachedData = queryClient.getQueryData(['leads', 1])
+const cachedData = queryClient.getQueryData(["leads", 1]);
 ```
 
 ---
@@ -422,6 +451,7 @@ const cachedData = queryClient.getQueryData(['leads', 1])
 ### Token Storage
 
 Tokens are stored in HTTP-only cookies (via `AuthCookies`):
+
 - `access_token`: Short-lived (15 minutes typical)
 - `refresh_token`: Long-lived (7 days typical)
 - Separate tokens for users and admins
@@ -511,7 +541,7 @@ Tenant context is included in query keys to ensure proper cache isolation:
 
 ```typescript
 // Query key includes tenant context
-queryKey: ['leads', { tenantMode: 'USER_SCOPED', subAccountId: 1 }]
+queryKey: ["leads", { tenantMode: "USER_SCOPED", subAccountId: 1 }];
 
 // This ensures:
 // - User 1's leads are cached separately from User 2's leads
@@ -524,59 +554,63 @@ queryKey: ['leads', { tenantMode: 'USER_SCOPED', subAccountId: 1 }]
 ## Best Practices
 
 ### 1. Always Use React Query for Data Fetching
+
 ```typescript
 // ✅ Good
 const { data } = useQuery({
-  queryKey: ['users'],
-  queryFn: () => api.users.getUsers()
-})
+  queryKey: ["users"],
+  queryFn: () => api.users.getUsers(),
+});
 
 // ❌ Bad - Direct API call in component
-const [users, setUsers] = useState([])
+const [users, setUsers] = useState([]);
 useEffect(() => {
-  api.users.getUsers().then(setUsers)
-}, [])
+  api.users.getUsers().then(setUsers);
+}, []);
 ```
 
 ### 2. Use Tenant-Aware Hooks for Multi-Tenant Data
+
 ```typescript
 // ✅ Good
 const { data } = useTenantQuery({
-  queryKey: ['leads'],
-  queryFn: ({ subAccountId }) => api.leads.getLeads({ subAccountId })
-})
+  queryKey: ["leads"],
+  queryFn: ({ subAccountId }) => api.leads.getLeads({ subAccountId }),
+});
 
 // ❌ Bad - Manual tenant handling
-const { subAccountId } = useTenant()
+const { subAccountId } = useTenant();
 const { data } = useQuery({
-  queryKey: ['leads', subAccountId],
-  queryFn: () => api.leads.getLeads({ subAccountId })
-})
+  queryKey: ["leads", subAccountId],
+  queryFn: () => api.leads.getLeads({ subAccountId }),
+});
 ```
 
 ### 3. Invalidate Queries After Mutations
+
 ```typescript
 // ✅ Good
 const createLead = useMutation({
   mutationFn: api.leads.createLead,
   onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['leads'] })
-  }
-})
+    queryClient.invalidateQueries({ queryKey: ["leads"] });
+  },
+});
 
 // ❌ Bad - No cache invalidation
 const createLead = useMutation({
-  mutationFn: api.leads.createLead
-})
+  mutationFn: api.leads.createLead,
+});
 ```
 
 ### 4. Use Descriptive Query Keys
+
 ```typescript
 // ✅ Good
-queryKey: ['leads', { subAccountId: 1, status: 'active' }]
+queryKey: ["leads", { subAccountId: 1, status: "active" }];
 
 // ❌ Bad
-queryKey: ['data']
+queryKey: ["data"];
 ```
 
 ---
@@ -593,6 +627,7 @@ The API architecture provides:
 6. **Error Handling**: Layered error handling with automatic retries
 
 **Key Files:**
+
 - `/api/proxy/[...path]/route.ts` - Proxy route handler
 - `/lib/api/client.ts` - Core HTTP client
 - `/lib/api/auth-manager.ts` - Token management
@@ -601,10 +636,10 @@ The API architecture provides:
 - `/components/providers.tsx` - React Query setup
 
 This architecture ensures:
+
 - ✅ No CORS issues
 - ✅ Secure token handling
 - ✅ Efficient caching
 - ✅ Automatic error recovery
 - ✅ Multi-tenant support
 - ✅ Type-safe API calls
-

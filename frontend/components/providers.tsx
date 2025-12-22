@@ -4,18 +4,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { AuthManager } from "@/lib/api/auth-manager";
 
-// Optional devtools - only import if available
-let ReactQueryDevtools: React.ComponentType<{
-  initialIsOpen?: boolean;
-}> | null = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const devtools = require("@tanstack/react-query-devtools");
-  ReactQueryDevtools = devtools.ReactQueryDevtools;
-} catch {
-  // Devtools not installed, that's fine
-}
-
 const authManager = new AuthManager();
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -78,12 +66,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
   });
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-      {/* Only show devtools in development if available */}
-      {process.env.NODE_ENV === "development" && ReactQueryDevtools && (
-        <ReactQueryDevtools initialIsOpen={false} />
-      )}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }
