@@ -130,6 +130,46 @@ export class ApiClient {
     return requestPromise;
   }
 
+  /**
+   * Safely parse JSON response, handling empty responses and invalid JSON
+   */
+  private async safeJsonParse<T>(response: Response): Promise<T> {
+    const contentType = response.headers.get("content-type") || "";
+    const isJson = contentType.includes("application/json");
+
+    // Check if response has content
+    const text = await response.text();
+    
+    // If empty response, return empty object or null based on context
+    if (!text || !text.trim()) {
+      if (isJson) {
+        // Empty JSON response - return empty object
+        return {} as T;
+      }
+      // Non-JSON empty response
+      return null as T;
+    }
+
+    // Only try to parse if it's JSON or looks like JSON
+    if (isJson || text.trim().startsWith("{") || text.trim().startsWith("[")) {
+      try {
+        return JSON.parse(text) as T;
+      } catch (error) {
+        logger.error("❌ Failed to parse JSON response:", {
+          error,
+          contentType,
+          preview: text.substring(0, 200),
+        });
+        throw new Error(
+          `Invalid JSON response: ${error instanceof Error ? error.message : "Unknown error"}`
+        );
+      }
+    }
+
+    // If not JSON, return as text (cast to T)
+    return text as unknown as T;
+  }
+
   private async executeRequest<T = unknown>(
     endpoint: string,
     options: RequestInit & ApiRequestOptions,
@@ -229,7 +269,7 @@ export class ApiClient {
             return (await retryResponse.blob()) as T;
           }
 
-          return await retryResponse.json();
+          return await this.safeJsonParse<T>(retryResponse);
         } catch (refreshError) {
           logger.debug("❌ Token refresh failed:", refreshError);
           // Don't automatically redirect - let the components handle this
@@ -242,11 +282,23 @@ export class ApiClient {
         // Track failure for this request
         this.failedRequests.set(failureKey, failureCount + 1);
 
-        const errorData = await response.json().catch(() => ({}));
+        // Safely parse error response
+        let errorData: Record<string, unknown> = {};
+        try {
+          const parsed = await this.safeJsonParse<Record<string, unknown>>(response);
+          errorData = parsed || {};
+        } catch (parseError) {
+          // If parsing fails, use empty object
+          logger.debug("Could not parse error response:", parseError);
+        }
 
         // Handle rate limiting specifically
         if (response.status === 429) {
-          rateLimiter.handleRateLimitError(endpoint, response, errorData);
+          rateLimiter.handleRateLimitError(endpoint, response, {
+            retryAfter: typeof errorData.retryAfter === "number" 
+              ? errorData.retryAfter 
+              : undefined,
+          });
         }
 
         // For auth endpoints, use simpler error logging to avoid noise
@@ -265,9 +317,9 @@ export class ApiClient {
 
         // Extract error message from different possible formats
         let errorMessage = response.statusText;
-        if (errorData.message) {
+        if (typeof errorData.message === "string") {
           errorMessage = errorData.message;
-        } else if (errorData.error) {
+        } else if (typeof errorData.error === "string") {
           errorMessage = errorData.error;
         } else if (typeof errorData === "string") {
           errorMessage = errorData;
@@ -284,7 +336,7 @@ export class ApiClient {
         return (await response.blob()) as T;
       }
 
-      return await response.json();
+      return await this.safeJsonParse<T>(response);
     } catch (error) {
       // Track failure for this request
       this.failedRequests.set(failureKey, failureCount + 1);
@@ -309,6 +361,20 @@ export class ApiClient {
         ) {
           throw new Error(
             "Network error. Please check your connection and try again."
+          );
+        }
+        // Handle JSON parsing errors specifically
+        if (
+          error.message.includes("Decoding failed") ||
+          error.message.includes("Invalid JSON") ||
+          error.message.includes("JSON.parse")
+        ) {
+          logger.error("❌ JSON parsing error:", {
+            endpoint,
+            error: error.message,
+          });
+          throw new Error(
+            "Invalid response from server. Please try again or contact support."
           );
         }
       }

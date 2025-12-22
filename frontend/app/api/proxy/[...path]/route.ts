@@ -140,7 +140,7 @@ async function handleRequest(
     const response = await fetch(backendUrl, requestOptions);
 
     // Get Content-Type header first
-    const contentType = response.headers.get("content-type") || "";
+    let contentType = response.headers.get("content-type") || "";
 
     // Prepare response headers first to preserve Content-Type
     const responseHeaders = new Headers();
@@ -160,34 +160,63 @@ async function handleRequest(
     // Get response body based on content type
     let responseBody: BodyInit;
     
-    if (contentType.includes("application/json")) {
-      // For JSON, read as text and ensure Content-Type is set
-      const text = await response.text();
-      responseBody = text;
-      // Always set Content-Type for JSON responses
-      responseHeaders.set("content-type", "application/json; charset=utf-8");
-      
-      // Validate JSON if response is not empty
-      if (text && text.trim()) {
-        try {
-          JSON.parse(text); // Validate it's valid JSON
-        } catch (e) {
-          console.error("Invalid JSON response from backend:", text.substring(0, 200));
-          throw new Error("Invalid JSON response from backend");
-        }
-      }
-    } else if (
+    // Check if it's clearly binary data first
+    if (
       contentType.includes("application/octet-stream") ||
-      contentType.includes("application/pdf")
+      contentType.includes("application/pdf") ||
+      contentType.includes("image/") ||
+      contentType.includes("video/")
     ) {
       // For binary data, use blob
       responseBody = await response.blob();
-    } else {
-      // For other types, read as text
-      responseBody = await response.text();
-      // If no content-type was set, try to preserve it or set a default
-      if (!responseHeaders.has("content-type") && contentType) {
+      if (contentType) {
         responseHeaders.set("content-type", contentType);
+      }
+    } else {
+      // For text-based responses (including JSON), read as text
+      const text = await response.text();
+      
+      // If Content-Type is missing or unclear, try to detect JSON
+      if (!contentType || contentType.trim() === "") {
+        // Check if response looks like JSON
+        const trimmedText = text.trim();
+        if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+          contentType = "application/json";
+        }
+      }
+      
+      if (contentType.includes("application/json")) {
+        responseBody = text;
+        // Always set Content-Type for JSON responses with proper charset
+        responseHeaders.set("content-type", "application/json; charset=utf-8");
+        
+        // Validate JSON if response is not empty (but don't throw - let client handle)
+        if (text && text.trim()) {
+          try {
+            JSON.parse(text); // Validate it's valid JSON
+          } catch (e) {
+            console.error("Invalid JSON response from backend:", {
+              status: response.status,
+              statusText: response.statusText,
+              preview: text.substring(0, 200),
+              originalContentType: response.headers.get("content-type"),
+            });
+            // Don't throw - still return the text so client can handle the error
+            // The client's safeJsonParse will handle this gracefully
+          }
+        }
+      } else {
+        // For other text types, use the text we read
+        responseBody = text;
+        // If no content-type was set, try to preserve it or set a default
+        if (!responseHeaders.has("content-type")) {
+          if (contentType) {
+            responseHeaders.set("content-type", contentType);
+          } else {
+            // Default to text/plain if no content type
+            responseHeaders.set("content-type", "text/plain; charset=utf-8");
+          }
+        }
       }
     }
 
