@@ -101,7 +101,7 @@ export class SecurityMonitoringService implements OnModuleInit {
     private secureConversation: SecureConversationService,
   ) {}
 
-  async onModuleInit() {
+  onModuleInit() {
     this.logger.log('Initializing Security Monitoring Service');
     // await this.startRealtimeMonitoring(); Pause for now to reduce costs
     this.logger.log('Security Monitoring Service initialized and running');
@@ -110,15 +110,13 @@ export class SecurityMonitoringService implements OnModuleInit {
   /**
    * Start real-time monitoring with periodic analysis
    */
-  private async startRealtimeMonitoring(): Promise<void> {
+  private startRealtimeMonitoring(): void {
     // Run analysis every 5 minutes
     this.monitoringInterval = setInterval(
-      async () => {
-        try {
-          await this.performPeriodicAnalysis();
-        } catch (error) {
+      () => {
+        void this.performPeriodicAnalysis().catch((error) => {
           this.logger.error('Error during periodic security analysis:', error);
-        }
+        });
       },
       5 * 60 * 1000,
     );
@@ -162,7 +160,7 @@ export class SecurityMonitoringService implements OnModuleInit {
       }
 
       // Calculate anomaly score
-      analysis.anomalousActivityScore = await this.calculateAnomalyScore(
+      analysis.anomalousActivityScore = this.calculateAnomalyScore(
         leadId,
         message,
       );
@@ -176,7 +174,7 @@ export class SecurityMonitoringService implements OnModuleInit {
 
       // Alert if high risk
       if (analysis.conversationRisk > 0.7) {
-        await this.triggerSecurityAlert({
+        this.triggerSecurityAlert({
           severity: 'HIGH',
           type: 'PROMPT_INJECTION',
           message: `High-risk conversation detected for lead ${leadId}`,
@@ -230,11 +228,10 @@ export class SecurityMonitoringService implements OnModuleInit {
       const metrics = this.calculateSecurityMetrics(events);
 
       // Generate recommendations
-      const recommendations =
-        await this.generateSecurityRecommendations(metrics);
+      const recommendations = this.generateSecurityRecommendations(metrics);
 
       // Get active alerts
-      const alerts = await this.getActiveAlerts();
+      const alerts = this.getActiveAlerts();
 
       const report: MonitoringReport = {
         reportId: `security_report_${Date.now()}`,
@@ -294,7 +291,7 @@ export class SecurityMonitoringService implements OnModuleInit {
       const currentThreatLevel = this.calculateCurrentThreatLevel(recentEvents);
 
       // Check system health
-      const systemHealth = await this.checkSystemHealth();
+      const systemHealth = this.checkSystemHealth();
 
       // Calculate metrics
       const metrics = {
@@ -414,7 +411,7 @@ export class SecurityMonitoringService implements OnModuleInit {
     ).length;
 
     if (highRiskEvents > this.alertThresholds.HIGH_RISK_EVENTS_PER_HOUR) {
-      await this.triggerSecurityAlert({
+      this.triggerSecurityAlert({
         severity: 'HIGH',
         type: 'RATE_LIMIT_EXCEEDED',
         message: `High risk events threshold exceeded: ${highRiskEvents} events in last hour`,
@@ -424,7 +421,7 @@ export class SecurityMonitoringService implements OnModuleInit {
     }
 
     if (criticalEvents > this.alertThresholds.CRITICAL_EVENTS_PER_HOUR) {
-      await this.triggerSecurityAlert({
+      this.triggerSecurityAlert({
         severity: 'CRITICAL',
         type: 'RATE_LIMIT_EXCEEDED',
         message: `Critical events threshold exceeded: ${criticalEvents} events in last hour`,
@@ -475,10 +472,7 @@ export class SecurityMonitoringService implements OnModuleInit {
     };
   }
 
-  private async calculateAnomalyScore(
-    leadId: number,
-    message: string,
-  ): Promise<number> {
+  private calculateAnomalyScore(leadId: number, message: string): number {
     // Implement behavioral anomaly detection
     // This would compare current behavior against historical patterns
     return 0.1; // Placeholder
@@ -506,9 +500,9 @@ export class SecurityMonitoringService implements OnModuleInit {
     return recommendations;
   }
 
-  private async triggerSecurityAlert(
+  private triggerSecurityAlert(
     alertData: Omit<SecurityAlert, 'id' | 'timestamp'>,
-  ): Promise<void> {
+  ): void {
     const alert: SecurityAlert = {
       id: `alert_${Date.now()}_${Math.random()}`,
       timestamp: new Date(),
@@ -549,9 +543,9 @@ export class SecurityMonitoringService implements OnModuleInit {
     };
   }
 
-  private async generateSecurityRecommendations(
+  private generateSecurityRecommendations(
     metrics: SecurityMetrics,
-  ): Promise<SecurityRecommendation[]> {
+  ): SecurityRecommendation[] {
     const recommendations: SecurityRecommendation[] = [];
 
     if (metrics.riskScore > 0.8) {
@@ -585,7 +579,7 @@ export class SecurityMonitoringService implements OnModuleInit {
     return recommendations;
   }
 
-  private async getActiveAlerts(): Promise<SecurityAlert[]> {
+  private getActiveAlerts(): SecurityAlert[] {
     // This would fetch active alerts from a persistent store
     return []; // Placeholder
   }
@@ -602,7 +596,7 @@ export class SecurityMonitoringService implements OnModuleInit {
     return 'LOW';
   }
 
-  private async checkSystemHealth(): Promise<any> {
+  private checkSystemHealth(): any {
     return {
       storageIntegrity: 'HEALTHY',
       monitoringStatus: 'ACTIVE',

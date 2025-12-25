@@ -170,7 +170,7 @@ export class BookingHelperService {
     aiResponse: string,
     userId: number,
     leadId: number,
-  ): Promise<any | null> {
+  ): Promise<unknown> {
     const booking = await this.parseAndCreateBooking(
       aiResponse,
       userId,
@@ -194,7 +194,7 @@ export class BookingHelperService {
     aiResponse: string,
     userId: number,
     leadId: number,
-  ): Promise<any | null> {
+  ): Promise<unknown> {
     // Check for the unique marker
     if (!aiResponse.includes('[BOOKING_CONFIRMATION]')) {
       return null;

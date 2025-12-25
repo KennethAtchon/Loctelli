@@ -91,7 +91,7 @@ export class PrismaService
   async onModuleInit() {
     await this.waitForDatabase();
     await this.$connect();
-    await this.migrate();
+    this.migrate();
   }
 
   async onModuleDestroy() {

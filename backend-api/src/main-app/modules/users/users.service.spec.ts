@@ -86,7 +86,7 @@ describe('UsersService', () => {
       const result = await service.create(createUserDto, 1);
 
       expect(bcrypt.hash).toHaveBeenCalledWith('Password123!', 12);
-      expect(prismaService.user.create).toHaveBeenCalledWith({
+      expect(mockPrismaService.user.create).toHaveBeenCalledWith({
         data: {
           ...createUserDto,
           password: 'hashedPassword',
@@ -123,7 +123,7 @@ describe('UsersService', () => {
       const result = await service.create(createUserDtoWithoutPassword, 1);
 
       expect(bcrypt.hash).not.toHaveBeenCalled();
-      expect(prismaService.user.create).toHaveBeenCalledWith({
+      expect(mockPrismaService.user.create).toHaveBeenCalledWith({
         data: {
           ...createUserDtoWithoutPassword,
           subAccountId: 1,
@@ -171,7 +171,7 @@ describe('UsersService', () => {
 
       const result = await service.findAll();
 
-      expect(prismaService.user.findMany).toHaveBeenCalledWith({
+      expect(mockPrismaService.user.findMany).toHaveBeenCalledWith({
         include: {
           strategies: true,
           leads: true,
@@ -197,7 +197,7 @@ describe('UsersService', () => {
 
       const result = await service.findOne(1);
 
-      expect(prismaService.user.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
         include: {
           strategies: true,
@@ -212,7 +212,7 @@ describe('UsersService', () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
       await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
-      expect(prismaService.user.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
         where: { id: 999 },
         include: {
           strategies: true,
@@ -241,7 +241,7 @@ describe('UsersService', () => {
 
       const result = await service.update(1, updateUserDto);
 
-      expect(prismaService.user.update).toHaveBeenCalledWith({
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: updateUserDto,
       });
@@ -256,7 +256,7 @@ describe('UsersService', () => {
       await expect(service.update(999, updateUserDto)).rejects.toThrow(
         NotFoundException,
       );
-      expect(prismaService.user.update).toHaveBeenCalledWith({
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
         where: { id: 999 },
         data: updateUserDto,
       });
@@ -275,7 +275,7 @@ describe('UsersService', () => {
 
       const result = await service.remove(1);
 
-      expect(prismaService.user.delete).toHaveBeenCalledWith({
+      expect(mockPrismaService.user.delete).toHaveBeenCalledWith({
         where: { id: 1 },
       });
       expect(result).toEqual(mockDeletedUser);
@@ -287,7 +287,7 @@ describe('UsersService', () => {
       );
 
       await expect(service.remove(999)).rejects.toThrow(NotFoundException);
-      expect(prismaService.user.delete).toHaveBeenCalledWith({
+      expect(mockPrismaService.user.delete).toHaveBeenCalledWith({
         where: { id: 999 },
       });
     });
@@ -340,9 +340,9 @@ describe('UsersService', () => {
 
       const result = await service.importGhlUsers();
 
-      expect(ghlService.searchSubaccounts).toHaveBeenCalled();
+      expect(mockGhlService.searchSubaccounts).toHaveBeenCalled();
       expect(bcrypt.hash).toHaveBeenCalledWith('defaultPassword123', 12);
-      expect(prismaService.user.create).toHaveBeenCalledTimes(2);
+      expect(mockPrismaService.user.create).toHaveBeenCalledTimes(2);
       expect(result).toEqual(mockCreatedUsers);
     });
 
@@ -360,7 +360,7 @@ describe('UsersService', () => {
 
       const result = await service.importGhlUsers();
 
-      expect(prismaService.user.create).toHaveBeenCalledTimes(1);
+      expect(mockPrismaService.user.create).toHaveBeenCalledTimes(1);
       expect(result).toEqual([mockCreatedUsers[0]]);
     });
 
@@ -394,7 +394,7 @@ describe('UsersService', () => {
 
       const result = await service.importGhlUsers();
 
-      expect(prismaService.user.create).toHaveBeenCalledWith({
+      expect(mockPrismaService.user.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           name: 'Location 1',
           email: expect.stringMatching(/user-\d+@example\.com/),
@@ -408,7 +408,7 @@ describe('UsersService', () => {
       mockGhlService.searchSubaccounts.mockResolvedValue(null);
 
       await expect(service.importGhlUsers()).rejects.toThrow(HttpException);
-      expect(ghlService.searchSubaccounts).toHaveBeenCalled();
+      expect(mockGhlService.searchSubaccounts).toHaveBeenCalled();
     });
 
     it('should throw HttpException when GHL API returns no locations', async () => {

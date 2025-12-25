@@ -68,7 +68,7 @@ export class SecureConversationService {
 
     try {
       // Encrypt the message content
-      const encryptionResult = await this.encryptContent(message.content);
+      const encryptionResult = this.encryptContent(message.content);
 
       // Generate integrity hash for the entire message
       const integrityHash = this.generateIntegrityHash({
@@ -128,7 +128,7 @@ export class SecureConversationService {
       for (const msg of messages) {
         try {
           // Verify integrity first
-          const isValid = await this.verifyIntegrity(msg);
+          const isValid = this.verifyIntegrity(msg);
           if (!isValid) {
             this.logger.warn(
               `[retrieveConversation] Integrity violation detected for message ${msg.id}, leadId=${leadId}`,
@@ -138,7 +138,7 @@ export class SecureConversationService {
           }
 
           // Decrypt content
-          const decryptedContent = await this.decryptContent({
+          const decryptedContent = this.decryptContent({
             encryptedContent: msg.encryptedContent,
             salt: msg.salt,
             iv: msg.iv,
@@ -350,7 +350,7 @@ export class SecureConversationService {
   /**
    * Encrypt message content with AES-256-CBC
    */
-  private async encryptContent(content: string): Promise<EncryptionResult> {
+  private encryptContent(content: string): EncryptionResult {
     const salt = randomBytes(16);
     const iv = randomBytes(16);
 
@@ -373,7 +373,7 @@ export class SecureConversationService {
   /**
    * Decrypt message content
    */
-  private async decryptContent(data: EncryptionResult): Promise<string> {
+  private decryptContent(data: EncryptionResult): string {
     const salt = Buffer.from(data.salt, 'hex');
 
     // Derive key using salt
@@ -408,7 +408,7 @@ export class SecureConversationService {
   /**
    * Verify message integrity
    */
-  private async verifyIntegrity(message: any): Promise<boolean> {
+  private verifyIntegrity(message: any): boolean {
     try {
       const expectedHash = this.generateIntegrityHash({
         role: message.role,
@@ -514,9 +514,7 @@ export class SecureConversationService {
       };
 
       // Encrypt the entire export
-      const exportEncryption = await this.encryptContent(
-        JSON.stringify(exportData),
-      );
+      const exportEncryption = this.encryptContent(JSON.stringify(exportData));
 
       return {
         leadId,

@@ -2,6 +2,7 @@ import { API_CONFIG } from "../utils/envUtils";
 import logger from "@/lib/logger";
 import { rateLimiter } from "../utils/rate-limiter";
 import { AuthManager } from "./auth-manager";
+import { toast } from "sonner";
 
 const API_BASE_URL = API_CONFIG.BASE_URL;
 
@@ -34,7 +35,14 @@ export class ApiClient {
     });
 
     // Check if endpoint is currently rate limited
-    rateLimiter.checkRateLimit(endpoint);
+    // Skip rate limit check for public endpoints (they're public and shouldn't be blocked client-side)
+    const isPublicEndpoint = endpoint.includes("/forms/public/") || 
+                             endpoint.includes("/auth/") ||
+                             endpoint.includes("/status/");
+    
+    if (!isPublicEndpoint) {
+      rateLimiter.checkRateLimit(endpoint);
+    }
 
     // Add auth headers
     const authHeaders = this.authManager.getAuthHeaders();
@@ -123,7 +131,26 @@ export class ApiClient {
         const errorData = await this.parseError(response);
         const retryAfter =
           typeof errorData.retryAfter === "number" ? errorData.retryAfter : 60;
-        rateLimiter.handleRateLimitError(endpoint, response, { retryAfter });
+        
+        // Only block client-side for non-public endpoints
+        // Public endpoints should rely on backend rate limiting only
+        const isPublicEndpoint = endpoint.includes("/forms/public/") || 
+                                 endpoint.includes("/auth/") ||
+                                 endpoint.includes("/status/");
+        
+        if (!isPublicEndpoint) {
+          rateLimiter.handleRateLimitError(endpoint, response, { retryAfter });
+        } else {
+          // For public endpoints, just show the error without blocking future requests
+          logger.warn(
+            `🚫 Rate limit exceeded for public endpoint ${endpoint}. Retry after ${retryAfter} seconds`
+          );
+          // Show toast notification but don't block the endpoint
+          const waitTime = rateLimiter.formatTime(retryAfter);
+          if (typeof window !== "undefined") {
+            toast.error(`Rate limited! Please wait ${waitTime} before trying again.`);
+          }
+        }
       }
 
       const error = await this.parseError(response);

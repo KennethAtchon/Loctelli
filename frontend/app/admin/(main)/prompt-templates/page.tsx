@@ -39,6 +39,7 @@ export default function PromptTemplatesPage() {
   const [loading, setLoading] = useState(true);
   const [activating, setActivating] = useState<number | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const isLoadingRef = useRef(false);
   const router = useRouter();
   const { toast } = useToast();
   const { subAccountId, isGlobalView, getCurrentSubaccount } = useTenant();
@@ -49,7 +50,13 @@ export default function PromptTemplatesPage() {
   }, [subAccountId]);
 
   const loadTemplates = async () => {
+    // Prevent multiple simultaneous calls
+    if (isLoadingRef.current) {
+      return;
+    }
+
     try {
+      isLoadingRef.current = true;
       setLoading(true);
 
       let data: PromptTemplate[];
@@ -71,6 +78,7 @@ export default function PromptTemplatesPage() {
       });
     } finally {
       setLoading(false);
+      isLoadingRef.current = false;
     }
   };
 

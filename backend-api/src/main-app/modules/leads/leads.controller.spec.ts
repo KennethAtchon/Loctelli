@@ -64,7 +64,7 @@ describe('LeadsController', () => {
   describe('create', () => {
     const createLeadDto: CreateLeadDto = {
       name: 'New Lead',
-      userId: 1,
+      regularUserId: 1,
       strategyId: 1,
       email: 'lead@example.com',
       phone: '123-456-7890',
@@ -82,7 +82,7 @@ describe('LeadsController', () => {
       const result = await controller.create(createLeadDto, mockAdminUser);
 
       expect(result).toEqual(mockCreatedLead);
-      expect(leadsService.create).toHaveBeenCalledWith(
+      expect(mockLeadsService.create).toHaveBeenCalledWith(
         createLeadDto,
         createLeadDto.subAccountId,
       );
@@ -94,7 +94,7 @@ describe('LeadsController', () => {
       const result = await controller.create(createLeadDto, mockUser);
 
       expect(result).toEqual(mockCreatedLead);
-      expect(leadsService.create).toHaveBeenCalledWith(
+      expect(mockLeadsService.create).toHaveBeenCalledWith(
         createLeadDto,
         mockUser.subAccountId,
       );
@@ -113,7 +113,7 @@ describe('LeadsController', () => {
       const result = await controller.findAll(mockAdminUser);
 
       expect(result).toEqual(mockLeads);
-      expect(leadsService.findAllByAdmin).toHaveBeenCalledWith(
+      expect(mockLeadsService.findAllByAdmin).toHaveBeenCalledWith(
         mockAdminUser.userId,
       );
     });
@@ -124,7 +124,7 @@ describe('LeadsController', () => {
       const result = await controller.findAll(mockUser);
 
       expect(result).toEqual(mockLeads);
-      expect(leadsService.findAllBySubAccount).toHaveBeenCalledWith(
+      expect(mockLeadsService.findAllBySubAccount).toHaveBeenCalledWith(
         mockUser.subAccountId,
       );
     });
@@ -136,7 +136,7 @@ describe('LeadsController', () => {
       const result = await controller.findAll(mockAdminUser, '1');
 
       expect(result).toEqual(userLeads);
-      expect(leadsService.findByUserId).toHaveBeenCalledWith(1);
+      expect(mockLeadsService.findByUserId).toHaveBeenCalledWith(1);
     });
 
     it('should return leads by strategyId when strategyId query parameter is provided', async () => {
@@ -146,7 +146,7 @@ describe('LeadsController', () => {
       const result = await controller.findAll(mockAdminUser, undefined, '1');
 
       expect(result).toEqual(strategyLeads);
-      expect(leadsService.findByStrategyId).toHaveBeenCalledWith(
+      expect(mockLeadsService.findByStrategyId).toHaveBeenCalledWith(
         1,
         mockAdminUser.userId,
         mockAdminUser.role,
@@ -164,7 +164,7 @@ describe('LeadsController', () => {
       );
 
       expect(result).toEqual(mockLeads);
-      expect(leadsService.findAllBySubAccount).toHaveBeenCalledWith(1);
+      expect(mockLeadsService.findAllBySubAccount).toHaveBeenCalledWith(1);
     });
 
     it('should throw HttpException for invalid userId parameter', async () => {
@@ -201,7 +201,7 @@ describe('LeadsController', () => {
       const result = await controller.findOne(1, mockAdminUser);
 
       expect(result).toEqual(mockLead);
-      expect(leadsService.findOne).toHaveBeenCalledWith(
+      expect(mockLeadsService.findOne).toHaveBeenCalledWith(
         1,
         mockAdminUser.userId,
         mockAdminUser.role,
@@ -227,7 +227,7 @@ describe('LeadsController', () => {
       const result = await controller.update(1, updateLeadDto, mockAdminUser);
 
       expect(result).toEqual(mockUpdatedLead);
-      expect(leadsService.update).toHaveBeenCalledWith(
+      expect(mockLeadsService.update).toHaveBeenCalledWith(
         1,
         updateLeadDto,
         mockAdminUser.userId,
@@ -255,7 +255,10 @@ describe('LeadsController', () => {
       const result = await controller.appendMessage(1, mockMessage);
 
       expect(result).toEqual(mockUpdatedLead);
-      expect(leadsService.appendMessage).toHaveBeenCalledWith(1, mockMessage);
+      expect(mockLeadsService.appendMessage).toHaveBeenCalledWith(
+        1,
+        mockMessage,
+      );
     });
   });
 
@@ -272,7 +275,7 @@ describe('LeadsController', () => {
       const result = await controller.remove(1, mockAdminUser);
 
       expect(result).toEqual(mockDeletedLead);
-      expect(leadsService.remove).toHaveBeenCalledWith(
+      expect(mockLeadsService.remove).toHaveBeenCalledWith(
         1,
         mockAdminUser.userId,
         mockAdminUser.role,

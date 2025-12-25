@@ -41,7 +41,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     this.logger.log('JWT Strategy initialized');
   }
 
-  async validate(payload: UnifiedJwtPayload) {
+  validate(payload: UnifiedJwtPayload) {
     this.logger.debug(
       `Validating JWT payload: ${JSON.stringify({
         sub: payload.sub,

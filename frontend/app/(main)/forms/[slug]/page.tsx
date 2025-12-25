@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,6 +52,7 @@ export default function PublicFormPage() {
     null
   );
   const formsApi = api.forms;
+  const isLoadingRef = useRef(false);
 
   const wakeUpDatabase = useCallback(async () => {
     try {
@@ -63,6 +64,12 @@ export default function PublicFormPage() {
   }, [formsApi]);
 
   const loadForm = useCallback(async () => {
+    // Prevent multiple simultaneous calls
+    if (isLoadingRef.current) {
+      logger.debug("⏸️ loadForm already in progress, skipping");
+      return;
+    }
+
     // Prevent loading reserved slugs
     if (slug === "wake-up" || slug === "invalid-form") {
       setError("Invalid form URL");
@@ -71,6 +78,7 @@ export default function PublicFormPage() {
     }
 
     try {
+      isLoadingRef.current = true;
       setIsLoading(true);
       setError(null);
 
@@ -105,6 +113,7 @@ export default function PublicFormPage() {
       setError(error instanceof Error ? error.message : "Failed to load form");
     } finally {
       setIsLoading(false);
+      isLoadingRef.current = false;
     }
   }, [slug, wakeUpDatabase, formsApi]);
 

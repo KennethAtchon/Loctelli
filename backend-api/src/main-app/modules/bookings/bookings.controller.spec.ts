@@ -60,7 +60,7 @@ describe('BookingsController', () => {
 
   describe('create', () => {
     const createBookingDto: CreateBookingDto = {
-      userId: 1,
+      regularUserId: 1,
       leadId: 1,
       bookingType: 'call',
       details: {},
@@ -79,7 +79,7 @@ describe('BookingsController', () => {
       const result = await controller.create(createBookingDto, mockAdminUser);
 
       expect(result).toEqual(mockCreatedBooking);
-      expect(bookingsService.create).toHaveBeenCalledWith(
+      expect(mockBookingsService.create).toHaveBeenCalledWith(
         createBookingDto,
         createBookingDto.subAccountId,
       );
@@ -91,7 +91,7 @@ describe('BookingsController', () => {
       const result = await controller.create(createBookingDto, mockUser);
 
       expect(result).toEqual(mockCreatedBooking);
-      expect(bookingsService.create).toHaveBeenCalledWith(
+      expect(mockBookingsService.create).toHaveBeenCalledWith(
         createBookingDto,
         mockUser.subAccountId,
       );
@@ -116,7 +116,7 @@ describe('BookingsController', () => {
       const result = await controller.findAll(mockAdminUser);
 
       expect(result).toEqual(mockBookings);
-      expect(bookingsService.findAllByAdmin).toHaveBeenCalledWith(
+      expect(mockBookingsService.findAllByAdmin).toHaveBeenCalledWith(
         mockAdminUser.userId,
       );
     });
@@ -127,7 +127,7 @@ describe('BookingsController', () => {
       const result = await controller.findAll(mockUser);
 
       expect(result).toEqual(mockBookings);
-      expect(bookingsService.findAllBySubAccount).toHaveBeenCalledWith(
+      expect(mockBookingsService.findAllBySubAccount).toHaveBeenCalledWith(
         mockUser.subAccountId,
       );
     });
@@ -141,7 +141,7 @@ describe('BookingsController', () => {
       const result = await controller.findAll(mockAdminUser, '1');
 
       expect(result).toEqual(userBookings);
-      expect(bookingsService.findByUserId).toHaveBeenCalledWith(1);
+      expect(mockBookingsService.findByUserId).toHaveBeenCalledWith(1);
     });
 
     it('should return bookings by leadId when leadId query parameter is provided', async () => {
@@ -153,7 +153,7 @@ describe('BookingsController', () => {
       const result = await controller.findAll(mockAdminUser, undefined, '1');
 
       expect(result).toEqual(leadBookings);
-      expect(bookingsService.findByleadId).toHaveBeenCalledWith(
+      expect(mockBookingsService.findByleadId).toHaveBeenCalledWith(
         1,
         mockAdminUser.userId,
         mockAdminUser.role,
@@ -190,7 +190,7 @@ describe('BookingsController', () => {
       const result = await controller.findOne(1, mockAdminUser);
 
       expect(result).toEqual(mockBooking);
-      expect(bookingsService.findOne).toHaveBeenCalledWith(
+      expect(mockBookingsService.findOne).toHaveBeenCalledWith(
         1,
         mockAdminUser.userId,
         mockAdminUser.role,
@@ -221,7 +221,7 @@ describe('BookingsController', () => {
       );
 
       expect(result).toEqual(mockUpdatedBooking);
-      expect(bookingsService.update).toHaveBeenCalledWith(
+      expect(mockBookingsService.update).toHaveBeenCalledWith(
         1,
         updateBookingDto,
         mockAdminUser.userId,
@@ -251,7 +251,7 @@ describe('BookingsController', () => {
       );
 
       expect(result).toEqual(mockUpdatedBooking);
-      expect(bookingsService.update).toHaveBeenCalledWith(
+      expect(mockBookingsService.update).toHaveBeenCalledWith(
         1,
         { status: 'confirmed' },
         mockAdminUser.userId,
@@ -275,7 +275,7 @@ describe('BookingsController', () => {
       const result = await controller.remove(1, mockAdminUser);
 
       expect(result).toEqual(mockDeletedBooking);
-      expect(bookingsService.remove).toHaveBeenCalledWith(
+      expect(mockBookingsService.remove).toHaveBeenCalledWith(
         1,
         mockAdminUser.userId,
         mockAdminUser.role,

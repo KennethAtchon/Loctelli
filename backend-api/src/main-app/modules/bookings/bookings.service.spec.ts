@@ -47,7 +47,7 @@ describe('BookingsService', () => {
 
   describe('create', () => {
     const createBookingDto: CreateBookingDto = {
-      userId: 1,
+      regularUserId: 1,
       leadId: 1,
       bookingType: 'call',
       details: {},
@@ -64,7 +64,7 @@ describe('BookingsService', () => {
 
       const result = await service.create(createBookingDto, 1);
       expect(result).toEqual(mockCreatedBooking);
-      expect(prismaService.booking.create).toHaveBeenCalledWith({
+      expect(mockPrismaService.booking.create).toHaveBeenCalledWith({
         data: {
           ...createBookingDto,
           subAccountId: 1,
@@ -98,7 +98,7 @@ describe('BookingsService', () => {
 
       const result = await service.findAll();
       expect(result).toEqual(mockBookings);
-      expect(prismaService.booking.findMany).toHaveBeenCalledWith({
+      expect(mockPrismaService.booking.findMany).toHaveBeenCalledWith({
         include: {
           user: true,
           lead: true,
@@ -124,7 +124,7 @@ describe('BookingsService', () => {
 
       const result = await service.findOne(1, 1, 'user');
       expect(result).toEqual(mockBooking);
-      expect(prismaService.booking.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.booking.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
         include: {
           user: true,
@@ -185,7 +185,7 @@ describe('BookingsService', () => {
 
       const result = await service.findByUserId(1);
       expect(result).toEqual(mockBookings);
-      expect(prismaService.booking.findMany).toHaveBeenCalledWith({
+      expect(mockPrismaService.booking.findMany).toHaveBeenCalledWith({
         where: { userId: 1 },
         include: {
           lead: true,
@@ -213,10 +213,10 @@ describe('BookingsService', () => {
 
       const result = await service.findByleadId(1, 1, 'user');
       expect(result).toEqual(mockBookings);
-      expect(prismaService.lead.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.lead.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
       });
-      expect(prismaService.booking.findMany).toHaveBeenCalledWith({
+      expect(mockPrismaService.booking.findMany).toHaveBeenCalledWith({
         where: { leadId: 1 },
         include: {
           lead: true,
@@ -279,10 +279,10 @@ describe('BookingsService', () => {
 
       const result = await service.update(1, updateBookingDto, 1, 'user');
       expect(result).toEqual(mockUpdatedBooking);
-      expect(prismaService.booking.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.booking.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
       });
-      expect(prismaService.booking.update).toHaveBeenCalledWith({
+      expect(mockPrismaService.booking.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: updateBookingDto,
         include: {
@@ -366,10 +366,10 @@ describe('BookingsService', () => {
 
       const result = await service.remove(1, 1, 'user');
       expect(result).toEqual(mockDeletedBooking);
-      expect(prismaService.booking.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.booking.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
       });
-      expect(prismaService.booking.delete).toHaveBeenCalledWith({
+      expect(mockPrismaService.booking.delete).toHaveBeenCalledWith({
         where: { id: 1 },
       });
     });

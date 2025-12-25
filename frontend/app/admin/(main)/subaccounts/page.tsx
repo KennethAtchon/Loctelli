@@ -32,6 +32,7 @@ import type {
 import { CreateSubAccountDialog } from "./create-subaccount-dialog";
 import { EditSubAccountDialog } from "./edit-subaccount-dialog";
 import { useTenant } from "@/contexts/tenant-context";
+import logger from "@/lib/logger";
 
 export default function SubAccountsPage() {
   const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
@@ -44,8 +45,17 @@ export default function SubAccountsPage() {
   );
   const { setSubAccountId, refreshSubaccounts } = useTenant();
 
+  const isLoadingRef = useRef(false);
+
   const loadSubAccounts = async () => {
+    // Prevent multiple simultaneous calls
+    if (isLoadingRef.current) {
+      logger.debug("⏸️ loadSubAccounts already in progress, skipping");
+      return;
+    }
+
     try {
+      isLoadingRef.current = true;
       setIsRefreshing(true);
       const data = await api.adminSubAccounts.getAllSubAccounts();
       setSubAccounts(data);
@@ -54,6 +64,7 @@ export default function SubAccountsPage() {
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
+      isLoadingRef.current = false;
     }
   };
 

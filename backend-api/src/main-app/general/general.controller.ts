@@ -70,7 +70,7 @@ export class GeneralController {
   @Get('schema')
   @UseGuards(RolesGuard)
   @Roles('admin', 'super_admin')
-  async getDatabaseSchema() {
+  getDatabaseSchema() {
     return this.generalService.getDatabaseSchema();
   }
 }

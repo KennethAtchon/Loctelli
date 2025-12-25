@@ -23,7 +23,7 @@ export class PrismaService
   async onModuleInit() {
     await this.waitForDatabase();
     await this.$connect();
-    await this.migrate();
+    this.migrate();
   }
 
   async onModuleDestroy() {
@@ -58,7 +58,7 @@ export class PrismaService
     }
   }
 
-  private async migrate() {
+  private migrate() {
     try {
       this.logger.log('Running database migrations...');
 

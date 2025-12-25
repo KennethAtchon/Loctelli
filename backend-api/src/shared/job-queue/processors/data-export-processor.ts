@@ -30,7 +30,9 @@ export class DataExportProcessor extends BaseProcessor {
           filename = `users_export_${Date.now()}.${data.format}`;
           break;
         default:
-          throw new Error(`Unsupported export type: ${data.exportType}`);
+          throw new Error(
+            `Unsupported export type: ${String(data.exportType)}`,
+          );
       }
 
       // Format the data based on the requested format

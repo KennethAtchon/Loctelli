@@ -100,7 +100,14 @@ export default function AdminDashboardPage() {
   const isLoadingRef = useRef(false);
 
   const loadDashboardData = useCallback(async () => {
+    // Prevent multiple simultaneous calls
+    if (isLoadingRef.current) {
+      logger.debug("⏸️ loadDashboardData already in progress, skipping");
+      return;
+    }
+
     try {
+      isLoadingRef.current = true;
       setIsRefreshing(true);
       setError(null);
 
@@ -121,6 +128,7 @@ export default function AdminDashboardPage() {
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
+      isLoadingRef.current = false;
     }
   }, [adminFilter]);
 

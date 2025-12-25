@@ -88,10 +88,10 @@ describe('ChatController', () => {
       const result = await controller.sendMessage(chatMessageDto, mockUser);
 
       expect(result).toEqual(mockResponse);
-      expect(prismaService.lead.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.lead.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
       });
-      expect(chatService.sendMessage).toHaveBeenCalledWith(chatMessageDto);
+      expect(mockChatService.sendMessage).toHaveBeenCalledWith(chatMessageDto);
     });
 
     it('should send message when user is admin', async () => {
@@ -152,10 +152,10 @@ describe('ChatController', () => {
       const result = await controller.getMessages(1, mockUser);
 
       expect(result).toEqual(mockMessages);
-      expect(prismaService.lead.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.lead.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
       });
-      expect(chatService.getMessageHistory).toHaveBeenCalledWith(1);
+      expect(mockChatService.getMessageHistory).toHaveBeenCalledWith(1);
     });
 
     it('should get messages when user is admin', async () => {
@@ -188,19 +188,16 @@ describe('ChatController', () => {
   });
 
   describe('markMessageAsRead', () => {
-    it('should return placeholder response', async () => {
-      const result = await controller.markMessageAsRead(
-        'message-123',
-        mockUser,
-      );
+    it('should return placeholder response', () => {
+      const result = controller.markMessageAsRead('message-123', mockUser);
 
       expect(result).toEqual({ message: 'Message marked as read' });
     });
   });
 
   describe('deleteMessage', () => {
-    it('should return placeholder response', async () => {
-      const result = await controller.deleteMessage('message-123', mockUser);
+    it('should return placeholder response', () => {
+      const result = controller.deleteMessage('message-123', mockUser);
 
       expect(result).toEqual({ message: 'Message deleted' });
     });
@@ -218,7 +215,7 @@ describe('ChatController', () => {
       const result = await controller.getUnreadMessagesCount(1, mockUser);
 
       expect(result).toBe(0);
-      expect(prismaService.lead.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.lead.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
       });
     });
@@ -267,7 +264,7 @@ describe('ChatController', () => {
       const result = await controller.markAllAsRead(1, mockUser);
 
       expect(result).toEqual({ message: 'All messages marked as read' });
-      expect(prismaService.lead.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.lead.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
       });
     });
@@ -317,7 +314,7 @@ describe('ChatController', () => {
       const result = await controller.sendMessageByCustomId(sendMessageDto);
 
       expect(result).toEqual(mockResponse);
-      expect(chatService.sendMessageByCustomId).toHaveBeenCalledWith(
+      expect(mockChatService.sendMessageByCustomId).toHaveBeenCalledWith(
         sendMessageDto,
       );
     });
@@ -326,14 +323,14 @@ describe('ChatController', () => {
   describe('generalChatEndpoint', () => {
     const testData = { message: 'Hello', userId: 123 };
 
-    it('should handle general chat', async () => {
+    it('should handle general chat', () => {
       const mockResponse = { received: testData };
       mockChatService.handleGeneralChat.mockResolvedValue(mockResponse);
 
-      const result = await controller.generalChatEndpoint(testData);
+      const result = controller.generalChatEndpoint(testData);
 
       expect(result).toEqual(mockResponse);
-      expect(chatService.handleGeneralChat).toHaveBeenCalledWith(testData);
+      expect(mockChatService.handleGeneralChat).toHaveBeenCalledWith(testData);
     });
   });
 
@@ -350,10 +347,10 @@ describe('ChatController', () => {
       const result = await controller.clearLeadMessages(1, mockUser);
 
       expect(result).toEqual({ message: 'Chat history cleared' });
-      expect(prismaService.lead.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.lead.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
       });
-      expect(chatService.clearMessageHistory).toHaveBeenCalledWith(1);
+      expect(mockChatService.clearMessageHistory).toHaveBeenCalledWith(1);
     });
 
     it('should clear lead messages when user is admin', async () => {

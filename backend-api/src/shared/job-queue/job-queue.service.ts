@@ -29,8 +29,8 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
     private genericTaskProcessor: GenericTaskProcessor,
   ) {}
 
-  async onModuleInit() {
-    await this.initializeQueues();
+  onModuleInit() {
+    this.initializeQueues();
     this.registerProcessors();
     this.logger.log('✅ Job Queue Service initialized');
   }
@@ -40,7 +40,7 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
     this.logger.log('🔒 Job Queue Service closed');
   }
 
-  private async initializeQueues() {
+  private initializeQueues() {
     const redisConfig = this.configService.get('redis');
 
     // BullMQ connection configuration with Railway IPv6 compatibility

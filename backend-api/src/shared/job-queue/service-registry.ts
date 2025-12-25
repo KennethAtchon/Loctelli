@@ -5,7 +5,8 @@
  * by the GenericTaskProcessor without needing direct dependency injection.
  */
 
-export type ServiceMethod = (...args: any[]) => Promise<any> | any;
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+export type ServiceMethod = (...args: unknown[]) => Promise<unknown> | unknown;
 
 export interface RegisteredService {
   instance: any;

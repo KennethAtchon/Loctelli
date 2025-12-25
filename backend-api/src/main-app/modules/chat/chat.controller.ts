@@ -271,12 +271,12 @@ export class ChatController {
 
   @Post('general')
   @Public()
-  async generalChatEndpoint(@Body() data: any) {
+  generalChatEndpoint(@Body() data: any) {
     this.logger.log(`💬 General chat endpoint request`);
     this.logger.debug(`General chat data: ${JSON.stringify(data)}`);
 
     try {
-      const result = await this.chatService.handleGeneralChat(data);
+      const result = this.chatService.handleGeneralChat(data);
       this.logger.log(`✅ General chat handled successfully`);
       return result;
     } catch (error) {

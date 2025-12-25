@@ -10,22 +10,19 @@ import { API_CONFIG } from "@/lib/utils/envUtils";
 
 const BACKEND_URL = API_CONFIG.BACKEND_URL;
 
-// Headers to forward from the original request
-const FORWARD_HEADERS = [
-  "authorization",
-  "content-type",
-  "x-api-key",
-  "accept",
-  "accept-language",
+// Headers to exclude from request forwarding (would break the backend request)
+const REQUEST_EXCLUDE_HEADERS = [
+  "host",        // Must be the backend's host, not the proxy's
+  "connection",  // HTTP connection management, handled by fetch
 ];
 
-// Headers to exclude from forwarding
-const EXCLUDE_HEADERS = [
-  "host",
-  "connection",
-  "content-length",      // Will be recalculated by NextResponse
-  "transfer-encoding",
-  "content-encoding",   // Remove compression header since we decompress the body
+// Headers to exclude from response forwarding (would break the client)
+const RESPONSE_EXCLUDE_HEADERS = [
+  "host",             // Must be the proxy's host, not the backend's
+  "connection",       // HTTP connection management, handled by NextResponse
+  "content-length",   // Will be recalculated by NextResponse based on actual body
+  "transfer-encoding", // HTTP transfer encoding, handled by NextResponse
+  "content-encoding",  // We decompress the body, so this header is incorrect
 ];
 
 export async function GET(
@@ -88,14 +85,16 @@ async function handleRequest(
     const queryString = request.nextUrl.searchParams.toString();
     const backendUrl = `${BACKEND_URL}${backendPath}${queryString ? `?${queryString}` : ""}`;
 
-    // Prepare headers
+    // Forward all request headers except those that would break things
     const headers: HeadersInit = {};
-    FORWARD_HEADERS.forEach((headerName) => {
-      const value = request.headers.get(headerName);
-      if (value) headers[headerName] = value;
+    request.headers.forEach((value, key) => {
+      const lowerKey = key.toLowerCase();
+      if (!REQUEST_EXCLUDE_HEADERS.includes(lowerKey)) {
+        headers[key] = value;
+      }
     });
 
-    // Add API key if available
+    // Add API key if available (server-side only, not exposed to client)
     if (API_CONFIG.API_KEY && !headers["x-api-key"]) {
       headers["x-api-key"] = API_CONFIG.API_KEY;
     }
@@ -138,11 +137,11 @@ async function handleRequest(
       responseBody = await response.text();
     }
 
-    // Prepare response headers
+    // Forward all response headers except those that would break things
     const responseHeaders = new Headers();
     response.headers.forEach((value, key) => {
       const lowerKey = key.toLowerCase();
-      if (!EXCLUDE_HEADERS.includes(lowerKey)) {
+      if (!RESPONSE_EXCLUDE_HEADERS.includes(lowerKey)) {
         responseHeaders.set(key, value);
       }
     });

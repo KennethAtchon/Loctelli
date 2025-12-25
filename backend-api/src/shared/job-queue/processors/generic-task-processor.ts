@@ -106,7 +106,12 @@ export class GenericTaskProcessor extends BaseProcessor {
    * Registry for standalone functions that can be executed
    * Add your custom functions here
    */
-  private getTaskRegistry(): Record<string, Function> {
+
+  private getTaskRegistry(): Record<
+    string,
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+    (...args: unknown[]) => Promise<unknown> | unknown
+  > {
     return {
       // Example functions
       delay: async (ms: number) => {

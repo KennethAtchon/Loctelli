@@ -40,6 +40,7 @@ export default function IntegrationsPage() {
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const isLoadingRef = useRef(false);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -50,7 +51,13 @@ export default function IntegrationsPage() {
   }, []);
 
   const loadData = async () => {
+    // Prevent multiple simultaneous calls
+    if (isLoadingRef.current) {
+      return;
+    }
+
     try {
+      isLoadingRef.current = true;
       setLoading(true);
       const [templatesData, integrationsData] = await Promise.all([
         api.integrationTemplates.getActive(),
@@ -67,6 +74,7 @@ export default function IntegrationsPage() {
       });
     } finally {
       setLoading(false);
+      isLoadingRef.current = false;
     }
   };
 

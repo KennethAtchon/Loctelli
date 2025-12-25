@@ -48,7 +48,7 @@ describe('LeadsService', () => {
   describe('create', () => {
     const createLeadDto: CreateLeadDto = {
       name: 'New Lead',
-      userId: 1,
+      regularUserId: 1,
       strategyId: 1,
       email: 'lead@example.com',
       phone: '123-456-7890',
@@ -65,7 +65,7 @@ describe('LeadsService', () => {
 
       const result = await service.create(createLeadDto, 1);
       expect(result).toEqual(mockCreatedLead);
-      expect(prismaService.lead.create).toHaveBeenCalledWith({
+      expect(mockPrismaService.lead.create).toHaveBeenCalledWith({
         data: {
           ...createLeadDto,
           subAccountId: 1,
@@ -85,7 +85,7 @@ describe('LeadsService', () => {
 
       const result = await service.findAll();
       expect(result).toEqual(mockLeads);
-      expect(prismaService.lead.findMany).toHaveBeenCalledWith({
+      expect(mockPrismaService.lead.findMany).toHaveBeenCalledWith({
         include: {
           user: true,
           strategy: true,
@@ -111,7 +111,7 @@ describe('LeadsService', () => {
 
       const result = await service.findOne(1, 1, 'user');
       expect(result).toEqual(mockLead);
-      expect(prismaService.lead.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.lead.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
         include: {
           user: true,
@@ -134,7 +134,7 @@ describe('LeadsService', () => {
       await expect(service.findOne(999, 1, 'user')).rejects.toThrow(
         NotFoundException,
       );
-      expect(prismaService.lead.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.lead.findUnique).toHaveBeenCalledWith({
         where: { id: 999 },
         include: {
           user: true,
@@ -167,7 +167,7 @@ describe('LeadsService', () => {
 
       const result = await service.findByUserId(1);
       expect(result).toEqual(mockLeads);
-      expect(prismaService.lead.findMany).toHaveBeenCalledWith({
+      expect(mockPrismaService.lead.findMany).toHaveBeenCalledWith({
         where: { userId: 1 },
         include: {
           strategy: true,
@@ -190,10 +190,10 @@ describe('LeadsService', () => {
 
       const result = await service.findByStrategyId(1, 1, 'user');
       expect(result).toEqual(mockLeads);
-      expect(prismaService.strategy.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.strategy.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
       });
-      expect(prismaService.lead.findMany).toHaveBeenCalledWith({
+      expect(mockPrismaService.lead.findMany).toHaveBeenCalledWith({
         where: { strategyId: 1 },
         include: {
           strategy: true,
@@ -246,10 +246,10 @@ describe('LeadsService', () => {
 
       const result = await service.update(1, updateLeadDto, 1, 'user');
       expect(result).toEqual(mockUpdatedLead);
-      expect(prismaService.lead.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.lead.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
       });
-      expect(prismaService.lead.update).toHaveBeenCalledWith({
+      expect(mockPrismaService.lead.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: updateLeadDto,
       });
@@ -318,11 +318,11 @@ describe('LeadsService', () => {
 
       const result = await service.appendMessage(1, newMessage);
       expect(result).toEqual(updatedLead);
-      expect(prismaService.lead.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.lead.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
         select: { messageHistory: true },
       });
-      expect(prismaService.lead.update).toHaveBeenCalledWith({
+      expect(mockPrismaService.lead.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: {
           messageHistory: expect.any(String),
@@ -367,10 +367,10 @@ describe('LeadsService', () => {
 
       const result = await service.remove(1, 1, 'user');
       expect(result).toEqual(mockDeletedLead);
-      expect(prismaService.lead.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.lead.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
       });
-      expect(prismaService.lead.delete).toHaveBeenCalledWith({
+      expect(mockPrismaService.lead.delete).toHaveBeenCalledWith({
         where: { id: 1 },
       });
     });

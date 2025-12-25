@@ -70,7 +70,7 @@ describe('UsersController', () => {
         subAccountId: 1,
       });
 
-      expect(usersService.create).toHaveBeenCalledWith(
+      expect(mockUsersService.create).toHaveBeenCalledWith(
         createUserDto,
         createUserDto.subAccountId,
       );
@@ -86,7 +86,7 @@ describe('UsersController', () => {
         subAccountId: 1,
       });
 
-      expect(usersService.create).toHaveBeenCalledWith(createUserDto, 1);
+      expect(mockUsersService.create).toHaveBeenCalledWith(createUserDto, 1);
       expect(result).toEqual(mockCreatedUser);
     });
   });
@@ -120,7 +120,7 @@ describe('UsersController', () => {
 
       const result = await controller.findAll(mockAdminUser);
 
-      expect(usersService.findAllByAdmin).toHaveBeenCalledWith(
+      expect(mockUsersService.findAllByAdmin).toHaveBeenCalledWith(
         mockAdminUser.userId,
       );
       expect(result).toEqual([mockUserData]);
@@ -131,7 +131,7 @@ describe('UsersController', () => {
 
       const result = await controller.findAll(mockRegularUser);
 
-      expect(usersService.findAllBySubAccount).toHaveBeenCalledWith(
+      expect(mockUsersService.findAllBySubAccount).toHaveBeenCalledWith(
         mockRegularUser.subAccountId,
       );
       expect(result).toEqual([mockUserData]);
@@ -142,7 +142,7 @@ describe('UsersController', () => {
 
       const result = await controller.findAll(mockAdminUser, '2');
 
-      expect(usersService.findOne).toHaveBeenCalledWith(2);
+      expect(mockUsersService.findOne).toHaveBeenCalledWith(2);
       expect(result).toEqual(mockUserData);
     });
 
@@ -151,7 +151,7 @@ describe('UsersController', () => {
 
       const result = await controller.findAll(mockRegularUser, '1');
 
-      expect(usersService.findOne).toHaveBeenCalledWith(1);
+      expect(mockUsersService.findOne).toHaveBeenCalledWith(1);
       expect(result).toEqual(mockUserData);
     });
 
@@ -183,22 +183,22 @@ describe('UsersController', () => {
       bookings: [],
     };
 
-    it('should return user data when user is admin', () => {
+    it('should return user data when user is admin', async () => {
       mockUsersService.findOne.mockResolvedValue(mockUserData);
 
       const result = controller.findOne(2, { ...mockUser, role: 'admin' });
 
-      expect(usersService.findOne).toHaveBeenCalledWith(2);
-      expect(result).resolves.toEqual(mockUserData);
+      expect(mockUsersService.findOne).toHaveBeenCalledWith(2);
+      await expect(result).resolves.toEqual(mockUserData);
     });
 
-    it('should return user data when user accesses own data', () => {
+    it('should return user data when user accesses own data', async () => {
       mockUsersService.findOne.mockResolvedValue(mockUserData);
 
       const result = controller.findOne(1, mockUser);
 
-      expect(usersService.findOne).toHaveBeenCalledWith(1);
-      expect(result).resolves.toEqual(mockUserData);
+      expect(mockUsersService.findOne).toHaveBeenCalledWith(1);
+      await expect(result).resolves.toEqual(mockUserData);
     });
 
     it('should throw HttpException when user tries to access other user data without admin role', () => {
@@ -224,7 +224,7 @@ describe('UsersController', () => {
       company: 'Updated Company',
     };
 
-    it('should successfully update user when user is admin', () => {
+    it('should successfully update user when user is admin', async () => {
       mockUsersService.update.mockResolvedValue(mockUpdatedUser);
 
       const result = controller.update(2, updateUserDto, {
@@ -232,17 +232,17 @@ describe('UsersController', () => {
         role: 'admin',
       });
 
-      expect(usersService.update).toHaveBeenCalledWith(2, updateUserDto);
-      expect(result).resolves.toEqual(mockUpdatedUser);
+      expect(mockUsersService.update).toHaveBeenCalledWith(2, updateUserDto);
+      await expect(result).resolves.toEqual(mockUpdatedUser);
     });
 
-    it('should successfully update user when user updates own data', () => {
+    it('should successfully update user when user updates own data', async () => {
       mockUsersService.update.mockResolvedValue(mockUpdatedUser);
 
       const result = controller.update(1, updateUserDto, mockUser);
 
-      expect(usersService.update).toHaveBeenCalledWith(1, updateUserDto);
-      expect(result).resolves.toEqual(mockUpdatedUser);
+      expect(mockUsersService.update).toHaveBeenCalledWith(1, updateUserDto);
+      await expect(result).resolves.toEqual(mockUpdatedUser);
     });
 
     it('should throw HttpException when user tries to update other user data without admin role', () => {
@@ -264,22 +264,22 @@ describe('UsersController', () => {
       email: 'test@example.com',
     };
 
-    it('should successfully delete user when user is admin', () => {
+    it('should successfully delete user when user is admin', async () => {
       mockUsersService.remove.mockResolvedValue(mockDeletedUser);
 
       const result = controller.remove(2, { ...mockUser, role: 'admin' });
 
-      expect(usersService.remove).toHaveBeenCalledWith(2);
-      expect(result).resolves.toEqual(mockDeletedUser);
+      expect(mockUsersService.remove).toHaveBeenCalledWith(2);
+      await expect(result).resolves.toEqual(mockDeletedUser);
     });
 
-    it('should successfully delete user when user deletes own data', () => {
+    it('should successfully delete user when user deletes own data', async () => {
       mockUsersService.remove.mockResolvedValue(mockDeletedUser);
 
       const result = controller.remove(1, mockUser);
 
-      expect(usersService.remove).toHaveBeenCalledWith(1);
-      expect(result).resolves.toEqual(mockDeletedUser);
+      expect(mockUsersService.remove).toHaveBeenCalledWith(1);
+      await expect(result).resolves.toEqual(mockDeletedUser);
     });
 
     it('should throw HttpException when user tries to delete other user data without admin role', () => {
@@ -306,13 +306,13 @@ describe('UsersController', () => {
       },
     ];
 
-    it('should successfully import GHL users', () => {
+    it('should successfully import GHL users', async () => {
       mockUsersService.importGhlUsers.mockResolvedValue(mockImportedUsers);
 
       const result = controller.importGhlUsers(mockUser);
 
-      expect(usersService.importGhlUsers).toHaveBeenCalled();
-      expect(result).resolves.toEqual(mockImportedUsers);
+      expect(mockUsersService.importGhlUsers).toHaveBeenCalled();
+      await expect(result).resolves.toEqual(mockImportedUsers);
     });
   });
 });
