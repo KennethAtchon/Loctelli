@@ -14,6 +14,7 @@ import { AdminSubAccountsApi } from "./endpoints/admin-subaccounts";
 import { GeneralApi } from "./endpoints/general";
 import { ContactsApi } from "./endpoints/contacts";
 import { FormsApi } from "./endpoints/forms";
+import { DevApi } from "./endpoints/dev";
 
 export class Api extends ApiClient {
   public auth: AuthApi;
@@ -31,6 +32,7 @@ export class Api extends ApiClient {
   public general: GeneralApi;
   public contacts: ContactsApi;
   public forms: FormsApi;
+  public dev: DevApi;
 
   constructor(baseUrl?: string) {
     super(baseUrl);
@@ -52,6 +54,7 @@ export class Api extends ApiClient {
     this.general = new GeneralApi(this);
     this.contacts = new ContactsApi(this);
     this.forms = new FormsApi(this);
+    this.dev = new DevApi(this);
   }
 }
 
@@ -74,6 +77,7 @@ export { StatusApi } from "./endpoints/status";
 export { GeneralApi } from "./endpoints/general";
 export { ContactsApi } from "./endpoints/contacts";
 export { FormsApi } from "./endpoints/forms";
+export { DevApi } from "./endpoints/dev";
 
 // Export types
 export type { SystemStatus } from "./endpoints/status";

@@ -20,6 +20,7 @@ import { DebugModule } from './debug/debug.module';
 import { ContactsModule } from './modules/contacts/contacts.module';
 import { FormsModule } from './modules/forms/forms.module';
 import { AIReceptionistModule } from './modules/ai-receptionist/ai-receptionist.module';
+import { DevModule } from './dev/dev.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { AIReceptionistModule } from './modules/ai-receptionist/ai-receptionist.
     ContactsModule,
     FormsModule,
     AIReceptionistModule,
+    DevModule,
   ],
   providers: [
     // Apply OnboardingGuard globally

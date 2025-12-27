@@ -25,9 +25,9 @@ export const AUTH_CONFIG = {
 
 // Environment Configuration
 export const ENV_CONFIG = {
-  NODE_ENV: process.env.NODE_ENV || "development",
-  IS_PRODUCTION: process.env.NODE_ENV === "production",
-  IS_DEVELOPMENT: process.env.NODE_ENV === "development",
+  DEBUG: process.env.DEBUG === "true",
+  IS_PRODUCTION: process.env.DEBUG !== "true",
+  IS_DEVELOPMENT: process.env.DEBUG === "true",
 } as const;
 
 // Validation function to ensure required environment variables are set

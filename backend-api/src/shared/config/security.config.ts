@@ -62,7 +62,7 @@ export class SecurityConfigService {
       },
       database: {
         url: this.getRequiredEnv('DATABASE_URL'),
-        ssl: this.configService.get('NODE_ENV') === 'production',
+        ssl: this.configService.get('DEBUG') !== 'true',
       },
       redis: {
         url: this.getRequiredEnv('REDIS_URL'),
@@ -166,7 +166,7 @@ export class SecurityConfigService {
     }
 
     // Check for development defaults in production
-    if (this.configService.get('NODE_ENV') === 'production') {
+    if (this.configService.get('DEBUG') !== 'true') {
       if (config.jwt.secret.includes('your-super-secret')) {
         throw new Error('JWT_SECRET contains default value in production');
       }

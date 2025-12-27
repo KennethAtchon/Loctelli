@@ -5,7 +5,7 @@ export async function GET() {
   return NextResponse.json({
     message: "API test endpoint is working!",
     timestamp: new Date().toISOString(),
-    environment: ENV_CONFIG.NODE_ENV,
+    debug: ENV_CONFIG.DEBUG,
     apiUrl: API_CONFIG.BACKEND_URL,
   });
 }

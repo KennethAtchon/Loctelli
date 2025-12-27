@@ -70,7 +70,7 @@ async function bootstrap() {
 
     const port = process.env.PORT ?? 3000;
     logger.log(`🔌 Starting server on port: ${port}`);
-    logger.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.log(`🌍 Debug mode: ${process.env.DEBUG === 'true' ? 'enabled' : 'disabled'}`);
     logger.log(`🔑 API Key configured: ${process.env.API_KEY ? 'Yes' : 'No'}`);
     logger.log(
       `🗄️ Database URL configured: ${process.env.DATABASE_URL ? 'Yes' : 'No'}`,

@@ -46,7 +46,7 @@ export class PrismaService
 
         if (attempt === this.maxRetries) {
           this.logger.error('Max retries reached. Database is not available.');
-          if (process.env.NODE_ENV === 'production') {
+          if (process.env.DEBUG !== 'true') {
             process.exit(1);
           }
           throw new Error('Database connection failed after max retries');
@@ -71,8 +71,7 @@ export class PrismaService
       this.logger.log('Database migrations completed successfully');
     } catch (error) {
       this.logger.error('Failed to run database migrations:', error);
-      // In production, you might want to exit the process if migrations fail
-      if (process.env.NODE_ENV === 'production') {
+      if (process.env.DEBUG !== 'true') {
         this.logger.error('Exiting due to migration failure in production');
         process.exit(1);
       }

@@ -8,6 +8,7 @@ import { Providers } from "@/components/providers";
 import { validateEnvironmentVariables } from "@/lib/utils/envUtils";
 import logger from "@/lib/logger";
 import { Toaster } from "@/components/ui/sonner";
+import { DebugPanel } from "@/components/debug/debug-panel";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -86,6 +87,7 @@ export default function RootLayout({
           >
             <UnifiedAuthProvider>{children}</UnifiedAuthProvider>
             <Toaster />
+            <DebugPanel />
           </ThemeProvider>
         </Providers>
       </body>

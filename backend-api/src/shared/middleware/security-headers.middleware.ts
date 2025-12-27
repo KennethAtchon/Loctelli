@@ -29,7 +29,7 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
     );
 
     // Strict-Transport-Security (HSTS) - only in production
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.DEBUG !== 'true') {
       res.setHeader(
         'Strict-Transport-Security',
         'max-age=31536000; includeSubDomains; preload',

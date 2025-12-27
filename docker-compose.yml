@@ -57,7 +57,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      NODE_ENV: ${NODE_ENV:-development}
+      DEBUG: ${DEBUG:-true}
       PORT: 8000
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-loctelli}
       REDIS_URL: redis://redis:6379
@@ -93,13 +93,22 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000/api/proxy}
+        ADMIN_AUTH_CODE: ${ADMIN_AUTH_CODE:-secure_code}
+        API_KEY: ${API_KEY:-Rg+jpjlCb8KDFzeJKXmF/UFvMTtMgm0nbLUUEnb/5Yw=}
+        BACKEND_URL: ${BACKEND_URL:-http://localhost:8000}
+        DEBUG: ${DEBUG:-true}
     container_name: loctelli_frontend
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
-      BACKEND_URL: http://loctelli_api:8000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000/api/proxy}
+      ADMIN_AUTH_CODE: ${ADMIN_AUTH_CODE:-secure_code}
+      API_KEY: ${API_KEY:-Rg+jpjlCb8KDFzeJKXmF/UFvMTtMgm0nbLUUEnb/5Yw=}
+      BACKEND_URL: ${BACKEND_URL:-http://localhost:8000}
+      DEBUG: ${DEBUG:-true}
     env_file:
       - ./frontend/.env
     depends_on:

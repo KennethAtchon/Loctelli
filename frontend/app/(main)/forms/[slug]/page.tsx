@@ -54,7 +54,9 @@ export default function PublicFormPage() {
   const formsApi = api.forms;
   const isLoadingRef = useRef(false);
 
+  // This is getting called multiple times on page load, not being debounced, I dont know why
   const wakeUpDatabase = useCallback(async () => {
+    logger.info("Waking up database");
     try {
       await formsApi.wakeUpDatabase();
       logger.debug("Database wake-up successful");
@@ -65,6 +67,7 @@ export default function PublicFormPage() {
 
   const loadForm = useCallback(async () => {
     // Prevent multiple simultaneous calls
+    logger.info("Loading form for slug: ", slug);
     if (isLoadingRef.current) {
       logger.debug("⏸️ loadForm already in progress, skipping");
       return;
@@ -412,15 +415,18 @@ export default function PublicFormPage() {
   };
 
   useEffect(() => {
+    console.log("UseEffect called ");
     loadForm();
 
     // Cleanup wake-up interval on unmount
     return () => {
+      console.log("UseEffect cleanup called ");
       if (wakeUpInterval) {
+        console.log("Clearing wake-up interval");
         clearInterval(wakeUpInterval);
       }
     };
-  }, [loadForm, wakeUpInterval]);
+  }, []);
 
   if (isLoading) {
     return (

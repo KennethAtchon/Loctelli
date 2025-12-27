@@ -14,11 +14,17 @@ RUN pnpm install
 # Copy source code
 COPY . .
 
-# Define arguments for environment variables needed at build time
 ARG NEXT_PUBLIC_API_URL
+ARG ADMIN_AUTH_CODE
+ARG API_KEY
+ARG BACKEND_URL
+ARG DEBUG
 
-# Set environment variables for the build
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV ADMIN_AUTH_CODE=$ADMIN_AUTH_CODE
+ENV API_KEY=$API_KEY
+ENV BACKEND_URL=$BACKEND_URL
+ENV DEBUG=$DEBUG
 
 # Build the Next.js app
 RUN pnpm run build
@@ -42,6 +48,18 @@ RUN pnpm install --prod
 # Copy built application
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
+
+ARG NEXT_PUBLIC_API_URL
+ARG ADMIN_AUTH_CODE
+ARG API_KEY
+ARG BACKEND_URL
+ARG DEBUG
+
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV ADMIN_AUTH_CODE=$ADMIN_AUTH_CODE
+ENV API_KEY=$API_KEY
+ENV BACKEND_URL=$BACKEND_URL
+ENV DEBUG=$DEBUG
 
 # Expose port
 EXPOSE 3000
