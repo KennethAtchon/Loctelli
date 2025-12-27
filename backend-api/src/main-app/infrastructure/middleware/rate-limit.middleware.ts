@@ -64,19 +64,6 @@ export class RateLimitMiddleware implements NestMiddleware {
       };
     }
 
-    // Check if this is a public form endpoint (higher rate limit for public access)
-    const isPublicFormEndpoint = path.startsWith('/forms/public/');
-
-    if (isPublicFormEndpoint) {
-      this.logger.log(
-        `📝 Public form endpoint detected: ${method} ${path} - using public form rate limit`,
-      );
-      return {
-        ...this.defaultConfig,
-        ...publicFormRateLimit,
-      };
-    }
-
     // Check if this is a general API endpoint (not status/health)
     const isApiEndpoint = !path.startsWith('/status/');
 
@@ -332,15 +319,5 @@ export const apiRateLimit = {
     const ip = req.ip || req.connection.remoteAddress || 'unknown';
     const userId = (req.user as any)?.userId || 'anonymous';
     return `api_rate_limit:${ip}:${userId}`;
-  },
-};
-
-export const publicFormRateLimit = {
-  windowMs: 1 * 60 * 1000, // 1 minute
-  maxRequests: 60, // 60 requests per minute (1 per second average)
-  keyGenerator: (req: Request) => {
-    const ip = req.ip || req.connection.remoteAddress || 'unknown';
-    const path = req.path; // Include path to separate different forms
-    return `public_form_rate_limit:${ip}:${path}`;
   },
 };

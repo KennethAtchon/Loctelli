@@ -48,10 +48,11 @@ export default function PublicFormPage() {
   >({});
 
   // Wake-up mechanism
-  const wakeUpIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [wakeUpInterval, setWakeUpInterval] = useState<NodeJS.Timeout | null>(
+    null
+  );
   const formsApi = api.forms;
   const isLoadingRef = useRef(false);
-  const hasLoadedRef = useRef(false);
 
   const wakeUpDatabase = useCallback(async () => {
     try {
@@ -63,9 +64,9 @@ export default function PublicFormPage() {
   }, [formsApi]);
 
   const loadForm = useCallback(async () => {
-    // Prevent multiple simultaneous calls or duplicate loads
-    if (isLoadingRef.current || hasLoadedRef.current) {
-      logger.debug("⏸️ loadForm already in progress or already loaded, skipping");
+    // Prevent multiple simultaneous calls
+    if (isLoadingRef.current) {
+      logger.debug("⏸️ loadForm already in progress, skipping");
       return;
     }
 
@@ -83,7 +84,6 @@ export default function PublicFormPage() {
 
       const formTemplate = await formsApi.getPublicForm(slug);
       setTemplate(formTemplate);
-      hasLoadedRef.current = true;
 
       // Initialize form data with default values
       const initialData: Record<string, unknown> = {};
@@ -98,11 +98,6 @@ export default function PublicFormPage() {
 
       // Set up wake-up mechanism if required
       if (formTemplate.requiresWakeUp) {
-        // Clear any existing interval
-        if (wakeUpIntervalRef.current) {
-          clearInterval(wakeUpIntervalRef.current);
-        }
-
         // Initial wake-up
         await wakeUpDatabase();
 
@@ -111,7 +106,7 @@ export default function PublicFormPage() {
           wakeUpDatabase,
           formTemplate.wakeUpInterval * 1000
         );
-        wakeUpIntervalRef.current = interval;
+        setWakeUpInterval(interval);
       }
     } catch (error) {
       logger.error("Failed to load form:", error);
@@ -417,18 +412,15 @@ export default function PublicFormPage() {
   };
 
   useEffect(() => {
-    // Reset hasLoadedRef when slug changes
-    hasLoadedRef.current = false;
     loadForm();
 
-    // Cleanup wake-up interval on unmount or slug change
+    // Cleanup wake-up interval on unmount
     return () => {
-      if (wakeUpIntervalRef.current) {
-        clearInterval(wakeUpIntervalRef.current);
-        wakeUpIntervalRef.current = null;
+      if (wakeUpInterval) {
+        clearInterval(wakeUpInterval);
       }
     };
-  }, [slug]); // Only depend on slug to prevent unnecessary re-runs
+  }, [loadForm, wakeUpInterval]);
 
   if (isLoading) {
     return (
