@@ -59,4 +59,3 @@ export class DevApi {
     return this.client.get<ConnectionTestResponse>("/dev/cache/test");
   }
 }
-

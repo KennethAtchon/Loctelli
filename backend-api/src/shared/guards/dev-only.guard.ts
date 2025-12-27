@@ -51,9 +51,9 @@ export class DevOnlyGuard implements CanActivate {
     const debug = this.configService.get<string>('DEBUG');
     // Normalize the value: trim whitespace, convert to lowercase
     const normalizedDebug = debug?.toString().trim().toLowerCase() || '';
-    const isDebugEnabled = 
-      normalizedDebug === 'true' || 
-      normalizedDebug === '1' || 
+    const isDebugEnabled =
+      normalizedDebug === 'true' ||
+      normalizedDebug === '1' ||
       normalizedDebug === 'yes' ||
       normalizedDebug === 'on' ||
       normalizedDebug === 'enabled';
@@ -78,4 +78,3 @@ export class DevOnlyGuard implements CanActivate {
     return true;
   }
 }
-

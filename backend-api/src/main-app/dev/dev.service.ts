@@ -27,17 +27,21 @@ export class DevService {
       // First verify connection
       this.logger.debug('🔍 [DevService] Verifying cache connection...');
       const isConnected = await this.cacheService.testConnection();
-      
+
       if (!isConnected) {
-        this.logger.warn('⚠️ [DevService] Cache connection test failed - cache may not be available');
+        this.logger.warn(
+          '⚠️ [DevService] Cache connection test failed - cache may not be available',
+        );
         throw new Error('Cache connection failed - cannot clear cache');
       }
 
-      this.logger.log('✅ [DevService] Cache connection verified, proceeding with flush...');
-      
+      this.logger.log(
+        '✅ [DevService] Cache connection verified, proceeding with flush...',
+      );
+
       // Now flush all cache keys
       cleared = await this.cacheService.flushAll();
-      
+
       const duration = Date.now() - startTime;
       this.logger.log(
         `✅ [DevService] Cache clear operation completed in ${duration}ms - cleared: ${cleared}`,
@@ -53,9 +57,10 @@ export class DevService {
         `❌ [DevService] Cache clear failed after ${duration}ms:`,
         error instanceof Error ? error.stack : error,
       );
-      
+
       // Return a more informative error message
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       throw new Error(`Failed to clear cache: ${errorMessage}`);
     }
   }
@@ -104,9 +109,14 @@ export class DevService {
       await this.prismaService.$queryRaw`SELECT 1`;
       const dbDuration = Date.now() - dbStartTime;
       dbConnected = true;
-      this.logger.debug(`✅ [DevService] Database connection successful (${dbDuration}ms)`);
+      this.logger.debug(
+        `✅ [DevService] Database connection successful (${dbDuration}ms)`,
+      );
     } catch (error) {
-      this.logger.warn('⚠️ [DevService] Database connection test failed:', error);
+      this.logger.warn(
+        '⚠️ [DevService] Database connection test failed:',
+        error,
+      );
     }
 
     // Test cache connection
@@ -145,7 +155,10 @@ export class DevService {
     this.logger.log(
       `✅ [DevService] System info gathered in ${duration}ms - DB: ${dbConnected}, Cache: ${cacheConnected}`,
     );
-    this.logger.debug('📋 [DevService] System info result:', JSON.stringify(result, null, 2));
+    this.logger.debug(
+      '📋 [DevService] System info result:',
+      JSON.stringify(result, null, 2),
+    );
 
     return result;
   }
@@ -214,4 +227,3 @@ export class DevService {
     }
   }
 }
-

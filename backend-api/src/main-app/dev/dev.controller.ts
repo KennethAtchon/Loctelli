@@ -1,4 +1,11 @@
-import { Controller, Get, Post, Logger, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Logger,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { DevService } from './dev.service';
 import { DevOnly } from '../../shared/decorators/dev-only.decorator';
 import { UseGuards } from '@nestjs/common';
@@ -28,7 +35,10 @@ export class DevController {
       this.logger.log(
         `✅ [GET /dev/system-info] System info retrieved successfully in ${duration}ms`,
       );
-      this.logger.debug('📋 System info result:', JSON.stringify(result, null, 2));
+      this.logger.debug(
+        '📋 System info result:',
+        JSON.stringify(result, null, 2),
+      );
       return result;
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -54,7 +64,10 @@ export class DevController {
       this.logger.log(
         `✅ [POST /dev/cache/clear] Cache cleared successfully in ${duration}ms`,
       );
-      this.logger.debug('🧹 Cache clear result:', JSON.stringify(result, null, 2));
+      this.logger.debug(
+        '🧹 Cache clear result:',
+        JSON.stringify(result, null, 2),
+      );
       return result;
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -80,7 +93,10 @@ export class DevController {
       this.logger.log(
         `✅ [GET /dev/database/test] Database test completed in ${duration}ms - connected: ${result.connected}`,
       );
-      this.logger.debug('🔍 Database test result:', JSON.stringify(result, null, 2));
+      this.logger.debug(
+        '🔍 Database test result:',
+        JSON.stringify(result, null, 2),
+      );
       return result;
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -106,7 +122,10 @@ export class DevController {
       this.logger.log(
         `✅ [GET /dev/cache/test] Cache test completed in ${duration}ms - connected: ${result.connected}`,
       );
-      this.logger.debug('🔍 Cache test result:', JSON.stringify(result, null, 2));
+      this.logger.debug(
+        '🔍 Cache test result:',
+        JSON.stringify(result, null, 2),
+      );
       return result;
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -121,4 +140,3 @@ export class DevController {
     }
   }
 }
-

@@ -130,23 +130,29 @@ export class CacheService {
    */
   async flushAll(): Promise<number> {
     try {
-      this.logger.log('🧹 [CacheService] Attempting to flush all cache keys...');
-      
+      this.logger.log(
+        '🧹 [CacheService] Attempting to flush all cache keys...',
+      );
+
       // Access the underlying store from cache-manager
       // The store is typically available as a property on the cache manager
       const store = (this.cacheManager as any).store;
-      
+
       if (!store) {
-        this.logger.warn('⚠️ [CacheService] Store not available, cannot flush cache');
+        this.logger.warn(
+          '⚠️ [CacheService] Store not available, cannot flush cache',
+        );
         throw new Error('Redis store not available');
       }
 
       // Access the Redis client from the store
       // cache-manager-redis-yet exposes the client as 'client' property
       const client = store.client || store.redis || store;
-      
+
       if (!client) {
-        this.logger.warn('⚠️ [CacheService] Redis client not available, cannot flush cache');
+        this.logger.warn(
+          '⚠️ [CacheService] Redis client not available, cannot flush cache',
+        );
         throw new Error('Redis client not available');
       }
 
@@ -154,15 +160,19 @@ export class CacheService {
       if (typeof client.flushDb === 'function') {
         this.logger.debug('🔍 [CacheService] Using flushDb() method');
         await client.flushDb();
-        this.logger.log('✅ [CacheService] Cache flushed successfully using flushDb()');
+        this.logger.log(
+          '✅ [CacheService] Cache flushed successfully using flushDb()',
+        );
         return 1;
       }
-      
+
       // Try FLUSHDB command directly
       if (typeof client.sendCommand === 'function') {
         this.logger.debug('🔍 [CacheService] Using sendCommand(FLUSHDB)');
         await client.sendCommand(['FLUSHDB']);
-        this.logger.log('✅ [CacheService] Cache flushed successfully using FLUSHDB command');
+        this.logger.log(
+          '✅ [CacheService] Cache flushed successfully using FLUSHDB command',
+        );
         return 1;
       }
 
@@ -170,7 +180,9 @@ export class CacheService {
       if (typeof client.command === 'function') {
         this.logger.debug('🔍 [CacheService] Using command(FLUSHDB)');
         await client.command('FLUSHDB');
-        this.logger.log('✅ [CacheService] Cache flushed successfully using command()');
+        this.logger.log(
+          '✅ [CacheService] Cache flushed successfully using command()',
+        );
         return 1;
       }
 
@@ -178,12 +190,19 @@ export class CacheService {
       if (client.FLUSHDB) {
         this.logger.debug('🔍 [CacheService] Using FLUSHDB property');
         await client.FLUSHDB();
-        this.logger.log('✅ [CacheService] Cache flushed successfully using FLUSHDB property');
+        this.logger.log(
+          '✅ [CacheService] Cache flushed successfully using FLUSHDB property',
+        );
         return 1;
       }
 
-      this.logger.warn('⚠️ [CacheService] Could not find flush method on Redis client');
-      this.logger.debug('🔍 [CacheService] Available client methods:', Object.keys(client));
+      this.logger.warn(
+        '⚠️ [CacheService] Could not find flush method on Redis client',
+      );
+      this.logger.debug(
+        '🔍 [CacheService] Available client methods:',
+        Object.keys(client),
+      );
       throw new Error('Redis client does not support FLUSHDB operation');
     } catch (error) {
       this.logger.error('❌ [CacheService] Failed to flush cache:', error);

@@ -12,17 +12,17 @@ const BACKEND_URL = API_CONFIG.BACKEND_URL;
 
 // Headers to exclude from request forwarding (would break the backend request)
 const REQUEST_EXCLUDE_HEADERS = [
-  "host",        // Must be the backend's host, not the proxy's
-  "connection",  // HTTP connection management, handled by fetch
+  "host", // Must be the backend's host, not the proxy's
+  "connection", // HTTP connection management, handled by fetch
 ];
 
 // Headers to exclude from response forwarding (would break the client)
 const RESPONSE_EXCLUDE_HEADERS = [
-  "host",             // Must be the proxy's host, not the backend's
-  "connection",       // HTTP connection management, handled by NextResponse
-  "content-length",   // Will be recalculated by NextResponse based on actual body
+  "host", // Must be the proxy's host, not the backend's
+  "connection", // HTTP connection management, handled by NextResponse
+  "content-length", // Will be recalculated by NextResponse based on actual body
   "transfer-encoding", // HTTP transfer encoding, handled by NextResponse
-  "content-encoding",  // We decompress the body, so this header is incorrect
+  "content-encoding", // We decompress the body, so this header is incorrect
 ];
 
 export async function GET(

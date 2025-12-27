@@ -36,10 +36,11 @@ export class ApiClient {
 
     // Check if endpoint is currently rate limited
     // Skip rate limit check for public endpoints (they're public and shouldn't be blocked client-side)
-    const isPublicEndpoint = endpoint.includes("/forms/public/") || 
-                             endpoint.includes("/auth/") ||
-                             endpoint.includes("/status/");
-    
+    const isPublicEndpoint =
+      endpoint.includes("/forms/public/") ||
+      endpoint.includes("/auth/") ||
+      endpoint.includes("/status/");
+
     if (!isPublicEndpoint) {
       rateLimiter.checkRateLimit(endpoint);
     }
@@ -129,14 +130,17 @@ export class ApiClient {
       // Check if response is HTML (likely a Next.js error page)
       const contentType = response.headers.get("content-type") || "";
       const isHtml = contentType.includes("text/html");
-      
+
       if (isHtml) {
         // Clone response to read body without consuming it
         const clonedResponse = response.clone();
         const htmlText = await clonedResponse.text();
-        
+
         // Check if it's a Next.js 404 page
-        if (htmlText.includes("404") || htmlText.includes("This page could not be found")) {
+        if (
+          htmlText.includes("404") ||
+          htmlText.includes("This page could not be found")
+        ) {
           logger.error("❌ Received 404 HTML page - route not found:", {
             url,
             endpoint,
@@ -147,7 +151,7 @@ export class ApiClient {
             `Route not found: ${endpoint}. The API proxy route may not be configured correctly or the endpoint doesn't exist.`
           );
         }
-        
+
         // Generic HTML error response
         logger.error("❌ Received HTML error response:", {
           url,
@@ -166,13 +170,14 @@ export class ApiClient {
         const errorData = await this.parseError(response);
         const retryAfter =
           typeof errorData.retryAfter === "number" ? errorData.retryAfter : 60;
-        
+
         // Only block client-side for non-public endpoints
         // Public endpoints should rely on backend rate limiting only
-        const isPublicEndpoint = endpoint.includes("/forms/public/") || 
-                                 endpoint.includes("/auth/") ||
-                                 endpoint.includes("/status/");
-        
+        const isPublicEndpoint =
+          endpoint.includes("/forms/public/") ||
+          endpoint.includes("/auth/") ||
+          endpoint.includes("/status/");
+
         if (!isPublicEndpoint) {
           rateLimiter.handleRateLimitError(endpoint, response, { retryAfter });
         } else {
@@ -183,7 +188,9 @@ export class ApiClient {
           // Show toast notification but don't block the endpoint
           const waitTime = rateLimiter.formatTime(retryAfter);
           if (typeof window !== "undefined") {
-            toast.error(`Rate limited! Please wait ${waitTime} before trying again.`);
+            toast.error(
+              `Rate limited! Please wait ${waitTime} before trying again.`
+            );
           }
         }
       }
@@ -240,7 +247,9 @@ export class ApiClient {
         logger.error("❌ Failed to parse JSON response:", {
           endpoint,
           error:
-            parseError instanceof Error ? parseError.message : String(parseError),
+            parseError instanceof Error
+              ? parseError.message
+              : String(parseError),
           contentType,
           preview: text.substring(0, 200),
           fullText: text.length < 1000 ? text : `${text.substring(0, 1000)}...`,
@@ -269,10 +278,10 @@ export class ApiClient {
         try {
           const data = JSON.parse(text);
           // NestJS error responses can have message at root level or nested
-          const message = 
-            data.message || 
-            data.error?.message || 
-            data.error || 
+          const message =
+            data.message ||
+            data.error?.message ||
+            data.error ||
             data.statusMessage ||
             response.statusText;
           return {
@@ -281,7 +290,10 @@ export class ApiClient {
           };
         } catch (parseError) {
           // If JSON parsing fails, return the text as the message
-          logger.debug("Failed to parse error response as JSON, using raw text:", text);
+          logger.debug(
+            "Failed to parse error response as JSON, using raw text:",
+            text
+          );
           return { message: text || response.statusText };
         }
       }

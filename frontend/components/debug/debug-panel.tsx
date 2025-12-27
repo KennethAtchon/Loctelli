@@ -10,15 +10,36 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Settings2, Trash2, RefreshCw, Database, Cookie, HardDrive, Server, CheckCircle2, XCircle } from "lucide-react";
+import {
+  Settings2,
+  Trash2,
+  RefreshCw,
+  Database,
+  Cookie,
+  HardDrive,
+  Server,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 import { AuthCookies } from "@/lib/cookies";
 import { toast } from "sonner";
 import logger from "@/lib/logger";
 import { api } from "@/lib/api";
+import { SystemInfo } from "@/lib/api/endpoints/dev";
+
+type ActionItem = {
+  id: string;
+  label: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  action: () => void | Promise<void>;
+  variant: "default" | "destructive" | "outline";
+  isLoading?: boolean;
+};
 
 export function DebugPanel() {
   const [open, setOpen] = useState(false);
-  const [systemInfo, setSystemInfo] = useState<any>(null);
+  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
@@ -38,7 +59,8 @@ export function DebugPanel() {
       // Clear all cookies
       document.cookie.split(";").forEach((cookie) => {
         const eqPos = cookie.indexOf("=");
-        const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+        const name =
+          eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
         document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
       });
       // Also clear auth cookies using the utility
@@ -122,7 +144,10 @@ export function DebugPanel() {
       toast.success("Backend system info retrieved and copied");
       logger.debug("📋 Backend system info:", info);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to get backend system info";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to get backend system info";
       toast.error(errorMessage);
       logger.error("❌ Failed to get backend system info:", error);
     } finally {
@@ -137,7 +162,10 @@ export function DebugPanel() {
       toast.success(result.message || "Backend cache cleared");
       logger.debug("🧹 Backend cache cleared:", result);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to clear backend cache";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to clear backend cache";
       toast.error(errorMessage);
       logger.error("❌ Failed to clear backend cache:", error);
     } finally {
@@ -156,7 +184,8 @@ export function DebugPanel() {
       }
       logger.debug("🔍 Database test:", result);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to test database";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to test database";
       toast.error(errorMessage);
       logger.error("❌ Failed to test database:", error);
     } finally {
@@ -175,7 +204,8 @@ export function DebugPanel() {
       }
       logger.debug("🔍 Cache test:", result);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to test cache";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to test cache";
       toast.error(errorMessage);
       logger.error("❌ Failed to test cache:", error);
     } finally {
@@ -183,7 +213,7 @@ export function DebugPanel() {
     }
   };
 
-  const actions = [
+  const actions: ActionItem[] = [
     {
       id: "clear-react-query",
       label: "Clear React Query Cache",
@@ -243,12 +273,13 @@ export function DebugPanel() {
     {
       id: "backend-system-info",
       label: "Get Backend System Info",
-      description: "Get and copy backend system information (requires DEBUG flag)",
+      description:
+        "Get and copy backend system information (requires DEBUG flag)",
       icon: Server,
       action: getBackendSystemInfo,
       variant: "outline" as const,
       isLoading: loading === "system-info",
-    } as any,
+    },
     {
       id: "clear-backend-cache",
       label: "Clear Backend Cache",
@@ -333,9 +364,14 @@ export function DebugPanel() {
 
           {/* System Info Display */}
           <div className="mt-4 pt-4 border-t">
-            <div className="text-sm font-medium mb-2">Frontend System Information</div>
+            <div className="text-sm font-medium mb-2">
+              Frontend System Information
+            </div>
             <div className="text-xs text-muted-foreground space-y-1 font-mono bg-muted p-3 rounded">
-              <div>URL: {typeof window !== "undefined" ? window.location.href : "N/A"}</div>
+              <div>
+                URL:{" "}
+                {typeof window !== "undefined" ? window.location.href : "N/A"}
+              </div>
               <div>
                 Platform:{" "}
                 {typeof window !== "undefined" ? navigator.platform : "N/A"}
@@ -357,7 +393,9 @@ export function DebugPanel() {
             {/* Backend System Info Display */}
             {systemInfo && (
               <div className="mt-4">
-                <div className="text-sm font-medium mb-2">Backend System Information</div>
+                <div className="text-sm font-medium mb-2">
+                  Backend System Information
+                </div>
                 <div className="text-xs text-muted-foreground space-y-1 font-mono bg-muted p-3 rounded">
                   <div className="flex items-center gap-2">
                     Environment: {systemInfo.environment}
@@ -392,8 +430,14 @@ export function DebugPanel() {
                     )}
                   </div>
                   <div>Port: {systemInfo.config.port}</div>
-                  <div>Redis Configured: {systemInfo.config.redisConfigured ? "Yes" : "No"}</div>
-                  <div>Database Configured: {systemInfo.config.databaseConfigured ? "Yes" : "No"}</div>
+                  <div>
+                    Redis Configured:{" "}
+                    {systemInfo.config.redisConfigured ? "Yes" : "No"}
+                  </div>
+                  <div>
+                    Database Configured:{" "}
+                    {systemInfo.config.databaseConfigured ? "Yes" : "No"}
+                  </div>
                   <div>Timestamp: {systemInfo.timestamp}</div>
                 </div>
               </div>
@@ -404,4 +448,3 @@ export function DebugPanel() {
     </>
   );
 }
-
