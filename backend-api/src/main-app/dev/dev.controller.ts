@@ -20,11 +20,22 @@ export class DevController {
   @Get('system-info')
   @Public()
   async getSystemInfo() {
-    this.logger.log('📊 System info requested');
+    const startTime = Date.now();
+    this.logger.log('📊 [GET /dev/system-info] System info requested');
     try {
-      return await this.devService.getSystemInfo();
+      const result = await this.devService.getSystemInfo();
+      const duration = Date.now() - startTime;
+      this.logger.log(
+        `✅ [GET /dev/system-info] System info retrieved successfully in ${duration}ms`,
+      );
+      this.logger.debug('📋 System info result:', JSON.stringify(result, null, 2));
+      return result;
     } catch (error) {
-      this.logger.error('❌ Failed to get system info:', error);
+      const duration = Date.now() - startTime;
+      this.logger.error(
+        `❌ [GET /dev/system-info] Failed after ${duration}ms:`,
+        error instanceof Error ? error.stack : error,
+      );
       throw new HttpException(
         'Failed to get system info',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -35,11 +46,22 @@ export class DevController {
   @Post('cache/clear')
   @Public()
   async clearCache() {
-    this.logger.log('🧹 Cache clear requested');
+    const startTime = Date.now();
+    this.logger.log('🧹 [POST /dev/cache/clear] Cache clear requested');
     try {
-      return await this.devService.clearCache();
+      const result = await this.devService.clearCache();
+      const duration = Date.now() - startTime;
+      this.logger.log(
+        `✅ [POST /dev/cache/clear] Cache cleared successfully in ${duration}ms`,
+      );
+      this.logger.debug('🧹 Cache clear result:', JSON.stringify(result, null, 2));
+      return result;
     } catch (error) {
-      this.logger.error('❌ Failed to clear cache:', error);
+      const duration = Date.now() - startTime;
+      this.logger.error(
+        `❌ [POST /dev/cache/clear] Failed after ${duration}ms:`,
+        error instanceof Error ? error.stack : error,
+      );
       throw new HttpException(
         'Failed to clear cache',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -50,11 +72,22 @@ export class DevController {
   @Get('database/test')
   @Public()
   async testDatabase() {
-    this.logger.log('🔍 Database test requested');
+    const startTime = Date.now();
+    this.logger.log('🔍 [GET /dev/database/test] Database test requested');
     try {
-      return await this.devService.testDatabase();
+      const result = await this.devService.testDatabase();
+      const duration = Date.now() - startTime;
+      this.logger.log(
+        `✅ [GET /dev/database/test] Database test completed in ${duration}ms - connected: ${result.connected}`,
+      );
+      this.logger.debug('🔍 Database test result:', JSON.stringify(result, null, 2));
+      return result;
     } catch (error) {
-      this.logger.error('❌ Failed to test database:', error);
+      const duration = Date.now() - startTime;
+      this.logger.error(
+        `❌ [GET /dev/database/test] Failed after ${duration}ms:`,
+        error instanceof Error ? error.stack : error,
+      );
       throw new HttpException(
         'Failed to test database',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -65,11 +98,22 @@ export class DevController {
   @Get('cache/test')
   @Public()
   async testCache() {
-    this.logger.log('🔍 Cache test requested');
+    const startTime = Date.now();
+    this.logger.log('🔍 [GET /dev/cache/test] Cache test requested');
     try {
-      return await this.devService.testCache();
+      const result = await this.devService.testCache();
+      const duration = Date.now() - startTime;
+      this.logger.log(
+        `✅ [GET /dev/cache/test] Cache test completed in ${duration}ms - connected: ${result.connected}`,
+      );
+      this.logger.debug('🔍 Cache test result:', JSON.stringify(result, null, 2));
+      return result;
     } catch (error) {
-      this.logger.error('❌ Failed to test cache:', error);
+      const duration = Date.now() - startTime;
+      this.logger.error(
+        `❌ [GET /dev/cache/test] Failed after ${duration}ms:`,
+        error instanceof Error ? error.stack : error,
+      );
       throw new HttpException(
         'Failed to test cache',
         HttpStatus.INTERNAL_SERVER_ERROR,

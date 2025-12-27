@@ -19,31 +19,44 @@ export class DevService {
    * For a full flush, we'd need direct Redis access
    */
   async clearCache(): Promise<{ message: string; cleared: number }> {
-    this.logger.log('🧹 Clearing cache...');
+    const startTime = Date.now();
+    this.logger.log('🧹 [DevService] Starting cache clear operation...');
     let cleared = 0;
 
     try {
-      // Note: cache-manager doesn't provide a direct "flush all" method
-      // We would need direct Redis access for that
-      // For now, we'll test the connection and return success
+      // First verify connection
+      this.logger.debug('🔍 [DevService] Verifying cache connection...');
       const isConnected = await this.cacheService.testConnection();
       
-      if (isConnected) {
-        this.logger.log('✅ Cache connection verified');
-        // In a real implementation, you'd want to:
-        // 1. Get Redis client from cache-manager
-        // 2. Use FLUSHDB or FLUSHALL command
-        // For now, we'll return a message indicating the cache is ready to be cleared
-        cleared = 1; // Placeholder
+      if (!isConnected) {
+        this.logger.warn('⚠️ [DevService] Cache connection test failed - cache may not be available');
+        throw new Error('Cache connection failed - cannot clear cache');
       }
 
+      this.logger.log('✅ [DevService] Cache connection verified, proceeding with flush...');
+      
+      // Now flush all cache keys
+      cleared = await this.cacheService.flushAll();
+      
+      const duration = Date.now() - startTime;
+      this.logger.log(
+        `✅ [DevService] Cache clear operation completed in ${duration}ms - cleared: ${cleared}`,
+      );
+
       return {
-        message: 'Cache clear initiated (requires direct Redis access for full flush)',
+        message: `Cache cleared successfully - all keys flushed from Redis database`,
         cleared,
       };
     } catch (error) {
-      this.logger.error('❌ Failed to clear cache:', error);
-      throw error;
+      const duration = Date.now() - startTime;
+      this.logger.error(
+        `❌ [DevService] Cache clear failed after ${duration}ms:`,
+        error instanceof Error ? error.stack : error,
+      );
+      
+      // Return a more informative error message
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to clear cache: ${errorMessage}`);
     }
   }
 
@@ -67,31 +80,50 @@ export class DevService {
       databaseConfigured: boolean;
     };
   }> {
-    this.logger.log('📊 Getting system information...');
+    const startTime = Date.now();
+    this.logger.log('📊 [DevService] Gathering system information...');
 
-    const debug = this.configService.get<string>('DEBUG') === 'true';
+    const debugRaw = this.configService.get<string>('DEBUG');
+    const debug = debugRaw === 'true';
     const port = this.configService.get<number>('port') || 3000;
     const redisUrl = this.configService.get<string>('REDIS_URL');
     const databaseUrl = this.configService.get<string>('DATABASE_URL');
 
+    this.logger.debug('🔍 [DevService] Environment variables:', {
+      DEBUG: debugRaw,
+      PORT: port,
+      REDIS_URL: redisUrl ? '***configured***' : 'not set',
+      DATABASE_URL: databaseUrl ? '***configured***' : 'not set',
+    });
+
     // Test database connection
+    this.logger.debug('🔍 [DevService] Testing database connection...');
     let dbConnected = false;
     try {
+      const dbStartTime = Date.now();
       await this.prismaService.$queryRaw`SELECT 1`;
+      const dbDuration = Date.now() - dbStartTime;
       dbConnected = true;
+      this.logger.debug(`✅ [DevService] Database connection successful (${dbDuration}ms)`);
     } catch (error) {
-      this.logger.warn('Database connection test failed:', error);
+      this.logger.warn('⚠️ [DevService] Database connection test failed:', error);
     }
 
     // Test cache connection
+    this.logger.debug('🔍 [DevService] Testing cache connection...');
     let cacheConnected = false;
     try {
+      const cacheStartTime = Date.now();
       cacheConnected = await this.cacheService.testConnection();
+      const cacheDuration = Date.now() - cacheStartTime;
+      this.logger.debug(
+        `✅ [DevService] Cache connection test completed (${cacheDuration}ms) - connected: ${cacheConnected}`,
+      );
     } catch (error) {
-      this.logger.warn('Cache connection test failed:', error);
+      this.logger.warn('⚠️ [DevService] Cache connection test failed:', error);
     }
 
-    return {
+    const result = {
       debug,
       nodeVersion: process.version,
       timestamp: new Date().toISOString(),
@@ -108,20 +140,40 @@ export class DevService {
         databaseConfigured: !!databaseUrl,
       },
     };
+
+    const duration = Date.now() - startTime;
+    this.logger.log(
+      `✅ [DevService] System info gathered in ${duration}ms - DB: ${dbConnected}, Cache: ${cacheConnected}`,
+    );
+    this.logger.debug('📋 [DevService] System info result:', JSON.stringify(result, null, 2));
+
+    return result;
   }
 
   /**
    * Test database connection
    */
   async testDatabase(): Promise<{ connected: boolean; message: string }> {
+    const startTime = Date.now();
+    this.logger.log('🔍 [DevService] Testing database connection...');
     try {
+      const queryStartTime = Date.now();
       await this.prismaService.$queryRaw`SELECT 1`;
+      const queryDuration = Date.now() - queryStartTime;
+      const totalDuration = Date.now() - startTime;
+      this.logger.log(
+        `✅ [DevService] Database connection test successful (query: ${queryDuration}ms, total: ${totalDuration}ms)`,
+      );
       return {
         connected: true,
         message: 'Database connection successful',
       };
     } catch (error) {
-      this.logger.error('Database connection test failed:', error);
+      const duration = Date.now() - startTime;
+      this.logger.error(
+        `❌ [DevService] Database connection test failed after ${duration}ms:`,
+        error instanceof Error ? error.stack : error,
+      );
       return {
         connected: false,
         message: `Database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -133,8 +185,16 @@ export class DevService {
    * Test cache connection
    */
   async testCache(): Promise<{ connected: boolean; message: string }> {
+    const startTime = Date.now();
+    this.logger.log('🔍 [DevService] Testing cache connection...');
     try {
+      const testStartTime = Date.now();
       const connected = await this.cacheService.testConnection();
+      const testDuration = Date.now() - testStartTime;
+      const totalDuration = Date.now() - startTime;
+      this.logger.log(
+        `✅ [DevService] Cache connection test completed (test: ${testDuration}ms, total: ${totalDuration}ms) - connected: ${connected}`,
+      );
       return {
         connected,
         message: connected
@@ -142,7 +202,11 @@ export class DevService {
           : 'Cache connection failed',
       };
     } catch (error) {
-      this.logger.error('Cache connection test failed:', error);
+      const duration = Date.now() - startTime;
+      this.logger.error(
+        `❌ [DevService] Cache connection test failed after ${duration}ms:`,
+        error instanceof Error ? error.stack : error,
+      );
       return {
         connected: false,
         message: `Cache connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`,

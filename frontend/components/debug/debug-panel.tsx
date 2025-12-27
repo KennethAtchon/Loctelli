@@ -122,7 +122,8 @@ export function DebugPanel() {
       toast.success("Backend system info retrieved and copied");
       logger.debug("📋 Backend system info:", info);
     } catch (error) {
-      toast.error("Failed to get backend system info (dev endpoints require DEBUG flag)");
+      const errorMessage = error instanceof Error ? error.message : "Failed to get backend system info";
+      toast.error(errorMessage);
       logger.error("❌ Failed to get backend system info:", error);
     } finally {
       setLoading(null);
@@ -136,7 +137,8 @@ export function DebugPanel() {
       toast.success(result.message || "Backend cache cleared");
       logger.debug("🧹 Backend cache cleared:", result);
     } catch (error) {
-      toast.error("Failed to clear backend cache (dev endpoints require DEBUG flag)");
+      const errorMessage = error instanceof Error ? error.message : "Failed to clear backend cache";
+      toast.error(errorMessage);
       logger.error("❌ Failed to clear backend cache:", error);
     } finally {
       setLoading(null);
@@ -154,7 +156,8 @@ export function DebugPanel() {
       }
       logger.debug("🔍 Database test:", result);
     } catch (error) {
-      toast.error("Failed to test database (dev endpoints require DEBUG flag)");
+      const errorMessage = error instanceof Error ? error.message : "Failed to test database";
+      toast.error(errorMessage);
       logger.error("❌ Failed to test database:", error);
     } finally {
       setLoading(null);
@@ -172,7 +175,8 @@ export function DebugPanel() {
       }
       logger.debug("🔍 Cache test:", result);
     } catch (error) {
-      toast.error("Failed to test cache (dev endpoints require DEBUG flag)");
+      const errorMessage = error instanceof Error ? error.message : "Failed to test cache";
+      toast.error(errorMessage);
       logger.error("❌ Failed to test cache:", error);
     } finally {
       setLoading(null);

@@ -35,28 +35,28 @@ export class DevApi {
    * Get system information (dev only)
    */
   async getSystemInfo(): Promise<SystemInfo> {
-    return this.client.request<SystemInfo>("GET", "/dev/system-info");
+    return this.client.get<SystemInfo>("/dev/system-info");
   }
 
   /**
    * Clear backend cache (dev only)
    */
   async clearCache(): Promise<CacheClearResponse> {
-    return this.client.request<CacheClearResponse>("POST", "/dev/cache/clear");
+    return this.client.post<CacheClearResponse>("/dev/cache/clear");
   }
 
   /**
    * Test database connection (dev only)
    */
   async testDatabase(): Promise<ConnectionTestResponse> {
-    return this.client.request<ConnectionTestResponse>("GET", "/dev/database/test");
+    return this.client.get<ConnectionTestResponse>("/dev/database/test");
   }
 
   /**
    * Test cache connection (dev only)
    */
   async testCache(): Promise<ConnectionTestResponse> {
-    return this.client.request<ConnectionTestResponse>("GET", "/dev/cache/test");
+    return this.client.get<ConnectionTestResponse>("/dev/cache/test");
   }
 }
 

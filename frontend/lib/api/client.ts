@@ -126,6 +126,41 @@ export class ApiClient {
 
     // Handle errors
     if (!response.ok) {
+      // Check if response is HTML (likely a Next.js error page)
+      const contentType = response.headers.get("content-type") || "";
+      const isHtml = contentType.includes("text/html");
+      
+      if (isHtml) {
+        // Clone response to read body without consuming it
+        const clonedResponse = response.clone();
+        const htmlText = await clonedResponse.text();
+        
+        // Check if it's a Next.js 404 page
+        if (htmlText.includes("404") || htmlText.includes("This page could not be found")) {
+          logger.error("❌ Received 404 HTML page - route not found:", {
+            url,
+            endpoint,
+            method,
+            status: response.status,
+          });
+          throw new Error(
+            `Route not found: ${endpoint}. The API proxy route may not be configured correctly or the endpoint doesn't exist.`
+          );
+        }
+        
+        // Generic HTML error response
+        logger.error("❌ Received HTML error response:", {
+          url,
+          endpoint,
+          method,
+          status: response.status,
+          contentType,
+        });
+        throw new Error(
+          `Server returned HTML instead of JSON (status ${response.status}). This usually means the route doesn't exist or there's a routing issue.`
+        );
+      }
+
       // Handle rate limiting
       if (response.status === 429) {
         const errorData = await this.parseError(response);
@@ -227,16 +262,31 @@ export class ApiClient {
     response: Response
   ): Promise<{ message: string; retryAfter?: number }> {
     try {
-      const text = await response.text();
+      // Clone the response to avoid consuming the body if it's already been read
+      const clonedResponse = response.clone();
+      const text = await clonedResponse.text();
       if (text) {
-        const data = JSON.parse(text);
-        return {
-          message: data.message || data.error || response.statusText,
-          retryAfter: data.retryAfter,
-        };
+        try {
+          const data = JSON.parse(text);
+          // NestJS error responses can have message at root level or nested
+          const message = 
+            data.message || 
+            data.error?.message || 
+            data.error || 
+            data.statusMessage ||
+            response.statusText;
+          return {
+            message: message || response.statusText,
+            retryAfter: data.retryAfter,
+          };
+        } catch (parseError) {
+          // If JSON parsing fails, return the text as the message
+          logger.debug("Failed to parse error response as JSON, using raw text:", text);
+          return { message: text || response.statusText };
+        }
       }
-    } catch {
-      // Ignore parse errors
+    } catch (error) {
+      logger.error("Failed to read error response:", error);
     }
     return { message: response.statusText };
   }

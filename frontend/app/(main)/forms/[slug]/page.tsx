@@ -47,10 +47,8 @@ export default function PublicFormPage() {
     Record<string, UploadedFile>
   >({});
 
-  // Wake-up mechanism
-  const [wakeUpInterval, setWakeUpInterval] = useState<NodeJS.Timeout | null>(
-    null
-  );
+  // Wake-up mechanism - use ref instead of state to avoid infinite loops
+  const wakeUpIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const formsApi = api.forms;
   const isLoadingRef = useRef(false);
 
@@ -101,6 +99,11 @@ export default function PublicFormPage() {
 
       // Set up wake-up mechanism if required
       if (formTemplate.requiresWakeUp) {
+        // Clear any existing interval first
+        if (wakeUpIntervalRef.current) {
+          clearInterval(wakeUpIntervalRef.current);
+        }
+
         // Initial wake-up
         await wakeUpDatabase();
 
@@ -109,7 +112,7 @@ export default function PublicFormPage() {
           wakeUpDatabase,
           formTemplate.wakeUpInterval * 1000
         );
-        setWakeUpInterval(interval);
+        wakeUpIntervalRef.current = interval;
       }
     } catch (error) {
       logger.error("Failed to load form:", error);
@@ -421,12 +424,13 @@ export default function PublicFormPage() {
     // Cleanup wake-up interval on unmount
     return () => {
       console.log("UseEffect cleanup called ");
-      if (wakeUpInterval) {
+      if (wakeUpIntervalRef.current) {
         console.log("Clearing wake-up interval");
-        clearInterval(wakeUpInterval);
+        clearInterval(wakeUpIntervalRef.current);
+        wakeUpIntervalRef.current = null;
       }
     };
-  }, []);
+  }, [loadForm]);
 
   if (isLoading) {
     return (

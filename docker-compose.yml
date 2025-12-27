@@ -97,7 +97,6 @@ services:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000/api/proxy}
         ADMIN_AUTH_CODE: ${ADMIN_AUTH_CODE:-secure_code}
         API_KEY: ${API_KEY:-Rg+jpjlCb8KDFzeJKXmF/UFvMTtMgm0nbLUUEnb/5Yw=}
-        BACKEND_URL: ${BACKEND_URL:-http://localhost:8000}
         DEBUG: ${DEBUG:-true}
     container_name: loctelli_frontend
     restart: unless-stopped
@@ -107,7 +106,6 @@ services:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000/api/proxy}
       ADMIN_AUTH_CODE: ${ADMIN_AUTH_CODE:-secure_code}
       API_KEY: ${API_KEY:-Rg+jpjlCb8KDFzeJKXmF/UFvMTtMgm0nbLUUEnb/5Yw=}
-      BACKEND_URL: ${BACKEND_URL:-http://localhost:8000}
       DEBUG: ${DEBUG:-true}
     env_file:
       - ./frontend/.env
