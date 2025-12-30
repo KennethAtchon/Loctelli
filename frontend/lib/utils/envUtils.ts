@@ -9,11 +9,13 @@
 export const API_CONFIG = {
   BASE_URL: "/api/proxy",
   // Backend URL for server-side proxy (used by /api/proxy route)
-  // Prefer BACKEND_URL (server-side only), fallback to NEXT_PUBLIC_API_URL
+  // In development, use localhost:8000; otherwise use BACKEND_URL from environment
   BACKEND_URL:
-    process.env.BACKEND_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    "http://localhost:8000",
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:8000"
+      : process.env.BACKEND_URL ||
+        process.env.NEXT_PUBLIC_API_URL ||
+        "http://localhost:8000",
   // API Key for server-side requests (used by proxy route)
   API_KEY: process.env.API_KEY,
 } as const;
