@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { useState } from "react";
 import { API_CONFIG } from "@/lib/utils/envUtils";
+import { BRANDING } from "@/lib/config/branding";
 
 export function ContactSection() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,7 +42,9 @@ export function ContactSection() {
       });
 
       if (response.ok) {
-        setSubmitMessage("Thank you! We'll contact you within 24 hours.");
+        setSubmitMessage(
+          `Thank you! We'll contact you within ${BRANDING.contact.responseTime.toLowerCase()}.`
+        );
         (e.target as HTMLFormElement).reset();
 
         // Optional: Track conversion
@@ -92,8 +95,9 @@ export function ContactSection() {
             Get Started with Your Free Consultation
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Fill out the form below and we'll get back to you within 24 hours to
-            discuss how our AI marketing solutions can help grow your business.
+            Fill out the form below and we'll get back to you within{" "}
+            {BRANDING.contact.responseTime.toLowerCase()} to discuss how our AI
+            marketing solutions can help grow your business.
           </p>
         </div>
 
@@ -158,7 +162,7 @@ export function ContactSection() {
                   type="tel"
                   required
                   className="mt-1"
-                  placeholder="(555) 123-4567"
+                  placeholder={BRANDING.contact.phone.placeholder}
                 />
               </div>
             </div>
@@ -199,7 +203,7 @@ export function ContactSection() {
                 {isSubmitting ? "Submitting..." : "Get Free Consultation"}
               </Button>
               <p className="text-sm text-gray-500 mt-3">
-                We'll contact you within 24 hours
+                We'll contact you within {BRANDING.contact.responseTime.toLowerCase()}
               </p>
             </div>
           </form>
@@ -210,17 +214,17 @@ export function ContactSection() {
           <div className="grid md:grid-cols-3 gap-8">
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">Phone</h3>
-              <p className="text-gray-600">(555) 123-4567</p>
+              <p className="text-gray-600">{BRANDING.contact.phone.display}</p>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">Email</h3>
-              <p className="text-gray-600">info@loctelli.com</p>
+              <p className="text-gray-600">{BRANDING.contact.email}</p>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">
                 Response Time
               </h3>
-              <p className="text-gray-600">Within 24 hours</p>
+              <p className="text-gray-600">{BRANDING.contact.responseTime}</p>
             </div>
           </div>
         </div>

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import { BRANDING } from "@/lib/config/branding";
 
 export function ContactSection() {
   const [formState, setFormState] = useState({
@@ -32,7 +33,7 @@ export function ContactSection() {
     const body = encodeURIComponent(
       `Name: ${name}\nEmail: ${email}\nCompany: ${company}\n\nMessage:\n${message}`
     );
-    window.location.href = `mailto:info@loctelli.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:${BRANDING.contact.email}?subject=${subject}&body=${body}`;
   };
 
   return (
@@ -153,7 +154,7 @@ export function ContactSection() {
                 <Mail className="w-6 h-6 text-blue-500 mr-4 mt-1" />
                 <div>
                   <h4 className="font-medium text-gray-900">Email</h4>
-                  <p className="text-gray-600">info@loctelli.com</p>
+                  <p className="text-gray-600">{BRANDING.contact.email}</p>
                 </div>
               </div>
 
@@ -161,7 +162,7 @@ export function ContactSection() {
                 <Phone className="w-6 h-6 text-blue-500 mr-4 mt-1" />
                 <div>
                   <h4 className="font-medium text-gray-900">Phone</h4>
-                  <p className="text-gray-600">+1-800-555-1234</p>
+                  <p className="text-gray-600">{BRANDING.contact.phone.display}</p>
                 </div>
               </div>
             </div>
@@ -170,21 +171,21 @@ export function ContactSection() {
               <h4 className="font-medium text-gray-900 mb-4">Follow Us</h4>
               <div className="flex space-x-4">
                 <a
-                  href="#"
+                  href={BRANDING.social.linkedin}
                   className="bg-white p-3 rounded-full hover:bg-gray-100 transition-colors"
                 >
                   <Linkedin className="w-5 h-5 text-blue-500" />
                   <span className="sr-only">LinkedIn</span>
                 </a>
                 <a
-                  href="#"
+                  href={BRANDING.social.twitter}
                   className="bg-white p-3 rounded-full hover:bg-gray-100 transition-colors"
                 >
                   <Twitter className="w-5 h-5 text-blue-500" />
                   <span className="sr-only">Twitter</span>
                 </a>
                 <a
-                  href="#"
+                  href={BRANDING.social.instagram}
                   className="bg-white p-3 rounded-full hover:bg-gray-100 transition-colors"
                 >
                   <Instagram className="w-5 h-5 text-blue-500" />

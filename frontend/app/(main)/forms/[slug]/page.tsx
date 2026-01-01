@@ -83,7 +83,27 @@ export default function PublicFormPage() {
       setIsLoading(true);
       setError(null);
 
-      const formTemplate = await formsApi.getPublicForm(slug);
+      // Always wake up database first to prevent cold start issues
+      logger.info("Waking up database before loading form");
+      try {
+        await wakeUpDatabase();
+      } catch (wakeError) {
+        logger.warn("Initial wake-up failed, continuing anyway:", wakeError);
+      }
+
+      // Try to load the form - if it fails, retry once after a short delay
+      let formTemplate: FormTemplate;
+      try {
+        formTemplate = await formsApi.getPublicForm(slug);
+      } catch (firstError) {
+        logger.warn("First form load attempt failed, retrying after wake-up:", firstError);
+        // Wait a bit for database to fully wake up
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        // Retry the wake-up and then the form load
+        await wakeUpDatabase();
+        formTemplate = await formsApi.getPublicForm(slug);
+      }
+
       setTemplate(formTemplate);
 
       // Initialize form data with default values
@@ -103,9 +123,6 @@ export default function PublicFormPage() {
         if (wakeUpIntervalRef.current) {
           clearInterval(wakeUpIntervalRef.current);
         }
-
-        // Initial wake-up
-        await wakeUpDatabase();
 
         // Set up periodic wake-up
         const interval = setInterval(

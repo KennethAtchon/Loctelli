@@ -13,6 +13,7 @@ import {
   Users,
   TrendingUp,
 } from "lucide-react";
+import { BRANDING } from "@/lib/config/branding";
 
 export function Footer() {
   return (
@@ -23,28 +24,30 @@ export function Footer() {
           {/* Company Info */}
           <div className="md:col-span-2">
             <div className="mb-4">
-              <h3 className="text-xl font-bold text-gray-900">Loctelli</h3>
-              <p className="text-sm text-gray-600">AI Marketing Solutions</p>
+              <h3 className="text-xl font-bold text-gray-900">
+                {BRANDING.company.name}
+              </h3>
+              <p className="text-sm text-gray-600">
+                {BRANDING.company.tagline}
+              </p>
             </div>
             <p className="text-gray-600 mb-6 text-sm leading-relaxed">
-              We help businesses grow with AI-powered marketing solutions
-              including free websites, automated Google reviews, customer
-              reactivation, and lead generation.
+              {BRANDING.company.description}
             </p>
 
             {/* Contact Info */}
             <div className="space-y-2 mb-6">
               <div className="flex items-center text-gray-600 text-sm">
                 <Phone className="w-4 h-4 mr-2" />
-                <span>(555) 123-4567</span>
+                <span>{BRANDING.contact.phone.display}</span>
               </div>
               <div className="flex items-center text-gray-600 text-sm">
                 <Mail className="w-4 h-4 mr-2" />
-                <span>info@loctelli.com</span>
+                <span>{BRANDING.contact.email}</span>
               </div>
               <div className="flex items-center text-gray-600 text-sm">
                 <MapPin className="w-4 h-4 mr-2" />
-                <span>New York, NY 10001</span>
+                <span>{BRANDING.contact.address.full}</span>
               </div>
             </div>
 
@@ -53,25 +56,25 @@ export function Footer() {
               <p className="text-gray-600 mb-3 text-sm">Follow Us</p>
               <div className="flex space-x-3">
                 <a
-                  href="#"
+                  href={BRANDING.social.facebook}
                   className="w-8 h-8 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
                 >
                   <Facebook className="w-4 h-4 text-gray-600" />
                 </a>
                 <a
-                  href="#"
+                  href={BRANDING.social.twitter}
                   className="w-8 h-8 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
                 >
                   <Twitter className="w-4 h-4 text-gray-600" />
                 </a>
                 <a
-                  href="#"
+                  href={BRANDING.social.linkedin}
                   className="w-8 h-8 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
                 >
                   <Linkedin className="w-4 h-4 text-gray-600" />
                 </a>
                 <a
-                  href="#"
+                  href={BRANDING.social.instagram}
                   className="w-8 h-8 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
                 >
                   <Instagram className="w-4 h-4 text-gray-600" />
@@ -86,42 +89,27 @@ export function Footer() {
               Services
             </h3>
             <ul className="space-y-2">
-              <li>
-                <a
-                  href="#services"
-                  className="text-gray-600 hover:text-gray-900 transition-colors text-sm flex items-center"
-                >
-                  <Globe className="w-3 h-3 mr-2" />
-                  Free Websites
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#services"
-                  className="text-gray-600 hover:text-gray-900 transition-colors text-sm flex items-center"
-                >
-                  <Star className="w-3 h-3 mr-2" />
-                  Google Reviews
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#services"
-                  className="text-gray-600 hover:text-gray-900 transition-colors text-sm flex items-center"
-                >
-                  <Users className="w-3 h-3 mr-2" />
-                  Customer Reactivation
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#services"
-                  className="text-gray-600 hover:text-gray-900 transition-colors text-sm flex items-center"
-                >
-                  <TrendingUp className="w-3 h-3 mr-2" />
-                  Lead Generation
-                </a>
-              </li>
+              {BRANDING.services.map((service) => {
+                const IconComponent =
+                  service.icon === "Globe"
+                    ? Globe
+                    : service.icon === "Star"
+                      ? Star
+                      : service.icon === "Users"
+                        ? Users
+                        : TrendingUp;
+                return (
+                  <li key={service.name}>
+                    <a
+                      href={service.href}
+                      className="text-gray-600 hover:text-gray-900 transition-colors text-sm flex items-center"
+                    >
+                      <IconComponent className="w-3 h-3 mr-2" />
+                      {service.name}
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
@@ -131,46 +119,16 @@ export function Footer() {
               Company
             </h3>
             <ul className="space-y-2">
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
-                >
-                  About Us
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
-                >
-                  Success Stories
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
-                >
-                  Case Studies
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
-                >
-                  Resources
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
-                >
-                  Contact
-                </a>
-              </li>
+              {BRANDING.companyLinks.map((link) => (
+                <li key={link.name}>
+                  <a
+                    href={link.href}
+                    className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
+                  >
+                    {link.name}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -180,11 +138,10 @@ export function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="w-full mb-4 md:mb-0">
               <div className="text-xs text-gray-500 mb-2">
-                Bookings handled via Calendly. See Calendly's Privacy Policy and
-                Terms of Use for more info.
+                {BRANDING.legal.calendly.note}
               </div>
               <div className="text-gray-500 text-sm">
-                &copy; 2025 Loctelli. All rights reserved.
+                {BRANDING.legal.copyright}
               </div>
             </div>
             <div className="flex flex-wrap justify-center md:justify-end space-x-4 text-xs">
@@ -207,7 +164,7 @@ export function Footer() {
                 Cookie Policy
               </a>
               <a
-                href="https://calendly.com/privacy"
+                href={BRANDING.legal.calendly.privacy}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-500 hover:text-gray-700 transition-colors"
@@ -215,7 +172,7 @@ export function Footer() {
                 Calendly Privacy Policy
               </a>
               <a
-                href="https://calendly.com/terms"
+                href={BRANDING.legal.calendly.terms}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-500 hover:text-gray-700 transition-colors"

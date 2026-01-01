@@ -28,6 +28,7 @@ import { CreateLeadDto } from "@/types";
 import { Strategy } from "@/types";
 import type { UserProfile } from "@/lib/api/endpoints/admin-auth";
 import logger from "@/lib/logger";
+import { BRANDING } from "@/lib/config/branding";
 import { useTenant } from "@/contexts/tenant-context";
 
 export default function NewLeadPage() {
@@ -274,7 +275,7 @@ export default function NewLeadPage() {
                     type="tel"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    placeholder="+1 (555) 123-4567"
+                    placeholder={BRANDING.contact.phone.placeholder}
                   />
                 </div>
 
