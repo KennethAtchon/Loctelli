@@ -5,7 +5,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { UnifiedAuthProvider } from "@/contexts/unified-auth-context";
 import { Providers } from "@/components/providers";
-import { validateEnvironmentVariables } from "@/lib/utils/envUtils";
+import { validateEnvironmentVariables, ENV_CONFIG } from "@/lib/utils/envUtils";
 import logger from "@/lib/logger";
 import { Toaster } from "@/components/ui/sonner";
 import { DebugPanel } from "@/components/debug/debug-panel";
@@ -87,7 +87,7 @@ export default function RootLayout({
           >
             <UnifiedAuthProvider>{children}</UnifiedAuthProvider>
             <Toaster />
-            <DebugPanel />
+            {ENV_CONFIG.DEBUG && <DebugPanel />}
           </ThemeProvider>
         </Providers>
       </body>

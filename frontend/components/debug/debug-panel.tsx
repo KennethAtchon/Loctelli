@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import logger from "@/lib/logger";
 import { api } from "@/lib/api";
 import { SystemInfo } from "@/lib/api/endpoints/dev";
+import { ENV_CONFIG } from "@/lib/utils/envUtils";
 
 type ActionItem = {
   id: string;
@@ -38,6 +39,10 @@ type ActionItem = {
 };
 
 export function DebugPanel() {
+  // Additional safety check - don't render if DEBUG is not enabled
+  if (!ENV_CONFIG.DEBUG) {
+    return null;
+  }
   const [open, setOpen] = useState(false);
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [loading, setLoading] = useState<string | null>(null);

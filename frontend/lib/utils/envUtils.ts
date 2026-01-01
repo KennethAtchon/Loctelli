@@ -26,10 +26,13 @@ export const AUTH_CONFIG = {
 } as const;
 
 // Environment Configuration
+// For server-side: use DEBUG
+// For client-side: use NEXT_PUBLIC_DEBUG (must be set in .env)
+// This allows both server and client components to check debug mode
 export const ENV_CONFIG = {
-  DEBUG: process.env.DEBUG === "true",
-  IS_PRODUCTION: process.env.DEBUG !== "true",
-  IS_DEVELOPMENT: process.env.DEBUG === "true",
+  DEBUG: process.env.DEBUG === "true" || process.env.NEXT_PUBLIC_DEBUG === "true",
+  IS_PRODUCTION: process.env.DEBUG !== "true" && process.env.NEXT_PUBLIC_DEBUG !== "true",
+  IS_DEVELOPMENT: process.env.DEBUG === "true" || process.env.NEXT_PUBLIC_DEBUG === "true",
 } as const;
 
 // Validation function to ensure required environment variables are set
