@@ -39,14 +39,16 @@ type ActionItem = {
 };
 
 export function DebugPanel() {
-  // Additional safety check - don't render if DEBUG is not enabled
-  if (!ENV_CONFIG.DEBUG) {
-    return null;
-  }
+  const debugEnabled = ENV_CONFIG.DEBUG;
   const [open, setOpen] = useState(false);
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
   const queryClient = useQueryClient();
+
+  // Don't render if DEBUG is not enabled
+  if (!debugEnabled) {
+    return null;
+  }
 
   const clearReactQueryCache = () => {
     try {

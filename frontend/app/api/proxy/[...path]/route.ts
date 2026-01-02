@@ -6,9 +6,9 @@ import { API_CONFIG } from "@/lib/utils/envUtils";
  *
  * Simple pass-through proxy that forwards requests to the backend.
  * Handles CORS and basic request/response forwarding.
+ * 
+ * Note: BACKEND_URL is accessed at runtime via API_CONFIG.BACKEND_URL getter
  */
-
-const BACKEND_URL = API_CONFIG.BACKEND_URL;
 
 // Headers to exclude from request forwarding (would break the backend request)
 const REQUEST_EXCLUDE_HEADERS = [
@@ -79,11 +79,11 @@ async function handleRequest(
   method: string
 ) {
   try {
-    // Build backend URL
+    // Build backend URL (accessed at runtime)
     const pathSegments = params.path || [];
     const backendPath = `/${pathSegments.join("/")}`;
     const queryString = request.nextUrl.searchParams.toString();
-    const backendUrl = `${BACKEND_URL}${backendPath}${queryString ? `?${queryString}` : ""}`;
+    const backendUrl = `${API_CONFIG.BACKEND_URL}${backendPath}${queryString ? `?${queryString}` : ""}`;
 
     // Forward all request headers except those that would break things
     const headers: HeadersInit = {};

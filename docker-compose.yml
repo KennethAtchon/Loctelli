@@ -95,20 +95,11 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000/api/proxy}
-        BACKEND_URL: ${BACKEND_URL:-http://api:8000}
-        ADMIN_AUTH_CODE: ${ADMIN_AUTH_CODE:-secure_code}
-        API_KEY: ${API_KEY:-Rg+jpjlCb8KDFzeJKXmF/UFvMTtMgm0nbLUUEnb/5Yw=}
-        DEBUG: ${DEBUG:-true}
+        NEXT_PUBLIC_DEBUG: ${NEXT_PUBLIC_DEBUG:-true}
     container_name: loctelli_frontend
     restart: unless-stopped
     ports:
       - "3000:3000"
-    environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000/api/proxy}
-      BACKEND_URL: ${BACKEND_URL:-http://api:8000}
-      ADMIN_AUTH_CODE: ${ADMIN_AUTH_CODE:-secure_code}
-      API_KEY: ${API_KEY:-Rg+jpjlCb8KDFzeJKXmF/UFvMTtMgm0nbLUUEnb/5Yw=}
-      DEBUG: ${DEBUG:-true}
     env_file:
       - ./frontend/.env
     depends_on:
