@@ -163,6 +163,12 @@ export interface ConversationState {
   lastUpdated?: string;
 }
 
+export interface MessageHistoryItem {
+  role: "user" | "assistant";
+  content: string;
+  timestamp?: string;
+}
+
 export interface DetailedLead {
   id: number;
   regularUserId: number;
@@ -175,7 +181,7 @@ export interface DetailedLead {
   position?: string;
   customId?: string;
   timezone?: string;
-  messageHistory?: unknown;
+  messageHistory?: MessageHistoryItem[] | string; // Can be array or JSON string
   status: string;
   notes?: string;
   lastMessage?: string;

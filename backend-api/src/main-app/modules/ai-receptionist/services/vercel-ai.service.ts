@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { streamText, generateText } from 'ai';
+import { generateText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { ConversationHistoryService } from './conversation-history.service';
@@ -7,7 +7,15 @@ import { SystemPromptBuilderService } from './system-prompt-builder.service';
 import { AgentConfigService } from '../config/agent-config.service';
 import { BookingToolsVercel } from '../tools/booking-tools-vercel';
 import { LeadManagementToolsVercel } from '../tools/lead-management-tools-vercel';
-import type { ModelMessage } from 'ai';
+import type {
+  UserModelMessage,
+  AssistantModelMessage,
+  TextPart,
+  ImagePart,
+  ModelMessage,
+  LanguageModel,
+  SystemModelMessage,
+} from 'ai';
 
 interface AIConfig {
   systemPrompt: string;
@@ -18,7 +26,7 @@ interface AIConfig {
 }
 
 /**
- * Vercel AI SDK service for text generation with streaming
+ * Vercel AI SDK service for text generation
  * Config-based approach: builds config per request, no agent instances
  */
 @Injectable()
@@ -35,120 +43,9 @@ export class VercelAIService {
   ) {}
 
   /**
-   * Generate streaming text response
-   * Config-based approach: builds config per request, no agent instances
-   */
-  async streamTextResponse(
-    leadId: number,
-    message: string,
-    userId: number,
-    imageData?: Array<{
-      imageBase64: string;
-      imageName?: string;
-      imageType?: string;
-    }>,
-  ): Promise<ReadableStream> {
-    this.logger.debug(
-      `Generating streaming response for leadId=${leadId}, userId=${userId}${imageData ? ' with image' : ''}`,
-    );
-
-    try {
-      // Verify lead exists
-      const lead = await this.prisma.lead.findUnique({
-        where: { id: leadId },
-        include: {
-          regularUser: true,
-          strategy: true,
-        },
-      });
-
-      if (!lead) {
-        throw new NotFoundException(`Lead with ID ${leadId} not found`);
-      }
-
-      // Build config for this request
-      const config = await this.buildConfig(userId, leadId);
-
-      // Get conversation history (memory)
-      const history = await this.conversationHistory.getHistory(
-        leadId,
-        config.contextWindow,
-      );
-
-      // Build messages array
-      const messages: ModelMessage[] = [
-        { role: 'system', content: config.systemPrompt },
-        ...history,
-        // Handle image data if present
-        ...(imageData && imageData.length > 0
-          ? [
-              {
-                role: 'user' as const,
-                content: [
-                  { type: 'text' as const, text: message },
-                  ...imageData.map((img) => ({
-                    type: 'image' as const,
-                    image: img.imageBase64,
-                  })),
-                ],
-              },
-            ]
-          : [{ role: 'user' as const, content: message }]),
-      ];
-
-      // Configure model
-      const model = openai(config.model);
-
-      // Build tools for this request
-      const tools = this.buildTools(userId, leadId, lead.timezone || undefined);
-
-      // Stream text with tools
-      const result = streamText({
-        model,
-        messages,
-        tools,
-        onFinish: async ({ text, toolCalls, toolResults }) => {
-          // Save assistant message to history after streaming completes
-          await this.conversationHistory.saveMessage(leadId, 'assistant', text);
-
-          // Log tool calls if any
-          if (toolCalls && toolCalls.length > 0) {
-            this.logger.debug(`Tool calls executed: ${toolCalls.length}`);
-          }
-        },
-      });
-
-      // Save user message to history
-      await this.conversationHistory.saveMessage(leadId, 'user', message);
-
-      // Convert textStream (AsyncIterableStream) to ReadableStream
-      const encoder = new TextEncoder();
-      const readableStream = new ReadableStream({
-        async start(controller) {
-          try {
-            for await (const chunk of result.textStream) {
-              controller.enqueue(encoder.encode(chunk));
-            }
-            controller.close();
-          } catch (error) {
-            controller.error(error);
-          }
-        },
-      });
-
-      return readableStream;
-    } catch (error) {
-      this.logger.error(
-        `Error generating streaming response for leadId=${leadId}:`,
-        error,
-      );
-      throw error;
-    }
-  }
-
-  /**
    * Generate non-streaming text response
    * Config-based approach: builds config per request, no agent instances
+   * @param saveUserMessage If false, skips saving the user message to history (useful for system prompts)
    */
   async generateTextResponse(
     leadId: number,
@@ -159,6 +56,7 @@ export class VercelAIService {
       imageName?: string;
       imageType?: string;
     }>,
+    saveUserMessage: boolean = true,
   ): Promise<string> {
     this.logger.debug(
       `Generating non-streaming response for leadId=${leadId}, userId=${userId}${imageData ? ' with image' : ''}`,
@@ -187,42 +85,57 @@ export class VercelAIService {
         config.contextWindow,
       );
 
-      // Build messages array
-      const messages: ModelMessage[] = [
-        { role: 'system', content: config.systemPrompt },
-        ...history,
-        // Handle image data if present
-        ...(imageData && imageData.length > 0
-          ? [
-              {
-                role: 'user' as const,
-                content: [
-                  { type: 'text' as const, text: message },
-                  ...imageData.map((img) => ({
-                    type: 'image' as const,
+      // Build messages array (history + current user message) with strict typing
+      const currentUserMessage: UserModelMessage =
+        imageData && imageData.length > 0
+          ? {
+              role: 'user',
+              content: [
+                { type: 'text', text: message } satisfies TextPart,
+                ...imageData.map(
+                  (img): ImagePart => ({
+                    type: 'image',
                     image: img.imageBase64,
-                  })),
-                ],
-              },
-            ]
-          : [{ role: 'user' as const, content: message }]),
-      ];
+                    ...(img.imageType && { mediaType: img.imageType }),
+                  }),
+                ),
+              ],
+            }
+          : {
+              role: 'user',
+              content: message,
+            };
 
-      // Configure model
-      const model = openai(config.model);
+      const messages: ModelMessage[] = [...history, currentUserMessage];
+
+      // Configure model with strict typing
+      const model: LanguageModel = openai(config.model);
 
       // Build tools for this request
       const tools = this.buildTools(userId, leadId, lead.timezone || undefined);
 
+      this.logger.debug(
+        `[generateTextResponse] tools: ${JSON.stringify(tools)}`,
+      );
+
+      // Save user message to history BEFORE generating response (correct chronological order)
+      // Skip if this is a system prompt (e.g., for initiateConversation)
+      if (saveUserMessage) {
+        await this.conversationHistory.saveMessage(leadId, 'user', message);
+      }
+
       // Generate text with tools
       const result = await generateText({
-        model,
-        messages,
+        model: model satisfies LanguageModel,
+        system: config.systemPrompt satisfies
+          | string
+          | SystemModelMessage
+          | SystemModelMessage[],
+        messages: messages satisfies ModelMessage[],
         tools,
       });
 
-      // Save conversation to history
-      await this.conversationHistory.saveMessage(leadId, 'user', message);
+      // Save assistant message to history after generation completes
       await this.conversationHistory.saveMessage(
         leadId,
         'assistant',

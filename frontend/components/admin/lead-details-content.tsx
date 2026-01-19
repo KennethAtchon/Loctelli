@@ -4,8 +4,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { DetailedLead } from "@/lib/api/endpoints/admin-auth";
-import { TrendingUp, CheckCircle, AlertCircle, Clock } from "lucide-react";
+import {
+  DetailedLead,
+  MessageHistoryItem,
+} from "@/lib/api/endpoints/admin-auth";
+import {
+  TrendingUp,
+  CheckCircle,
+  AlertCircle,
+  Clock,
+  MessageSquare,
+} from "lucide-react";
 
 interface LeadDetailsContentProps {
   lead: DetailedLead;
@@ -15,11 +24,39 @@ interface LeadDetailsContentProps {
   ) => "default" | "secondary" | "outline" | "destructive";
 }
 
+/**
+ * Parse message history - can be string (JSON) or array
+ */
+function parseMessageHistory(
+  messageHistory: DetailedLead["messageHistory"]
+): MessageHistoryItem[] {
+  if (!messageHistory) return [];
+
+  try {
+    // If it's a string, parse it
+    if (typeof messageHistory === "string") {
+      const parsed = JSON.parse(messageHistory);
+      return Array.isArray(parsed) ? parsed : [];
+    }
+    // If it's already an array, use it
+    if (Array.isArray(messageHistory)) {
+      return messageHistory;
+    }
+    return [];
+  } catch (error) {
+    console.error("Error parsing message history:", error);
+    return [];
+  }
+}
+
 export function LeadDetailsContent({
   lead,
   formatDate,
   getStatusBadgeVariant,
 }: LeadDetailsContentProps) {
+  // Parse message history - no hooks needed
+  const messageHistory = parseMessageHistory(lead.messageHistory);
+
   return (
     <>
       <DialogHeader>
@@ -309,8 +346,66 @@ export function LeadDetailsContent({
           </div>
         )}
 
-        {/* Message History */}
-        {lead.lastMessage && (
+        {/* Full Message History */}
+        {messageHistory.length > 0 && (
+          <div>
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <MessageSquare className="h-5 w-5" />
+              Message History ({messageHistory.length} messages)
+            </h3>
+            <div className="space-y-3 max-h-96 overflow-y-auto border rounded-lg p-4 bg-gray-50">
+              {messageHistory.map((msg: MessageHistoryItem, idx: number) => {
+                const isUser = msg.role === "user";
+                return (
+                  <div
+                    key={idx}
+                    className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`max-w-[80%] rounded-lg p-3 ${
+                        isUser
+                          ? "bg-blue-500 text-white"
+                          : "bg-white text-gray-800 border"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge
+                          variant={isUser ? "default" : "secondary"}
+                          className={`text-xs ${
+                            isUser
+                              ? "bg-blue-600 text-white"
+                              : "bg-gray-200 text-gray-700"
+                          }`}
+                        >
+                          {isUser ? "User" : "Assistant"}
+                        </Badge>
+                        {msg.timestamp && (
+                          <span
+                            className={`text-xs ${
+                              isUser ? "text-blue-100" : "text-gray-500"
+                            }`}
+                          >
+                            {formatDate(msg.timestamp)}
+                          </span>
+                        )}
+                      </div>
+                      <p
+                        className={`text-sm whitespace-pre-wrap ${
+                          isUser ? "text-white" : "text-gray-800"
+                        }`}
+                      >
+                        {msg.content || "No content"}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Fallback: Show latest message if no full history */}
+        {messageHistory.length === 0 && lead.lastMessage && (
           <div>
             <h3 className="font-semibold mb-3">Latest Message</h3>
             <div className="p-3 bg-gray-50 rounded text-sm">

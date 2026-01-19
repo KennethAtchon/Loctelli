@@ -13,7 +13,6 @@ import { AgentConfigService } from './config/agent-config.service';
 import { AgentConfigMapper } from './mappers/agent-config.mapper';
 import { BookingToolsVercel } from './tools/booking-tools-vercel';
 import { LeadManagementToolsVercel } from './tools/lead-management-tools-vercel';
-import { GoogleCalendarConfigService } from './config/google-calendar-config.service';
 import { AIReceptionistWebhookController } from './webhook.controller';
 import { WebhookSecurityMiddleware } from './webhook-security.middleware';
 import { AIReceptionistDevController } from './dev.controller';
@@ -30,7 +29,6 @@ import { SystemPromptBuilderService } from './services/system-prompt-builder.ser
     AgentConfigMapper,
     BookingToolsVercel,
     LeadManagementToolsVercel,
-    GoogleCalendarConfigService,
     WebhookSecurityMiddleware,
     VercelAIService,
     ConversationHistoryService,

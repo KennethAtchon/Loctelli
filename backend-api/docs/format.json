@@ -1,0 +1,94 @@
+{
+    "book_meeting": {
+        "description": "Book a calendar meeting/appointment with specified details. ALWAYS confirm timezone with the lead before booking.",
+        "parameters": {
+            "_def": {
+                "unknownKeys": "strip",
+                "catchall": {
+                    "_def": {
+                        "typeName": "ZodNever"
+                    },
+                    "~standard": {
+                        "version": 1,
+                        "vendor": "zod"
+                    }
+                },
+                "typeName": "ZodObject"
+            },
+            "~standard": {
+                "version": 1,
+                "vendor": "zod"
+            },
+            "_cached": null
+        }
+    },
+    "check_availability": {
+        "description": "Check calendar availability for a specific date and time range",
+        "parameters": {
+            "_def": {
+                "unknownKeys": "strip",
+                "catchall": {
+                    "_def": {
+                        "typeName": "ZodNever"
+                    },
+                    "~standard": {
+                        "version": 1,
+                        "vendor": "zod"
+                    }
+                },
+                "typeName": "ZodObject"
+            },
+            "~standard": {
+                "version": 1,
+                "vendor": "zod"
+            },
+            "_cached": null
+        }
+    },
+    "update_lead_details": {
+        "description": "Update lead information in the database. Use when lead provides or corrects their contact details, timezone, company info, or when you learn new information about them.",
+        "parameters": {
+            "_def": {
+                "unknownKeys": "strip",
+                "catchall": {
+                    "_def": {
+                        "typeName": "ZodNever"
+                    },
+                    "~standard": {
+                        "version": 1,
+                        "vendor": "zod"
+                    }
+                },
+                "typeName": "ZodObject"
+            },
+            "~standard": {
+                "version": 1,
+                "vendor": "zod"
+            },
+            "_cached": null
+        }
+    },
+    "update_conversation_state": {
+        "description": "Track important conversation context and sales progress. Use this to remember what you've learned about the lead's needs, budget, timeline, objections, and where they are in the sales process. Update this whenever you learn something important.",
+        "parameters": {
+            "_def": {
+                "unknownKeys": "strip",
+                "catchall": {
+                    "_def": {
+                        "typeName": "ZodNever"
+                    },
+                    "~standard": {
+                        "version": 1,
+                        "vendor": "zod"
+                    }
+                },
+                "typeName": "ZodObject"
+            },
+            "~standard": {
+                "version": 1,
+                "vendor": "zod"
+            },
+            "_cached": null
+        }
+    }
+}

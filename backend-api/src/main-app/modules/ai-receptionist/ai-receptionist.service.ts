@@ -30,8 +30,12 @@ export class AIReceptionistService {
   /**
    * Generate a text response for a lead message
    * Now uses Vercel AI SDK
+   * @param saveUserMessage If false, skips saving the user message to history (useful for system prompts)
    */
-  async generateTextResponse(request: GenerateTextRequestDto): Promise<string> {
+  async generateTextResponse(
+    request: GenerateTextRequestDto,
+    saveUserMessage: boolean = true,
+  ): Promise<string> {
     const { leadId, message, imageData, context } = request;
 
     this.logger.debug(
@@ -60,55 +64,11 @@ export class AIReceptionistService {
         message,
         userId,
         imageData,
+        saveUserMessage,
       );
     } catch (error) {
       this.logger.error(
         `Error generating text response for leadId=${leadId}:`,
-        error,
-      );
-      throw error;
-    }
-  }
-
-  /**
-   * Generate streaming text response
-   * Returns a ReadableStream for server-side streaming
-   */
-  async streamTextResponse(
-    request: GenerateTextRequestDto,
-  ): Promise<ReadableStream> {
-    const { leadId, message, imageData, context } = request;
-
-    this.logger.debug(
-      `Generating streaming response for leadId=${leadId}${imageData ? ' with image' : ''}`,
-    );
-
-    try {
-      // Get lead to determine userId
-      const lead = await this.prisma.lead.findUnique({
-        where: { id: leadId },
-        include: {
-          regularUser: true,
-          strategy: true,
-        },
-      });
-
-      if (!lead) {
-        throw new NotFoundException(`Lead with ID ${leadId} not found`);
-      }
-
-      const userId = context?.userId || lead.regularUserId;
-
-      // Use Vercel AI SDK service for streaming
-      return await this.vercelAIService.streamTextResponse(
-        leadId,
-        message,
-        userId,
-        imageData,
-      );
-    } catch (error) {
-      this.logger.error(
-        `Error generating streaming response for leadId=${leadId}:`,
         error,
       );
       throw error;
@@ -146,10 +106,13 @@ export class AIReceptionistService {
       }
 
       // Use Vercel AI SDK to generate initial greeting
+      // Pass saveUserMessage: false to avoid saving the system prompt to history
       const greeting = await this.vercelAIService.generateTextResponse(
         leadId,
         'Generate a warm, personalized opening message to initiate this conversation. Introduce yourself and express genuine interest in helping them. Keep it friendly and conversational.',
         lead.regularUserId,
+        undefined, // no imageData
+        false, // don't save this system prompt to history
       );
 
       this.logger.debug(`Conversation initiated for leadId=${leadId}`);

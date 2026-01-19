@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
-import type { ModelMessage } from 'ai';
+import type { ModelMessage, UserModelMessage, AssistantModelMessage } from 'ai';
 
 /**
  * Service for managing conversation history
@@ -35,10 +35,22 @@ export class ConversationHistoryService {
       const history = JSON.parse(lead.messageHistory as string);
       const recentHistory = history.slice(-maxMessages);
 
-      return recentHistory.map((msg: any) => ({
-        role: msg.role === 'user' ? 'user' : 'assistant',
-        content: msg.content || msg.message || '',
-      })) as ModelMessage[];
+      return recentHistory.map((msg: any): ModelMessage => {
+        const role = msg.role === 'user' ? 'user' : 'assistant';
+        const content = msg.content || msg.message || '';
+
+        if (role === 'user') {
+          return {
+            role: 'user',
+            content: content,
+          } satisfies UserModelMessage;
+        } else {
+          return {
+            role: 'assistant',
+            content: content,
+          } satisfies AssistantModelMessage;
+        }
+      });
     } catch (error) {
       this.logger.error(
         `Error parsing message history for leadId=${leadId}:`,
