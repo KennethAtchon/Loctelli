@@ -73,4 +73,73 @@ export class ChatApi {
       leadId: number;
     }>;
   }
+
+  /**
+   * Send message with streaming response
+   * Calls onChunk for each text chunk received
+   */
+  async sendMessageStream(
+    data: ChatMessageDto,
+    onChunk: (chunk: string) => void
+  ): Promise<string> {
+    // Use the client's request method but handle streaming manually
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const baseUrl = (this.client as any).baseUrl;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const authHeaders = (this.client as any).authManager.getAuthHeaders();
+
+    const url = `${baseUrl}/api/proxy/chat/send/stream`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Streaming request failed: ${response.statusText} - ${errorText}`
+      );
+    }
+
+    if (!response.body) {
+      throw new Error("Response body is null");
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = "";
+    let buffer = "";
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+
+          // Vercel AI SDK data stream format: "0:content" for text chunks
+          if (line.startsWith("0:")) {
+            const text = line.slice(2);
+            fullText += text;
+            onChunk(text);
+          }
+          // Handle other event types if needed (e.g., tool calls, metadata)
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    return fullText;
+  }
 }

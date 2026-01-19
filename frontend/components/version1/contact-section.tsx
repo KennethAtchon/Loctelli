@@ -162,7 +162,9 @@ export function ContactSection() {
                 <Phone className="w-6 h-6 text-blue-500 mr-4 mt-1" />
                 <div>
                   <h4 className="font-medium text-gray-900">Phone</h4>
-                  <p className="text-gray-600">{BRANDING.contact.phone.display}</p>
+                  <p className="text-gray-600">
+                    {BRANDING.contact.phone.display}
+                  </p>
                 </div>
               </div>
             </div>

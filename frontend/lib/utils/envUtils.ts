@@ -1,9 +1,9 @@
 /**
  * Centralized environment variable management
- * 
+ *
  * IMPORTANT: All environment variables in the frontend should be accessed through this file.
  * Do NOT use process.env directly in other files - always use API_CONFIG, ENV_CONFIG, or getEnvVar().
- * 
+ *
  * This file is the ONLY place where process.env should be accessed directly.
  */
 
@@ -43,7 +43,9 @@ export const ENV_CONFIG = {
     // Server-side: check runtime DEBUG env var
     // Client-side: NEXT_PUBLIC_DEBUG is embedded at build time
     if (typeof window === "undefined") {
-      return process.env.DEBUG === "true" || process.env.NEXT_PUBLIC_DEBUG === "true";
+      return (
+        process.env.DEBUG === "true" || process.env.NEXT_PUBLIC_DEBUG === "true"
+      );
     } else {
       // Client-side: NEXT_PUBLIC_DEBUG is available via process.env (replaced at build time)
       return process.env.NEXT_PUBLIC_DEBUG === "true";

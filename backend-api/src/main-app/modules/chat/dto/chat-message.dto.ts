@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsInt, IsObject } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsInt,
+  IsObject,
+  IsArray,
+} from 'class-validator';
 
 export class ChatMessageDto {
   @IsInt()
@@ -14,4 +20,12 @@ export class ChatMessageDto {
   @IsObject()
   @IsOptional()
   metadata?: Record<string, any>;
+
+  @IsArray()
+  @IsOptional()
+  imageData?: Array<{
+    imageBase64: string;
+    imageName?: string;
+    imageType?: string;
+  }>;
 }

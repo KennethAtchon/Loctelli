@@ -16,4 +16,4 @@ fi
 
 # Rebuild and start fresh
 echo "Starting containers with docker-compose..."
-docker-compose up --build
+docker compose up --build

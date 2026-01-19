@@ -11,7 +11,10 @@ import {
   Delete,
   UseGuards,
   Logger,
+  Res,
+  Header,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { ChatService } from './chat.service';
 import { ChatMessageDto } from './dto/chat-message.dto';
 import { SendMessageDto } from './dto/send-message.dto';
@@ -32,6 +35,85 @@ export class ChatController {
     private readonly prisma: PrismaService,
     private readonly aiReceptionistService: AIReceptionistService,
   ) {}
+
+  @Post('send/stream')
+  @Header('Content-Type', 'text/event-stream')
+  @Header('Cache-Control', 'no-cache')
+  @Header('Connection', 'keep-alive')
+  async sendMessageStream(
+    @Body() chatMessageDto: ChatMessageDto,
+    @CurrentUser() user,
+    @Res() res: Response,
+  ) {
+    this.logger.log(
+      `💬 Streaming message send attempt for lead ID: ${chatMessageDto.leadId} by user: ${user.email} (ID: ${user.userId})`,
+    );
+
+    try {
+      // Check if the lead belongs to the current user
+      const lead = await this.prisma.lead.findUnique({
+        where: { id: chatMessageDto.leadId },
+      });
+
+      if (!lead) {
+        throw new HttpException('Lead not found', HttpStatus.NOT_FOUND);
+      }
+
+      if (!isAdminOrSuperAdmin(user) && lead.regularUserId !== user.userId) {
+        throw new HttpException('Access denied', HttpStatus.FORBIDDEN);
+      }
+
+      // Get streaming response (returns ReadableStream)
+      const stream = await this.aiReceptionistService.streamTextResponse({
+        leadId: chatMessageDto.leadId,
+        message: chatMessageDto.content, // Map content to message
+        imageData: chatMessageDto.imageData,
+        context: {
+          userId: lead.regularUserId,
+          strategyId: lead.strategyId,
+          leadData: lead,
+        },
+      });
+
+      // Pipe stream to response
+      const reader = stream.getReader();
+      const decoder = new TextDecoder();
+
+      // Start streaming (don't await, let it run)
+      void (async () => {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              res.end();
+              break;
+            }
+            const chunk = decoder.decode(value, { stream: true });
+            res.write(chunk);
+          }
+        } catch (error) {
+          this.logger.error('Streaming error:', error);
+          if (!res.headersSent) {
+            res.status(500).json({ error: 'Streaming failed' });
+          } else {
+            res.end();
+          }
+        } finally {
+          reader.releaseLock();
+        }
+      })();
+
+      this.logger.log(
+        `✅ Streaming started for lead ID: ${chatMessageDto.leadId} by user: ${user.email}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `❌ Streaming message send failed for lead ID: ${chatMessageDto.leadId} by user: ${user.email}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
 
   @Post('send')
   async sendMessage(

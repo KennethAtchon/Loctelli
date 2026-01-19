@@ -203,7 +203,8 @@ export function ContactSection() {
                 {isSubmitting ? "Submitting..." : "Get Free Consultation"}
               </Button>
               <p className="text-sm text-gray-500 mt-3">
-                We'll contact you within {BRANDING.contact.responseTime.toLowerCase()}
+                We'll contact you within{" "}
+                {BRANDING.contact.responseTime.toLowerCase()}
               </p>
             </div>
           </form>

@@ -6,7 +6,7 @@ import { API_CONFIG } from "@/lib/utils/envUtils";
  *
  * Simple pass-through proxy that forwards requests to the backend.
  * Handles CORS and basic request/response forwarding.
- * 
+ *
  * Note: BACKEND_URL is accessed at runtime via API_CONFIG.BACKEND_URL getter
  */
 

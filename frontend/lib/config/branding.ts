@@ -76,4 +76,3 @@ export const BRANDING = {
 
 // Type export for TypeScript support
 export type BrandingConfig = typeof BRANDING;
-

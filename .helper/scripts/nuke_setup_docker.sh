@@ -38,5 +38,5 @@ docker rmi -f loctelli-api loctelli-frontend 2>/dev/null || true
 # Rebuild and start Loctelli services
 echo "Rebuilding and starting Loctelli services..."
 sleep 3
-docker-compose up --build
+docker compose up --build
 

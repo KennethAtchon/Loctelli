@@ -9,30 +9,34 @@ import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
 import { PromptTemplatesModule } from '../prompt-templates/prompt-templates.module';
 import { BookingsModule } from '../bookings/bookings.module';
 import { AIReceptionistService } from './ai-receptionist.service';
-import { AgentFactoryService } from './agent-factory.service';
 import { AgentConfigService } from './config/agent-config.service';
 import { AgentConfigMapper } from './mappers/agent-config.mapper';
-import { BookingTools } from './custom-tools/booking-tools';
-import { LeadManagementTools } from './custom-tools/lead-management-tools';
+import { BookingToolsVercel } from './tools/booking-tools-vercel';
+import { LeadManagementToolsVercel } from './tools/lead-management-tools-vercel';
 import { GoogleCalendarConfigService } from './config/google-calendar-config.service';
 import { AIReceptionistWebhookController } from './webhook.controller';
 import { WebhookSecurityMiddleware } from './webhook-security.middleware';
 import { AIReceptionistDevController } from './dev.controller';
+import { VercelAIService } from './services/vercel-ai.service';
+import { ConversationHistoryService } from './services/conversation-history.service';
+import { SystemPromptBuilderService } from './services/system-prompt-builder.service';
 
 @Module({
   imports: [PrismaModule, PromptTemplatesModule, BookingsModule, ConfigModule],
   controllers: [AIReceptionistWebhookController, AIReceptionistDevController],
   providers: [
     AIReceptionistService,
-    AgentFactoryService,
     AgentConfigService,
     AgentConfigMapper,
-    BookingTools,
-    LeadManagementTools,
+    BookingToolsVercel,
+    LeadManagementToolsVercel,
     GoogleCalendarConfigService,
     WebhookSecurityMiddleware,
+    VercelAIService,
+    ConversationHistoryService,
+    SystemPromptBuilderService,
   ],
-  exports: [AIReceptionistService, AgentFactoryService, AgentConfigService],
+  exports: [AIReceptionistService, AgentConfigService, VercelAIService],
 })
 export class AIReceptionistModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

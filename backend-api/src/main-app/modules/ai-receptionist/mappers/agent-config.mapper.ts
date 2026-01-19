@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { AgentInstanceConfig } from '@atchonk/ai-receptionist';
+import type { AgentInstanceConfig } from '../types/agent-config.types';
 import type { Strategy, PromptTemplate, Lead, User } from '@prisma/client';
 
 /**

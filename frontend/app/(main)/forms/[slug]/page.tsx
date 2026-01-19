@@ -96,7 +96,10 @@ export default function PublicFormPage() {
       try {
         formTemplate = await formsApi.getPublicForm(slug);
       } catch (firstError) {
-        logger.warn("First form load attempt failed, retrying after wake-up:", firstError);
+        logger.warn(
+          "First form load attempt failed, retrying after wake-up:",
+          firstError
+        );
         // Wait a bit for database to fully wake up
         await new Promise((resolve) => setTimeout(resolve, 500));
         // Retry the wake-up and then the form load

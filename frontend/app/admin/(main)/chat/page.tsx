@@ -419,20 +419,6 @@ export default function ChatPage() {
     setIsTyping(true);
 
     try {
-      // Send message to API with lead ID and images
-      const response = (await api.chat.sendMessage({
-        leadId: parseInt(selectedLeadId, 10),
-        content: messageContent,
-        role: "user",
-        metadata: {
-          ...imageMetadata,
-          leadId: parseInt(selectedLeadId, 10),
-          leadName: leadProfile?.name,
-        },
-      })) as ChatApiResponse;
-
-      logger.debug("Chat API response:", response);
-
       // Create AI message with empty content first
       const aiMessageId = `${Date.now()}-ai`;
       const aiMessage: ChatMessage = {
@@ -449,15 +435,46 @@ export default function ChatPage() {
       // Add AI message placeholder to chat
       setMessages((prev) => [...prev, aiMessage]);
 
-      // Stop the typing indicator and start streaming the AI response
+      // Stop the typing indicator and start streaming
       setIsTyping(false);
-      const aiContent = response.aiMessage?.content || "No response received";
-      if (chatInterfaceRef.current) {
-        await chatInterfaceRef.current.startStreamingMessage(
-          aiMessageId,
-          aiContent
-        );
-      }
+
+      // Use streaming API with real-time updates
+      let accumulatedContent = "";
+
+      await api.chat.sendMessageStream(
+        {
+          leadId: parseInt(selectedLeadId, 10),
+          content: messageContent,
+          role: "user",
+          metadata: {
+            ...imageMetadata,
+            leadId: parseInt(selectedLeadId, 10),
+            leadName: leadProfile?.name,
+          },
+        },
+        (chunk: string) => {
+          // Update message in real-time as chunks arrive
+          accumulatedContent += chunk;
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === aiMessageId
+                ? { ...msg, content: accumulatedContent }
+                : msg
+            )
+          );
+
+          // ChatInterface will automatically update via messages state
+        }
+      );
+
+      // Final update to mark as completed
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === aiMessageId
+            ? { ...msg, content: accumulatedContent, completed: true }
+            : msg
+        )
+      );
     } catch (err) {
       logger.error("Failed to send message:", err);
       setError("Failed to send message. Please try again.");

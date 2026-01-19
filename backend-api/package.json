@@ -31,7 +31,7 @@
     "clean": "rm -rf dist && rm -rf node_modules && rm -rf pnpm-lock.yaml"
   },
   "dependencies": {
-    "@atchonk/ai-receptionist": "^0.1.22",
+    "@ai-sdk/openai": "^3.0.12",
     "@aws-sdk/client-s3": "^3.927.0",
     "@aws-sdk/lib-storage": "^3.927.0",
     "@aws-sdk/s3-request-presigner": "^3.927.0",
@@ -50,6 +50,7 @@
     "@types/jszip": "^3.4.1",
     "@types/multer": "^2.0.0",
     "@types/pdfkit": "^0.17.3",
+    "ai": "^6.0.39",
     "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
     "bullmq": "^5.63.0",
@@ -68,7 +69,8 @@
     "pdfkit": "^0.17.2",
     "pg": "^8.16.3",
     "twilio": "^5.10.4",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
