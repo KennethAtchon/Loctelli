@@ -40,7 +40,9 @@ export default function AdminLoginPage() {
     e.preventDefault();
     e.stopPropagation();
 
-    logger.debug("🔐 Admin login form submitted:", { email: formData.email });
+    logger.debug("🔐 Admin login form submitted:", {
+      email: formData.email,
+    });
 
     // Prevent multiple submissions
     if (isSubmitting) {

@@ -123,7 +123,9 @@ export class IntegrationsApi {
   }
 
   async testConnection(id: number): Promise<TestConnectionResponse> {
-    return this.api.testConnection({ id }) as Promise<TestConnectionResponse>;
+    return this.api.testConnection({
+      id,
+    }) as Promise<TestConnectionResponse>;
   }
 
   async syncData(id: number): Promise<SyncDataResponse> {

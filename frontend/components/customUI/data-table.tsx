@@ -277,7 +277,12 @@ export function DataTable<T extends { id: number | string }>({
           {stats.map((stat, index) => {
             const colorMap: Record<
               string,
-              { bg: string; icon: string; text: string; hover: string }
+              {
+                bg: string;
+                icon: string;
+                text: string;
+                hover: string;
+              }
             > = {
               "text-blue-600": {
                 bg: "from-blue-50 via-white to-blue-50/50",

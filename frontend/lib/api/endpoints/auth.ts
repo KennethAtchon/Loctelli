@@ -60,7 +60,10 @@ export class AuthApi {
 
   async login(data: LoginDto): Promise<AuthResponse> {
     // Default to 'user' account type if not specified
-    const loginData = { ...data, accountType: data.accountType || "user" };
+    const loginData = {
+      ...data,
+      accountType: data.accountType || "user",
+    };
     return this.api.login(undefined, loginData) as Promise<AuthResponse>;
   }
 
@@ -68,7 +71,10 @@ export class AuthApi {
     data: RegisterDto
   ): Promise<Omit<UserProfile, "lastLoginAt" | "createdAt" | "updatedAt">> {
     // Default to 'user' account type if not specified
-    const registerData = { ...data, accountType: data.accountType || "user" };
+    const registerData = {
+      ...data,
+      accountType: data.accountType || "user",
+    };
     return this.api.register(undefined, registerData) as Promise<
       Omit<UserProfile, "lastLoginAt" | "createdAt" | "updatedAt">
     >;

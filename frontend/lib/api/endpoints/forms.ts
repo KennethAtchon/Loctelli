@@ -198,7 +198,10 @@ export class FormsApi {
     return this.api.submitPublicForm({ slug }, data) as Promise<FormSubmission>;
   }
 
-  async wakeUpDatabase(): Promise<{ status: string; timestamp: string }> {
+  async wakeUpDatabase(): Promise<{
+    status: string;
+    timestamp: string;
+  }> {
     return this.api.wakeUpDatabase() as Promise<{
       status: string;
       timestamp: string;
@@ -226,7 +229,9 @@ export class FormsApi {
   }
 
   async getFormSubmission(id: string): Promise<FormSubmission> {
-    return this.api.getFormSubmission({ id }) as Promise<FormSubmission>;
+    return this.api.getFormSubmission({
+      id,
+    }) as Promise<FormSubmission>;
   }
 
   async updateFormSubmission(

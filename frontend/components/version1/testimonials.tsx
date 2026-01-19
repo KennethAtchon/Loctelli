@@ -75,7 +75,10 @@ export function Testimonials() {
     typeof testimonials
   >([]);
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: false, margin: "-100px" });
+  const isInView = useInView(containerRef, {
+    once: false,
+    margin: "-100px",
+  });
 
   useEffect(() => {
     function updateVisibleTestimonials() {

@@ -59,7 +59,9 @@ export default function RegisterPage() {
     e.preventDefault();
     e.stopPropagation();
 
-    logger.debug("🔐 Register form submitted:", { email: formData.email });
+    logger.debug("🔐 Register form submitted:", {
+      email: formData.email,
+    });
 
     // Prevent multiple submissions
     if (isLoading) {
@@ -171,7 +173,10 @@ export default function RegisterPage() {
                   type="email"
                   value={formData.email}
                   onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
+                    setFormData({
+                      ...formData,
+                      email: e.target.value,
+                    })
                   }
                   required
                   placeholder="Enter your email"
@@ -274,7 +279,10 @@ export default function RegisterPage() {
                   type="text"
                   value={formData.company || ""}
                   onChange={(e) =>
-                    setFormData({ ...formData, company: e.target.value })
+                    setFormData({
+                      ...formData,
+                      company: e.target.value,
+                    })
                   }
                   placeholder="Enter your company name"
                   disabled={isLoading}
@@ -288,7 +296,10 @@ export default function RegisterPage() {
                   type="text"
                   value={formData.budget || ""}
                   onChange={(e) =>
-                    setFormData({ ...formData, budget: e.target.value })
+                    setFormData({
+                      ...formData,
+                      budget: e.target.value,
+                    })
                   }
                   placeholder="Enter your budget range"
                   disabled={isLoading}

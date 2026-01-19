@@ -304,7 +304,10 @@ export default function AdminSettingsPage() {
                   type="button"
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   onClick={() =>
-                    setShowPasswords((prev) => ({ ...prev, old: !prev.old }))
+                    setShowPasswords((prev) => ({
+                      ...prev,
+                      old: !prev.old,
+                    }))
                   }
                 >
                   {showPasswords.old ? (
@@ -337,7 +340,10 @@ export default function AdminSettingsPage() {
                     type="button"
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     onClick={() =>
-                      setShowPasswords((prev) => ({ ...prev, new: !prev.new }))
+                      setShowPasswords((prev) => ({
+                        ...prev,
+                        new: !prev.new,
+                      }))
                     }
                   >
                     {showPasswords.new ? (

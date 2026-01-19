@@ -475,7 +475,9 @@ describe("BookingsApi", () => {
 
       const result = await bookingsApi.updateBookingStatus(1, status);
 
-      expect(mockPatch).toHaveBeenCalledWith("/booking/1/status", { status });
+      expect(mockPatch).toHaveBeenCalledWith("/booking/1/status", {
+        status,
+      });
       expect(result).toEqual(mockUpdatedBooking);
     });
 
@@ -487,7 +489,9 @@ describe("BookingsApi", () => {
       await expect(bookingsApi.updateBookingStatus(1, status)).rejects.toThrow(
         "Invalid status value"
       );
-      expect(mockPatch).toHaveBeenCalledWith("/booking/1/status", { status });
+      expect(mockPatch).toHaveBeenCalledWith("/booking/1/status", {
+        status,
+      });
     });
   });
 

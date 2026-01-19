@@ -98,7 +98,10 @@ export function useTenantMutation<
 
         logger.debug("Tenant mutation", { mode, subAccountId });
 
-        const result = await options.mutationFn({ ...variables, subAccountId });
+        const result = await options.mutationFn({
+          ...variables,
+          subAccountId,
+        });
 
         if (options.onSuccess) {
           options.onSuccess(result);

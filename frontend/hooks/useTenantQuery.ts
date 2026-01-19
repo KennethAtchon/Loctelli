@@ -120,7 +120,10 @@ export function useTenantMutation<
         subAccountId,
       });
 
-      return options.mutationFn({ ...variables, subAccountId } as TVariables & {
+      return options.mutationFn({
+        ...variables,
+        subAccountId,
+      } as TVariables & {
         subAccountId: number | null;
       });
     },
@@ -185,7 +188,10 @@ export function useInvalidateTenantQueries() {
 
   return {
     invalidateAllTenantQueries: () => {
-      logger.debug("Invalidating all tenant queries", { mode, subAccountId });
+      logger.debug("Invalidating all tenant queries", {
+        mode,
+        subAccountId,
+      });
 
       queryClient.invalidateQueries({
         predicate: (query: Query) => {
@@ -198,10 +204,18 @@ export function useInvalidateTenantQueries() {
             lastItem !== undefined &&
             typeof lastItem === "object" &&
             "tenantMode" in lastItem &&
-            (lastItem as { tenantMode: unknown; subAccountId?: unknown })
-              .tenantMode === mode &&
-            (lastItem as { tenantMode: unknown; subAccountId?: unknown })
-              .subAccountId === subAccountId
+            (
+              lastItem as {
+                tenantMode: unknown;
+                subAccountId?: unknown;
+              }
+            ).tenantMode === mode &&
+            (
+              lastItem as {
+                tenantMode: unknown;
+                subAccountId?: unknown;
+              }
+            ).subAccountId === subAccountId
           );
         },
       });

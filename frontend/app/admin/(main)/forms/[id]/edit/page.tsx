@@ -658,7 +658,9 @@ export default function EditFormTemplatePage() {
                       <Input
                         value={field.label}
                         onChange={(e) =>
-                          updateField(index, { label: e.target.value })
+                          updateField(index, {
+                            label: e.target.value,
+                          })
                         }
                         placeholder="Enter field label"
                       />
@@ -671,7 +673,9 @@ export default function EditFormTemplatePage() {
                       <Input
                         value={field.placeholder || ""}
                         onChange={(e) =>
-                          updateField(index, { placeholder: e.target.value })
+                          updateField(index, {
+                            placeholder: e.target.value,
+                          })
                         }
                         placeholder="Enter placeholder text"
                       />

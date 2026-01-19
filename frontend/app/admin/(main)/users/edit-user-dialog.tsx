@@ -61,7 +61,10 @@ export function EditUserDialog({
         bookingsTime:
           (
             user as UserProfile & {
-              bookingsTime?: Array<{ date: string; slots: string[] }> | null;
+              bookingsTime?: Array<{
+                date: string;
+                slots: string[];
+              }> | null;
             }
           ).bookingsTime || null,
       });

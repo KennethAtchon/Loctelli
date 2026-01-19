@@ -18,9 +18,11 @@ export class ChatApi {
     this.api = builder.buildApi(chatConfig);
   }
 
-  async sendMessage(
-    data: ChatMessageDto
-  ): Promise<{ userMessage: unknown; aiMessage: unknown; lead: unknown }> {
+  async sendMessage(data: ChatMessageDto): Promise<{
+    userMessage: unknown;
+    aiMessage: unknown;
+    lead: unknown;
+  }> {
     return this.api.sendMessage(undefined, data) as Promise<{
       userMessage: unknown;
       aiMessage: unknown;
@@ -53,7 +55,9 @@ export class ChatApi {
   }
 
   async getUnreadMessagesCount(leadId: number): Promise<number> {
-    return this.api.getUnreadMessagesCount({ leadId }) as Promise<number>;
+    return this.api.getUnreadMessagesCount({
+      leadId,
+    }) as Promise<number>;
   }
 
   async markAllAsRead(leadId: number): Promise<void> {

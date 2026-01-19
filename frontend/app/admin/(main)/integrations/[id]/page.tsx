@@ -454,13 +454,19 @@ export default function IntegrationDetailsPage() {
                   API Version
                 </Label>
                 <p className="text-sm text-gray-900">
-                  {(integration.integrationTemplate as { apiVersion?: string })
-                    .apiVersion || "N/A"}
+                  {(
+                    integration.integrationTemplate as {
+                      apiVersion?: string;
+                    }
+                  ).apiVersion || "N/A"}
                 </p>
               </div>
 
-              {(integration.integrationTemplate as { description?: string })
-                .description && (
+              {(
+                integration.integrationTemplate as {
+                  description?: string;
+                }
+              ).description && (
                 <div>
                   <Label className="text-sm font-medium text-gray-700">
                     Description

@@ -81,7 +81,9 @@ export class AdminSubAccountsApi {
   }
 
   async getSubAccount(id: number): Promise<DetailedSubAccount> {
-    return this.api.getSubAccount({ id }) as Promise<DetailedSubAccount>;
+    return this.api.getSubAccount({
+      id,
+    }) as Promise<DetailedSubAccount>;
   }
 
   async createSubAccount(data: CreateSubAccountDto): Promise<SubAccount> {
@@ -96,6 +98,8 @@ export class AdminSubAccountsApi {
   }
 
   async deleteSubAccount(id: number): Promise<{ message: string }> {
-    return this.api.deleteSubAccount({ id }) as Promise<{ message: string }>;
+    return this.api.deleteSubAccount({ id }) as Promise<{
+      message: string;
+    }>;
   }
 }

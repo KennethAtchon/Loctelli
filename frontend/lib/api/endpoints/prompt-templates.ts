@@ -85,7 +85,10 @@ export class PromptTemplatesApi {
     id: number,
     data: UpdatePromptTemplateDto
   ): Promise<PromptTemplate> {
-    console.log("API: Updating prompt template with data:", { id, data });
+    console.log("API: Updating prompt template with data:", {
+      id,
+      data,
+    });
     const result = (await this.api.update({ id }, data)) as PromptTemplate;
     console.log("API: Prompt template updated successfully:", result);
     return result;

@@ -25,8 +25,16 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const navigation = [
-  { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-  { name: "SubAccounts", href: "/admin/subaccounts", icon: Building2 },
+  {
+    name: "Dashboard",
+    href: "/admin/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    name: "SubAccounts",
+    href: "/admin/subaccounts",
+    icon: Building2,
+  },
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Contacts", href: "/admin/contacts", icon: Mail },
   { name: "Forms", href: "/admin/forms", icon: ClipboardList },
@@ -34,7 +42,11 @@ const navigation = [
   { name: "Leads", href: "/admin/leads", icon: Users },
   { name: "Bookings", href: "/admin/bookings", icon: Calendar },
   { name: "Chat", href: "/admin/chat", icon: MessageSquare },
-  { name: "Prompt Builder", href: "/admin/prompt-templates", icon: FileText },
+  {
+    name: "Prompt Builder",
+    href: "/admin/prompt-templates",
+    icon: FileText,
+  },
   { name: "Integrations", href: "/admin/integrations", icon: Link2 },
   { name: "Dev", href: "/admin/dev", icon: Database },
   { name: "Settings", href: "/admin/settings", icon: Settings },

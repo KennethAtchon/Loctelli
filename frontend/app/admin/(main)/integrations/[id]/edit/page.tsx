@@ -499,7 +499,10 @@ export default function EditIntegrationPage() {
                     id="name"
                     value={formData.name || ""}
                     onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, name: e.target.value }))
+                      setFormData((prev) => ({
+                        ...prev,
+                        name: e.target.value,
+                      }))
                     }
                     placeholder="Enter a name for this integration"
                   />
@@ -526,7 +529,10 @@ export default function EditIntegrationPage() {
                     id="isActive"
                     checked={formData.isActive || false}
                     onCheckedChange={(checked) =>
-                      setFormData((prev) => ({ ...prev, isActive: checked }))
+                      setFormData((prev) => ({
+                        ...prev,
+                        isActive: checked,
+                      }))
                     }
                   />
                   <Label htmlFor="isActive">Active</Label>
@@ -543,7 +549,11 @@ export default function EditIntegrationPage() {
                       integration.integrationTemplate.configSchema
                         .properties as Record<
                         string,
-                        { type: string; title?: string; description?: string }
+                        {
+                          type: string;
+                          title?: string;
+                          description?: string;
+                        }
                       >
                     ).map(([key, schema]) => renderConfigField(key, schema))}
                 </div>

@@ -457,7 +457,8 @@ export default function FormsPage() {
                     <strong>Public URL:</strong>
                     <br />
                     <code className="text-blue-600">
-                      {window.location.origin}/forms/{selectedTemplate.slug}
+                      {window.location.origin}/forms/
+                      {selectedTemplate.slug}
                     </code>
                   </div>
                 </div>

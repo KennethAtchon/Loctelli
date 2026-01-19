@@ -94,7 +94,10 @@ export class IntegrationTemplatesApi {
     id: number,
     data: UpdateIntegrationTemplateDto
   ): Promise<IntegrationTemplate> {
-    console.log("API: Updating integration template with data:", { id, data });
+    console.log("API: Updating integration template with data:", {
+      id,
+      data,
+    });
     const result = (await this.api.update({ id }, data)) as IntegrationTemplate;
     console.log("API: Integration template updated successfully:", result);
     return result;

@@ -61,7 +61,11 @@ export const ENV_CONFIG = {
 
 // Validation function to ensure required environment variables are set
 export function validateEnvironmentVariables(): void {
-  const requiredVars: Array<{ key: string; value: string; name: string }> = [
+  const requiredVars: Array<{
+    key: string;
+    value: string;
+    name: string;
+  }> = [
     // Add other required vars here if needed
   ];
 

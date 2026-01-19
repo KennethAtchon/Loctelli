@@ -78,6 +78,10 @@ export const chatConfig: EndpointGroup = {
     pathParams: [{ name: "leadId", required: true, type: "number" }],
     requiresBody: true,
     bodyType: {} as Record<string, never>,
-    responseType: {} as { success: boolean; message: string; leadId: number },
+    responseType: {} as {
+      success: boolean;
+      message: string;
+      leadId: number;
+    },
   },
 };

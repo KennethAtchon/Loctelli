@@ -31,9 +31,9 @@ interface ContactEditPageProps {
 
 export default function ContactEditPage({ params }: ContactEditPageProps) {
   const router = useRouter();
-  const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(
-    null
-  );
+  const [resolvedParams, setResolvedParams] = useState<{
+    id: string;
+  } | null>(null);
   const [contact, setContact] = useState<ContactSubmission | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -117,7 +117,9 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
 
     try {
       setIsAddingNote(true);
-      await api.contacts.addNote(contact.id, { content: newNote.trim() });
+      await api.contacts.addNote(contact.id, {
+        content: newNote.trim(),
+      });
       setNewNote("");
       setSuccess("Note added successfully");
       // Reload contact data

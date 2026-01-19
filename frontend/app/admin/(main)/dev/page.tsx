@@ -124,7 +124,9 @@ export default function DevPage() {
   };
 
   const downloadResponse = () => {
-    const blob = new Blob([debugResponse], { type: "application/json" });
+    const blob = new Blob([debugResponse], {
+      type: "application/json",
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;

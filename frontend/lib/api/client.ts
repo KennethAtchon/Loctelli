@@ -179,7 +179,9 @@ export class ApiClient {
           endpoint.includes("/status/");
 
         if (!isPublicEndpoint) {
-          rateLimiter.handleRateLimitError(endpoint, response, { retryAfter });
+          rateLimiter.handleRateLimitError(endpoint, response, {
+            retryAfter,
+          });
         } else {
           // For public endpoints, just show the error without blocking future requests
           logger.warn(

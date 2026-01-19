@@ -383,7 +383,10 @@ export default function NewIntegrationPage() {
                       id="isActive"
                       checked={formData.isActive}
                       onCheckedChange={(checked) =>
-                        setFormData((prev) => ({ ...prev, isActive: checked }))
+                        setFormData((prev) => ({
+                          ...prev,
+                          isActive: checked,
+                        }))
                       }
                     />
                     <Label htmlFor="isActive">

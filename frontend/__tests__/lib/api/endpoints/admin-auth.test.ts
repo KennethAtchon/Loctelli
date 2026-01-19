@@ -71,7 +71,10 @@ describe("AdminAuthApi", () => {
           name: "Admin User",
           email: "admin@example.com",
           role: "SUPER_ADMIN",
-          permissions: { users: "read_write", strategies: "read_write" },
+          permissions: {
+            users: "read_write",
+            strategies: "read_write",
+          },
           isActive: true,
           lastLoginAt: "2024-01-01T12:00:00Z",
           createdAt: "2024-01-01T00:00:00Z",
@@ -225,7 +228,10 @@ describe("AdminAuthApi", () => {
         name: "Admin User",
         email: "admin@example.com",
         role: "SUPER_ADMIN",
-        permissions: { users: "read_write", strategies: "read_write" },
+        permissions: {
+          users: "read_write",
+          strategies: "read_write",
+        },
         isActive: true,
         lastLoginAt: "2024-01-01T12:00:00Z",
         createdAt: "2024-01-01T00:00:00Z",
@@ -265,7 +271,10 @@ describe("AdminAuthApi", () => {
         name: "Updated Admin Name",
         email: "updated@example.com",
         role: "SUPER_ADMIN",
-        permissions: { users: "read_write", strategies: "read_write" },
+        permissions: {
+          users: "read_write",
+          strategies: "read_write",
+        },
         isActive: true,
         lastLoginAt: "2024-01-01T12:00:00Z",
         createdAt: "2024-01-01T00:00:00Z",
@@ -304,7 +313,9 @@ describe("AdminAuthApi", () => {
         newPassword: "newpassword123",
       };
 
-      const mockResponse = { message: "Password changed successfully" };
+      const mockResponse = {
+        message: "Password changed successfully",
+      };
       mockPost.mockResolvedValue(mockResponse);
 
       const result = await adminAuthApi.changeAdminPassword(passwordData);
@@ -603,7 +614,10 @@ describe("AdminAuthApi", () => {
           name: "Regular Admin",
           email: "admin@example.com",
           role: "ADMIN",
-          permissions: { users: "read_write", strategies: "read_write" },
+          permissions: {
+            users: "read_write",
+            strategies: "read_write",
+          },
           isActive: true,
           lastLoginAt: "2024-01-02T12:00:00Z",
           createdAt: "2024-01-02T00:00:00Z",
@@ -636,7 +650,9 @@ describe("AdminAuthApi", () => {
   describe("deleteAdminAccount", () => {
     it("should call delete admin account endpoint", async () => {
       const adminId = 2;
-      const mockResponse = { message: "Admin account deleted successfully" };
+      const mockResponse = {
+        message: "Admin account deleted successfully",
+      };
       mockDelete.mockResolvedValue(mockResponse);
 
       const result = await adminAuthApi.deleteAdminAccount(adminId);

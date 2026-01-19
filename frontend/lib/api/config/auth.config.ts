@@ -35,7 +35,10 @@ export const authConfig: EndpointGroup = {
     path: "/auth/refresh",
     requiresBody: true,
     bodyType: {} as { refresh_token: string },
-    responseType: {} as { access_token: string; refresh_token: string },
+    responseType: {} as {
+      access_token: string;
+      refresh_token: string;
+    },
   },
 
   logout: {

@@ -330,7 +330,9 @@ export class AdminAuthApi {
   }
 
   async deleteUser(userId: number): Promise<{ message: string }> {
-    return this.api.deleteUser({ userId }) as Promise<{ message: string }>;
+    return this.api.deleteUser({ userId }) as Promise<{
+      message: string;
+    }>;
   }
 
   async generateAuthCode(): Promise<{
@@ -345,7 +347,10 @@ export class AdminAuthApi {
     }>;
   }
 
-  async getCurrentAuthCode(): Promise<{ authCode: string; message: string }> {
+  async getCurrentAuthCode(): Promise<{
+    authCode: string;
+    message: string;
+  }> {
     return this.api.getCurrentAuthCode() as Promise<{
       authCode: string;
       message: string;
@@ -379,10 +384,14 @@ export class AdminAuthApi {
   }
 
   async getDetailedUser(userId: number): Promise<DetailedUser> {
-    return this.api.getDetailedUser({ userId }) as Promise<DetailedUser>;
+    return this.api.getDetailedUser({
+      userId,
+    }) as Promise<DetailedUser>;
   }
 
   async getDetailedLead(leadId: number): Promise<DetailedLead> {
-    return this.api.getDetailedLead({ leadId }) as Promise<DetailedLead>;
+    return this.api.getDetailedLead({
+      leadId,
+    }) as Promise<DetailedLead>;
   }
 }

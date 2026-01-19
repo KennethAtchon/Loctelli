@@ -405,7 +405,10 @@ export default function FormSubmissionDetailPage() {
                     <Select
                       value={updateData.status}
                       onValueChange={(value) =>
-                        setUpdateData((prev) => ({ ...prev, status: value }))
+                        setUpdateData((prev) => ({
+                          ...prev,
+                          status: value,
+                        }))
                       }
                     >
                       <SelectTrigger>

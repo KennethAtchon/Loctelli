@@ -123,7 +123,10 @@ export default function SDKTables() {
   };
 
   const handlePageSizeChange = (tableName: string, newPageSize: number) => {
-    setTablePageSizes((prev) => ({ ...prev, [tableName]: newPageSize }));
+    setTablePageSizes((prev) => ({
+      ...prev,
+      [tableName]: newPageSize,
+    }));
     setTablePages((prev) => ({ ...prev, [tableName]: 1 }));
     fetchTableData(tableName, 1, newPageSize);
   };

@@ -500,7 +500,10 @@ export default function UsersPage() {
                     {Array.isArray(selectedUser.bookingsTime) ? (
                       selectedUser.bookingsTime.map(
                         (
-                          timeSlot: { date: string; slots: string[] },
+                          timeSlot: {
+                            date: string;
+                            slots: string[];
+                          },
                           index: number
                         ) => (
                           <div key={index} className="p-3 border rounded-lg">
