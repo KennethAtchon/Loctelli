@@ -255,12 +255,12 @@ export default function AgentInfoModal({
               <CardHeader>
                 <CardTitle>Tools</CardTitle>
                 <CardDescription>
-                  Available tools for the agent ({agentInfo.tools.length})
+                  Available tools for the agent ({agentInfo.tools?.length || 0})
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {agentInfo.tools.length === 0 ? (
+                  {!agentInfo.tools || agentInfo.tools.length === 0 ? (
                     <p className="text-sm text-gray-500">No tools available</p>
                   ) : (
                     agentInfo.tools.map((tool) => (
@@ -286,7 +286,7 @@ export default function AgentInfoModal({
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {agentInfo.providers.length === 0 ? (
+                  {!agentInfo.providers || agentInfo.providers.length === 0 ? (
                     <p className="text-sm text-gray-500">
                       No providers configured
                     </p>
@@ -387,7 +387,7 @@ export default function AgentInfoModal({
                   <div>
                     <CardTitle>System Prompt</CardTitle>
                     <CardDescription>
-                      {agentInfo.systemPromptLength.toLocaleString()} characters
+                      {agentInfo.systemPromptLength?.toLocaleString() || 0} characters
                     </CardDescription>
                   </div>
                   <Button
@@ -410,7 +410,7 @@ export default function AgentInfoModal({
                   <pre className="text-xs font-mono bg-gray-50 p-4 rounded border overflow-x-auto max-h-96 overflow-y-auto break-words whitespace-pre-wrap">
                     {getSystemPromptDisplay()}
                   </pre>
-                  {agentInfo.systemPromptLength > 500 && (
+                  {agentInfo.systemPromptLength && agentInfo.systemPromptLength > 500 && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -426,7 +426,7 @@ export default function AgentInfoModal({
                         <>
                           <ChevronDown className="h-4 w-4 mr-1" />
                           Show Full Prompt (
-                          {agentInfo.systemPromptLength.toLocaleString()} chars)
+                          {agentInfo.systemPromptLength?.toLocaleString()} chars)
                         </>
                       )}
                     </Button>

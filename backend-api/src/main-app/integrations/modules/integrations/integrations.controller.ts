@@ -16,7 +16,7 @@ import { UpdateIntegrationDto } from './dto/update-integration.dto';
 import { JwtAuthGuard } from '../../../../shared/auth/auth.guard';
 import { RolesGuard } from '../../../../shared/guards/roles.guard';
 import { Roles } from '../../../../shared/decorators/roles.decorator';
-import { GhlService } from '../../ghl-integrations/ghl/ghl.service';
+import { GhlApiClientService } from '../../ghl-integrations/ghl/ghl-api-client.service';
 
 @Controller('admin/integrations')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -24,7 +24,7 @@ import { GhlService } from '../../ghl-integrations/ghl/ghl.service';
 export class IntegrationsController {
   constructor(
     private readonly integrationsService: IntegrationsService,
-    private readonly ghlService: GhlService,
+    private readonly ghlApiClientService: GhlApiClientService,
   ) {}
 
   @Post()
@@ -97,12 +97,12 @@ export class IntegrationsController {
   // GHL-specific endpoints
   @Post(':id/test-ghl-connection')
   testGhlConnection(@Param('id') id: string) {
-    return this.ghlService.testConnection(+id);
+    return this.ghlApiClientService.testConnection(+id);
   }
 
   @Get(':id/ghl-locations')
   getGhlLocations(@Param('id') id: string) {
-    return this.ghlService.searchSubaccountsByIntegration(+id);
+    return this.ghlApiClientService.searchSubaccountsByIntegration(+id);
   }
 
   @Post(':id/setup-ghl-webhook')
@@ -110,6 +110,6 @@ export class IntegrationsController {
     @Param('id') id: string,
     @Body() webhookConfig: { events: string[] },
   ) {
-    return this.ghlService.setupWebhook(+id, webhookConfig);
+    return this.ghlApiClientService.setupWebhook(+id, webhookConfig);
   }
 }

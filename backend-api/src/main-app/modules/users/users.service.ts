@@ -4,7 +4,7 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { GhlService } from '../../integrations/ghl-integrations/ghl/ghl.service';
+import { GhlApiClientService } from '../../integrations/ghl-integrations/ghl/ghl-api-client.service';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -16,7 +16,7 @@ import { isAdminOrSuperAdmin } from '../../../shared/utils';
 export class UsersService {
   constructor(
     private prisma: PrismaService,
-    private ghlService: GhlService,
+    private ghlApiClientService: GhlApiClientService,
   ) {}
 
   async create(createUserDto: CreateUserDto, subAccountId: number) {
@@ -144,7 +144,7 @@ export class UsersService {
   async importGhlUsers() {
     try {
       // Fetch subaccounts from GoHighLevel API
-      const subaccountsData = await this.ghlService.searchSubaccounts();
+      const subaccountsData = await this.ghlApiClientService.searchSubaccounts();
 
       if (!subaccountsData || !subaccountsData.locations) {
         throw new HttpException(
@@ -172,7 +172,7 @@ export class UsersService {
         // Map subaccount/location fields to User fields
         const userData = {
           name: loc.name || 'Unknown User',
-          company: loc.companyId || null,
+          company: null,
           email: loc.email || `user-${Date.now()}@example.com`,
           password: await bcrypt.hash('defaultPassword123', 12), // Default password
           role: 'user',

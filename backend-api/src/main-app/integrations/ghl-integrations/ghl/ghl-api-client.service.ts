@@ -1,5 +1,6 @@
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { HighLevel } from '@gohighlevel/api-client';
+import axios from 'axios';
 import { PrismaService } from '../../../../shared/prisma/prisma.service';
 import { EncryptionService } from '../../../../shared/encryption/encryption.service';
 import { ConfigService } from '@nestjs/config';
@@ -394,6 +395,87 @@ export class GhlApiClientService {
         integrationTemplate: true,
       },
     });
+  }
+
+  /**
+   * Search for GoHighLevel subaccounts (locations) using specific integration
+   * Alias for searchLocations to match legacy GhlService interface
+   * @param integrationId Integration ID for credentials
+   * @returns List of subaccounts/locations from GoHighLevel API
+   */
+  async searchSubaccountsByIntegration(integrationId: number) {
+    return this.searchLocations(integrationId);
+  }
+
+  /**
+   * Setup GHL webhook for an integration
+   * @param integrationId Integration ID
+   * @param webhookConfig Webhook configuration
+   * @returns Webhook setup result
+   */
+  async setupWebhook(
+    integrationId: number,
+    webhookConfig: { events: string[] },
+  ) {
+    const integration = await this.prisma.integration.findUnique({
+      where: { id: integrationId },
+    });
+
+    if (!integration) {
+      throw new HttpException('Integration not found', HttpStatus.NOT_FOUND);
+    }
+
+    const config = integration.config as unknown as GhlIntegrationConfigDto;
+    const webhookUrl =
+      config.webhookUrl || `${process.env.BACKEND_URL}/webhook`;
+
+    try {
+      // GHL SDK doesn't have webhook methods, so we use direct HTTP call
+      const apiKey = this.encryptionService.safeDecrypt(config.apiKey);
+      const baseUrl = config.baseUrl || 'https://rest.gohighlevel.com';
+      const apiVersion = config.apiVersion || 'v1';
+
+      this.logger.log(
+        `Setting up webhook for integration ${integrationId} at ${webhookUrl}`,
+      );
+
+      // Make direct HTTP call to GHL API for webhook setup
+      const httpResponse = await axios({
+        method: 'POST',
+        url: `${baseUrl}/${apiVersion}/webhooks`,
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        data: {
+          url: webhookUrl,
+          events: webhookConfig.events,
+        },
+      });
+
+      // Update integration with webhook ID - keep existing encryption
+      const updatedConfig = {
+        ...config,
+        webhookId: httpResponse.data?.id,
+      };
+
+      await this.prisma.integration.update({
+        where: { id: integrationId },
+        data: {
+          config: updatedConfig,
+        },
+      });
+
+      return httpResponse.data;
+    } catch (error) {
+      this.logger.error(
+        `Failed to setup webhook for integration ${integrationId}: ${error.message}`,
+      );
+      throw new HttpException(
+        `Failed to setup webhook: ${error.message}`,
+        error.response?.status || HttpStatus.BAD_GATEWAY,
+      );
+    }
   }
 
   /**
