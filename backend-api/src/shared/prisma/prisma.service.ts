@@ -63,7 +63,7 @@ export class PrismaService
       this.logger.log('Running database migrations...');
 
       // Run Prisma migrations
-      execSync('npx prisma migrate deploy', {
+      execSync('bunx prisma migrate deploy', {
         stdio: 'inherit',
         env: process.env,
       });
