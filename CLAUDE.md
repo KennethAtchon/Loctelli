@@ -55,11 +55,17 @@ docker-compose down -v
 **Helper Scripts** (`.helper/scripts/`):
 
 ```bash
-# Quick setup
+# Quick Docker setup
 ./.helper/scripts/setup_docker.sh
 
-# Full cleanup and rebuild
+# Full cleanup and rebuild (removes containers, volumes, images)
 ./.helper/scripts/nuke_setup_docker.sh
+
+# Build both backend and frontend
+./.helper/scripts/build-all.sh
+
+# Standard build (instead of build:all)
+./.helper/scripts/build-all.sh --build
 ```
 
 **URLs:**
@@ -101,5 +107,39 @@ docker-compose down -v
   * **`storage/`** - File storage (R2/S3)
 * **`prisma/`** - Database schema and migrations
 
-### Helper Scripts (`.helper/`)
-* **`scripts/`** - Docker setup and utility scripts
+### Helper Directory (`.helper/`)
+The `.helper/` directory contains development utilities, architecture documentation, and planning documents.
+
+* **`scripts/`** - Development and deployment utility scripts
+  * **`setup_docker.sh`** - Quick Docker setup for development
+  * **`nuke_setup_docker.sh`** - Full cleanup and rebuild of Docker containers/volumes
+  * **`build-all.sh`** - Build both backend and frontend projects (supports `--build` flag for standard build)
+* **`architecture/`** - Comprehensive architecture documentation
+  * **`README.md`** - Architecture documentation index and quick start guide
+  * **`00-overview.md`** - Complete platform architecture overview
+  * **`01-authentication.md`** - Authentication & authorization architecture
+  * **`02-ai-chatbot.md`** - AI chatbot architecture and prompt engineering
+  * **`03-multi-tenant.md`** - Multi-tenant architecture and data isolation
+  * **`04-sms-campaigns.md`** - SMS campaigns architecture
+  * **`05-lead-management.md`** - Lead management architecture
+  * **`06-booking-system.md`** - Booking system architecture
+  * **`07-integrations.md`** - External integrations architecture
+  * **`GHL_INTEGRATION_GUIDE.md`** - GoHighLevel integration guide
+  * **`GHL_INTEGRATION_DEEP_DIVE.md`** - Deep dive into GHL integration details
+* **`plan/`** - Planning documents and migration plans
+  * **`TODO.md`** - Current TODO items and feature requests
+  * **`auth-refactor-plan.md`** - Authentication refactoring plans
+  * **`booking_system_improvement_plan.md`** - Booking system improvements
+  * **`prisma-to-convex-migration-analysis.md`** - Database migration analysis
+  * **`PROMPT_SYSTEM_ARCHITECTURE.md`** - Prompt system architecture documentation
+* **`output/`** - Generated files and outputs from scripts/tools
+
+## Additional Documentation
+
+For detailed architecture documentation, see:
+* **`.helper/architecture/README.md`** - Start here for architecture overview and navigation
+* **`.helper/architecture/00-overview.md`** - Complete system architecture overview
+* **`AI_CONTEXT.md`** - Comprehensive AI context for the system (includes integration status, security architecture, and data flow)
+
+For planning and migration documents, see:
+* **`.helper/plan/`** - Planning documents, TODO items, and migration analyses
