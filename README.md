@@ -74,7 +74,7 @@ Loctelli/
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ and npm/pnpm
+- Bun 1.0+ (or Node.js 18+ and npm as fallback)
 - Docker and Docker Compose
 - Git
 
@@ -86,16 +86,16 @@ cd Loctelli
 # Backend setup
 cd backend-api
 cp .env.example .env
-npm install
+bun install
 docker-compose up -d db redis
-npm run db:generate
-npm run db:migrate
+bun run db:generate
+bun run db:migrate
 
 # Frontend setup
 cd ../frontend
 cp .env.example .env.local
-npm install
-npm run dev
+bun install
+bun run dev
 ```
 
 ### 2. Environment Configuration
@@ -120,14 +120,14 @@ npm run dev
 ```bash
 # Backend tests
 cd backend-api
-npm run test              # Unit tests
-npm run test:cov          # Coverage report
-npm run test:e2e          # E2E tests
+bun test                  # Unit tests
+bun test --coverage        # Coverage report
+bun test --test-path-pattern=.e2e-spec.ts$  # E2E tests
 
 # Frontend tests
 cd frontend
-npm test                  # Unit tests
-npm run test:coverage     # Coverage report
+bun test                  # Unit tests
+bun test --coverage       # Coverage report
 ```
 
 **Coverage Goals**: 80%+ unit tests, 70%+ integration tests, 75%+ overall coverage
@@ -137,17 +137,17 @@ npm run test:coverage     # Coverage report
 ### Backend Development
 ```bash
 cd backend-api
-npm run start:dev        # Development server with hot reload
-npm run db:migrate:dev   # Create new migration
-npm run db:studio        # Open Prisma Studio
+bun run start:dev        # Development server with hot reload
+bun run db:migrate:dev   # Create new migration
+bun run db:studio        # Open Prisma Studio
 ```
 
 ### Frontend Development
 ```bash
 cd frontend
-npm run dev              # Development server
-npm run build            # Production build
-npm run lint             # Code linting
+bun run dev              # Development server
+bun run build            # Production build
+bun run lint             # Code linting
 ```
 
 ### Database Management
@@ -156,16 +156,16 @@ npm run lint             # Code linting
 cd backend-api
 
 # Create a new migration
-npm run db:migrate:dev
+bun run db:migrate:dev
 
 # Deploy migrations to production
-npm run db:migrate
+bun run db:migrate
 
 # Reset database (development only)
-npm run db:reset
+bun run db:reset
 
-# Generate Prisma lead
-npm run db:generate
+# Generate Prisma client
+bun run db:generate
 ```
 
 ### 🔄 **Database Reset & Fresh Prisma Setup**
@@ -194,10 +194,10 @@ npx prisma migrate dev --name init
 npx prisma generate
 
 # 7. Seed the database (if you have seed data)
-npm run db:seed
+bun run db:seed
 
 # 8. Start the application
-npm run start:dev
+bun run start:dev
 ```
 
 **⚠️ Warning**: This will completely remove all migration history and data. Only use in development!
@@ -207,9 +207,9 @@ If you want to keep your data but reset migration history:
 
 ```bash
 cd backend-api
-npm run db:migrate:dev   # Create new migration
-npm run db:migrate       # Deploy migrations
-npm run db:reset         # Reset database (development only)
+bun run db:migrate:dev   # Create new migration
+bun run db:migrate       # Deploy migrations
+bun run db:reset         # Reset database (development only)
 ```
 
 ## 🐳 Docker Development

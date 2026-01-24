@@ -28,7 +28,7 @@
 ## Project setup
 
 ```bash
-$ pnpm install
+$ bun install
 ```
 
 ## Database
@@ -44,7 +44,7 @@ Default data for development and testing is stored in `prisma/seed-data/defaults
 - Default integration templates (GoHighLevel, Facebook Ads, Google Analytics)
 - Default strategy and lead
 
-Run `pnpm run db:seed` to populate the database with default data.
+Run `bun run db:seed` to populate the database with default data.
 
 ## Database Setup
 
@@ -54,19 +54,19 @@ This project uses Prisma for database management with automatic migrations. The 
 
 ```bash
 # Run migrations (production)
-$ pnpm run db:migrate
+$ bun run db:migrate
 
 # Create and apply new migration (development)
-$ pnpm run db:migrate:dev
+$ bun run db:migrate:dev
 
 # Reset database (development only)
-$ pnpm run db:migrate:reset
+$ bun run db:migrate:reset
 
-# Generate Prisma lead
-$ pnpm run db:generate
+# Generate Prisma client
+$ bun run db:generate
 
 # Open Prisma Studio
-$ pnpm run db:studio
+$ bun run db:studio
 ```
 
 ### Automatic Migrations
@@ -121,26 +121,26 @@ src/
 
 ```bash
 # development
-$ pnpm run start
+$ bun run start
 
 # watch mode
-$ pnpm run start:dev
+$ bun run start:dev
 
 # production mode
-$ pnpm run start:prod
+$ bun run start:prod
 ```
 
 ## Run tests
 
 ```bash
 # unit tests
-$ pnpm run test
+$ bun test
 
 # e2e tests
-$ pnpm run test:e2e
+$ bun test --test-path-pattern=.e2e-spec.ts$
 
 # test coverage
-$ pnpm run test:cov
+$ bun test --coverage
 ```
 
 ## Deployment

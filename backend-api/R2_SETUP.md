@@ -32,7 +32,7 @@ R2_ENABLED="true"
 If you need to reset the database:
 
 ```bash
-pnpm run db:reset
+bun run db:reset
 ```
 
 This will clear all existing data and prepare the database for R2 storage.
@@ -66,8 +66,8 @@ loctelli-storage/
 To test the R2 integration:
 
 1. Set up your R2 credentials in `.env`
-2. Reset the database: `pnpm run db:reset`
-3. Start the application: `pnpm run start:dev`
+2. Reset the database: `bun run db:reset`
+3. Start the application: `bun run start:dev`
 4. Test file uploads through the API
 
 The files should now be stored in R2 instead of the database. 

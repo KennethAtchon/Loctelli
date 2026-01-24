@@ -21,13 +21,12 @@ PROJECT_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 
 echo "📦 Building backend..."
 cd "$PROJECT_ROOT/backend-api"
-pnpm run "$BUILD_CMD"
+bun run "$BUILD_CMD"
 
 echo ""
 echo "📦 Building frontend..."
 cd "$PROJECT_ROOT/frontend"
-pnpm run "$BUILD_CMD"
+bun run "$BUILD_CMD"
 
 echo ""
 echo "✅ All builds completed successfully!"
-

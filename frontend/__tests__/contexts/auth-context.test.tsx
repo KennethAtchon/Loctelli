@@ -1,27 +1,28 @@
 import React from "react";
 import { render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { test, expect, describe, beforeEach, afterEach, beforeAll, mock, spyOn } from "bun:test";
 import { UnifiedAuthProvider, useAuth } from "@/contexts/unified-auth-context";
 import { api } from "@/lib/api";
 import { AuthCookies } from "@/lib/cookies";
 import { ApiClient } from "@/lib/api/client";
 
 // Mock the logger
-jest.mock("@/lib/logger", () => ({
+mock.module("@/lib/logger", () => ({
   __esModule: true,
   default: {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
+    debug: mock(() => {}),
+    info: mock(() => {}),
+    warn: mock(() => {}),
+    error: mock(() => {}),
   },
 }));
 
-const mockGet = jest.fn();
-const mockPost = jest.fn();
-const mockPut = jest.fn();
-const mockPatch = jest.fn();
-const mockDelete = jest.fn();
+const mockGet = mock(() => {});
+const mockPost = mock(() => {});
+const mockPut = mock(() => {});
+const mockPatch = mock(() => {});
+const mockDelete = mock(() => {});
 
 beforeAll(() => {
   (ApiClient.prototype as any).get = mockGet;
@@ -32,29 +33,44 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  mockGet.mockClear();
+  mockPost.mockClear();
+  mockPut.mockClear();
+  mockPatch.mockClear();
+  mockDelete.mockClear();
 });
 
 // Mock the API
-jest.mock("@/lib/api", () => ({
+const mockLogin = mock(() => {});
+const mockRegister = mock(() => {});
+const mockLogout = mock(() => {});
+const mockGetProfile = mock(() => {});
+
+mock.module("@/lib/api", () => ({
   api: {
     auth: {
-      login: jest.fn(),
-      register: jest.fn(),
-      logout: jest.fn(),
-      getProfile: jest.fn(),
+      login: mockLogin,
+      register: mockRegister,
+      logout: mockLogout,
+      getProfile: mockGetProfile,
     },
   },
 }));
 
 // Mock the cookies
-jest.mock("@/lib/cookies", () => ({
+const mockHasUserTokens = mock(() => {});
+const mockSetAccessToken = mock(() => {});
+const mockSetRefreshToken = mock(() => {});
+const mockClearUserTokens = mock(() => {});
+const mockClearAll = mock(() => {});
+
+mock.module("@/lib/cookies", () => ({
   AuthCookies: {
-    hasUserTokens: jest.fn(),
-    setAccessToken: jest.fn(),
-    setRefreshToken: jest.fn(),
-    clearUserTokens: jest.fn(),
-    clearAll: jest.fn(),
+    hasUserTokens: mockHasUserTokens,
+    setAccessToken: mockSetAccessToken,
+    setRefreshToken: mockSetRefreshToken,
+    clearUserTokens: mockClearUserTokens,
+    clearAll: mockClearAll,
   },
 }));
 
@@ -92,22 +108,21 @@ const TestComponent = () => {
 };
 
 describe("AuthContext", () => {
-  const mockApi = api as jest.Mocked<typeof api>;
-  const mockAuthCookies = AuthCookies as jest.Mocked<typeof AuthCookies>;
-
   beforeEach(() => {
-    jest.clearAllMocks();
-    // Reset timers
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
+    mockLogin.mockClear();
+    mockRegister.mockClear();
+    mockLogout.mockClear();
+    mockGetProfile.mockClear();
+    mockHasUserTokens.mockClear();
+    mockSetAccessToken.mockClear();
+    mockSetRefreshToken.mockClear();
+    mockClearUserTokens.mockClear();
+    mockClearAll.mockClear();
   });
 
   describe("Initial State", () => {
-    it("should start with loading state", async () => {
-      mockAuthCookies.hasUserTokens.mockReturnValue(false);
+    test("should start with loading state", async () => {
+      mockHasUserTokens.mockReturnValue(false);
 
       render(
         <UnifiedAuthProvider>
@@ -122,8 +137,8 @@ describe("AuthContext", () => {
       expect(screen.getByTestId("authenticated")).toHaveTextContent("false");
     });
 
-    it("should check for existing tokens on mount", async () => {
-      mockAuthCookies.hasUserTokens.mockReturnValue(false);
+    test("should check for existing tokens on mount", async () => {
+      mockHasUserTokens.mockReturnValue(false);
 
       render(
         <UnifiedAuthProvider>
@@ -132,11 +147,11 @@ describe("AuthContext", () => {
       );
 
       await waitFor(() => {
-        expect(mockAuthCookies.hasUserTokens).toHaveBeenCalled();
+        expect(mockHasUserTokens).toHaveBeenCalled();
       });
     });
 
-    it("should auto-login if tokens exist", async () => {
+    test("should auto-login if tokens exist", async () => {
       const mockUser = {
         id: "1",
         email: "test@example.com",
@@ -147,8 +162,8 @@ describe("AuthContext", () => {
         updatedAt: new Date().toISOString(),
       };
 
-      mockAuthCookies.hasUserTokens.mockReturnValue(true);
-      mockApi.auth.getProfile.mockResolvedValue(mockUser);
+      mockHasUserTokens.mockReturnValue(true);
+      mockGetProfile.mockResolvedValue(mockUser);
 
       render(
         <UnifiedAuthProvider>
@@ -165,9 +180,9 @@ describe("AuthContext", () => {
       });
     });
 
-    it("should handle auth check timeout", async () => {
-      mockAuthCookies.hasUserTokens.mockReturnValue(true);
-      mockApi.auth.getProfile.mockImplementation(
+    test("should handle auth check timeout", async () => {
+      mockHasUserTokens.mockReturnValue(true);
+      mockGetProfile.mockImplementation(
         () => new Promise(() => {}) // Never resolves
       );
 
@@ -177,10 +192,8 @@ describe("AuthContext", () => {
         </UnifiedAuthProvider>
       );
 
-      // Fast-forward time to trigger timeout
-      act(() => {
-        jest.advanceTimersByTime(11000); // 11 seconds
-      });
+      // Wait for timeout (11 seconds)
+      await new Promise((resolve) => setTimeout(resolve, 11000));
 
       await waitFor(() => {
         expect(screen.getByTestId("loading")).toHaveTextContent("false");
@@ -190,7 +203,7 @@ describe("AuthContext", () => {
   });
 
   describe("Login", () => {
-    it("should login successfully", async () => {
+    test("should login successfully", async () => {
       const mockUser = {
         id: "1",
         email: "test@example.com",
@@ -205,8 +218,8 @@ describe("AuthContext", () => {
         refresh_token: "refresh-token",
         user: mockUser,
       };
-      mockAuthCookies.hasUserTokens.mockReturnValue(false);
-      mockApi.auth.login.mockResolvedValue(mockAuthResponse);
+      mockHasUserTokens.mockReturnValue(false);
+      mockLogin.mockResolvedValue(mockAuthResponse);
       let authContext: any = null;
       const TestComponentWithRef = () => {
         const auth = useAuth();
@@ -232,14 +245,14 @@ describe("AuthContext", () => {
           password: "password",
         });
       });
-      expect(mockApi.auth.login).toHaveBeenCalledWith({
+      expect(mockLogin).toHaveBeenCalledWith({
         email: "test@example.com",
         password: "password",
       });
-      expect(mockAuthCookies.setAccessToken).toHaveBeenCalledWith(
+      expect(mockSetAccessToken).toHaveBeenCalledWith(
         "access-token"
       );
-      expect(mockAuthCookies.setRefreshToken).toHaveBeenCalledWith(
+      expect(mockSetRefreshToken).toHaveBeenCalledWith(
         "refresh-token"
       );
       expect(screen.getByTestId("authenticated")).toHaveTextContent("true");
@@ -248,10 +261,10 @@ describe("AuthContext", () => {
       );
     });
 
-    it("should handle login failure", async () => {
+    test("should handle login failure", async () => {
       const loginError = new Error("Invalid credentials");
-      mockAuthCookies.hasUserTokens.mockReturnValue(false);
-      mockApi.auth.login.mockRejectedValue(loginError);
+      mockHasUserTokens.mockReturnValue(false);
+      mockLogin.mockRejectedValue(loginError);
       let authContext: any = null;
       const TestComponentWithRef = () => {
         const auth = useAuth();
@@ -271,7 +284,7 @@ describe("AuthContext", () => {
           });
         })
       ).rejects.toThrow("Invalid credentials");
-      expect(mockApi.auth.login).toHaveBeenCalledWith({
+      expect(mockLogin).toHaveBeenCalledWith({
         email: "fail@example.com",
         password: "bad",
       });
@@ -279,7 +292,7 @@ describe("AuthContext", () => {
   });
 
   describe("Register", () => {
-    it("should register and auto-login successfully", async () => {
+    test("should register and auto-login successfully", async () => {
       const mockUser = {
         id: "1",
         email: "test@example.com",
@@ -294,9 +307,9 @@ describe("AuthContext", () => {
         refresh_token: "refresh-token",
         user: mockUser,
       };
-      mockAuthCookies.hasUserTokens.mockReturnValue(false);
-      mockApi.auth.register.mockResolvedValue(undefined);
-      mockApi.auth.login.mockResolvedValue(mockAuthResponse);
+      mockHasUserTokens.mockReturnValue(false);
+      mockRegister.mockResolvedValue(undefined);
+      mockLogin.mockResolvedValue(mockAuthResponse);
       let authContext: any = null;
       const TestComponentWithRef = () => {
         const auth = useAuth();
@@ -323,19 +336,19 @@ describe("AuthContext", () => {
           name: "Test User",
         });
       });
-      expect(mockApi.auth.register).toHaveBeenCalledWith({
+      expect(mockRegister).toHaveBeenCalledWith({
         email: "test@example.com",
         password: "password",
         name: "Test User",
       });
-      expect(mockApi.auth.login).toHaveBeenCalledWith({
+      expect(mockLogin).toHaveBeenCalledWith({
         email: "test@example.com",
         password: "password",
       });
-      expect(mockAuthCookies.setAccessToken).toHaveBeenCalledWith(
+      expect(mockSetAccessToken).toHaveBeenCalledWith(
         "access-token"
       );
-      expect(mockAuthCookies.setRefreshToken).toHaveBeenCalledWith(
+      expect(mockSetRefreshToken).toHaveBeenCalledWith(
         "refresh-token"
       );
       expect(screen.getByTestId("authenticated")).toHaveTextContent("true");
@@ -344,10 +357,10 @@ describe("AuthContext", () => {
       );
     });
 
-    it("should handle registration failure", async () => {
+    test("should handle registration failure", async () => {
       const registerError = new Error("Email already exists");
-      mockAuthCookies.hasUserTokens.mockReturnValue(false);
-      mockApi.auth.register.mockRejectedValue(registerError);
+      mockHasUserTokens.mockReturnValue(false);
+      mockRegister.mockRejectedValue(registerError);
       let authContext: any = null;
       const TestComponentWithRef = () => {
         const auth = useAuth();
@@ -368,7 +381,7 @@ describe("AuthContext", () => {
           });
         })
       ).rejects.toThrow("Email already exists");
-      expect(mockApi.auth.register).toHaveBeenCalledWith({
+      expect(mockRegister).toHaveBeenCalledWith({
         email: "fail@example.com",
         password: "bad",
         name: "Fail",
@@ -377,9 +390,9 @@ describe("AuthContext", () => {
   });
 
   describe("Logout", () => {
-    it("should logout successfully", async () => {
-      mockAuthCookies.hasUserTokens.mockReturnValue(false);
-      mockApi.auth.logout.mockResolvedValue(undefined);
+    test("should logout successfully", async () => {
+      mockHasUserTokens.mockReturnValue(false);
+      mockLogout.mockResolvedValue(undefined);
       let authContext: any = null;
       const TestComponentWithRef = () => {
         const auth = useAuth();
@@ -402,15 +415,15 @@ describe("AuthContext", () => {
       await act(async () => {
         await authContext.logout();
       });
-      expect(mockApi.auth.logout).toHaveBeenCalled();
-      expect(mockAuthCookies.clearAll).toHaveBeenCalled();
+      expect(mockLogout).toHaveBeenCalled();
+      expect(mockClearAll).toHaveBeenCalled();
       expect(screen.getByTestId("authenticated")).toHaveTextContent("false");
       expect(screen.getByTestId("user-email")).toHaveTextContent("no-user");
     });
 
-    it("should logout even if API call fails", async () => {
-      mockAuthCookies.hasUserTokens.mockReturnValue(false);
-      mockApi.auth.logout.mockRejectedValue(new Error("Logout failed"));
+    test("should logout even if API call fails", async () => {
+      mockHasUserTokens.mockReturnValue(false);
+      mockLogout.mockRejectedValue(new Error("Logout failed"));
       let authContext: any = null;
       const TestComponentWithRef = () => {
         const auth = useAuth();
@@ -425,16 +438,16 @@ describe("AuthContext", () => {
       await act(async () => {
         await authContext.logout();
       });
-      expect(mockApi.auth.logout).toHaveBeenCalled();
-      expect(mockAuthCookies.clearAll).toHaveBeenCalled();
+      expect(mockLogout).toHaveBeenCalled();
+      expect(mockClearAll).toHaveBeenCalled();
     });
   });
 
   describe("Error Handling", () => {
-    it("should clear tokens on auth errors", async () => {
+    test("should clear tokens on auth errors", async () => {
       const authError = new Error("401 Unauthorized");
-      mockAuthCookies.hasUserTokens.mockReturnValue(true);
-      mockApi.auth.getProfile.mockRejectedValue(authError);
+      mockHasUserTokens.mockReturnValue(true);
+      mockGetProfile.mockRejectedValue(authError);
 
       render(
         <UnifiedAuthProvider>
@@ -443,15 +456,15 @@ describe("AuthContext", () => {
       );
 
       await waitFor(() => {
-        expect(mockAuthCookies.clearUserTokens).toHaveBeenCalled();
+        expect(mockClearUserTokens).toHaveBeenCalled();
         expect(screen.getByTestId("authenticated")).toHaveTextContent("false");
       });
     });
 
-    it("should keep tokens on network errors", async () => {
+    test("should keep tokens on network errors", async () => {
       const networkError = new Error("Failed to fetch");
-      mockAuthCookies.hasUserTokens.mockReturnValue(true);
-      mockApi.auth.getProfile.mockRejectedValue(networkError);
+      mockHasUserTokens.mockReturnValue(true);
+      mockGetProfile.mockRejectedValue(networkError);
 
       render(
         <UnifiedAuthProvider>
@@ -460,18 +473,16 @@ describe("AuthContext", () => {
       );
 
       await waitFor(() => {
-        expect(mockAuthCookies.clearUserTokens).not.toHaveBeenCalled();
+        expect(mockClearUserTokens).not.toHaveBeenCalled();
         expect(screen.getByTestId("authenticated")).toHaveTextContent("false");
       });
     });
   });
 
   describe("useAuth Hook", () => {
-    it("should throw error when used outside provider", () => {
+    test("should throw error when used outside provider", () => {
       // Suppress console.error for this test
-      const consoleSpy = jest
-        .spyOn(console, "error")
-        .mockImplementation(() => {});
+      const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
 
       expect(() => {
         render(<TestComponent />);

@@ -10,6 +10,28 @@ Full-stack CRM platform with:
 * **Frontend**: Next.js 15.2.4 + React 19 + TailwindCSS + shadcn/ui
 * **Features**: Multi-tenant architecture, AI-powered chat, SMS campaigns, lead management, booking system
 
+## Development Tools
+
+* **Package Manager**: Bun (replaces npm)
+* **Runtime**: Bun (replaces Node.js)
+* **Test Runner**: Bun test (replaces Jest)
+* **TypeScript**: Native Bun support (replaces ts-node/tsx)
+
+**Commands:**
+```bash
+# Install dependencies
+bun install
+
+# Run scripts
+bun run <script>
+
+# Run tests
+bun test
+
+# Run TypeScript directly
+bun script.ts
+```
+
 ## Architecture
 
 * **Database**: PostgreSQL (multi-tenant model with `subAccountId` isolation)

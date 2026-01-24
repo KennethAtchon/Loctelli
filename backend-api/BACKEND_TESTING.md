@@ -32,9 +32,9 @@ Ensure the backend is running from the `/backend-api` directory:
 ```bash
 # MUST be run from /backend-api directory
 cd backend-api
-pnpm run start:dev
+bun run start:dev
 # OR
-pnpm run start
+bun run start
 
 # Backend should be accessible at http://localhost:8000
 ```

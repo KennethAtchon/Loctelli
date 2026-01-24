@@ -1,15 +1,14 @@
 # Stage 1: Build
-FROM node:20-alpine AS builder
+FROM oven/bun:1-alpine AS builder
 
 WORKDIR /app
 
-# Install pnpm and dependencies for native modules
-RUN apk add --no-cache python3 build-base g++ make \
-    && npm install -g pnpm
+# Install dependencies for native modules
+RUN apk add --no-cache python3 build-base g++ make
 
 # Copy package files and install dependencies
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install
+COPY package.json bun.lockb* ./
+RUN bun install --frozen-lockfile
 
 # Copy source code
 COPY . .
@@ -21,23 +20,22 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_DEBUG=$NEXT_PUBLIC_DEBUG
 
 # Build the Next.js app
-RUN pnpm run build
+RUN bun run build
 
 # Stage 2: Production
-FROM node:20-alpine
+FROM oven/bun:1-alpine
 
 WORKDIR /app
 
-# Install pnpm and runtime dependencies
-RUN apk add --no-cache libc6-compat \
-    && npm install -g pnpm
+# Install runtime dependencies
+RUN apk add --no-cache libc6-compat
 
 # Copy package files
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder /app/bun.lockb* ./bun.lockb*
 
 # Install production dependencies
-RUN pnpm install --prod
+RUN bun install --frozen-lockfile --production
 
 # Copy built application
 COPY --from=builder /app/.next ./.next
@@ -53,4 +51,4 @@ ENV NEXT_PUBLIC_DEBUG=$NEXT_PUBLIC_DEBUG
 EXPOSE 3000
 
 # Start the app
-CMD ["pnpm", "start"]
+CMD ["bun", "run", "start"]

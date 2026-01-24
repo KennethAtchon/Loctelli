@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { isAdminAccount } from 'src/shared/utils/user-helpers';
+import { isAdminAccount } from '../../utils/user-helpers';
 
 @Injectable()
 export class SystemUserService {

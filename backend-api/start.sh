@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Exit on any error (but allow migration failures to be handled)
 set -e
 
 echo "Starting application with automatic migrations..."
@@ -11,7 +10,7 @@ MAX_MIGRATION_RETRIES=10
 MIGRATION_RETRY_DELAY=1
 
 for attempt in $(seq 1 $MAX_MIGRATION_RETRIES); do
-  if npx prisma migrate deploy; then
+  if bunx prisma migrate deploy; then
     echo "Database migrations completed successfully"
     break
   else
@@ -25,15 +24,15 @@ for attempt in $(seq 1 $MAX_MIGRATION_RETRIES); do
   fi
 done
 
-# Generate Prisma client (in case it's not already generated)
+# Generate Prisma client
 echo "Generating Prisma client..."
-npx prisma generate || echo "WARNING: Prisma generate failed, but continuing..."
+bunx prisma generate || echo "WARNING: Prisma generate failed, but continuing..."
 
 # Run database seeding (non-blocking)
 echo "Running database seeding..."
-node prisma/seed.js || echo "WARNING: Database seeding failed, but continuing..."
+bun prisma/seed.ts || echo "WARNING: Database seeding failed, but continuing..."
 
 # Start the application
 echo "Starting NestJS application..."
 echo "The application will automatically wait for database and Redis connections..."
-exec node dist/src/core/main
+exec bun dist/src/core/main
