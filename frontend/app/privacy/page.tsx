@@ -31,7 +31,7 @@ export default function PrivacyPolicyPage() {
                 1. Introduction
               </h2>
               <p>
-                {BRANDING.company.name} (“we,” “us,” or “our”) operates the
+                {BRANDING.company.name}, {BRANDING.company.legalStructure}, (“we,” “us,” or “our”) operates the
                 Loctelli platform, a multi-tenant customer relationship
                 management (CRM) system that provides AI-powered lead
                 generation, sales strategies, booking and scheduling (including

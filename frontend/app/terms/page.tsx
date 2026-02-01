@@ -36,7 +36,7 @@ export default function TermsOfServicePage() {
                 AI-powered chat, lead management, sales strategies, booking and
                 scheduling (including integration with Calendly), SMS campaigns,
                 and related services (collectively, the “Services”) operated by{" "}
-                {BRANDING.company.name} (“we,” “us,” or “our”). By registering,
+                {BRANDING.company.name}, {BRANDING.company.legalStructure}, (“we,” “us,” or “our”). By registering,
                 logging in, or otherwise using the Services, you agree to be
                 bound by these Terms. If you are using the Services on behalf of
                 an organization, you represent that you have authority to bind

@@ -31,8 +31,7 @@ export default function CookiePolicyPage() {
                 1. Introduction
               </h2>
               <p>
-                This Cookie Policy explains how {BRANDING.company.name}
-                (“we,” “us,” or “our”) uses cookies and similar technologies
+                This Cookie Policy explains how {BRANDING.company.name}, {BRANDING.company.legalStructure}, (“we,” “us,” or “our”) uses cookies and similar technologies
                 when you use the Loctelli platform, including our website,
                 applications, CRM, AI chat, lead management, booking, and SMS
                 campaign services (the “Services”). It should be read together

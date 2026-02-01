@@ -6,6 +6,7 @@
 export const BRANDING = {
   company: {
     name: "Loctelli",
+    legalStructure: "a sole proprietorship",
     tagline: "AI Marketing Solutions",
     description:
       "We help businesses grow with AI-powered marketing solutions including free websites, automated Google reviews, customer reactivation, and lead generation.",
@@ -41,39 +42,23 @@ export const BRANDING = {
     terms: "/terms",
     cookies: "/cookies",
     calendly: {
-      privacy: "https://calendly.com/privacy",
-      terms: "https://calendly.com/terms",
+      privacy: "https://calendly.com/legal/privacy-notice",
+      terms: "https://calendly.com/legal/terms",
       note: "Bookings handled via Calendly. See Calendly's Privacy Policy and Terms of Use for more info.",
     },
   },
   services: [
-    {
-      name: "Free Websites",
-      icon: "Globe",
-      href: "#services",
-    },
-    {
-      name: "Google Reviews",
-      icon: "Star",
-      href: "#services",
-    },
-    {
-      name: "Customer Reactivation",
-      icon: "Users",
-      href: "#services",
-    },
-    {
-      name: "Lead Generation",
-      icon: "TrendingUp",
-      href: "#services",
-    },
+    { name: "Free Websites", icon: "Globe", href: "/#services" },
+    { name: "Google Reviews", icon: "Star", href: "/#services" },
+    { name: "Customer Reactivation", icon: "Users", href: "/#services" },
+    { name: "Lead Generation", icon: "TrendingUp", href: "/#services" },
   ],
   companyLinks: [
-    { name: "About Us", href: "#" },
-    { name: "Success Stories", href: "#" },
-    { name: "Case Studies", href: "#" },
-    { name: "Resources", href: "#" },
-    { name: "Contact", href: "#" },
+    { name: "About Us", href: "/about" },
+    { name: "Success Stories", href: "/success-stories" },
+    { name: "Case Studies", href: "/case-studies" },
+    { name: "Resources", href: "/resources" },
+    { name: "Contact", href: "/#contact" },
   ],
 } as const;
 

@@ -99,15 +99,26 @@ export function Footer() {
                       : service.icon === "Users"
                         ? Users
                         : TrendingUp;
+                const isInternal = service.href.startsWith("/");
                 return (
                   <li key={service.name}>
-                    <a
-                      href={service.href}
-                      className="text-gray-600 hover:text-gray-900 transition-colors text-sm flex items-center"
-                    >
-                      <IconComponent className="w-3 h-3 mr-2" />
-                      {service.name}
-                    </a>
+                    {isInternal ? (
+                      <Link
+                        href={service.href}
+                        className="text-gray-600 hover:text-gray-900 transition-colors text-sm flex items-center"
+                      >
+                        <IconComponent className="w-3 h-3 mr-2" />
+                        {service.name}
+                      </Link>
+                    ) : (
+                      <a
+                        href={service.href}
+                        className="text-gray-600 hover:text-gray-900 transition-colors text-sm flex items-center"
+                      >
+                        <IconComponent className="w-3 h-3 mr-2" />
+                        {service.name}
+                      </a>
+                    )}
                   </li>
                 );
               })}
@@ -120,16 +131,28 @@ export function Footer() {
               Company
             </h3>
             <ul className="space-y-2">
-              {BRANDING.companyLinks.map((link) => (
-                <li key={link.name}>
-                  <a
-                    href={link.href}
-                    className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
+              {BRANDING.companyLinks.map((link) => {
+                const isInternal = link.href.startsWith("/");
+                return (
+                  <li key={link.name}>
+                    {isInternal ? (
+                      <Link
+                        href={link.href}
+                        className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
+                      >
+                        {link.name}
+                      </Link>
+                    ) : (
+                      <a
+                        href={link.href}
+                        className="text-gray-600 hover:text-gray-900 transition-colors text-sm"
+                      >
+                        {link.name}
+                      </a>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </div>
