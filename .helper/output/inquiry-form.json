@@ -1,0 +1,226 @@
+[
+  {
+    "id": "business_name",
+    "type": "text",
+    "label": "Business Name",
+    "required": true,
+    "placeholder": "Enter your company name"
+  },
+  {
+    "id": "owner_name",
+    "type": "text",
+    "label": "Owner Name",
+    "required": true,
+    "placeholder": "Enter owner's full name"
+  },
+  {
+    "id": "business_email",
+    "type": "email",
+    "label": "Business Email",
+    "required": true,
+    "placeholder": "example@yourbusiness.com"
+  },
+  {
+    "id": "business_phone",
+    "type": "phone",
+    "label": "Business Phone Number",
+    "required": true,
+    "placeholder": "+1 (555) 555-5555"
+  },
+  {
+    "id": "business_address",
+    "type": "textarea",
+    "label": "Business Address",
+    "required": true,
+    "placeholder": "Street, City, State, Zip"
+  },
+  {
+    "id": "website_url",
+    "type": "text",
+    "label": "Website URL",
+    "required": false,
+    "placeholder": "https://www.yourbusiness.com"
+  },
+  {
+    "id": "services_offered",
+    "type": "textarea",
+    "label": "Services Offered",
+    "required": true,
+    "placeholder": "List all services your business provides (e.g., Roofing, Siding, Windows, etc.)"
+  },
+  {
+    "id": "coverage_area_type",
+    "type": "radio",
+    "label": "How do you define your service area?",
+    "options": [
+      "Zip Codes",
+      "Cities",
+      "Mile Radius from Location"
+    ],
+    "required": true
+  },
+  {
+    "id": "coverage_area_details",
+    "type": "textarea",
+    "label": "List service areas (zip codes, cities, or radius details)",
+    "required": true,
+    "placeholder": "e.g., 90210, 90211, within 25 miles of Houston"
+  },
+  {
+    "id": "excluded_areas",
+    "type": "textarea",
+    "label": "Are there any areas you do NOT want leads from?",
+    "required": false,
+    "placeholder": "List cities/zip codes to exclude"
+  },
+  {
+    "id": "job_price_range",
+    "type": "textarea",
+    "label": "How much do you charge for jobs? (Price Range)",
+    "required": false,
+    "placeholder": "e.g., $500 - $5,000 for small projects, $5,000 - $50,000 for large projects"
+  },
+  {
+    "id": "target_audience",
+    "type": "textarea",
+    "label": "Target Audience & Locations Served",
+    "required": false,
+    "placeholder": "Describe your target audience demographics and specific locations you serve"
+  },
+  {
+    "id": "booking_software",
+    "type": "select",
+    "label": "Booking Software",
+    "options": [
+      "Google Calendar",
+      "Calendly",
+      "Acuity Scheduling",
+      "Square Appointments",
+      "Other",
+      "None"
+    ],
+    "required": false,
+    "placeholder": "Select your booking software"
+  },
+  {
+    "id": "booking_software_other",
+    "type": "text",
+    "label": "Booking Software (Other)",
+    "required": false,
+    "placeholder": "Specify if you selected 'Other'"
+  },
+  {
+    "id": "lead_qualification_questions",
+    "type": "textarea",
+    "label": "What questions do you normally ask a lead to qualify them?",
+    "required": true,
+    "placeholder": "List the questions you ask before booking an estimate"
+  },
+  {
+    "id": "dealbreakers",
+    "type": "textarea",
+    "label": "Deal-breakers (jobs or clients you do not accept)",
+    "required": false,
+    "placeholder": "e.g., jobs under $500, renters, outside service area"
+  },
+  {
+    "id": "ghl_contact_email",
+    "type": "email",
+    "label": "Preferred Email for GHL Login",
+    "required": true,
+    "placeholder": "Enter email for CRM access"
+  },
+  {
+    "id": "ghl_contact_phone",
+    "type": "phone",
+    "label": "Preferred Phone for App Notifications",
+    "required": true,
+    "placeholder": "+1 (555) 555-5555"
+  },
+  {
+    "id": "facebook_page_url",
+    "type": "text",
+    "label": "Facebook Page URL",
+    "required": false,
+    "placeholder": "https://www.facebook.com/yourbusiness"
+  },
+  {
+    "id": "business_manager_id",
+    "type": "text",
+    "label": "Business Manager ID",
+    "required": false,
+    "placeholder": "Enter your Facebook Business Manager ID"
+  },
+  {
+    "id": "ad_account_id",
+    "type": "text",
+    "label": "Ad Account ID",
+    "required": false,
+    "placeholder": "Enter your Facebook Ad Account ID"
+  },
+  {
+    "id": "pixel_id",
+    "type": "text",
+    "label": "Pixel ID (optional)",
+    "required": false,
+    "placeholder": "Enter your Facebook Pixel ID"
+  },
+  {
+    "id": "brand_colors",
+    "type": "text",
+    "label": "Brand Colors",
+    "required": false,
+    "placeholder": "Enter hex codes or color names (e.g., #FF5733, #3498DB or Blue, Red)"
+  },
+  {
+    "id": "testimonials",
+    "type": "textarea",
+    "label": "Customer Testimonials",
+    "required": false,
+    "placeholder": "Paste customer testimonials or reviews"
+  },
+  {
+    "id": "file_upload_images",
+    "type": "file",
+    "label": "Upload Business Images",
+    "multiple": true,
+    "required": false,
+    "placeholder": "Upload .png or .jpg files"
+  },
+  {
+    "id": "file_upload_before_after",
+    "type": "file",
+    "label": "Upload Before/After Shots",
+    "multiple": true,
+    "required": false,
+    "placeholder": "Upload .png or .jpg files"
+  },
+  {
+    "id": "calendly_link",
+    "type": "text",
+    "label": "Calendly Link",
+    "required": false,
+    "placeholder": "https://calendly.com/your-link"
+  },
+  {
+    "id": "jobber_link",
+    "type": "text",
+    "label": "Jobber Access Link",
+    "required": false,
+    "placeholder": "Enter your Jobber access link or login URL"
+  },
+  {
+    "id": "crm_link",
+    "type": "text",
+    "label": "CRM Access Link",
+    "required": false,
+    "placeholder": "Enter your CRM access link or login URL"
+  },
+  {
+    "id": "file_upload_logo",
+    "type": "file",
+    "label": "Upload Your Business Logo (optional)",
+    "required": false,
+    "placeholder": "Upload .png or .jpg"
+  }
+]

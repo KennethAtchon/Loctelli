@@ -123,6 +123,30 @@ export function Footer() {
               <ul className="space-y-2">
                 <li>
                   <Link
+                    href="/privacy"
+                    className="text-gray-600 hover:text-blue-500 transition-colors"
+                  >
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/terms"
+                    className="text-gray-600 hover:text-blue-500 transition-colors"
+                  >
+                    Terms of Service
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/cookies"
+                    className="text-gray-600 hover:text-blue-500 transition-colors"
+                  >
+                    Cookie Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="https://calendly.com/privacy"
                     target="_blank"
                     rel="noopener noreferrer"

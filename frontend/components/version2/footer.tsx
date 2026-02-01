@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   Phone,
   Mail,
@@ -144,25 +145,25 @@ export function Footer() {
                 {BRANDING.legal.copyright}
               </div>
             </div>
-            <div className="flex flex-wrap justify-center md:justify-end space-x-4 text-xs">
-              <a
-                href="#"
+            <div className="flex flex-wrap justify-center md:justify-end gap-x-4 gap-y-1 text-xs">
+              <Link
+                href={BRANDING.legal.privacy}
                 className="text-gray-500 hover:text-gray-700 transition-colors"
               >
                 Privacy Policy
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                href={BRANDING.legal.terms}
                 className="text-gray-500 hover:text-gray-700 transition-colors"
               >
                 Terms of Service
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                href={BRANDING.legal.cookies}
                 className="text-gray-500 hover:text-gray-700 transition-colors"
               >
                 Cookie Policy
-              </a>
+              </Link>
               <a
                 href={BRANDING.legal.calendly.privacy}
                 target="_blank"

@@ -37,6 +37,9 @@ export const BRANDING = {
   },
   legal: {
     copyright: `© ${new Date().getFullYear()} Loctelli. All rights reserved.`,
+    privacy: "/privacy",
+    terms: "/terms",
+    cookies: "/cookies",
     calendly: {
       privacy: "https://calendly.com/privacy",
       terms: "https://calendly.com/terms",
