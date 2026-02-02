@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,16 +31,16 @@ import { Navigation } from "@/components/version2/navigation";
 import { Footer } from "@/components/version2/footer";
 import Image from "next/image";
 
+const PUBLIC_FORM_STALE_MS = 5 * 60 * 1000; // 5 min
+
 export default function PublicFormPage() {
   const params = useParams();
   const slug = params.slug as string;
 
-  const [template, setTemplate] = useState<FormTemplate | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState<Record<string, unknown>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>(
     {}
   );
@@ -47,12 +48,9 @@ export default function PublicFormPage() {
     Record<string, UploadedFile>
   >({});
 
-  // Wake-up mechanism - use ref instead of state to avoid infinite loops
   const wakeUpIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const formsApi = api.forms;
-  const isLoadingRef = useRef(false);
 
-  // This is getting called multiple times on page load, not being debounced, I dont know why
   const wakeUpDatabase = useCallback(async () => {
     logger.info("Waking up database");
     try {
@@ -63,85 +61,65 @@ export default function PublicFormPage() {
     }
   }, [formsApi]);
 
-  const loadForm = useCallback(async () => {
-    // Prevent multiple simultaneous calls
-    logger.info("Loading form for slug: ", slug);
-    if (isLoadingRef.current) {
-      logger.debug("⏸️ loadForm already in progress, skipping");
-      return;
-    }
-
-    // Prevent loading reserved slugs
-    if (slug === "wake-up" || slug === "invalid-form") {
-      setError("Invalid form URL");
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      isLoadingRef.current = true;
-      setIsLoading(true);
-      setError(null);
-
-      // Always wake up database first to prevent cold start issues
-      logger.info("Waking up database before loading form");
+  const formQuery = useQuery({
+    queryKey: ["form", "public", slug],
+    queryFn: async () => {
       try {
         await wakeUpDatabase();
       } catch (wakeError) {
         logger.warn("Initial wake-up failed, continuing anyway:", wakeError);
       }
+      return formsApi.getPublicForm(slug);
+    },
+    enabled:
+      !!slug && slug !== "wake-up" && slug !== "invalid-form",
+    staleTime: PUBLIC_FORM_STALE_MS,
+    retry: 2,
+    retryDelay: (attemptIndex) => (attemptIndex + 1) * 500,
+  });
 
-      // Try to load the form - if it fails, retry once after a short delay
-      let formTemplate: FormTemplate;
-      try {
-        formTemplate = await formsApi.getPublicForm(slug);
-      } catch (firstError) {
-        logger.warn(
-          "First form load attempt failed, retrying after wake-up:",
-          firstError
-        );
-        // Wait a bit for database to fully wake up
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        // Retry the wake-up and then the form load
-        await wakeUpDatabase();
-        formTemplate = await formsApi.getPublicForm(slug);
+  const template = formQuery.data ?? null;
+  const isLoading = formQuery.isLoading;
+  const loadError = formQuery.error
+    ? (formQuery.error instanceof Error
+        ? formQuery.error.message
+        : "Failed to load form")
+    : slug === "wake-up" || slug === "invalid-form"
+      ? "Invalid form URL"
+      : null;
+  const error = loadError || formError;
+
+  // Initialize form data and wake-up interval when template loads
+  useEffect(() => {
+    if (!template) return;
+
+    const initialData: Record<string, unknown> = {};
+    template.schema.forEach((field: FormField) => {
+      if (field.type === "checkbox") {
+        initialData[field.id] = [];
+      } else {
+        initialData[field.id] = "";
       }
+    });
+    setFormData(initialData);
 
-      setTemplate(formTemplate);
-
-      // Initialize form data with default values
-      const initialData: Record<string, unknown> = {};
-      formTemplate.schema.forEach((field: FormField) => {
-        if (field.type === "checkbox") {
-          initialData[field.id] = [];
-        } else {
-          initialData[field.id] = "";
-        }
-      });
-      setFormData(initialData);
-
-      // Set up wake-up mechanism if required
-      if (formTemplate.requiresWakeUp) {
-        // Clear any existing interval first
-        if (wakeUpIntervalRef.current) {
-          clearInterval(wakeUpIntervalRef.current);
-        }
-
-        // Set up periodic wake-up
-        const interval = setInterval(
-          wakeUpDatabase,
-          formTemplate.wakeUpInterval * 1000
-        );
-        wakeUpIntervalRef.current = interval;
+    if (template.requiresWakeUp) {
+      if (wakeUpIntervalRef.current) {
+        clearInterval(wakeUpIntervalRef.current);
       }
-    } catch (error) {
-      logger.error("Failed to load form:", error);
-      setError(error instanceof Error ? error.message : "Failed to load form");
-    } finally {
-      setIsLoading(false);
-      isLoadingRef.current = false;
+      wakeUpIntervalRef.current = setInterval(
+        wakeUpDatabase,
+        template.wakeUpInterval * 1000
+      );
     }
-  }, [slug, wakeUpDatabase, formsApi]);
+
+    return () => {
+      if (wakeUpIntervalRef.current) {
+        clearInterval(wakeUpIntervalRef.current);
+        wakeUpIntervalRef.current = null;
+      }
+    };
+  }, [template, wakeUpDatabase]);
 
   const handleInputChange = (fieldId: string, value: unknown) => {
     setFormData((prev) => ({
@@ -176,7 +154,7 @@ export default function PublicFormPage() {
 
     try {
       setUploadingFiles((prev) => ({ ...prev, [fieldId]: true }));
-      setError(null);
+      setFormError(null);
 
       const uploadFormData = new FormData();
       uploadFormData.append("file", file);
@@ -194,7 +172,7 @@ export default function PublicFormPage() {
       handleInputChange(fieldId, uploadResult.url);
     } catch (error) {
       logger.error("File upload failed:", error);
-      setError("Failed to upload file. Please try again.");
+      setFormError("Failed to upload file. Please try again.");
     } finally {
       setUploadingFiles((prev) => ({ ...prev, [fieldId]: false }));
     }
@@ -222,13 +200,13 @@ export default function PublicFormPage() {
     e.preventDefault();
 
     if (!template || !validateForm()) {
-      setError("Please fill in all required fields");
+      setFormError("Please fill in all required fields");
       return;
     }
 
     try {
       setIsSubmitting(true);
-      setError(null);
+      setFormError(null);
 
       await formsApi.submitPublicForm(slug, {
         data: formData,
@@ -239,7 +217,7 @@ export default function PublicFormPage() {
       setSuccess(true);
     } catch (error) {
       logger.error("Failed to submit form:", error);
-      setError("Failed to submit form. Please try again.");
+      setFormError("Failed to submit form. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -436,21 +414,6 @@ export default function PublicFormPage() {
         return null;
     }
   };
-
-  useEffect(() => {
-    console.log("UseEffect called ");
-    loadForm();
-
-    // Cleanup wake-up interval on unmount
-    return () => {
-      console.log("UseEffect cleanup called ");
-      if (wakeUpIntervalRef.current) {
-        console.log("Clearing wake-up interval");
-        clearInterval(wakeUpIntervalRef.current);
-        wakeUpIntervalRef.current = null;
-      }
-    };
-  }, [loadForm]);
 
   if (isLoading) {
     return (

@@ -7,7 +7,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTenantMutation } from "@/hooks/useTenantData";
+import { useTenantMutation } from "@/hooks/useTenantQuery";
 import { useTenant } from "@/contexts/tenant-context";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -25,21 +25,20 @@ export function TenantAwareCreateLead() {
   // Automatic tenant context in mutations!
   const createLeadMutation = useTenantMutation<
     unknown,
+    Error,
     { name: string; email: string }
   >({
     mutationFn: async ({ name, email, subAccountId }) => {
-      // subAccountId is automatically injected based on tenant context
-      // Note: This is just an example - adjust fields as needed
       return api.leads.createLead({
         name,
         email,
         subAccountId: subAccountId!,
-        regularUserId: 1, // Replace with actual user ID
-        strategyId: 1, // Replace with actual strategy ID
+        regularUserId: 1,
+        strategyId: 1,
       });
     },
-    // Require subAccountId (fails for admin global view)
     requireSubAccount: true,
+    invalidateQueries: [["leads"]],
     onSuccess: () => {
       setSuccess(true);
       setName("");
@@ -113,8 +112,8 @@ export function TenantAwareCreateLead() {
             />
           </div>
 
-          <Button type="submit" disabled={createLeadMutation.isLoading}>
-            {createLeadMutation.isLoading ? "Creating..." : "Create Lead"}
+          <Button type="submit" disabled={createLeadMutation.isPending}>
+            {createLeadMutation.isPending ? "Creating..." : "Create Lead"}
           </Button>
         </form>
       </CardContent>

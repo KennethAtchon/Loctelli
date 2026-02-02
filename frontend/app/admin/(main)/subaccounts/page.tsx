@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -23,6 +23,7 @@ import {
   Activity,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type {
   SubAccount,
@@ -32,12 +33,12 @@ import type {
 import { CreateSubAccountDialog } from "./create-subaccount-dialog";
 import { EditSubAccountDialog } from "./edit-subaccount-dialog";
 import { useTenant } from "@/contexts/tenant-context";
-import logger from "@/lib/logger";
+
+const SUBACCOUNTS_QUERY_KEY = ["subaccounts"] as const;
+const SUBACCOUNTS_STALE_MS = 5 * 60 * 1000; // 5 min
 
 export default function SubAccountsPage() {
-  const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const queryClient = useQueryClient();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingSubAccount, setEditingSubAccount] = useState<SubAccount | null>(
@@ -45,40 +46,48 @@ export default function SubAccountsPage() {
   );
   const { setSubAccountId, refreshSubaccounts } = useTenant();
 
-  const isLoadingRef = useRef(false);
+  const subAccountsQuery = useQuery({
+    queryKey: SUBACCOUNTS_QUERY_KEY,
+    queryFn: () => api.adminSubAccounts.getAllSubAccounts(),
+    staleTime: SUBACCOUNTS_STALE_MS,
+  });
 
-  const loadSubAccounts = async () => {
-    // Prevent multiple simultaneous calls
-    if (isLoadingRef.current) {
-      logger.debug("⏸️ loadSubAccounts already in progress, skipping");
-      return;
-    }
+  const createMutation = useMutation({
+    mutationFn: (formData: CreateSubAccountDto) =>
+      api.adminSubAccounts.createSubAccount(formData),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: SUBACCOUNTS_QUERY_KEY });
+      await refreshSubaccounts?.();
+    },
+  });
 
-    try {
-      isLoadingRef.current = true;
-      setIsRefreshing(true);
-      const data = await api.adminSubAccounts.getAllSubAccounts();
-      setSubAccounts(data);
-    } catch {
-      toast.error("Failed to load SubAccounts");
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-      isLoadingRef.current = false;
-    }
-  };
+  const updateMutation = useMutation({
+    mutationFn: ({
+      id,
+      formData,
+    }: {
+      id: number;
+      formData: UpdateSubAccountDto;
+    }) => api.adminSubAccounts.updateSubAccount(id, formData),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: SUBACCOUNTS_QUERY_KEY });
+    },
+  });
 
-  useEffect(() => {
-    loadSubAccounts();
-  }, []);
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.adminSubAccounts.deleteSubAccount(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: SUBACCOUNTS_QUERY_KEY });
+    },
+  });
+
+  const subAccounts = subAccountsQuery.data ?? [];
 
   const handleCreateSubAccount = async (formData: CreateSubAccountDto) => {
     try {
-      await api.adminSubAccounts.createSubAccount(formData);
+      await createMutation.mutateAsync(formData);
       toast.success("SubAccount created successfully");
       setIsCreateDialogOpen(false);
-      await loadSubAccounts();
-      await refreshSubaccounts?.(); // Refresh the subaccount context
     } catch {
       toast.error("Failed to create SubAccount");
     }
@@ -89,11 +98,10 @@ export default function SubAccountsPage() {
     formData: UpdateSubAccountDto
   ) => {
     try {
-      await api.adminSubAccounts.updateSubAccount(id, formData);
+      await updateMutation.mutateAsync({ id, formData });
       toast.success("SubAccount updated successfully");
       setIsEditDialogOpen(false);
       setEditingSubAccount(null);
-      loadSubAccounts();
     } catch {
       toast.error("Failed to update SubAccount");
     }
@@ -109,9 +117,8 @@ export default function SubAccountsPage() {
     }
 
     try {
-      await api.adminSubAccounts.deleteSubAccount(id);
+      await deleteMutation.mutateAsync(id);
       toast.success("SubAccount deleted successfully");
-      loadSubAccounts();
     } catch {
       toast.error("Failed to delete SubAccount");
     }
@@ -129,7 +136,7 @@ export default function SubAccountsPage() {
     toast.success(`Filtered to ${subAccount.name}`);
   };
 
-  if (isLoading) {
+  if (subAccountsQuery.isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="relative">
@@ -157,12 +164,12 @@ export default function SubAccountsPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={loadSubAccounts}
-            disabled={isRefreshing}
+            onClick={() => subAccountsQuery.refetch()}
+            disabled={subAccountsQuery.isFetching}
             className="bg-white/80 dark:bg-slate-700/50 backdrop-blur-sm hover:bg-blue-50 dark:hover:bg-slate-600 border-gray-200/60 dark:border-slate-600/60 transition-all duration-200 dark:text-gray-200"
           >
             <RefreshCw
-              className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin text-blue-600" : ""}`}
+              className={`h-4 w-4 mr-2 ${subAccountsQuery.isFetching ? "animate-spin text-blue-600" : ""}`}
             />
             <span className="hidden sm:inline">Refresh</span>
           </Button>
@@ -290,7 +297,7 @@ export default function SubAccountsPage() {
         ))}
       </div>
 
-      {subAccounts.length === 0 && !isLoading && (
+      {subAccounts.length === 0 && !subAccountsQuery.isLoading && (
         <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-gray-200/60 dark:border-slate-700/60 shadow-lg">
           <CardContent className="text-center py-12">
             <div className="mb-6">

@@ -9,7 +9,7 @@
 
 "use client";
 
-import { useTenantData } from "@/hooks/useTenantData";
+import { useTenantQuery } from "@/hooks/useTenantQuery";
 import { useTenant } from "@/contexts/tenant-context";
 import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,21 +18,19 @@ import { Badge } from "@/components/ui/badge";
 export function TenantAwareLeadsList() {
   const { mode, isGlobalView, subAccountId } = useTenant();
 
-  // Automatic tenant filtering! No need to manually pass subAccountId
   const {
     data: leads,
     isLoading,
     error,
-  } = useTenantData({
-    queryKey: "leads",
-    queryFn: async ({ subAccountId }) => {
-      // subAccountId is automatically provided based on tenant context
-      if (subAccountId) {
-        return api.leads.getLeads({ subAccountId });
+  } = useTenantQuery({
+    queryKey: ["leads"],
+    queryFn: async ({ subAccountId: tenantSubAccountId }) => {
+      if (tenantSubAccountId) {
+        return api.leads.getLeads({ subAccountId: tenantSubAccountId });
       }
-      // For admin global view, fetch all leads
       return api.leads.getLeads();
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   if (isLoading) {

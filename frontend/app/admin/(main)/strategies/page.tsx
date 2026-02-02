@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
 import { usePagination } from "@/components/customUI";
@@ -8,18 +8,36 @@ import { Badge } from "@/components/ui/badge";
 import { Target } from "lucide-react";
 import { Strategy } from "@/types";
 import logger from "@/lib/logger";
-import { useTenant } from "@/contexts/tenant-context";
+import { useTenantQuery, useTenantMutation } from "@/hooks/useTenantQuery";
 import { useRouter } from "next/navigation";
+
+const STRATEGIES_STALE_MS = 3 * 60 * 1000; // 3 min
 
 export default function StrategiesPage() {
   const router = useRouter();
-  const { getTenantQueryParams } = useTenant();
-  const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [filteredStrategies, setFilteredStrategies] = useState<Strategy[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const strategiesQuery = useTenantQuery({
+    queryKey: ["strategies"],
+    queryFn: async ({ subAccountId }) =>
+      api.strategies.getStrategies({
+        subAccountId: subAccountId ?? undefined,
+      }),
+    staleTime: STRATEGIES_STALE_MS,
+  });
+
+  const deleteStrategyMutation = useTenantMutation({
+    mutationFn: async ({ strategyId }: { strategyId: number }) =>
+      api.strategies.deleteStrategy(strategyId),
+    invalidateQueries: [["strategies"]],
+  });
+
+  const strategies = strategiesQuery.data ?? [];
+
+  useEffect(() => {
+    setFilteredStrategies(strategies);
+  }, [strategies]);
 
   // Use the pagination hook
   const { pagination, paginatedData, setCurrentPage, setTotalItems } =
@@ -122,39 +140,6 @@ export default function StrategiesPage() {
     },
   ];
 
-  // Use ref to prevent multiple simultaneous calls
-  const isLoadingRef = useRef(false);
-
-  const loadStrategies = useCallback(async () => {
-    // Prevent multiple simultaneous calls
-    if (isLoadingRef.current) {
-      logger.debug("⏸️ Load strategies already in progress, skipping...");
-      return;
-    }
-
-    try {
-      isLoadingRef.current = true;
-      setIsRefreshing(true);
-      setError(null);
-
-      // Use tenant context for automatic filtering
-      const queryParams = getTenantQueryParams();
-      logger.debug("Loading strategies with tenant params:", queryParams);
-
-      const strategiesData = await api.strategies.getStrategies(queryParams);
-      setStrategies(strategiesData);
-      setFilteredStrategies(strategiesData);
-      setTotalItems(strategiesData.length);
-    } catch (error) {
-      logger.error("Failed to load strategies:", error);
-      setError("Failed to load strategies");
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-      isLoadingRef.current = false;
-    }
-  }, [getTenantQueryParams, setTotalItems]);
-
   // Handle search
   const handleSearch = (term: string) => {
     const filtered = strategies.filter(
@@ -197,14 +182,13 @@ export default function StrategiesPage() {
   const handleDelete = async (strategy: Strategy) => {
     if (confirm("Are you sure you want to delete this strategy?")) {
       try {
-        setError(null);
-        await api.strategies.deleteStrategy(strategy.id);
+        await deleteStrategyMutation.mutateAsync({
+          strategyId: strategy.id,
+        });
         setSuccess("Strategy deleted successfully");
-        loadStrategies();
         setTimeout(() => setSuccess(null), 3000);
       } catch (error) {
         logger.error("Failed to delete strategy:", error);
-        setError("Failed to delete strategy. Please try again.");
       }
     }
   };
@@ -212,15 +196,6 @@ export default function StrategiesPage() {
   const handleCreate = () => {
     router.push("/admin/strategies/new");
   };
-
-  useEffect(() => {
-    // Only load on mount, not when loadStrategies changes
-    // This prevents infinite loops from React strict mode or dependency changes
-    if (!isLoadingRef.current) {
-      loadStrategies();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty deps - only run on mount
 
   const formatDate = (dateInput: string | Date) => {
     if (!dateInput) return "N/A";
@@ -244,8 +219,8 @@ export default function StrategiesPage() {
   return (
     <DataTable
       data={paginatedData}
-      isLoading={isLoading}
-      isRefreshing={isRefreshing}
+      isLoading={strategiesQuery.isLoading}
+      isRefreshing={strategiesQuery.isFetching}
       columns={columns}
       title="Strategy Management"
       description="A list of all your AI conversation strategies"
@@ -261,12 +236,12 @@ export default function StrategiesPage() {
         onPageChange: setCurrentPage,
       }}
       onCreateClick={handleCreate}
-      onRefresh={loadStrategies}
+      onRefresh={() => strategiesQuery.refetch()}
       onView={handleView}
       onEdit={handleEdit}
       onDelete={handleDelete}
       stats={stats}
-      error={error}
+      error={strategiesQuery.error ? "Failed to load strategies" : null}
       success={success}
     />
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState } from "react";
 import { api } from "@/lib/api";
 import {
   Card,
@@ -43,7 +43,10 @@ import {
 import Link from "next/link";
 import logger from "@/lib/logger";
 import { useTenant } from "@/contexts/tenant-context";
+import { useTenantQuery } from "@/hooks/useTenantQuery";
 import { LeadDetailsContent } from "@/components/admin/lead-details-content";
+
+const DASHBOARD_STALE_MS = 2 * 60 * 1000; // 2 min
 
 interface DetailedUser {
   id: number;
@@ -89,61 +92,46 @@ interface DetailedUser {
 
 export default function AdminDashboardPage() {
   const { adminFilter, isGlobalView, getCurrentSubaccount } = useTenant();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
-  const [recentLeads, setRecentLeads] = useState<DetailedLead[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<DetailedUser | null>(null);
   const [selectedLead, setSelectedLead] = useState<DetailedLead | null>(null);
-  const isLoadingRef = useRef(false);
 
-  const loadDashboardData = useCallback(async () => {
-    // Prevent multiple simultaneous calls
-    if (isLoadingRef.current) {
-      logger.debug("⏸️ loadDashboardData already in progress, skipping");
-      return;
-    }
+  const statsQuery = useTenantQuery({
+    queryKey: ["dashboard", "stats"],
+    queryFn: async () =>
+      api.adminAuth.getDashboardStats(adminFilter ?? undefined),
+    staleTime: DASHBOARD_STALE_MS,
+  });
 
-    try {
-      isLoadingRef.current = true;
-      setIsRefreshing(true);
-      setError(null);
+  const systemStatusQuery = useTenantQuery({
+    queryKey: ["dashboard", "systemStatus"],
+    queryFn: async () => api.adminAuth.getSystemStatus(),
+    staleTime: DASHBOARD_STALE_MS,
+  });
 
-      // Use tenant context - adminFilter is compatible with the API
-      logger.debug("Loading dashboard with tenant filter:", adminFilter);
+  const recentLeadsQuery = useTenantQuery({
+    queryKey: ["dashboard", "recentLeads"],
+    queryFn: async () =>
+      api.adminAuth.getRecentLeads(adminFilter ?? undefined),
+    staleTime: DASHBOARD_STALE_MS,
+  });
 
-      const [dashboardStats, status, leads] = await Promise.all([
-        api.adminAuth.getDashboardStats(adminFilter ?? undefined),
-        api.adminAuth.getSystemStatus(),
-        api.adminAuth.getRecentLeads(adminFilter ?? undefined),
-      ]);
-      setStats(dashboardStats);
-      setSystemStatus(status);
-      setRecentLeads(leads);
-    } catch (error) {
-      logger.error("Failed to load dashboard data:", error);
-      setError("Failed to load dashboard data");
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-      isLoadingRef.current = false;
-    }
-  }, [adminFilter]);
+  const stats = statsQuery.data ?? null;
+  const systemStatus = systemStatusQuery.data ?? null;
+  const recentLeads = recentLeadsQuery.data ?? [];
+  const isLoading =
+    statsQuery.isLoading || systemStatusQuery.isLoading || recentLeadsQuery.isLoading;
+  const isRefreshing =
+    statsQuery.isFetching || systemStatusQuery.isFetching || recentLeadsQuery.isFetching;
+  const error =
+    statsQuery.error || systemStatusQuery.error || recentLeadsQuery.error
+      ? "Failed to load dashboard data"
+      : null;
 
-  // Load dashboard data on mount and when adminFilter changes
-  useEffect(() => {
-    loadDashboardData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [adminFilter]);
-
-  // Cleanup error state on unmount
-  useEffect(() => {
-    return () => {
-      setError(null);
-    };
-  }, []);
+  const refetchAll = () => {
+    statsQuery.refetch();
+    systemStatusQuery.refetch();
+    recentLeadsQuery.refetch();
+  };
 
   const loadDetailedUser = async (userId: number) => {
     try {
@@ -227,7 +215,7 @@ export default function AdminDashboardPage() {
             <Button
               variant="link"
               className="p-0 h-auto text-destructive underline ml-2"
-              onClick={loadDashboardData}
+              onClick={refetchAll}
             >
               Retry
             </Button>
@@ -268,7 +256,7 @@ export default function AdminDashboardPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={loadDashboardData}
+            onClick={refetchAll}
             disabled={isRefreshing}
             className="bg-white/80 dark:bg-slate-700/50 backdrop-blur-sm hover:bg-blue-50 dark:hover:bg-slate-600 border-gray-200/60 dark:border-slate-600/60 transition-all duration-200 dark:text-gray-200"
           >

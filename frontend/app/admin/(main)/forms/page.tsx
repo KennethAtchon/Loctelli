@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
@@ -17,25 +17,15 @@ import {
 import { FormTemplate, FormSubmission } from "@/lib/api";
 import { FileText, Users, Calendar, CheckCircle } from "lucide-react";
 import logger from "@/lib/logger";
-import { useTenant } from "@/contexts/tenant-context";
+import { useTenantQuery } from "@/hooks/useTenantQuery";
+
+const FORMS_STALE_MS = 3 * 60 * 1000; // 3 min
 
 export default function FormsPage() {
   const router = useRouter();
-  const { subAccountId } = useTenant();
-  const [templates, setTemplates] = useState<FormTemplate[]>([]);
-  const [submissions, setSubmissions] = useState<FormSubmission[]>([]);
   const [filteredTemplates, setFilteredTemplates] = useState<FormTemplate[]>(
     []
   );
-  const [stats, setStats] = useState({
-    total: 0,
-    active: 0,
-    submissions: 0,
-    newSubmissions: 0,
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<FormTemplate | null>(
     null
@@ -43,7 +33,47 @@ export default function FormsPage() {
   const [activeTab, setActiveTab] = useState<"templates" | "submissions">(
     "templates"
   );
-  const isLoadingRef = useRef(false);
+
+  const templatesQuery = useTenantQuery({
+    queryKey: ["forms", "templates"],
+    queryFn: async ({ subAccountId }) =>
+      api.forms.getFormTemplates(subAccountId ?? undefined),
+    staleTime: FORMS_STALE_MS,
+  });
+
+  const submissionsQuery = useTenantQuery({
+    queryKey: ["forms", "submissions"],
+    queryFn: async ({ subAccountId }) =>
+      api.forms.getFormSubmissions(subAccountId ?? undefined),
+    staleTime: FORMS_STALE_MS,
+  });
+
+  const templates = templatesQuery.data ?? [];
+  const submissions = submissionsQuery.data ?? [];
+
+  useEffect(() => {
+    setFilteredTemplates(templates);
+  }, [templates]);
+
+  const stats = useMemo(() => {
+    const activeTemplates = templates.filter((t) => t.isActive).length;
+    const totalSubmissions = templates.reduce(
+      (sum, t) => sum + (t._count?.submissions || 0),
+      0
+    );
+    const newSubmissions = submissions.filter((s) => s.status === "new").length;
+    return {
+      total: templates.length,
+      active: activeTemplates,
+      submissions: totalSubmissions,
+      newSubmissions,
+    };
+  }, [templates, submissions]);
+
+  const isLoading =
+    templatesQuery.isLoading || submissionsQuery.isLoading;
+  const isRefreshing =
+    templatesQuery.isFetching || submissionsQuery.isFetching;
 
   // Use the pagination hook for templates
   const {
@@ -162,55 +192,10 @@ export default function FormsPage() {
     },
   ];
 
-  const loadData = useCallback(async () => {
-    // Prevent multiple simultaneous calls
-    if (isLoadingRef.current) {
-      logger.debug("⏸️ loadData already in progress, skipping");
-      return;
-    }
-
-    try {
-      isLoadingRef.current = true;
-      setIsRefreshing(true);
-      setError(null);
-
-      // Use tenant context for automatic filtering
-      logger.debug("Loading forms with tenant subAccountId:", subAccountId);
-
-      const [templatesData, submissionsData] = await Promise.all([
-        api.forms.getFormTemplates(subAccountId || undefined),
-        api.forms.getFormSubmissions(subAccountId || undefined),
-      ]);
-
-      setTemplates(templatesData);
-      setFilteredTemplates(templatesData);
-      setSubmissions(submissionsData);
-      setTotalTemplates(templatesData.length);
-
-      // Calculate stats
-      const activeTemplates = templatesData.filter((t) => t.isActive).length;
-      const totalSubmissions = templatesData.reduce(
-        (sum, t) => sum + (t._count?.submissions || 0),
-        0
-      );
-      const newSubmissions = submissionsData.filter(
-        (s) => s.status === "new"
-      ).length;
-
-      setStats({
-        total: templatesData.length,
-        active: activeTemplates,
-        submissions: totalSubmissions,
-        newSubmissions,
-      });
-    } catch (error) {
-      logger.error("Failed to load forms data:", error);
-      setError("Failed to load forms data");
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, [subAccountId, setTotalTemplates]);
+  const refetchAll = () => {
+    templatesQuery.refetch();
+    submissionsQuery.refetch();
+  };
 
   // Handle search for templates
   const handleTemplateSearch = (term: string) => {
@@ -265,12 +250,6 @@ export default function FormsPage() {
     setActiveTab("submissions");
   };
 
-  // Load data on mount and when subAccountId changes
-  useEffect(() => {
-    loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subAccountId]);
-
   const formatDate = (dateInput: string | Date) => {
     if (!dateInput) return "N/A";
 
@@ -316,12 +295,16 @@ export default function FormsPage() {
           totalItems: templatePagination.totalItems,
           onPageChange: setTemplatePage,
         }}
-        onRefresh={loadData}
+        onRefresh={refetchAll}
         onView={handleView}
         onEdit={handleEdit}
         onCreateClick={handleCreate}
         stats={statsCards}
-        error={error}
+        error={
+          templatesQuery.error || submissionsQuery.error
+            ? "Failed to load forms data"
+            : null
+        }
         success={success}
         headerActions={
           <Button

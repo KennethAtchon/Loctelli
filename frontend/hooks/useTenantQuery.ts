@@ -2,9 +2,12 @@ import {
   useQuery,
   useMutation,
   useQueryClient,
+  useInfiniteQuery,
   UseQueryOptions,
   UseMutationOptions,
+  UseInfiniteQueryOptions,
   Query,
+  InfiniteData,
 } from "@tanstack/react-query";
 import { useTenant } from "@/contexts/tenant-context";
 import logger from "@/lib/logger";
@@ -230,7 +233,7 @@ export function useInvalidateTenantQueries() {
 }
 
 /**
- * Hook for infinite queries with tenant awareness
+ * Hook for infinite queries with tenant awareness (cursor/page-based).
  *
  * @example
  * const { data, fetchNextPage, hasNextPage } = useTenantInfiniteQuery({
@@ -238,48 +241,58 @@ export function useInvalidateTenantQueries() {
  *   queryFn: async ({ pageParam, subAccountId }) => {
  *     return api.leads.getLeads({
  *       subAccountId,
- *       page: pageParam,
+ *       cursor: pageParam,
  *       limit: 20
  *     });
  *   },
+ *   initialPageParam: undefined,
  *   getNextPageParam: (lastPage) => lastPage.nextCursor,
  * });
  */
 export function useTenantInfiniteQuery<
   TData = unknown,
   TError = Error,
+  TPageParam = unknown,
 >(options: {
   queryKey: readonly unknown[];
   queryFn: (context: {
-    pageParam?: unknown;
+    pageParam: TPageParam;
     subAccountId: number | null;
   }) => Promise<TData>;
-  getNextPageParam: (lastPage: TData) => unknown | undefined;
+  initialPageParam: TPageParam;
+  getNextPageParam: (lastPage: TData) => TPageParam | undefined;
+  getPreviousPageParam?: (firstPage: TData) => TPageParam | undefined;
   enabled?: boolean;
-}) {
+} & Omit<
+  UseInfiniteQueryOptions<TData, TError, InfiniteData<TData, TPageParam>, readonly unknown[], TPageParam>,
+  "queryKey" | "queryFn" | "initialPageParam" | "getNextPageParam"
+>) {
   const { subAccountId, mode, validateTenantAccess } = useTenant();
 
-  // Include tenant context in query key
   const tenantQueryKey = [
     ...options.queryKey,
     { tenantMode: mode, subAccountId },
   ];
 
-  return useQuery<TData, TError>({
+  return useInfiniteQuery<TData, TError, InfiniteData<TData, TPageParam>, readonly unknown[], TPageParam>({
+    ...options,
     queryKey: tenantQueryKey,
-    queryFn: async () => {
-      // Validate tenant access
+    queryFn: async ({ pageParam }) => {
       if (subAccountId) {
         validateTenantAccess(subAccountId);
       }
-
       logger.debug(`Tenant infinite query: ${options.queryKey[0]}`, {
         mode,
         subAccountId,
       });
-
-      return options.queryFn({ subAccountId });
+      return options.queryFn({
+        pageParam: pageParam as TPageParam,
+        subAccountId,
+      });
     },
+    initialPageParam: options.initialPageParam,
+    getNextPageParam: options.getNextPageParam,
+    getPreviousPageParam: options.getPreviousPageParam,
     enabled: options.enabled,
   });
 }

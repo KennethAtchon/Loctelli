@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
 import { usePagination } from "@/components/customUI";
@@ -17,58 +17,82 @@ import { Textarea } from "@/components/ui/textarea";
 import { Mail, MessageSquare, User, Calendar } from "lucide-react";
 import { ContactSubmission } from "@/types";
 import logger from "@/lib/logger";
-import { useTenant } from "@/contexts/tenant-context";
+import { useTenantQuery, useTenantMutation } from "@/hooks/useTenantQuery";
+
+const CONTACTS_STALE_MS = 2 * 60 * 1000; // 2 min
 
 export default function ContactsPage() {
-  // Tenant filtering is handled automatically via headers in the API client
-  const {} = useTenant();
-  const [contacts, setContacts] = useState<ContactSubmission[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<ContactSubmission[]>(
     []
   );
-  const [stats, setStats] = useState({
-    total: 0,
-    newCount: 0,
-    inProgress: 0,
-    closed: 0,
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedContact, setSelectedContact] =
     useState<ContactSubmission | null>(null);
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [newNote, setNewNote] = useState("");
-  const isLoadingRef = useRef(false);
+
+  const contactsQuery = useTenantQuery({
+    queryKey: ["contacts"],
+    queryFn: async () => api.contacts.getContacts(),
+    staleTime: CONTACTS_STALE_MS,
+  });
+
+  const statsQuery = useTenantQuery({
+    queryKey: ["contacts", "stats"],
+    queryFn: async () => api.contacts.getStats(),
+    staleTime: CONTACTS_STALE_MS,
+  });
+
+  const addNoteMutation = useTenantMutation({
+    mutationFn: async ({
+      contactId,
+      content,
+    }: {
+      contactId: string;
+      content: string;
+    }) => api.contacts.addNote(contactId, { content }),
+    invalidateQueries: [["contacts"]],
+  });
+
+  const contacts = contactsQuery.data ?? [];
+  const stats = statsQuery.data ?? {
+    total: 0,
+    newCount: 0,
+    inProgress: 0,
+    closed: 0,
+  };
+
+  useEffect(() => {
+    setFilteredContacts(contacts);
+  }, [contacts]);
 
   // Use the pagination hook
   const { pagination, paginatedData, setCurrentPage, setTotalItems } =
     usePagination(filteredContacts, { pageSize: 10 });
 
-  // Calculate stats cards
+  // Calculate stats cards (ensure numbers for StatCard.value)
   const statsCards: StatCard[] = [
     {
       title: "Total Contacts",
-      value: stats.total,
+      value: Number(stats.total),
       icon: <Mail className="h-8 w-8" />,
       color: "text-blue-600",
     },
     {
       title: "New",
-      value: stats.newCount,
+      value: Number(stats.newCount),
       icon: <User className="h-8 w-8" />,
       color: "text-green-600",
     },
     {
       title: "In Progress",
-      value: stats.inProgress,
+      value: Number(stats.inProgress),
       icon: <Calendar className="h-8 w-8" />,
       color: "text-yellow-600",
     },
     {
       title: "Closed",
-      value: stats.closed,
+      value: Number(stats.closed),
       icon: <MessageSquare className="h-8 w-8" />,
       color: "text-gray-600",
     },
@@ -169,42 +193,6 @@ export default function ContactsPage() {
     },
   ];
 
-  const loadContacts = useCallback(async () => {
-    // Prevent multiple simultaneous calls
-    if (isLoadingRef.current) {
-      logger.debug("⏸️ loadContacts already in progress, skipping");
-      return;
-    }
-
-    try {
-      isLoadingRef.current = true;
-      setIsRefreshing(true);
-      setError(null);
-
-      // Tenant filtering is handled automatically via headers in the API client
-      logger.debug(
-        "Loading contacts - tenant filtering is automatic via headers"
-      );
-
-      const [contactsData, statsData] = await Promise.all([
-        api.contacts.getContacts(),
-        api.contacts.getStats(),
-      ]);
-
-      setContacts(contactsData);
-      setFilteredContacts(contactsData);
-      setStats(statsData);
-      setTotalItems(contactsData.length);
-    } catch (error) {
-      logger.error("Failed to load contacts:", error);
-      setError("Failed to load contacts");
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-      isLoadingRef.current = false;
-    }
-  }, [setTotalItems]);
-
   // Handle search
   const handleSearch = (term: string) => {
     const filtered = contacts.filter(
@@ -250,29 +238,21 @@ export default function ContactsPage() {
 
     try {
       setIsAddingNote(true);
-      await api.contacts.addNote(selectedContact.id, {
+      await addNoteMutation.mutateAsync({
+        contactId: selectedContact.id,
         content: newNote.trim(),
       });
       setNewNote("");
       setSuccess("Note added successfully");
-      // Refresh the selected contact
       const updatedContact = await api.contacts.getContact(selectedContact.id);
       setSelectedContact(updatedContact);
-      loadContacts(); // Refresh the list
       setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
       logger.error("Failed to add note:", error);
-      setError("Failed to add note. Please try again.");
     } finally {
       setIsAddingNote(false);
     }
   };
-
-  // Load contacts on mount
-  useEffect(() => {
-    loadContacts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
@@ -333,8 +313,8 @@ export default function ContactsPage() {
     <>
       <DataTable
         data={paginatedData}
-        isLoading={isLoading}
-        isRefreshing={isRefreshing}
+        isLoading={contactsQuery.isLoading}
+        isRefreshing={contactsQuery.isFetching}
         columns={columns}
         title="Contact Management"
         description="Manage all contact form submissions and track follow-ups"
@@ -349,11 +329,11 @@ export default function ContactsPage() {
           totalItems: pagination.totalItems,
           onPageChange: setCurrentPage,
         }}
-        onRefresh={loadContacts}
+        onRefresh={() => contactsQuery.refetch()}
         onView={handleView}
         onEdit={handleEdit}
         stats={statsCards}
-        error={error}
+        error={contactsQuery.error ? "Failed to load contacts" : null}
         success={success}
         hideCreateButton={true} // Don't show create button for contacts (they come from website form)
       />

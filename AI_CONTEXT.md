@@ -6,7 +6,7 @@
 - **Build Tool**: Vite 6.x for fast development and optimized builds
 - **Framework**: React 19.2.1 with modern hooks
 - **Routing**: TanStack Router 1.95.0 (type-safe, file-based routing)
-- **Data Fetching**: TanStack Query 5.62.11 (React Query)
+- **Data Fetching**: TanStack Query 5.62.11 (React Query); usage and migration guide: `frontend/docs/react-query-improvements.md`
 - **UI Library**: Shadcn/ui components with Tailwind CSS 4.0
 - **State Management**: React Context for auth state
 - **API Client**: Simplified API client with AuthManager for token management

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
 import { usePagination } from "@/components/customUI";
@@ -16,19 +16,28 @@ import {
 import { Calendar, Clock, User, Building, Edit } from "lucide-react";
 import { Booking } from "@/types";
 import logger from "@/lib/logger";
-import { useTenant } from "@/contexts/tenant-context";
+import { useTenantQuery } from "@/hooks/useTenantQuery";
+
+const BOOKINGS_STALE_MS = 2 * 60 * 1000; // 2 min
 
 export default function BookingsPage() {
-  const { getTenantQueryParams } = useTenant();
-  const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const isLoadingRef = useRef(false);
+
+  const bookingsQuery = useTenantQuery({
+    queryKey: ["bookings"],
+    queryFn: async ({ subAccountId }) =>
+      api.bookings.getBookings({ subAccountId: subAccountId ?? undefined }),
+    staleTime: BOOKINGS_STALE_MS,
+  });
+
+  const bookings = bookingsQuery.data ?? [];
+
+  useEffect(() => {
+    setFilteredBookings(bookings);
+  }, [bookings]);
 
   // Use the pagination hook
   const { pagination, paginatedData, setCurrentPage, setTotalItems } =
@@ -141,35 +150,6 @@ export default function BookingsPage() {
     },
   ];
 
-  const loadBookings = useCallback(async () => {
-    // Prevent multiple simultaneous calls
-    if (isLoadingRef.current) {
-      logger.debug("⏸️ loadBookings already in progress, skipping");
-      return;
-    }
-
-    try {
-      isLoadingRef.current = true;
-      setIsRefreshing(true);
-      setError(null);
-
-      // Use tenant context for automatic filtering
-      const queryParams = getTenantQueryParams();
-      logger.debug("Loading bookings with tenant params:", queryParams);
-
-      const bookingsData = await api.bookings.getBookings(queryParams);
-      setBookings(bookingsData);
-      setFilteredBookings(bookingsData);
-      setTotalItems(bookingsData.length);
-    } catch (error) {
-      logger.error("Failed to load bookings:", error);
-      setError("Failed to load bookings");
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, [getTenantQueryParams, setTotalItems]);
-
   // Handle search
   const handleSearch = (term: string) => {
     const filtered = bookings.filter(
@@ -212,12 +192,6 @@ export default function BookingsPage() {
     // Navigate to edit page
     window.location.href = `/admin/bookings/${booking.id}/edit`;
   };
-
-  // Load bookings on mount and when tenant params change
-  useEffect(() => {
-    loadBookings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getTenantQueryParams]);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
@@ -286,8 +260,8 @@ export default function BookingsPage() {
     <>
       <DataTable
         data={paginatedData}
-        isLoading={isLoading}
-        isRefreshing={isRefreshing}
+        isLoading={bookingsQuery.isLoading}
+        isRefreshing={bookingsQuery.isFetching}
         columns={columns}
         title="Booking Management"
         description="A list of all lead bookings and appointments"
@@ -302,11 +276,11 @@ export default function BookingsPage() {
           totalItems: pagination.totalItems,
           onPageChange: setCurrentPage,
         }}
-        onRefresh={loadBookings}
+        onRefresh={() => bookingsQuery.refetch()}
         onView={handleView}
         onEdit={handleEdit}
         stats={stats}
-        error={error}
+        error={bookingsQuery.error ? "Failed to load bookings" : null}
         success={success}
       />
 

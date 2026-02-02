@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
 import { usePagination } from "@/components/customUI";
@@ -11,18 +11,35 @@ import { Lead } from "@/types";
 import { DetailedLead } from "@/lib/api/endpoints/admin-auth";
 import logger from "@/lib/logger";
 import { useTenant } from "@/contexts/tenant-context";
+import { useTenantQuery, useTenantMutation } from "@/hooks/useTenantQuery";
 import { LeadDetailsContent } from "@/components/admin/lead-details-content";
 
+const LEADS_STALE_MS = 2 * 60 * 1000; // 2 min
+
 export default function LeadsPage() {
-  const { getTenantQueryParams } = useTenant();
-  const [leads, setLeads] = useState<Lead[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedLead, setSelectedLead] = useState<DetailedLead | null>(null);
-  const isLoadingRef = useRef(false);
+
+  const leadsQuery = useTenantQuery({
+    queryKey: ["leads"],
+    queryFn: async ({ subAccountId }) =>
+      api.leads.getLeads({ subAccountId: subAccountId ?? undefined }),
+    staleTime: LEADS_STALE_MS,
+  });
+
+  const deleteLeadMutation = useTenantMutation({
+    mutationFn: async ({ leadId }: { leadId: number }) =>
+      api.leads.deleteLead(leadId),
+    invalidateQueries: [["leads"]],
+  });
+
+  const leads = leadsQuery.data ?? [];
+
+  // Sync filtered list when leads data changes
+  useEffect(() => {
+    setFilteredLeads(leads);
+  }, [leads]);
 
   // Use the pagination hook
   const { pagination, paginatedData, setCurrentPage, setTotalItems } =
@@ -152,36 +169,6 @@ export default function LeadsPage() {
     },
   ];
 
-  const loadLeads = useCallback(async () => {
-    // Prevent multiple simultaneous calls
-    if (isLoadingRef.current) {
-      logger.debug("⏸️ loadLeads already in progress, skipping");
-      return;
-    }
-
-    try {
-      isLoadingRef.current = true;
-      setIsRefreshing(true);
-      setError(null);
-
-      // Use tenant context for automatic filtering
-      const queryParams = getTenantQueryParams();
-      logger.debug("Loading leads with tenant params:", queryParams);
-
-      const leadsData = await api.leads.getLeads(queryParams);
-      setLeads(leadsData);
-      setFilteredLeads(leadsData);
-      setTotalItems(leadsData.length);
-    } catch (error) {
-      logger.error("Failed to load leads:", error);
-      setError("Failed to load leads");
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-      isLoadingRef.current = false;
-    }
-  }, [getTenantQueryParams, setTotalItems]);
-
   // Handle search
   const handleSearch = (term: string) => {
     const filtered = leads.filter(
@@ -227,14 +214,11 @@ export default function LeadsPage() {
   const handleDelete = async (lead: Lead) => {
     if (confirm("Are you sure you want to delete this lead?")) {
       try {
-        setError(null);
-        await api.leads.deleteLead(lead.id);
+        await deleteLeadMutation.mutateAsync({ leadId: lead.id });
         setSuccess("Lead deleted successfully");
-        loadLeads();
         setTimeout(() => setSuccess(null), 3000);
       } catch (error) {
         logger.error("Failed to delete lead:", error);
-        setError("Failed to delete lead. Please try again.");
       }
     }
   };
@@ -242,12 +226,6 @@ export default function LeadsPage() {
   const handleCreate = () => {
     window.location.href = "/admin/leads/new";
   };
-
-  // Load leads on mount and when tenant params change
-  useEffect(() => {
-    loadLeads();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getTenantQueryParams]);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
@@ -285,8 +263,8 @@ export default function LeadsPage() {
     <>
       <DataTable
         data={paginatedData}
-        isLoading={isLoading}
-        isRefreshing={isRefreshing}
+        isLoading={leadsQuery.isLoading}
+        isRefreshing={leadsQuery.isFetching}
         columns={columns}
         title="Lead Management"
         description="A list of all your leads and their current status"
@@ -302,12 +280,12 @@ export default function LeadsPage() {
           onPageChange: setCurrentPage,
         }}
         onCreateClick={handleCreate}
-        onRefresh={loadLeads}
+        onRefresh={() => leadsQuery.refetch()}
         onView={handleView}
         onEdit={handleEdit}
         onDelete={handleDelete}
         stats={stats}
-        error={error}
+        error={leadsQuery.error ? "Failed to load leads" : null}
         success={success}
       />
 
