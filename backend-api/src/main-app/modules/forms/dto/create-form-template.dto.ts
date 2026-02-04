@@ -6,8 +6,14 @@ import {
   IsArray,
   IsObject,
   IsInt,
+  IsEnum,
   Min,
 } from 'class-validator';
+
+export enum FormType {
+  SIMPLE = 'SIMPLE',
+  CARD = 'CARD',
+}
 
 export class FormFieldDto {
   @IsString()
@@ -57,9 +63,29 @@ export class CreateFormTemplateDto {
   @IsOptional()
   description?: string;
 
+  @IsEnum(FormType)
+  @IsOptional()
+  formType?: FormType = FormType.SIMPLE;
+
   @IsArray()
   @IsObject({ each: true })
   schema: FormFieldDto[];
+
+  @IsObject()
+  @IsOptional()
+  cardSettings?: Record<string, unknown>;
+
+  @IsObject()
+  @IsOptional()
+  profileEstimation?: Record<string, unknown>;
+
+  @IsObject()
+  @IsOptional()
+  styling?: Record<string, unknown>;
+
+  @IsBoolean()
+  @IsOptional()
+  analyticsEnabled?: boolean;
 
   @IsString()
   @IsNotEmpty()

@@ -228,6 +228,7 @@ useTenantQuery({
 
 ## References
 
+- **How React Query works in this project (plain English + sequence diagrams):** `frontend/docs/tanstack-react-query-explained.md`
 - **React Query setup:** `frontend/components/providers.tsx`
 - **Tenant hooks:** `frontend/hooks/useTenantQuery.ts`
 - **API client:** `frontend/lib/api/client.ts`

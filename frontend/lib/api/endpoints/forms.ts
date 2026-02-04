@@ -21,17 +21,24 @@ export interface FormField {
   required?: boolean;
 }
 
+export type FormType = "SIMPLE" | "CARD";
+
 export interface FormTemplate {
   id: string;
   name: string;
   slug: string;
   description?: string;
   isActive: boolean;
+  formType: FormType;
   schema: FormField[];
   title: string;
   subtitle?: string;
   submitButtonText: string;
   successMessage: string;
+  cardSettings?: Record<string, unknown>;
+  profileEstimation?: Record<string, unknown>;
+  styling?: Record<string, unknown>;
+  analyticsEnabled?: boolean;
   requiresWakeUp: boolean;
   wakeUpInterval: number;
   subAccountId?: number;
@@ -95,11 +102,16 @@ export interface CreateFormTemplateDto {
   name: string;
   slug: string;
   description?: string;
+  formType?: FormType;
   schema: FormField[];
   title: string;
   subtitle?: string;
   submitButtonText?: string;
   successMessage?: string;
+  cardSettings?: Record<string, unknown>;
+  profileEstimation?: Record<string, unknown>;
+  styling?: Record<string, unknown>;
+  analyticsEnabled?: boolean;
   requiresWakeUp?: boolean;
   wakeUpInterval?: number;
   subAccountId?: number;
@@ -109,11 +121,16 @@ export interface UpdateFormTemplateDto {
   name?: string;
   slug?: string;
   description?: string;
+  formType?: FormType;
   schema?: FormField[];
   title?: string;
   subtitle?: string;
   submitButtonText?: string;
   successMessage?: string;
+  cardSettings?: Record<string, unknown>;
+  profileEstimation?: Record<string, unknown>;
+  styling?: Record<string, unknown>;
+  analyticsEnabled?: boolean;
   isActive?: boolean;
   requiresWakeUp?: boolean;
   wakeUpInterval?: number;

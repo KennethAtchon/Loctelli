@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, Plus, Download } from "lucide-react";
+import { ArrowLeft, Save, Plus, Download, FileText, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,14 +23,17 @@ import { JsonImportDialog } from "@/components/admin/forms/json-import-dialog";
 import type {
   CreateFormTemplateDto,
   FormField,
+  FormType,
 } from "@/lib/api/endpoints/forms";
 
 export default function NewFormTemplatePage() {
   const { subAccountId } = useTenant();
+  const [formType, setFormType] = useState<FormType | null>(null);
   const [formData, setFormData] = useState<CreateFormTemplateDto>({
     name: "",
     slug: "",
     description: "",
+    formType: "SIMPLE",
     schema: [],
     title: "",
     subtitle: "",
@@ -129,20 +132,21 @@ export default function NewFormTemplatePage() {
       return;
     }
 
-    if (formData.schema.length === 0) {
+    const isSimpleForm = formData.formType !== "CARD";
+    if (isSimpleForm && formData.schema.length === 0) {
       toast({
         title: "Validation Error",
-        description: "At least one form field is required",
+        description: "At least one form field is required for Simple Forms",
         variant: "destructive",
       });
       return;
     }
 
-    // Validate all fields have labels
+    // Validate all fields have labels (Simple Form only)
     const invalidFields = formData.schema.filter(
-      (field) => !field.label.trim()
+      (field) => !field.label?.trim()
     );
-    if (invalidFields.length > 0) {
+    if (isSimpleForm && invalidFields.length > 0) {
       toast({
         title: "Validation Error",
         description: "All form fields must have labels",
@@ -181,6 +185,71 @@ export default function NewFormTemplatePage() {
     }
   };
 
+  // Step 1: Choose form type
+  if (formType === null) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4 mb-6">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.back()}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <h1 className="text-2xl font-bold">Create New Form</h1>
+        </div>
+        <p className="text-muted-foreground mb-6">
+          Choose the form type. Simple Form shows all fields on one page; Card Form shows one question per screen with a flowchart builder (coming soon).
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl">
+          <Card
+            className="cursor-pointer border-2 hover:border-primary transition-colors"
+            onClick={() => {
+              setFormType("SIMPLE");
+              setFormData((prev) => ({ ...prev, formType: "SIMPLE" }));
+            }}
+          >
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <FileText className="h-10 w-10 text-muted-foreground" />
+                <div>
+                  <CardTitle>Simple Form</CardTitle>
+                  <CardDescription>
+                    Traditional layout: all fields visible on one page. Best for contact forms and quick surveys.
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+          <Card
+            className="cursor-pointer border-2 hover:border-primary transition-colors"
+            onClick={() => {
+              setFormType("CARD");
+              setFormData((prev) => ({ ...prev, formType: "CARD" }));
+            }}
+          >
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <LayoutGrid className="h-10 w-10 text-muted-foreground" />
+                <div>
+                  <CardTitle>Card Form</CardTitle>
+                  <CardDescription>
+                    One question per screen with progress and branching. Builder (flowchart) coming soon.
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  const isCardForm = formType === "CARD";
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-6">
@@ -193,8 +262,30 @@ export default function NewFormTemplatePage() {
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
-        <h1 className="text-2xl font-bold">Create New Form Template</h1>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setFormType(null);
+            setFormData((prev) => ({ ...prev, formType: "SIMPLE" }));
+          }}
+        >
+          Change type
+        </Button>
+        <h1 className="text-2xl font-bold">
+          Create New {isCardForm ? "Card Form" : "Simple Form"}
+        </h1>
       </div>
+
+      {isCardForm && (
+        <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-900">
+          <CardContent className="pt-6">
+            <p className="text-sm text-amber-800 dark:text-amber-200">
+              Card form builder (flowchart, one-question-per-screen) is coming in a future update. You can create a placeholder now and add questions later.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
@@ -292,52 +383,54 @@ export default function NewFormTemplatePage() {
           </CardContent>
         </Card>
 
-        {/* Form Fields */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Form Fields
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={exportSchemaToJSON}
-                  disabled={formData.schema.length === 0}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Export JSON
-                </Button>
-                <JsonImportDialog onImport={handleImportFields} />
-                <Button type="button" onClick={addField} size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Field
-                </Button>
-              </div>
-            </CardTitle>
-            <CardDescription>
-              Define the fields that users will fill out. Use JSON import for
-              bulk operations.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {formData.schema.map((field, index) => (
-              <FormFieldEditor
-                key={field.id}
-                field={field}
-                index={index}
-                onUpdate={(updates) => updateField(index, updates)}
-                onRemove={() => removeField(index)}
-              />
-            ))}
+        {/* Form Fields (Simple Form only; Card Form builder coming later) */}
+        {!isCardForm && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                Form Fields
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={exportSchemaToJSON}
+                    disabled={formData.schema.length === 0}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export JSON
+                  </Button>
+                  <JsonImportDialog onImport={handleImportFields} />
+                  <Button type="button" onClick={addField} size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Field
+                  </Button>
+                </div>
+              </CardTitle>
+              <CardDescription>
+                Define the fields that users will fill out. Use JSON import for
+                bulk operations.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {formData.schema.map((field, index) => (
+                <FormFieldEditor
+                  key={field.id}
+                  field={field}
+                  index={index}
+                  onUpdate={(updates) => updateField(index, updates)}
+                  onRemove={() => removeField(index)}
+                />
+              ))}
 
-            {formData.schema.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                No fields added yet. Click "Add Field" to get started.
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              {formData.schema.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  No fields added yet. Click "Add Field" to get started.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Advanced Settings */}
         <Card>

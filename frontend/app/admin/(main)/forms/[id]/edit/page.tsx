@@ -83,6 +83,7 @@ export default function EditFormTemplatePage() {
         name: templateData.name,
         slug: templateData.slug,
         description: templateData.description,
+        formType: templateData.formType,
         schema: templateData.schema,
         title: templateData.title,
         subtitle: templateData.subtitle,
@@ -91,6 +92,10 @@ export default function EditFormTemplatePage() {
         isActive: templateData.isActive,
         requiresWakeUp: templateData.requiresWakeUp,
         wakeUpInterval: templateData.wakeUpInterval,
+        cardSettings: templateData.cardSettings,
+        profileEstimation: templateData.profileEstimation,
+        styling: templateData.styling,
+        analyticsEnabled: templateData.analyticsEnabled,
       });
     } catch (error: unknown) {
       console.error("Failed to load template:", error);
@@ -319,18 +324,19 @@ export default function EditFormTemplatePage() {
     }
 
     const currentSchema = formData.schema || [];
-    if (currentSchema.length === 0) {
+    const isCardForm = formData.formType === "CARD";
+    if (!isCardForm && currentSchema.length === 0) {
       toast({
         title: "Validation Error",
-        description: "At least one form field is required",
+        description: "At least one form field is required for Simple Forms",
         variant: "destructive",
       });
       return;
     }
 
-    // Validate all fields have labels
-    const invalidFields = currentSchema.filter((field) => !field.label.trim());
-    if (invalidFields.length > 0) {
+    // Validate all fields have labels (Simple Form only)
+    const invalidFields = currentSchema.filter((field) => !field.label?.trim());
+    if (!isCardForm && invalidFields.length > 0) {
       toast({
         title: "Validation Error",
         description: "All form fields must have labels",
@@ -390,6 +396,8 @@ export default function EditFormTemplatePage() {
     );
   }
 
+  const isCardForm = template.formType === "CARD";
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-6">
@@ -402,7 +410,9 @@ export default function EditFormTemplatePage() {
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
-        <h1 className="text-2xl font-bold">Edit Form Template</h1>
+        <h1 className="text-2xl font-bold">
+          Edit {isCardForm ? "Card Form" : "Simple Form"}
+        </h1>
         <div className="ml-auto">
           <Switch
             checked={formData.isActive}
@@ -413,6 +423,16 @@ export default function EditFormTemplatePage() {
           <Label className="ml-2">Active</Label>
         </div>
       </div>
+
+      {isCardForm && (
+        <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-900">
+          <CardContent className="pt-6">
+            <p className="text-sm text-amber-800 dark:text-amber-200">
+              Card form builder (flowchart, one-question-per-screen) is coming in a future update. You can edit basic settings and add questions when the builder is available.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
@@ -510,23 +530,24 @@ export default function EditFormTemplatePage() {
           </CardContent>
         </Card>
 
-        {/* Form Fields */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Form Fields
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={exportSchemaToJSON}
-                  disabled={(formData.schema || []).length === 0}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Export JSON
-                </Button>
-                <Dialog open={showJsonImport} onOpenChange={setShowJsonImport}>
+        {/* Form Fields (Simple Form only; Card Form builder in Phase 3) */}
+        {!isCardForm && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                Form Fields
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={exportSchemaToJSON}
+                    disabled={(formData.schema || []).length === 0}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export JSON
+                  </Button>
+                  <Dialog open={showJsonImport} onOpenChange={setShowJsonImport}>
                   <DialogTrigger asChild>
                     <Button type="button" variant="outline" size="sm">
                       <Upload className="h-4 w-4 mr-2" />
@@ -740,6 +761,7 @@ export default function EditFormTemplatePage() {
             )}
           </CardContent>
         </Card>
+        )}
 
         {/* Advanced Settings */}
         <Card>

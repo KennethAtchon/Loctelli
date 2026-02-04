@@ -5,9 +5,10 @@ import {
   IsArray,
   IsObject,
   IsInt,
+  IsEnum,
   Min,
 } from 'class-validator';
-import { FormFieldDto } from './create-form-template.dto';
+import { FormFieldDto, FormType } from './create-form-template.dto';
 
 export class UpdateFormTemplateDto {
   @IsString()
@@ -22,10 +23,30 @@ export class UpdateFormTemplateDto {
   @IsOptional()
   description?: string;
 
+  @IsEnum(FormType)
+  @IsOptional()
+  formType?: FormType;
+
   @IsArray()
   @IsObject({ each: true })
   @IsOptional()
   schema?: FormFieldDto[];
+
+  @IsObject()
+  @IsOptional()
+  cardSettings?: Record<string, unknown>;
+
+  @IsObject()
+  @IsOptional()
+  profileEstimation?: Record<string, unknown>;
+
+  @IsObject()
+  @IsOptional()
+  styling?: Record<string, unknown>;
+
+  @IsBoolean()
+  @IsOptional()
+  analyticsEnabled?: boolean;
 
   @IsString()
   @IsOptional()

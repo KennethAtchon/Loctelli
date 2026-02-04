@@ -129,6 +129,15 @@ export default function FormsPage() {
       ),
     },
     {
+      key: "formType",
+      header: "Type",
+      render: (template) => (
+        <Badge variant={template.formType === "CARD" ? "secondary" : "outline"}>
+          {template.formType === "CARD" ? "Card Form" : "Simple Form"}
+        </Badge>
+      ),
+    },
+    {
       key: "title",
       header: "Display Title",
       render: (template) => <span>{template.title}</span>,

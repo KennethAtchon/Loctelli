@@ -337,6 +337,11 @@ enum Priority {
 
 // Dynamic Forms System Models
 
+enum FormType {
+  SIMPLE // Traditional single-page form (rebranded from "Form")
+  CARD  // One-question-per-card interactive form
+}
+
 model FormTemplate {
   id           String   @id @default(cuid())
   name         String   // e.g., "GHL Onboarding Form", "Facebook Ads Setup"
@@ -344,14 +349,23 @@ model FormTemplate {
   description  String?  @db.Text
   isActive     Boolean  @default(true)
 
+  // Form type: Simple (all fields on one page) vs Card (one question per screen)
+  formType     FormType @default(SIMPLE)
+
   // Form configuration - array of field definitions
-  schema       Json     // [{ id: string, type: "text|email|phone|textarea|select|checkbox|radio|file|image", label: string, placeholder?: string, options?: string[], required?: boolean }]
+  schema       Json     // [{ id: string, type: "...", label: string, ... }] | CardFormField[] for CARD
 
   // Styling and presentation
   title        String   // Display title on the form page
   subtitle     String?  @db.Text // Optional subtitle/description
   submitButtonText String @default("Submit")
   successMessage String @default("Thank you for your submission!")
+
+  // Card form specific (nullable for SIMPLE)
+  cardSettings     Json?    // CardFormSettings: progress, navigation, session timeout, etc.
+  profileEstimation Json?   // ProfileEstimation: scoring and result config
+  styling          Json?   // FormStyling: theme, colors, transitions
+  analyticsEnabled Boolean @default(true)
 
   // Wake-up mechanism for public forms
   requiresWakeUp Boolean @default(true) // Whether to wake up the database

@@ -117,6 +117,7 @@ export type {
   FormTemplate,
   FormSubmission,
   FormField,
+  FormType,
   CreateFormTemplateDto,
   UpdateFormTemplateDto,
   CreateFormSubmissionDto,

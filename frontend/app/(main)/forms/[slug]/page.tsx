@@ -465,6 +465,31 @@ export default function PublicFormPage() {
 
   if (!template) return null;
 
+  // Card form renderer is Phase 2; show coming-soon for CARD type
+  if (template.formType === "CARD") {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Navigation />
+        <div className="flex-1 py-8 flex items-center justify-center px-4">
+          <Card className="max-w-md w-full">
+            <CardHeader>
+              <CardTitle>{template.title}</CardTitle>
+              {template.subtitle && (
+                <CardDescription>{template.subtitle}</CardDescription>
+              )}
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-center py-6">
+                This interactive card-style form is not yet available. Please check back later.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navigation />
@@ -486,7 +511,7 @@ export default function PublicFormPage() {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                {template.schema.map(renderField)}
+                {(template.schema ?? []).map(renderField)}
 
                 <Button
                   type="submit"
