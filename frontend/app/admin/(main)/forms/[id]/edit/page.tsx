@@ -592,7 +592,7 @@ export default function EditFormTemplatePage() {
           </CardContent>
         </Card>
 
-        {/* Form Fields (Simple Form only; Card Form builder in Phase 3) */}
+        {/* Form Fields (Simple Form only; Card Forms use the flowchart builder above) */}
         {!isCardForm && (
           <Card>
             <CardHeader>

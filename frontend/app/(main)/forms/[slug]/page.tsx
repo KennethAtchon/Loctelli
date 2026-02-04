@@ -119,7 +119,7 @@ export default function PublicFormPage() {
         wakeUpIntervalRef.current = null;
       }
     };
-  }, [template, wakeUpDatabase]);
+  }, [template]);
 
   const handleInputChange = (fieldId: string, value: unknown) => {
     setFormData((prev) => ({

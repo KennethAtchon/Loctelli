@@ -13,7 +13,7 @@
     "start": "bun run --bun nest start",
     "start:dev": "bun run --bun nest start --watch",
     "start:debug": "bun run --bun nest start --debug --watch",
-    "start:prod": "bun dist/src/core/main",
+    "start:prod": "bun dist/src/core/main.js",
     "lint": "eslint \"{src,apps,libs}/**/*.ts\" --fix",
     "test": "bun test",
     "test:watch": "bun test --watch",

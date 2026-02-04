@@ -27,10 +27,13 @@ import { api } from "@/lib/api";
 import { useTenant } from "@/contexts/tenant-context";
 import { FormFieldEditor } from "@/components/admin/forms/form-field-editor";
 import { JsonImportDialog } from "@/components/admin/forms/json-import-dialog";
+import { CardFormBuilder } from "@/components/admin/forms/card-form-builder";
+import { ProfileEstimationSetup } from "@/components/admin/forms/profile-estimation/setup-wizard";
 import type {
   CreateFormTemplateDto,
   FormField,
   FormType,
+  ProfileEstimation,
 } from "@/lib/api/endpoints/forms";
 
 export default function NewFormTemplatePage() {
@@ -55,7 +58,14 @@ export default function NewFormTemplatePage() {
 
   const handleInputChange = (
     field: keyof CreateFormTemplateDto,
-    value: string | number | boolean | FormField[] | undefined
+    value:
+      | string
+      | number
+      | boolean
+      | FormField[]
+      | Record<string, unknown>
+      | ProfileEstimation
+      | undefined
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -210,8 +220,7 @@ export default function NewFormTemplatePage() {
         </div>
         <p className="text-muted-foreground mb-6">
           Choose the form type. Simple Form shows all fields on one page; Card
-          Form shows one question per screen with a flowchart builder (coming
-          soon).
+          Form shows one question per screen with an interactive flowchart builder.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl">
           <Card
@@ -247,8 +256,8 @@ export default function NewFormTemplatePage() {
                 <div>
                   <CardTitle>Card Form</CardTitle>
                   <CardDescription>
-                    One question per screen with progress and branching. Builder
-                    (flowchart) coming soon.
+                    One question per screen with progress and branching. Build
+                    interactive forms using the visual flowchart editor.
                   </CardDescription>
                 </div>
               </div>
@@ -274,7 +283,7 @@ export default function NewFormTemplatePage() {
           Back
         </Button>
         <Button
-          variant="ghost"
+          variant="secondary"
           size="sm"
           onClick={() => {
             setFormType(null);
@@ -287,18 +296,6 @@ export default function NewFormTemplatePage() {
           Create New {isCardForm ? "Card Form" : "Simple Form"}
         </h1>
       </div>
-
-      {isCardForm && (
-        <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-900">
-          <CardContent className="pt-6">
-            <p className="text-sm text-amber-800 dark:text-amber-200">
-              Card form builder (flowchart, one-question-per-screen) is coming
-              in a future update. You can create a placeholder now and add
-              questions later.
-            </p>
-          </CardContent>
-        </Card>
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
@@ -396,7 +393,60 @@ export default function NewFormTemplatePage() {
           </CardContent>
         </Card>
 
-        {/* Form Fields (Simple Form only; Card Form builder coming later) */}
+        {/* Card Form Builder (Card Form only) */}
+        {isCardForm && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Card Form Builder</CardTitle>
+              <CardDescription>
+                Build your interactive card form using the flowchart editor.
+                Preview will be available after you create the form.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CardFormBuilder
+                schema={formData.schema || []}
+                cardSettings={
+                  formData.cardSettings as Record<string, unknown> | undefined
+                }
+                onSchemaChange={(newSchema) =>
+                  handleInputChange("schema", newSchema)
+                }
+                onCardSettingsChange={(settings) =>
+                  handleInputChange("cardSettings", settings)
+                }
+              />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Profile Estimation (Card Form only) */}
+        {isCardForm && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile Estimation</CardTitle>
+              <CardDescription>
+                Configure personalized results based on user answers
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProfileEstimationSetup
+                value={
+                  formData.profileEstimation as ProfileEstimation | undefined
+                }
+                fields={formData.schema || []}
+                onChange={(config) =>
+                  handleInputChange(
+                    "profileEstimation",
+                    config as ProfileEstimation | undefined
+                  )
+                }
+              />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Form Fields (Simple Form only; Card Forms use the flowchart builder above) */}
         {!isCardForm && (
           <Card>
             <CardHeader>

@@ -58,9 +58,8 @@ COPY --from=builder /app/prisma ./prisma
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
 
-# Copy compiled seed script
+# Copy compiled seed script (bundled, includes all dependencies)
 COPY --from=builder /app/dist/prisma/seed.js ./prisma/seed.js
-COPY --from=builder /app/dist/prisma/seed-data ./prisma/seed-data
 
 # Force reinstall bcrypt to ensure native bindings are built correctly
 RUN bun remove bcrypt && bun add bcrypt@^6.0.0

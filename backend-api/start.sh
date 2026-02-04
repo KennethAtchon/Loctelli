@@ -30,9 +30,9 @@ bunx prisma generate || echo "WARNING: Prisma generate failed, but continuing...
 
 # Run database seeding (non-blocking)
 echo "Running database seeding..."
-bun prisma/seed.ts || echo "WARNING: Database seeding failed, but continuing..."
+bun prisma/seed.js || echo "WARNING: Database seeding failed, but continuing..."
 
 # Start the application
 echo "Starting NestJS application..."
 echo "The application will automatically wait for database and Redis connections..."
-exec bun dist/src/core/main
+exec bun dist/src/core/main.js

@@ -2,8 +2,14 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, List, Workflow, Eye } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Plus, List, Eye } from "lucide-react";
 import { FlowchartCanvas } from "./flowchart-canvas";
 import { CardSettingsPanel } from "./card-settings-panel";
 import { ListView } from "./list-view";
@@ -35,7 +41,7 @@ export function CardFormBuilder({
   onCardSettingsChange,
   formSlug,
 }: CardFormBuilderProps) {
-  const [viewMode, setViewMode] = useState<"flow" | "list">("flow");
+  const [listModalOpen, setListModalOpen] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>();
   const [graph, setGraph] = useState<FlowchartGraph>(() => {
     const savedGraph = cardSettings?.flowchartGraph as
@@ -198,6 +204,56 @@ export function CardFormBuilder({
           </Button>
         </div>
         <div className="flex items-center gap-2">
+          <Dialog open={listModalOpen} onOpenChange={setListModalOpen}>
+            <DialogTrigger asChild>
+              <Button type="button" variant="outline" size="sm">
+                <List className="h-4 w-4 mr-2" />
+                List View
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+              <DialogHeader>
+                <DialogTitle>List View</DialogTitle>
+              </DialogHeader>
+              <div className="overflow-y-auto flex-1 min-h-0 -mx-1 px-1">
+                <ListView
+                  nodes={graph.nodes}
+                  onNodeClick={(nodeId) => {
+                    handleNodeClick(nodeId);
+                    setListModalOpen(false);
+                  }}
+                  onNodeDelete={handleNodeDelete}
+                  onReorder={(orderedIds) => {
+                    const orderedNodes = orderedIds
+                      .map((id) => graph.nodes.find((n) => n.id === id))
+                      .filter(Boolean) as FlowchartNode[];
+                    const newEdges: FlowchartEdge[] = [];
+                    if (orderedNodes.length > 0) {
+                      newEdges.push({
+                        id: `e-${START_NODE_ID}-${orderedNodes[0].id}`,
+                        source: START_NODE_ID,
+                        target: orderedNodes[0].id,
+                      });
+                      for (let i = 0; i < orderedNodes.length - 1; i++) {
+                        newEdges.push({
+                          id: `e-${orderedNodes[i].id}-${orderedNodes[i + 1].id}`,
+                          source: orderedNodes[i].id,
+                          target: orderedNodes[i + 1].id,
+                        });
+                      }
+                      newEdges.push({
+                        id: `e-${orderedNodes[orderedNodes.length - 1].id}-${END_NODE_ID}`,
+                        source: orderedNodes[orderedNodes.length - 1].id,
+                        target: END_NODE_ID,
+                      });
+                    }
+                    const updatedGraph = { ...graph, edges: newEdges };
+                    handleGraphChange(updatedGraph);
+                  }}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
           {formSlug && (
             <Button
               type="button"
@@ -212,68 +268,14 @@ export function CardFormBuilder({
         </div>
       </div>
 
-      <Tabs
-        value={viewMode}
-        onValueChange={(v) => setViewMode(v as "flow" | "list")}
-      >
-        <TabsList>
-          <TabsTrigger value="flow">
-            <Workflow className="h-4 w-4 mr-2" />
-            Flow View
-          </TabsTrigger>
-          <TabsTrigger value="list">
-            <List className="h-4 w-4 mr-2" />
-            List View
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="flow" className="mt-4">
-          <div className="h-[600px] w-full">
-            <FlowchartCanvas
-              graph={graph}
-              onGraphChange={handleGraphChange}
-              onNodeClick={handleNodeClick}
-              selectedNodeId={selectedNodeId}
-            />
-          </div>
-        </TabsContent>
-
-        <TabsContent value="list" className="mt-4">
-          <ListView
-            nodes={graph.nodes}
-            onNodeClick={handleNodeClick}
-            onNodeDelete={handleNodeDelete}
-            onReorder={(orderedIds) => {
-              // Rebuild edges based on new order
-              const orderedNodes = orderedIds
-                .map((id) => graph.nodes.find((n) => n.id === id))
-                .filter(Boolean) as FlowchartNode[];
-              const newEdges: FlowchartEdge[] = [];
-              if (orderedNodes.length > 0) {
-                newEdges.push({
-                  id: `e-${START_NODE_ID}-${orderedNodes[0].id}`,
-                  source: START_NODE_ID,
-                  target: orderedNodes[0].id,
-                });
-                for (let i = 0; i < orderedNodes.length - 1; i++) {
-                  newEdges.push({
-                    id: `e-${orderedNodes[i].id}-${orderedNodes[i + 1].id}`,
-                    source: orderedNodes[i].id,
-                    target: orderedNodes[i + 1].id,
-                  });
-                }
-                newEdges.push({
-                  id: `e-${orderedNodes[orderedNodes.length - 1].id}-${END_NODE_ID}`,
-                  source: orderedNodes[orderedNodes.length - 1].id,
-                  target: END_NODE_ID,
-                });
-              }
-              const updatedGraph = { ...graph, edges: newEdges };
-              handleGraphChange(updatedGraph);
-            }}
-          />
-        </TabsContent>
-      </Tabs>
+      <div className="h-[600px] w-full mt-4">
+        <FlowchartCanvas
+          graph={graph}
+          onGraphChange={handleGraphChange}
+          onNodeClick={handleNodeClick}
+          selectedNodeId={selectedNodeId}
+        />
+      </div>
 
       <CardSettingsPanel
         node={selectedNode ?? null}

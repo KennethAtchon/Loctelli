@@ -11,7 +11,6 @@ const nextConfig = {
   // Disable static optimization for error pages
   experimental: {
     optimizePackageImports: ["lucide-react"],
-    missingSuspenseWithCSRBailout: false,
   },
 
   // Fix image optimization
