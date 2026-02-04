@@ -4,6 +4,9 @@ CREATE TYPE "ContactStatus" AS ENUM ('NEW', 'CONTACTED', 'QUALIFIED', 'PROPOSAL_
 -- CreateEnum
 CREATE TYPE "Priority" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'URGENT');
 
+-- CreateEnum
+CREATE TYPE "FormType" AS ENUM ('SIMPLE', 'CARD');
+
 -- CreateTable
 CREATE TABLE "AdminUser" (
     "id" SERIAL NOT NULL,
@@ -230,11 +233,16 @@ CREATE TABLE "form_templates" (
     "slug" TEXT NOT NULL,
     "description" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "formType" "FormType" NOT NULL DEFAULT 'SIMPLE',
     "schema" JSONB NOT NULL,
     "title" TEXT NOT NULL,
     "subtitle" TEXT,
     "submitButtonText" TEXT NOT NULL DEFAULT 'Submit',
     "successMessage" TEXT NOT NULL DEFAULT 'Thank you for your submission!',
+    "cardSettings" JSONB,
+    "profileEstimation" JSONB,
+    "styling" JSONB,
+    "analyticsEnabled" BOOLEAN NOT NULL DEFAULT true,
     "requiresWakeUp" BOOLEAN NOT NULL DEFAULT true,
     "wakeUpInterval" INTEGER NOT NULL DEFAULT 30,
     "subAccountId" INTEGER,

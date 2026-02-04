@@ -23,6 +23,8 @@ import { CreateFormTemplateDto } from './dto/create-form-template.dto';
 import { UpdateFormTemplateDto } from './dto/update-form-template.dto';
 import { CreateFormSubmissionDto } from './dto/create-form-submission.dto';
 import { UpdateFormSubmissionDto } from './dto/update-form-submission.dto';
+import { CreateFormSessionDto } from './dto/create-form-session.dto';
+import { UpdateFormSessionDto } from './dto/update-form-session.dto';
 import { JwtAuthGuard } from '../../../shared/auth/auth.guard';
 import { AdminGuard } from '../../../shared/guards/admin.guard';
 import { Public } from '../../../shared/decorators/public.decorator';
@@ -138,6 +140,46 @@ export class FormsController {
     }
 
     return this.formsService.uploadFormFile(slug, fieldId, file);
+  }
+
+  // Form session (card form save/resume) - before generic GET public/:slug
+  @Post('public/:slug/session')
+  @Public()
+  @HttpCode(HttpStatus.CREATED)
+  async createFormSession(
+    @Param('slug') slug: string,
+    @Body() dto: CreateFormSessionDto,
+  ) {
+    return this.formsService.createFormSession(slug, dto);
+  }
+
+  @Get('public/:slug/session/:token')
+  @Public()
+  async getFormSession(
+    @Param('slug') slug: string,
+    @Param('token') token: string,
+  ) {
+    return this.formsService.getFormSessionByToken(slug, token);
+  }
+
+  @Patch('public/:slug/session/:token')
+  @Public()
+  async updateFormSession(
+    @Param('slug') slug: string,
+    @Param('token') token: string,
+    @Body() dto: UpdateFormSessionDto,
+  ) {
+    return this.formsService.updateFormSession(slug, token, dto);
+  }
+
+  @Post('public/:slug/session/:token/complete')
+  @Public()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async completeFormSession(
+    @Param('slug') slug: string,
+    @Param('token') token: string,
+  ) {
+    await this.formsService.completeFormSession(slug, token);
   }
 
   // Public form submission (specific path before parameterized)

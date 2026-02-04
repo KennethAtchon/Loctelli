@@ -88,6 +88,12 @@
 - **SMS History**: `/sms/messages` - Message history, filtering, export
 - **Twilio Integration**: Complete Twilio API integration with error handling and retry logic
 
+#### **Forms**
+- **Form Templates**: `/forms/templates/*` - CRUD; `formType`: SIMPLE | CARD
+- **Public Forms**: `GET /forms/public/:slug`, `POST /forms/public/:slug/submit`, `POST /forms/public/:slug/upload`
+- **Form Sessions** (card form save/resume): `POST /forms/public/:slug/session`, `GET/PATCH /forms/public/:slug/session/:token`, `POST .../session/:token/complete`
+- **Card Form Renderer**: `frontend/components/public/forms/card-form/` – one-question-per-screen, Framer Motion transitions, progress indicator, keyboard (Enter/Esc), session restore via sessionStorage + API
+
 #### **System**
 - **Status**: `/status/*` - Health, version, system status
 - **General**: `/general/*` - Dashboard stats, schema, detailed views

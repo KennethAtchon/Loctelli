@@ -63,6 +63,7 @@ model SubAccount {
   // Prompt template selections
   promptTemplates SubAccountPromptTemplate[]
   formSubmissions FormSubmission[]
+  formSessions    FormSession[]
 
   // Invitation system
   invitations     SubAccountInvitation[]
@@ -383,8 +384,33 @@ model FormTemplate {
 
   // Relations
   submissions  FormSubmission[]
+  sessions     FormSession[]
 
   @@map("form_templates")
+}
+
+// Partial form progress for card forms (save/resume)
+model FormSession {
+  id               String   @id @default(cuid())
+  formTemplateId    String
+  formTemplate      FormTemplate @relation(fields: [formTemplateId], references: [id], onDelete: Cascade)
+  sessionToken     String   @unique
+  currentCardIndex  Int      @default(0)
+  partialData      Json     // Saved answers so far
+
+  startedAt        DateTime @default(now())
+  lastActivityAt   DateTime @updatedAt
+  completedAt     DateTime?
+
+  deviceType       String?  // mobile, tablet, desktop
+  browser          String?
+  os               String?
+  timePerCard      Json?    // { cardId: seconds }[] for analytics
+
+  subAccountId     Int
+  subAccount       SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
+
+  @@map("form_sessions")
 }
 
 model FormSubmission {

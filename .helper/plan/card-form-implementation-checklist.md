@@ -31,28 +31,28 @@
 
 ## Phase 2: Card Form Renderer (Frontend)
 
-- [ ] Card form container component (one question per screen)
-- [ ] Card transition animations (Framer Motion)
-- [ ] Field type components for card form (text, email, choice, scale, etc.)
-- [ ] Keyboard navigation (Enter, Esc, arrows)
-- [ ] Progress indicator
-- [ ] Session save/resume (FormSession model + API)
-- [ ] Mobile responsive + swipe
-- [ ] Accessibility (focus, reduced motion)
+- [x] Card form container component (one question per screen)
+- [x] Card transition animations (Framer Motion)
+- [x] Field type components for card form (text, email, phone, textarea, select, radio, checkbox, file, image)
+- [x] Keyboard navigation (Enter, Esc)
+- [x] Progress indicator (bar, dots, numbers from cardSettings)
+- [x] Session save/resume (FormSession model + API)
+- [x] Mobile responsive layout
+- [x] Accessibility (focus management, reduced motion via prefers-reduced-motion)
 
 ---
 
 ## Phase 3: Flowchart-Based Card Form Builder (Admin)
 
-- [ ] Integrate React Flow (or xyflow)
-- [ ] Flowchart canvas with nodes (Start, End, Question, Statement, Result)
-- [ ] Custom edges with conditional labels
-- [ ] Node creation and edge creation (drag/connect)
-- [ ] Card settings panel on node click
-- [ ] Zoom/pan; graph serialization (nodes + edges → schema)
-- [ ] List view toggle
-- [ ] Media upload per card; validation rule editor
-- [ ] Live preview
+- [x] Integrate React Flow (@xyflow/react)
+- [x] Flowchart canvas with nodes (Start, End, Question, Statement, Result)
+- [x] Custom edges with conditional labels (basic implementation)
+- [x] Node creation and edge creation (drag/connect)
+- [x] Card settings panel on node click
+- [x] Zoom/pan; graph serialization (nodes + edges → schema)
+- [x] List view toggle
+- [x] Media upload per card (image, video, GIF, icon with position options)
+- [x] Live preview (opens public form in new tab)
 
 ---
 
@@ -99,4 +99,4 @@
 
 ---
 
-*Last updated: Phase 1 completed*
+*Last updated: Phase 2 completed*

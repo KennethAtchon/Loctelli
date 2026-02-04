@@ -12,6 +12,9 @@ import {
   UpdateFormSubmissionDto,
   FormStats,
   UploadedFile,
+  FormSessionPayload,
+  CreateFormSessionDto,
+  UpdateFormSessionDto,
 } from "../endpoints/forms";
 
 export const formsConfig: EndpointGroup = {
@@ -83,6 +86,45 @@ export const formsConfig: EndpointGroup = {
     pathParams: [{ name: "slug", required: true, type: "string" }],
     isFileUpload: true,
     responseType: {} as UploadedFile,
+  },
+
+  // Form session (card form save/resume)
+  createFormSession: {
+    method: "POST",
+    path: "/forms/public/:slug/session",
+    pathParams: [{ name: "slug", required: true, type: "string" }],
+    requiresBody: true,
+    bodyType: {} as CreateFormSessionDto,
+    responseType: {} as FormSessionPayload,
+  },
+  getFormSession: {
+    method: "GET",
+    path: "/forms/public/:slug/session/:token",
+    pathParams: [
+      { name: "slug", required: true, type: "string" },
+      { name: "token", required: true, type: "string" },
+    ],
+    responseType: {} as FormSessionPayload,
+  },
+  updateFormSession: {
+    method: "PATCH",
+    path: "/forms/public/:slug/session/:token",
+    pathParams: [
+      { name: "slug", required: true, type: "string" },
+      { name: "token", required: true, type: "string" },
+    ],
+    requiresBody: true,
+    bodyType: {} as UpdateFormSessionDto,
+    responseType: {} as FormSessionPayload,
+  },
+  completeFormSession: {
+    method: "POST",
+    path: "/forms/public/:slug/session/:token/complete",
+    pathParams: [
+      { name: "slug", required: true, type: "string" },
+      { name: "token", required: true, type: "string" },
+    ],
+    responseType: undefined as unknown as void,
   },
 
   // Form Submissions

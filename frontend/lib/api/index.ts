@@ -124,4 +124,7 @@ export type {
   UpdateFormSubmissionDto,
   FormStats,
   UploadedFile,
+  FormSessionPayload,
+  CreateFormSessionDto,
+  UpdateFormSessionDto,
 } from "./endpoints/forms";

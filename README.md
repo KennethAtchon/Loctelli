@@ -184,21 +184,22 @@ rm -rf prisma/migrations
 # 3. Start database fresh
 docker-compose up -d db redis
 
-# 4. Reset Prisma state (removes migration history)
-npx prisma migrate reset --force
+# 4. Reset database and apply schema (no migrations)
+bunx prisma db push --force-reset --accept-data-loss
 
 # 5. Create initial migration from current schema
-npx prisma migrate dev --name init
+# This creates the migration file and applies it, generating Prisma Client
+bunx prisma migrate dev --name init
 
-# 6. Generate Prisma client
-npx prisma generate
+# 6. Seed the database (if you have seed data)
+bun prisma/seed.ts
+# OR: bun run db:seed  (if configured in package.json)
 
-# 7. Seed the database (if you have seed data)
-bun run db:seed
-
-# 8. Start the application
+# 7. Start the application
 bun run start:dev
 ```
+
+**Note**: After creating the initial migration, future `prisma migrate reset --force` commands will work correctly (they'll apply the migration and run seed automatically).
 
 **⚠️ Warning**: This will completely remove all migration history and data. Only use in development!
 

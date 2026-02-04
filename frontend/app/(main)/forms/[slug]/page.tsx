@@ -29,6 +29,7 @@ import { FormTemplate, FormField, api, UploadedFile } from "@/lib/api";
 import logger from "@/lib/logger";
 import { Navigation } from "@/components/version2/navigation";
 import { Footer } from "@/components/version2/footer";
+import { CardFormContainer } from "@/components/public/forms/card-form";
 import Image from "next/image";
 
 const PUBLIC_FORM_STALE_MS = 5 * 60 * 1000; // 5 min
@@ -465,25 +466,23 @@ export default function PublicFormPage() {
 
   if (!template) return null;
 
-  // Card form renderer is Phase 2; show coming-soon for CARD type
   if (template.formType === "CARD") {
+    const cardSettings = template.cardSettings as
+      | { progressStyle?: "bar" | "dots" | "numbers"; saveProgress?: boolean }
+      | undefined;
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-background">
         <Navigation />
         <div className="flex-1 py-8 flex items-center justify-center px-4">
-          <Card className="max-w-md w-full">
-            <CardHeader>
-              <CardTitle>{template.title}</CardTitle>
-              {template.subtitle && (
-                <CardDescription>{template.subtitle}</CardDescription>
-              )}
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-center py-6">
-                This interactive card-style form is not yet available. Please check back later.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="w-full max-w-xl">
+            <CardFormContainer
+              slug={slug}
+              template={template}
+              formsApi={formsApi}
+              saveProgress={cardSettings?.saveProgress ?? true}
+              progressStyle={cardSettings?.progressStyle ?? "bar"}
+            />
+          </div>
         </div>
         <Footer />
       </div>

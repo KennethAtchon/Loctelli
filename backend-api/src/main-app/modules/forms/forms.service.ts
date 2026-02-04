@@ -5,12 +5,16 @@ import {
   BadRequestException,
   Logger,
 } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { R2StorageService } from '../../../shared/storage/r2-storage.service';
 import { CreateFormTemplateDto } from './dto/create-form-template.dto';
 import { UpdateFormTemplateDto } from './dto/update-form-template.dto';
 import { CreateFormSubmissionDto } from './dto/create-form-submission.dto';
 import { UpdateFormSubmissionDto } from './dto/update-form-submission.dto';
+import { CreateFormSessionDto } from './dto/create-form-session.dto';
+import { UpdateFormSessionDto } from './dto/update-form-session.dto';
+import { randomUUID } from 'node:crypto';
 
 @Injectable()
 export class FormsService {
@@ -73,7 +77,10 @@ export class FormsService {
           slug,
           createdByAdminId: adminId,
           subAccountId: finalSubAccountId,
-          schema: JSON.parse(JSON.stringify(data.schema)), // Convert FormFieldDto[] to JSON
+          schema: JSON.parse(JSON.stringify(data.schema)) as Prisma.InputJsonValue,
+          cardSettings: data.cardSettings as Prisma.InputJsonValue | undefined,
+          profileEstimation: data.profileEstimation as Prisma.InputJsonValue | undefined,
+          styling: data.styling as Prisma.InputJsonValue | undefined,
         },
       });
 
@@ -332,6 +339,110 @@ export class FormsService {
 
     return this.prisma.formSubmission.delete({
       where: { id },
+    });
+  }
+
+  // Form sessions (card form save/resume)
+  async createFormSession(slug: string, dto: CreateFormSessionDto) {
+    const template = await this.findFormTemplateBySlug(slug);
+    if (template.formType !== 'CARD') {
+      throw new BadRequestException(
+        'Form sessions are only supported for card forms',
+      );
+    }
+    if (!template.subAccountId) {
+      throw new BadRequestException(
+        'Form template must be associated with a sub-account',
+      );
+    }
+    const sessionToken = randomUUID();
+    const session = await this.prisma.formSession.create({
+      data: {
+        formTemplateId: template.id,
+        subAccountId: template.subAccountId,
+        sessionToken,
+        currentCardIndex: 0,
+        partialData: {} as Prisma.InputJsonValue,
+        deviceType: dto.deviceType,
+        browser: dto.browser,
+        os: dto.os,
+      },
+    });
+    return {
+      sessionToken: session.sessionToken,
+      currentCardIndex: session.currentCardIndex,
+      partialData: session.partialData as Record<string, unknown>,
+      formTemplateId: session.formTemplateId,
+    };
+  }
+
+  async getFormSessionByToken(slug: string, token: string) {
+    const template = await this.findFormTemplateBySlug(slug);
+    const session = await this.prisma.formSession.findUnique({
+      where: { sessionToken: token },
+      include: { formTemplate: { select: { slug: true } } },
+    });
+    if (!session || session.formTemplate.slug !== slug) {
+      throw new NotFoundException('Form session not found or expired');
+    }
+    if (session.completedAt) {
+      throw new BadRequestException('This session has already been completed');
+    }
+    return {
+      sessionToken: session.sessionToken,
+      currentCardIndex: session.currentCardIndex,
+      partialData: session.partialData as Record<string, unknown>,
+      formTemplateId: session.formTemplateId,
+    };
+  }
+
+  async updateFormSession(
+    slug: string,
+    token: string,
+    dto: UpdateFormSessionDto,
+  ) {
+    const template = await this.findFormTemplateBySlug(slug);
+    const session = await this.prisma.formSession.findUnique({
+      where: { sessionToken: token },
+      include: { formTemplate: { select: { slug: true } } },
+    });
+    if (!session || session.formTemplate.slug !== slug) {
+      throw new NotFoundException('Form session not found or expired');
+    }
+    if (session.completedAt) {
+      throw new BadRequestException('This session has already been completed');
+    }
+    const updateData: { currentCardIndex?: number; partialData?: Prisma.InputJsonValue } = {};
+    if (dto.currentCardIndex !== undefined) {
+      updateData.currentCardIndex = dto.currentCardIndex;
+    }
+    if (dto.partialData !== undefined) {
+      updateData.partialData = dto.partialData as Prisma.InputJsonValue;
+    }
+    const updated = await this.prisma.formSession.update({
+      where: { id: session.id },
+      data: updateData,
+    });
+    return {
+      sessionToken: updated.sessionToken,
+      currentCardIndex: updated.currentCardIndex,
+      partialData: updated.partialData as Record<string, unknown>,
+      formTemplateId: updated.formTemplateId,
+    };
+  }
+
+  async completeFormSession(slug: string, token: string) {
+    const template = await this.findFormTemplateBySlug(slug);
+    const session = await this.prisma.formSession.findUnique({
+      where: { sessionToken: token },
+      include: { formTemplate: { select: { slug: true } } },
+    });
+    if (!session || session.formTemplate.slug !== slug) {
+      throw new NotFoundException('Form session not found or expired');
+    }
+    await this.prisma.formSession.update({
+      where: { id: session.id },
+      data: { completedAt: new Date() },
     });
   }
 

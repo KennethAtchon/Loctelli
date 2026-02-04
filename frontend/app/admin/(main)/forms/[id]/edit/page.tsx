@@ -45,6 +45,7 @@ import type {
   UpdateFormTemplateDto,
   FormField,
 } from "@/lib/api/endpoints/forms";
+import { CardFormBuilder } from "@/components/admin/forms/card-form-builder";
 
 const fieldTypes = [
   { value: "text", label: "Text Input" },
@@ -425,11 +426,23 @@ export default function EditFormTemplatePage() {
       </div>
 
       {isCardForm && (
-        <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-900">
-          <CardContent className="pt-6">
-            <p className="text-sm text-amber-800 dark:text-amber-200">
-              Card form builder (flowchart, one-question-per-screen) is coming in a future update. You can edit basic settings and add questions when the builder is available.
-            </p>
+        <Card>
+          <CardHeader>
+            <CardTitle>Card Form Builder</CardTitle>
+            <CardDescription>
+              Build your interactive card form using the flowchart editor
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CardFormBuilder
+              schema={formData.schema || []}
+              cardSettings={formData.cardSettings as Record<string, unknown> | undefined}
+              onSchemaChange={(newSchema) => handleInputChange("schema", newSchema)}
+              onCardSettingsChange={(settings) =>
+                handleInputChange("cardSettings", settings)
+              }
+              formSlug={formData.slug}
+            />
           </CardContent>
         </Card>
       )}

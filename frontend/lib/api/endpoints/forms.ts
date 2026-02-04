@@ -3,6 +3,15 @@ import { EndpointApiBuilder, EndpointApi } from "../config/endpoint-builder";
 import { formsConfig } from "../config/forms.config";
 
 // Form Template types
+export interface CardMedia {
+  type: "image" | "video" | "gif" | "icon";
+  url?: string;
+  altText?: string;
+  position: "above" | "below" | "background" | "left" | "right";
+  videoType?: "youtube" | "vimeo" | "upload";
+  videoId?: string;
+}
+
 export interface FormField {
   id: string;
   type:
@@ -14,11 +23,14 @@ export interface FormField {
     | "checkbox"
     | "radio"
     | "file"
-    | "image";
+    | "image"
+    | "statement";
   label: string;
   placeholder?: string;
   options?: string[];
   required?: boolean;
+  /** Media for card forms */
+  media?: CardMedia;
 }
 
 export type FormType = "SIMPLE" | "CARD";
@@ -166,6 +178,24 @@ export interface UploadedFile {
   fieldId?: string;
 }
 
+export interface FormSessionPayload {
+  sessionToken: string;
+  currentCardIndex: number;
+  partialData: Record<string, unknown>;
+  formTemplateId: string;
+}
+
+export interface CreateFormSessionDto {
+  deviceType?: string;
+  browser?: string;
+  os?: string;
+}
+
+export interface UpdateFormSessionDto {
+  currentCardIndex?: number;
+  partialData?: Record<string, unknown>;
+}
+
 export class FormsApi {
   private api: EndpointApi<typeof formsConfig>;
 
@@ -230,6 +260,39 @@ export class FormsApi {
     formData: FormData
   ): Promise<UploadedFile> {
     return this.api.uploadFormFile({ slug }, formData) as Promise<UploadedFile>;
+  }
+
+  // Form session (card form save/resume)
+  async createFormSession(
+    slug: string,
+    data?: CreateFormSessionDto
+  ): Promise<FormSessionPayload> {
+    return this.api.createFormSession(
+      { slug },
+      data ?? {}
+    ) as Promise<FormSessionPayload>;
+  }
+
+  async getFormSession(
+    slug: string,
+    token: string
+  ): Promise<FormSessionPayload> {
+    return this.api.getFormSession({ slug, token }) as Promise<FormSessionPayload>;
+  }
+
+  async updateFormSession(
+    slug: string,
+    token: string,
+    data: UpdateFormSessionDto
+  ): Promise<FormSessionPayload> {
+    return this.api.updateFormSession(
+      { slug, token },
+      data
+    ) as Promise<FormSessionPayload>;
+  }
+
+  async completeFormSession(slug: string, token: string): Promise<void> {
+    return this.api.completeFormSession({ slug, token }) as Promise<void>;
   }
 
   // Form Submissions
