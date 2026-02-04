@@ -31,19 +31,19 @@ export default function PrivacyPolicyPage() {
                 1. Introduction
               </h2>
               <p>
-                {BRANDING.company.name}, {BRANDING.company.legalStructure}, (“we,” “us,” or “our”) operates the
-                Loctelli platform, a multi-tenant customer relationship
-                management (CRM) system that provides AI-powered lead
-                generation, sales strategies, booking and scheduling (including
-                via Calendly), AI chat, <strong>SMS and text message
-                campaigns</strong>, and related marketing and sales automation
-                services (the “Services”). This Privacy Policy explains how we
-                collect, use, disclose, and safeguard your information when you
-                use our website, applications, and Services. We send SMS and
-                text messages only with prior express written consent and
-                honor opt-out requests promptly; see Section 3A for full
-                details. By using Loctelli, you agree to the practices
-                described in this policy.
+                {BRANDING.company.name}, {BRANDING.company.legalStructure},
+                (“we,” “us,” or “our”) operates the Loctelli platform, a
+                multi-tenant customer relationship management (CRM) system that
+                provides AI-powered lead generation, sales strategies, booking
+                and scheduling (including via Calendly), AI chat,{" "}
+                <strong>SMS and text message campaigns</strong>, and related
+                marketing and sales automation services (the “Services”). This
+                Privacy Policy explains how we collect, use, disclose, and
+                safeguard your information when you use our website,
+                applications, and Services. We send SMS and text messages only
+                with prior express written consent and honor opt-out requests
+                promptly; see Section 3A for full details. By using Loctelli,
+                you agree to the practices described in this policy.
               </p>
             </section>
 
@@ -87,9 +87,9 @@ export default function PrivacyPolicyPage() {
                   read status, opt-in/opt-out timestamps, and campaign settings.
                   This data is used solely to deliver messages you have
                   authorized, to honor opt-out requests, and to comply with
-                  applicable telephony and messaging laws (e.g., TCPA, CTIA,
-                  and carrier requirements). We do not sell or share phone
-                  numbers with third parties for their marketing. SMS delivery is
+                  applicable telephony and messaging laws (e.g., TCPA, CTIA, and
+                  carrier requirements). We do not sell or share phone numbers
+                  with third parties for their marketing. SMS delivery is
                   provided through trusted providers (e.g., Twilio) under
                   contract for the sole purpose of sending and tracking messages
                   on our behalf.
@@ -177,25 +177,24 @@ export default function PrivacyPolicyPage() {
               </h2>
               <p>
                 Loctelli supports SMS and text message campaigns and
-                notifications. We are committed to compliance with the
-                Telephone Consumer Protection Act (TCPA), CTIA guidelines,
-                carrier requirements (including A2P 10DLC where applicable),
-                and other applicable telephony and messaging laws. The
-                following applies to SMS and text messaging conducted through
-                our platform.
+                notifications. We are committed to compliance with the Telephone
+                Consumer Protection Act (TCPA), CTIA guidelines, carrier
+                requirements (including A2P 10DLC where applicable), and other
+                applicable telephony and messaging laws. The following applies
+                to SMS and text messaging conducted through our platform.
               </p>
               <h3 className="text-lg font-medium text-gray-900 mt-6 mb-2">
                 Consent
               </h3>
               <p>
                 We send marketing or promotional SMS and text messages only to
-                individuals who have given <strong>prior express written
-                consent</strong> (or where otherwise permitted by law, e.g.,
-                transactional messages). Consent is obtained before any
-                marketing messages are sent. Consent is not required as a
-                condition of purchasing any good or service. We document and
-                retain evidence of consent (e.g., timestamp, source, scope) for
-                compliance and audit purposes.
+                individuals who have given{" "}
+                <strong>prior express written consent</strong> (or where
+                otherwise permitted by law, e.g., transactional messages).
+                Consent is obtained before any marketing messages are sent.
+                Consent is not required as a condition of purchasing any good or
+                service. We document and retain evidence of consent (e.g.,
+                timestamp, source, scope) for compliance and audit purposes.
               </p>
               <h3 className="text-lg font-medium text-gray-900 mt-6 mb-2">
                 What You Can Expect
@@ -216,12 +215,12 @@ export default function PrivacyPolicyPage() {
                 unsubscribe: (1) reply <strong>STOP</strong> (or
                 <strong> UNSUBSCRIBE</strong> or <strong>END</strong>) to any
                 message you receive from us, or (2) contact us at{" "}
-                {BRANDING.contact.email} or {BRANDING.contact.phone.display}{" "}
-                and request to be removed from SMS campaigns. We will process
+                {BRANDING.contact.email} or {BRANDING.contact.phone.display} and
+                request to be removed from SMS campaigns. We will process
                 opt-out requests promptly and will not send further marketing
-                messages to that number after opt-out, except as required by
-                law (e.g., a single confirmation that opt-out was received).
-                You may receive a final confirmation message that you have been
+                messages to that number after opt-out, except as required by law
+                (e.g., a single confirmation that opt-out was received). You may
+                receive a final confirmation message that you have been
                 unsubscribed.
               </p>
               <h3 className="text-lg font-medium text-gray-900 mt-6 mb-2">
@@ -244,25 +243,25 @@ export default function PrivacyPolicyPage() {
               <p>We may share your information:</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>
-                  <strong>Within your organization:</strong> With other users and
-                  admins in your SubAccount, as permitted by your role and our
-                  access controls.
+                  <strong>Within your organization:</strong> With other users
+                  and admins in your SubAccount, as permitted by your role and
+                  our access controls.
                 </li>
                 <li>
                   <strong>Service providers:</strong> With vendors that help us
-                  run our platform (e.g., hosting, database, caching, email,
-                  SMS delivery and compliance, AI, and analytics). Our SMS
+                  run our platform (e.g., hosting, database, caching, email, SMS
+                  delivery and compliance, AI, and analytics). Our SMS
                   provider(s) receive only the data necessary to deliver
                   messages and report delivery status; they are contractually
-                  bound to use data only to provide services to us and to protect
-                  your information. We do not sell or share phone numbers with
-                  third parties for their marketing.
+                  bound to use data only to provide services to us and to
+                  protect your information. We do not sell or share phone
+                  numbers with third parties for their marketing.
                 </li>
                 <li>
-                  <strong>Integrations:</strong> When you use integrations (e.g.,
-                  Calendly for booking, Twilio for SMS, or other connected
-                  services), the relevant data may be shared with those
-                  third-party services in accordance with their privacy
+                  <strong>Integrations:</strong> When you use integrations
+                  (e.g., Calendly for booking, Twilio for SMS, or other
+                  connected services), the relevant data may be shared with
+                  those third-party services in accordance with their privacy
                   policies. We encourage you to review Calendly’s{" "}
                   <a
                     href={BRANDING.legal.calendly.privacy}
@@ -288,17 +287,16 @@ export default function PrivacyPolicyPage() {
                 5. Data Retention and Security
               </h2>
               <p>
-                We retain your information for as long as your account is
-                active or as needed to provide the Services, comply with law,
-                resolve disputes, and enforce our agreements. For SMS and text
-                messaging, we retain consent and opt-out records, message
-                logs, and related data as required for compliance with TCPA,
-                carrier, and regulatory requirements (typically for a period
-                that allows us to demonstrate consent and honor opt-outs). We
-                implement technical and organizational measures (including
-                encryption, access controls, and secure development practices)
-                to protect your data against unauthorized access, loss, or
-                misuse.
+                We retain your information for as long as your account is active
+                or as needed to provide the Services, comply with law, resolve
+                disputes, and enforce our agreements. For SMS and text
+                messaging, we retain consent and opt-out records, message logs,
+                and related data as required for compliance with TCPA, carrier,
+                and regulatory requirements (typically for a period that allows
+                us to demonstrate consent and honor opt-outs). We implement
+                technical and organizational measures (including encryption,
+                access controls, and secure development practices) to protect
+                your data against unauthorized access, loss, or misuse.
               </p>
             </section>
 
@@ -309,16 +307,16 @@ export default function PrivacyPolicyPage() {
               <p>
                 Depending on your location, you may have rights to access,
                 correct, delete, or restrict processing of your personal data,
-                or to data portability and to object to or withdraw consent
-                from certain processing. To exercise these rights, contact us
-                at {BRANDING.contact.email}. We will respond in accordance with
+                or to data portability and to object to or withdraw consent from
+                certain processing. To exercise these rights, contact us at{" "}
+                {BRANDING.contact.email}. We will respond in accordance with
                 applicable law. You may also have the right to lodge a complaint
                 with a supervisory authority.
               </p>
               <p className="mt-4">
                 <strong>SMS and text messaging:</strong> You may opt out of
-                marketing SMS and text messages at any time by replying STOP
-                (or UNSUBSCRIBE or END) to any message or by contacting us at{" "}
+                marketing SMS and text messages at any time by replying STOP (or
+                UNSUBSCRIBE or END) to any message or by contacting us at{" "}
                 {BRANDING.contact.email}. We will process your opt-out promptly
                 and will not send further marketing messages to that number.
                 Withdrawing consent for SMS does not affect your other rights
@@ -369,7 +367,8 @@ export default function PrivacyPolicyPage() {
               </h2>
               <p>
                 For questions about this Privacy Policy or our data practices,
-                contact us at {BRANDING.contact.email} or at {BRANDING.contact.address.full}.
+                contact us at {BRANDING.contact.email} or at{" "}
+                {BRANDING.contact.address.full}.
               </p>
             </section>
           </div>

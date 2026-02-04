@@ -26,8 +26,6 @@ const eslintConfig = [
       // Testing
       "coverage/**",
       "__tests__/**",
-      "jest.config.js",
-      "jest.setup.js",
       // Build files
       "dist/**",
       "build/**",

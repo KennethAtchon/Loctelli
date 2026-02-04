@@ -25,6 +25,8 @@ import { CreateFormSubmissionDto } from './dto/create-form-submission.dto';
 import { UpdateFormSubmissionDto } from './dto/update-form-submission.dto';
 import { CreateFormSessionDto } from './dto/create-form-session.dto';
 import { UpdateFormSessionDto } from './dto/update-form-session.dto';
+import { ProfileEstimationAIService } from './services/profile-estimation-ai.service';
+import { FormAnalyticsService } from './services/form-analytics.service';
 import { JwtAuthGuard } from '../../../shared/auth/auth.guard';
 import { AdminGuard } from '../../../shared/guards/admin.guard';
 import { Public } from '../../../shared/decorators/public.decorator';
@@ -35,7 +37,11 @@ import { isAdminAccount } from '../../../shared/utils';
 export class FormsController {
   private readonly logger = new Logger(FormsController.name);
 
-  constructor(private readonly formsService: FormsService) {}
+  constructor(
+    private readonly formsService: FormsService,
+    private readonly profileEstimationAI: ProfileEstimationAIService,
+    private readonly formAnalytics: FormAnalyticsService,
+  ) {}
 
   // Form Templates (Admin only)
   @Post('templates')
@@ -213,6 +219,48 @@ export class FormsController {
       createFormSubmissionDto,
       template.subAccountId,
     );
+  }
+
+  // Profile estimation with AI enhancement
+  @Post('public/:slug/calculate-profile')
+  @Public()
+  async calculateProfileEstimation(
+    @Param('slug') slug: string,
+    @Body() body: { answers: Record<string, unknown> },
+  ) {
+    const template = await this.formsService.findFormTemplateBySlug(slug);
+
+    if (
+      !template.profileEstimation ||
+      !(template.profileEstimation as any).enabled
+    ) {
+      throw new BadRequestException(
+        'Profile estimation is not enabled for this form',
+      );
+    }
+
+    return this.formsService.calculateProfileEstimation(slug, body.answers);
+  }
+
+  // Analytics endpoints
+  @Get('templates/:id/analytics')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  async getFormAnalytics(@Param('id') id: string) {
+    return this.formAnalytics.getFormAnalytics(id);
+  }
+
+  @Post('public/:slug/track-time')
+  @Public()
+  async trackCardTime(
+    @Param('slug') slug: string,
+    @Body() body: { sessionToken: string; cardId: string; timeSeconds: number },
+  ) {
+    await this.formAnalytics.updateTimePerCard(
+      body.sessionToken,
+      body.cardId,
+      body.timeSeconds,
+    );
+    return { success: true };
   }
 
   // Public form access (by slug) - parameterized route last

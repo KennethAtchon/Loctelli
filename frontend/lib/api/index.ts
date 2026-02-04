@@ -127,4 +127,13 @@ export type {
   FormSessionPayload,
   CreateFormSessionDto,
   UpdateFormSessionDto,
+  Condition,
+  ConditionGroup,
+  ConditionOperator,
+  ConditionalLogic,
+  ProfileEstimation,
+  AIProfileConfig,
+  ScoringRule,
+  FieldScoring,
+  CardMedia,
 } from "./endpoints/forms";

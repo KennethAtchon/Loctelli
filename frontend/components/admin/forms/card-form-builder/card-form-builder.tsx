@@ -7,7 +7,11 @@ import { Plus, List, Workflow, Eye } from "lucide-react";
 import { FlowchartCanvas } from "./flowchart-canvas";
 import { CardSettingsPanel } from "./card-settings-panel";
 import { ListView } from "./list-view";
-import type { FlowchartGraph, FlowchartNode } from "@/lib/forms/flowchart-types";
+import type {
+  FlowchartGraph,
+  FlowchartNode,
+  FlowchartEdge,
+} from "@/lib/forms/flowchart-types";
 import {
   flowchartToSchema,
   schemaToFlowchart,
@@ -34,11 +38,18 @@ export function CardFormBuilder({
   const [viewMode, setViewMode] = useState<"flow" | "list">("flow");
   const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>();
   const [graph, setGraph] = useState<FlowchartGraph>(() => {
-    const savedGraph = cardSettings?.flowchartGraph as FlowchartGraph | undefined;
+    const savedGraph = cardSettings?.flowchartGraph as
+      | FlowchartGraph
+      | undefined;
     if (savedGraph) {
       return mergeFlowchartWithSchema(savedGraph, schema);
     }
-    return schemaToFlowchart(schema, cardSettings?.flowchartViewport as { x: number; y: number; zoom: number } | undefined);
+    return schemaToFlowchart(
+      schema,
+      cardSettings?.flowchartViewport as
+        | { x: number; y: number; zoom: number }
+        | undefined
+    );
   });
 
   const selectedNode = useMemo(
@@ -83,7 +94,11 @@ export function CardFormBuilder({
       const updatedEdges = graph.edges.filter(
         (e) => e.source !== nodeId && e.target !== nodeId
       );
-      const updatedGraph = { ...graph, nodes: updatedNodes, edges: updatedEdges };
+      const updatedGraph = {
+        ...graph,
+        nodes: updatedNodes,
+        edges: updatedEdges,
+      };
       handleGraphChange(updatedGraph);
       setSelectedNodeId(undefined);
     },
@@ -96,9 +111,7 @@ export function CardFormBuilder({
       const lastQuestionNode = graph.nodes
         .filter((n) => n.type === "question" || n.type === "statement")
         .slice(-1)[0];
-      const yPos = lastQuestionNode
-        ? lastQuestionNode.position.y + 120
-        : 100;
+      const yPos = lastQuestionNode ? lastQuestionNode.position.y + 120 : 100;
 
       const newNode: FlowchartNode = {
         id: newNodeId,
@@ -138,7 +151,11 @@ export function CardFormBuilder({
         newEdge,
         edgeBeforeEnd
           ? { ...edgeBeforeEnd, source: newNodeId }
-          : { id: `e-${newNodeId}-${END_NODE_ID}`, source: newNodeId, target: END_NODE_ID },
+          : {
+              id: `e-${newNodeId}-${END_NODE_ID}`,
+              source: newNodeId,
+              target: END_NODE_ID,
+            },
       ];
 
       const updatedGraph = {
@@ -195,7 +212,10 @@ export function CardFormBuilder({
         </div>
       </div>
 
-      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "flow" | "list")}>
+      <Tabs
+        value={viewMode}
+        onValueChange={(v) => setViewMode(v as "flow" | "list")}
+      >
         <TabsList>
           <TabsTrigger value="flow">
             <Workflow className="h-4 w-4 mr-2" />
@@ -228,7 +248,7 @@ export function CardFormBuilder({
               const orderedNodes = orderedIds
                 .map((id) => graph.nodes.find((n) => n.id === id))
                 .filter(Boolean) as FlowchartNode[];
-              const newEdges = [];
+              const newEdges: FlowchartEdge[] = [];
               if (orderedNodes.length > 0) {
                 newEdges.push({
                   id: `e-${START_NODE_ID}-${orderedNodes[0].id}`,
@@ -264,6 +284,7 @@ export function CardFormBuilder({
         onUpdate={handleNodeUpdate}
         onDelete={handleNodeDelete}
         formSlug={formSlug}
+        allFields={schema}
       />
     </div>
   );

@@ -1,3 +1,4 @@
+import { test, expect, describe, beforeEach, afterEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BookingsController } from './bookings.controller';
 import { BookingsService } from './bookings.service';
@@ -10,15 +11,15 @@ describe('BookingsController', () => {
   let bookingsService: BookingsService;
 
   const mockBookingsService = {
-    create: jest.fn(),
-    findAll: jest.fn(),
-    findAllBySubAccount: jest.fn(),
-    findAllByAdmin: jest.fn(),
-    findOne: jest.fn(),
-    findByUserId: jest.fn(),
-    findByleadId: jest.fn(),
-    update: jest.fn(),
-    remove: jest.fn(),
+    create: mock(),
+    findAll: mock(),
+    findAllBySubAccount: mock(),
+    findAllByAdmin: mock(),
+    findOne: mock(),
+    findByUserId: mock(),
+    findByleadId: mock(),
+    update: mock(),
+    remove: mock(),
   };
 
   const mockAdminUser = {
@@ -51,10 +52,10 @@ describe('BookingsController', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    // Bun mocks cleared automatically;
   });
 
-  it('should be defined', () => {
+  test('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
@@ -73,7 +74,7 @@ describe('BookingsController', () => {
       ...createBookingDto,
     };
 
-    it('should create a booking for admin user', async () => {
+    test('should create a booking for admin user', async () => {
       mockBookingsService.create.mockResolvedValue(mockCreatedBooking);
 
       const result = await controller.create(createBookingDto, mockAdminUser);
@@ -85,7 +86,7 @@ describe('BookingsController', () => {
       );
     });
 
-    it('should create a booking for regular user', async () => {
+    test('should create a booking for regular user', async () => {
       mockBookingsService.create.mockResolvedValue(mockCreatedBooking);
 
       const result = await controller.create(createBookingDto, mockUser);
@@ -110,7 +111,7 @@ describe('BookingsController', () => {
       },
     ];
 
-    it('should return all bookings for admin when no query parameters', async () => {
+    test('should return all bookings for admin when no query parameters', async () => {
       mockBookingsService.findAllByAdmin.mockResolvedValue(mockBookings);
 
       const result = await controller.findAll(mockAdminUser);
@@ -121,7 +122,7 @@ describe('BookingsController', () => {
       );
     });
 
-    it('should return bookings by subAccount for regular user when no query parameters', async () => {
+    test('should return bookings by subAccount for regular user when no query parameters', async () => {
       mockBookingsService.findAllBySubAccount.mockResolvedValue(mockBookings);
 
       const result = await controller.findAll(mockUser);
@@ -132,7 +133,7 @@ describe('BookingsController', () => {
       );
     });
 
-    it('should return bookings by userId when userId query parameter is provided', async () => {
+    test('should return bookings by userId when userId query parameter is provided', async () => {
       const userBookings = [
         { id: 1, userId: 1, leadId: 1, bookingType: 'call', status: 'pending' },
       ];
@@ -144,7 +145,7 @@ describe('BookingsController', () => {
       expect(mockBookingsService.findByUserId).toHaveBeenCalledWith(1);
     });
 
-    it('should return bookings by leadId when leadId query parameter is provided', async () => {
+    test('should return bookings by leadId when leadId query parameter is provided', async () => {
       const leadBookings = [
         { id: 1, userId: 1, leadId: 1, bookingType: 'call', status: 'pending' },
       ];
@@ -160,13 +161,13 @@ describe('BookingsController', () => {
       );
     });
 
-    it('should throw HttpException for invalid userId parameter', () => {
+    test('should throw HttpException for invalid userId parameter', () => {
       expect(() => controller.findAll(mockAdminUser, 'invalid')).toThrow(
         new HttpException('Invalid userId parameter', HttpStatus.BAD_REQUEST),
       );
     });
 
-    it('should throw HttpException for invalid leadId parameter', () => {
+    test('should throw HttpException for invalid leadId parameter', () => {
       expect(() =>
         controller.findAll(mockAdminUser, undefined, 'invalid'),
       ).toThrow(
@@ -184,7 +185,7 @@ describe('BookingsController', () => {
       status: 'pending',
     };
 
-    it('should return a booking by id', async () => {
+    test('should return a booking by id', async () => {
       mockBookingsService.findOne.mockResolvedValue(mockBooking);
 
       const result = await controller.findOne(1, mockAdminUser);
@@ -211,7 +212,7 @@ describe('BookingsController', () => {
       status: 'confirmed',
     };
 
-    it('should update a booking', async () => {
+    test('should update a booking', async () => {
       mockBookingsService.update.mockResolvedValue(mockUpdatedBooking);
 
       const result = await controller.update(
@@ -241,7 +242,7 @@ describe('BookingsController', () => {
       status: 'confirmed',
     };
 
-    it('should update booking status', async () => {
+    test('should update booking status', async () => {
       mockBookingsService.update.mockResolvedValue(mockUpdatedBooking);
 
       const result = await controller.updateStatus(
@@ -269,7 +270,7 @@ describe('BookingsController', () => {
       status: 'pending',
     };
 
-    it('should delete a booking', async () => {
+    test('should delete a booking', async () => {
       mockBookingsService.remove.mockResolvedValue(mockDeletedBooking);
 
       const result = await controller.remove(1, mockAdminUser);

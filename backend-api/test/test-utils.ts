@@ -1,3 +1,4 @@
+import { expect, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { AppModule } from '../src/core/app.module';
@@ -105,63 +106,63 @@ export const createMockAuthTokens = (
 
 export const mockPrismaService = {
   user: {
-    findUnique: jest.fn(),
-    findMany: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-    findFirst: jest.fn(),
+    findUnique: mock(),
+    findMany: mock(),
+    create: mock(),
+    update: mock(),
+    delete: mock(),
+    findFirst: mock(),
   },
   lead: {
-    findUnique: jest.fn(),
-    findMany: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
+    findUnique: mock(),
+    findMany: mock(),
+    create: mock(),
+    update: mock(),
+    delete: mock(),
   },
   strategy: {
-    findUnique: jest.fn(),
-    findMany: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
+    findUnique: mock(),
+    findMany: mock(),
+    create: mock(),
+    update: mock(),
+    delete: mock(),
   },
   booking: {
-    findUnique: jest.fn(),
-    findMany: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
+    findUnique: mock(),
+    findMany: mock(),
+    create: mock(),
+    update: mock(),
+    delete: mock(),
   },
   promptTemplate: {
-    findUnique: jest.fn(),
-    findMany: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
+    findUnique: mock(),
+    findMany: mock(),
+    create: mock(),
+    update: mock(),
+    delete: mock(),
   },
 };
 
 export const mockJwtService = {
-  sign: jest.fn(),
-  verify: jest.fn(),
+  sign: mock(),
+  verify: mock(),
 };
 
 export const mockCacheService = {
-  setCache: jest.fn(),
-  getCache: jest.fn(),
-  delCache: jest.fn(),
+  setCache: mock(),
+  getCache: mock(),
+  delCache: mock(),
 };
 
 export const mockGhlService = {
-  searchSubaccounts: jest.fn(),
-  searchContacts: jest.fn(),
-  createContact: jest.fn(),
-  updateContact: jest.fn(),
+  searchSubaccounts: mock(),
+  searchContacts: mock(),
+  createContact: mock(),
+  updateContact: mock(),
 };
 
 export const clearAllMocks = () => {
-  jest.clearAllMocks();
+  // Bun mocks don't have clearAllMocks - mocks are cleared automatically
   Object.values(mockPrismaService).forEach((service) => {
     Object.values(service).forEach((method) => {
       if (typeof method === 'function') {

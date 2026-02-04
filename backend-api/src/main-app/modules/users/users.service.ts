@@ -144,7 +144,8 @@ export class UsersService {
   async importGhlUsers() {
     try {
       // Fetch subaccounts from GoHighLevel API
-      const subaccountsData = await this.ghlApiClientService.searchSubaccounts();
+      const subaccountsData =
+        await this.ghlApiClientService.searchSubaccounts();
 
       if (!subaccountsData || !subaccountsData.locations) {
         throw new HttpException(

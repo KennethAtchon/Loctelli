@@ -1,7 +1,16 @@
 import React from "react";
 import { render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { test, expect, describe, beforeEach, afterEach, beforeAll, mock, spyOn } from "bun:test";
+import {
+  test,
+  expect,
+  describe,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  mock,
+  spyOn,
+} from "bun:test";
 import { UnifiedAuthProvider, useAuth } from "@/contexts/unified-auth-context";
 import { api } from "@/lib/api";
 import { AuthCookies } from "@/lib/cookies";
@@ -249,12 +258,8 @@ describe("AuthContext", () => {
         email: "test@example.com",
         password: "password",
       });
-      expect(mockSetAccessToken).toHaveBeenCalledWith(
-        "access-token"
-      );
-      expect(mockSetRefreshToken).toHaveBeenCalledWith(
-        "refresh-token"
-      );
+      expect(mockSetAccessToken).toHaveBeenCalledWith("access-token");
+      expect(mockSetRefreshToken).toHaveBeenCalledWith("refresh-token");
       expect(screen.getByTestId("authenticated")).toHaveTextContent("true");
       expect(screen.getByTestId("user-email")).toHaveTextContent(
         "test@example.com"
@@ -345,12 +350,8 @@ describe("AuthContext", () => {
         email: "test@example.com",
         password: "password",
       });
-      expect(mockSetAccessToken).toHaveBeenCalledWith(
-        "access-token"
-      );
-      expect(mockSetRefreshToken).toHaveBeenCalledWith(
-        "refresh-token"
-      );
+      expect(mockSetAccessToken).toHaveBeenCalledWith("access-token");
+      expect(mockSetRefreshToken).toHaveBeenCalledWith("refresh-token");
       expect(screen.getByTestId("authenticated")).toHaveTextContent("true");
       expect(screen.getByTestId("user-email")).toHaveTextContent(
         "test@example.com"

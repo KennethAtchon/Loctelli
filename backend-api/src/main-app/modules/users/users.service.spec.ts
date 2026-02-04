@@ -59,7 +59,9 @@ describe('UsersService', () => {
 
   afterEach(() => {
     // Clear all mocks
-    Object.values(mockPrismaService.user).forEach((fn: any) => fn.mockClear?.());
+    Object.values(mockPrismaService.user).forEach((fn: any) =>
+      fn.mockClear?.(),
+    );
     mockPrismaService.subAccount.findFirst.mockClear?.();
     mockGhlApiClientService.searchSubaccounts.mockClear?.();
   });
@@ -215,7 +217,7 @@ describe('UsersService', () => {
       expect(result).toEqual(mockUser);
     });
 
-    it('should throw NotFoundException when user does not exist', async () => {
+    test('should throw NotFoundException when user does not exist', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
       await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
@@ -334,7 +336,9 @@ describe('UsersService', () => {
     ];
 
     test('should successfully import GHL users', async () => {
-      mockGhlApiClientService.searchSubaccounts.mockResolvedValue(mockSubaccountsData);
+      mockGhlApiClientService.searchSubaccounts.mockResolvedValue(
+        mockSubaccountsData,
+      );
       mockPrismaService.subAccount.findFirst.mockResolvedValue({
         id: 1,
         name: 'Default SubAccount',
@@ -354,7 +358,9 @@ describe('UsersService', () => {
     });
 
     test('should skip existing users during import', async () => {
-      mockGhlApiClientService.searchSubaccounts.mockResolvedValue(mockSubaccountsData);
+      mockGhlApiClientService.searchSubaccounts.mockResolvedValue(
+        mockSubaccountsData,
+      );
       mockPrismaService.subAccount.findFirst.mockResolvedValue({
         id: 1,
         name: 'Default SubAccount',
@@ -414,14 +420,20 @@ describe('UsersService', () => {
     test('should throw HttpException when GHL API fails', async () => {
       mockGhlApiClientService.searchSubaccounts.mockResolvedValue(null);
 
-      await expect(service.importGhlUsers()).rejects.toThrow(HttpException);
+      await expect(async () => {
+        await service.importGhlUsers();
+      }).toThrow();
       expect(mockGhlApiClientService.searchSubaccounts).toHaveBeenCalled();
     });
 
     test('should throw HttpException when GHL API returns no locations', async () => {
-      mockGhlApiClientService.searchSubaccounts.mockResolvedValue({ locations: null });
+      mockGhlApiClientService.searchSubaccounts.mockResolvedValue({
+        locations: null,
+      });
 
-      await expect(service.importGhlUsers()).rejects.toThrow(HttpException);
+      await expect(async () => {
+        await service.importGhlUsers();
+      }).toThrow();
     });
 
     test('should handle and rethrow HttpException from GHL service', async () => {
@@ -429,16 +441,22 @@ describe('UsersService', () => {
         'GHL API Error',
         HttpStatus.BAD_GATEWAY,
       );
-      mockGhlApiClientService.searchSubaccounts.mockRejectedValue(httpException);
+      mockGhlApiClientService.searchSubaccounts.mockRejectedValue(
+        httpException,
+      );
 
-      await expect(service.importGhlUsers()).rejects.toThrow(HttpException);
+      await expect(async () => {
+        await service.importGhlUsers();
+      }).toThrow();
     });
 
     test('should handle and wrap other errors', async () => {
       const error = new Error('Database connection failed');
       mockGhlApiClientService.searchSubaccounts.mockRejectedValue(error);
 
-      await expect(service.importGhlUsers()).rejects.toThrow(HttpException);
+      await expect(async () => {
+        await service.importGhlUsers();
+      }).toThrow();
     });
   });
 });

@@ -18,6 +18,9 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "noUnusedLocals": false,
-    "noUnusedParameters": false
-  }
+    "noUnusedParameters": false,
+    "types": ["node", "@types/bun"]
+  },
+  "include": ["src/**/*", "test/**/*", "types/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

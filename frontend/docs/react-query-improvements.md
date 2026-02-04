@@ -53,15 +53,15 @@ This document describes the current React Query setup, where to use it, and how 
 
 Use React Query (or tenant hooks that wrap it) for:
 
-| Scenario | Use | Reason |
-|----------|-----|--------|
-| **Any GET that loads list or detail data** | `useTenantQuery` (admin/tenant pages) or `useQuery` (public/no tenant) | Cache, deduplication, loading/error state, refetch |
-| **Tenant-scoped list/detail in admin** | `useTenantQuery` | Correct cache keys and invalidation when tenant filter changes |
-| **Create/Update/Delete that should refresh lists** | `useTenantMutation` with `invalidateQueries` | Keeps UI in sync after mutations |
-| **Public data (no tenant)** | `useQuery` | e.g. public form by slug, status; no tenant in key |
-| **Admin-only, no tenant filter** | `useQuery` | e.g. list of admin users, system status |
-| **One-off action (e.g. test connection, clear cache)** | `useMutation` (optional) | Can stay as raw `api.*` if you don’t need cache invalidation |
-| **Infinite scroll / cursor lists** | `useInfiniteQuery` (see [Improvements](#improvements)) | When backend supports cursor/page |
+| Scenario                                               | Use                                                                    | Reason                                                         |
+| ------------------------------------------------------ | ---------------------------------------------------------------------- | -------------------------------------------------------------- |
+| **Any GET that loads list or detail data**             | `useTenantQuery` (admin/tenant pages) or `useQuery` (public/no tenant) | Cache, deduplication, loading/error state, refetch             |
+| **Tenant-scoped list/detail in admin**                 | `useTenantQuery`                                                       | Correct cache keys and invalidation when tenant filter changes |
+| **Create/Update/Delete that should refresh lists**     | `useTenantMutation` with `invalidateQueries`                           | Keeps UI in sync after mutations                               |
+| **Public data (no tenant)**                            | `useQuery`                                                             | e.g. public form by slug, status; no tenant in key             |
+| **Admin-only, no tenant filter**                       | `useQuery`                                                             | e.g. list of admin users, system status                        |
+| **One-off action (e.g. test connection, clear cache)** | `useMutation` (optional)                                               | Can stay as raw `api.*` if you don’t need cache invalidation   |
+| **Infinite scroll / cursor lists**                     | `useInfiniteQuery` (see [Improvements](#improvements))                 | When backend supports cursor/page                              |
 
 Do **not** use React Query for:
 
@@ -73,14 +73,14 @@ Do **not** use React Query for:
 
 ## Hook Selection Guide
 
-| Context | Data type | Hook | Example query key |
-|---------|-----------|------|-------------------|
-| Admin, tenant filter matters | Leads, bookings, forms, contacts, strategies (by tenant) | **useTenantQuery** | `['leads']`, `['bookings']`, `['forms', 'templates']` |
-| Admin, tenant filter matters | Create/update lead, booking, form, etc. | **useTenantMutation** | `invalidateQueries: [['leads']]` |
-| Admin, no tenant (global config) | Subaccounts, admin users, prompt templates (global list) | **useQuery** | `['subaccounts']`, `['adminUsers']` |
-| Admin dashboard | Stats, system status, recent leads (respect admin filter) | **useTenantQuery** (or useQuery with filter in key) | `['dashboard', 'stats']` |
-| Public page | Form template by slug, status | **useQuery** | `['form', slug]`, `['status']` |
-| After mutation | Refresh related lists | **useTenantMutation** `invalidateQueries` or **queryClient.invalidateQueries** | Same keys as above |
+| Context                          | Data type                                                 | Hook                                                                           | Example query key                                     |
+| -------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------- |
+| Admin, tenant filter matters     | Leads, bookings, forms, contacts, strategies (by tenant)  | **useTenantQuery**                                                             | `['leads']`, `['bookings']`, `['forms', 'templates']` |
+| Admin, tenant filter matters     | Create/update lead, booking, form, etc.                   | **useTenantMutation**                                                          | `invalidateQueries: [['leads']]`                      |
+| Admin, no tenant (global config) | Subaccounts, admin users, prompt templates (global list)  | **useQuery**                                                                   | `['subaccounts']`, `['adminUsers']`                   |
+| Admin dashboard                  | Stats, system status, recent leads (respect admin filter) | **useTenantQuery** (or useQuery with filter in key)                            | `['dashboard', 'stats']`                              |
+| Public page                      | Form template by slug, status                             | **useQuery**                                                                   | `['form', slug]`, `['status']`                        |
+| After mutation                   | Refresh related lists                                     | **useTenantMutation** `invalidateQueries` or **queryClient.invalidateQueries** | Same keys as above                                    |
 
 ---
 
@@ -90,63 +90,63 @@ Do **not** use React Query for:
 
 Use **useTenantQuery** for the main list and **useTenantMutation** for create/update/delete. Replace `useState` + `useEffect` + `api.*` with these hooks.
 
-| File | Current pattern | Use React Query for |
-|------|------------------|---------------------|
-| `app/admin/(main)/dashboard/page.tsx` | `useState` + `Promise.all([getDashboardStats, getSystemStatus, getRecentLeads])` | **useTenantQuery** (or 3 queries) for stats, status, recent leads; optionally **useQuery** for detailed user/lead modals |
-| `app/admin/(main)/leads/page.tsx` | `loadLeads()` with `api.leads.getLeads(queryParams)` | **useTenantQuery** `queryKey: ['leads']`, `queryFn` with `getTenantQueryParams()`; delete → **useTenantMutation** with `invalidateQueries: [['leads']]` |
-| `app/admin/(main)/contacts/page.tsx` | `loadContacts()` with `api.contacts.getContacts()` + `getStats()` | **useTenantQuery** for contacts and **useTenantQuery** for stats (or one query that returns both); add note → **useTenantMutation** + invalidate contacts |
-| `app/admin/(main)/bookings/page.tsx` | `loadBookings()` with `api.bookings.getBookings(queryParams)` | **useTenantQuery** `queryKey: ['bookings']`; filters in key or in `queryFn` |
-| `app/admin/(main)/forms/page.tsx` | `loadData()` with `getFormTemplates` + `getFormSubmissions` | **useTenantQuery** for templates and **useTenantQuery** for submissions (or two queries); create/update/delete → **useTenantMutation** + invalidate |
-| `app/admin/(main)/forms/submissions/page.tsx` | `loadSubmissions()` | **useTenantQuery** `queryKey: ['forms', 'submissions']` |
-| `app/admin/(main)/strategies/page.tsx` | `loadStrategies()` with `api.strategies.getStrategies(queryParams)` | **useTenantQuery** `queryKey: ['strategies']`; delete → **useTenantMutation** |
-| `app/admin/(main)/prompt-templates/page.tsx` | `loadTemplates()` (tenant-aware branch) | **useTenantQuery** `queryKey: ['prompt-templates']`; activate/delete → **useTenantMutation** |
-| `app/admin/(main)/integrations/page.tsx` | `Promise.all([getActive(), getAll()])` | **useTenantQuery** (or useQuery) for templates and integrations; delete → **useTenantMutation** |
+| File                                          | Current pattern                                                                  | Use React Query for                                                                                                                                       |
+| --------------------------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app/admin/(main)/dashboard/page.tsx`         | `useState` + `Promise.all([getDashboardStats, getSystemStatus, getRecentLeads])` | **useTenantQuery** (or 3 queries) for stats, status, recent leads; optionally **useQuery** for detailed user/lead modals                                  |
+| `app/admin/(main)/leads/page.tsx`             | `loadLeads()` with `api.leads.getLeads(queryParams)`                             | **useTenantQuery** `queryKey: ['leads']`, `queryFn` with `getTenantQueryParams()`; delete → **useTenantMutation** with `invalidateQueries: [['leads']]`   |
+| `app/admin/(main)/contacts/page.tsx`          | `loadContacts()` with `api.contacts.getContacts()` + `getStats()`                | **useTenantQuery** for contacts and **useTenantQuery** for stats (or one query that returns both); add note → **useTenantMutation** + invalidate contacts |
+| `app/admin/(main)/bookings/page.tsx`          | `loadBookings()` with `api.bookings.getBookings(queryParams)`                    | **useTenantQuery** `queryKey: ['bookings']`; filters in key or in `queryFn`                                                                               |
+| `app/admin/(main)/forms/page.tsx`             | `loadData()` with `getFormTemplates` + `getFormSubmissions`                      | **useTenantQuery** for templates and **useTenantQuery** for submissions (or two queries); create/update/delete → **useTenantMutation** + invalidate       |
+| `app/admin/(main)/forms/submissions/page.tsx` | `loadSubmissions()`                                                              | **useTenantQuery** `queryKey: ['forms', 'submissions']`                                                                                                   |
+| `app/admin/(main)/strategies/page.tsx`        | `loadStrategies()` with `api.strategies.getStrategies(queryParams)`              | **useTenantQuery** `queryKey: ['strategies']`; delete → **useTenantMutation**                                                                             |
+| `app/admin/(main)/prompt-templates/page.tsx`  | `loadTemplates()` (tenant-aware branch)                                          | **useTenantQuery** `queryKey: ['prompt-templates']`; activate/delete → **useTenantMutation**                                                              |
+| `app/admin/(main)/integrations/page.tsx`      | `Promise.all([getActive(), getAll()])`                                           | **useTenantQuery** (or useQuery) for templates and integrations; delete → **useTenantMutation**                                                           |
 
 ### Admin app – detail/edit pages
 
 Use **useTenantQuery** (or **useQuery** when no tenant) for loading the entity; **useTenantMutation** for save/delete.
 
-| File | Current pattern | Use React Query for |
-|------|------------------|---------------------|
-| `app/admin/(main)/leads/[id]/edit/page.tsx` | `Promise.all([getLead, getAllUsers, getStrategiesByUser])` | **useTenantQuery** for lead; **useQuery** for users; **useTenantQuery** for strategies; **useTenantMutation** for update |
-| `app/admin/(main)/leads/new/page.tsx` | `useEffect` for users + strategies, then create | **useQuery** for users/strategies; **useTenantMutation** for create with `invalidateQueries: [['leads']]` |
-| `app/admin/(main)/bookings/[id]/edit/page.tsx` | `getBooking` + users + leads | **useTenantQuery** for booking; **useQuery** for users; **useTenantQuery** for leads; **useTenantMutation** for update |
-| `app/admin/(main)/strategies/[id]/page.tsx` | `getStrategy(strategyId)` | **useTenantQuery** `queryKey: ['strategies', id]`; delete → **useTenantMutation** |
-| `app/admin/(main)/strategies/[id]/edit/page.tsx` | `Promise.all([getStrategy, getAllUsers, getAllTemplates])` | **useTenantQuery** for strategy; **useQuery** for users/templates; **useTenantMutation** for update |
-| `app/admin/(main)/strategies/new/page.tsx` | `Promise.all` for users + templates, then create | **useQuery** for users/templates; **useTenantMutation** for create |
-| `app/admin/(main)/forms/[id]/edit/page.tsx` | `getFormTemplate(formId)` | **useTenantQuery** `queryKey: ['forms', 'template', id]`; **useTenantMutation** for update |
-| `app/admin/(main)/forms/submissions/[id]/page.tsx` | `getFormSubmission` + `updateFormSubmission` | **useTenantQuery** for submission; **useTenantMutation** for update |
-| `app/admin/(main)/integrations/[id]/page.tsx` and `[id]/edit/page.tsx` | `getById(id)` + test/sync/update/delete | **useQuery** or **useTenantQuery** for integration; **useTenantMutation** for test/sync/update/delete |
-| `app/admin/(main)/contacts/[id]/edit/page.tsx` | `Promise.all([getContact, getUsers])` | **useTenantQuery** for contact; **useQuery** for users; **useTenantMutation** for update |
-| `app/admin/(main)/prompt-templates/[id]/edit/page.tsx` | `getById(templateId)` | **useTenantQuery** for template; **useTenantMutation** for update |
-| `app/admin/(main)/prompt-templates/new/page.tsx` | Create only | **useTenantMutation** with `invalidateQueries: [['prompt-templates']]` |
+| File                                                                   | Current pattern                                            | Use React Query for                                                                                                      |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `app/admin/(main)/leads/[id]/edit/page.tsx`                            | `Promise.all([getLead, getAllUsers, getStrategiesByUser])` | **useTenantQuery** for lead; **useQuery** for users; **useTenantQuery** for strategies; **useTenantMutation** for update |
+| `app/admin/(main)/leads/new/page.tsx`                                  | `useEffect` for users + strategies, then create            | **useQuery** for users/strategies; **useTenantMutation** for create with `invalidateQueries: [['leads']]`                |
+| `app/admin/(main)/bookings/[id]/edit/page.tsx`                         | `getBooking` + users + leads                               | **useTenantQuery** for booking; **useQuery** for users; **useTenantQuery** for leads; **useTenantMutation** for update   |
+| `app/admin/(main)/strategies/[id]/page.tsx`                            | `getStrategy(strategyId)`                                  | **useTenantQuery** `queryKey: ['strategies', id]`; delete → **useTenantMutation**                                        |
+| `app/admin/(main)/strategies/[id]/edit/page.tsx`                       | `Promise.all([getStrategy, getAllUsers, getAllTemplates])` | **useTenantQuery** for strategy; **useQuery** for users/templates; **useTenantMutation** for update                      |
+| `app/admin/(main)/strategies/new/page.tsx`                             | `Promise.all` for users + templates, then create           | **useQuery** for users/templates; **useTenantMutation** for create                                                       |
+| `app/admin/(main)/forms/[id]/edit/page.tsx`                            | `getFormTemplate(formId)`                                  | **useTenantQuery** `queryKey: ['forms', 'template', id]`; **useTenantMutation** for update                               |
+| `app/admin/(main)/forms/submissions/[id]/page.tsx`                     | `getFormSubmission` + `updateFormSubmission`               | **useTenantQuery** for submission; **useTenantMutation** for update                                                      |
+| `app/admin/(main)/integrations/[id]/page.tsx` and `[id]/edit/page.tsx` | `getById(id)` + test/sync/update/delete                    | **useQuery** or **useTenantQuery** for integration; **useTenantMutation** for test/sync/update/delete                    |
+| `app/admin/(main)/contacts/[id]/edit/page.tsx`                         | `Promise.all([getContact, getUsers])`                      | **useTenantQuery** for contact; **useQuery** for users; **useTenantMutation** for update                                 |
+| `app/admin/(main)/prompt-templates/[id]/edit/page.tsx`                 | `getById(templateId)`                                      | **useTenantQuery** for template; **useTenantMutation** for update                                                        |
+| `app/admin/(main)/prompt-templates/new/page.tsx`                       | Create only                                                | **useTenantMutation** with `invalidateQueries: [['prompt-templates']]`                                                   |
 
 ### Admin app – global / no tenant
 
-| File | Current pattern | Use React Query for |
-|------|------------------|---------------------|
-| `app/admin/(main)/subaccounts/page.tsx` | `loadSubaccounts()` with `getAllSubAccounts()` | **useQuery** `queryKey: ['subaccounts']`; create/update/delete → **useMutation** + invalidate `['subaccounts']` |
-| `app/admin/(main)/users/page.tsx` | `loadUsers()` + detailed user | **useQuery** `queryKey: ['admin', 'users']`; CRUD → **useMutation** + invalidate |
-| `app/admin/(main)/settings/page.tsx` | `loadAccounts()` + update/delete admin | **useQuery** for accounts; **useMutation** for update password / delete account |
-| `contexts/subaccount-filter-context.tsx` | `loadSubaccounts()` in useEffect | **useQuery** `queryKey: ['subaccounts']` and read from cache; optional `refetch` for refresh |
+| File                                     | Current pattern                                | Use React Query for                                                                                             |
+| ---------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `app/admin/(main)/subaccounts/page.tsx`  | `loadSubaccounts()` with `getAllSubAccounts()` | **useQuery** `queryKey: ['subaccounts']`; create/update/delete → **useMutation** + invalidate `['subaccounts']` |
+| `app/admin/(main)/users/page.tsx`        | `loadUsers()` + detailed user                  | **useQuery** `queryKey: ['admin', 'users']`; CRUD → **useMutation** + invalidate                                |
+| `app/admin/(main)/settings/page.tsx`     | `loadAccounts()` + update/delete admin         | **useQuery** for accounts; **useMutation** for update password / delete account                                 |
+| `contexts/subaccount-filter-context.tsx` | `loadSubaccounts()` in useEffect               | **useQuery** `queryKey: ['subaccounts']` and read from cache; optional `refetch` for refresh                    |
 
 ### Public / shared
 
-| File | Current pattern | Use React Query for |
-|------|------------------|---------------------|
+| File                               | Current pattern                                          | Use React Query for                                                                                                         |
+| ---------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `app/(main)/forms/[slug]/page.tsx` | `formsApi.getPublicForm(slug)` in `loadForm()` + wake-up | **useQuery** `queryKey: ['form', 'public', slug]` for template; keep wake-up and submit as-is or **useMutation** for submit |
-| Auth (login/register) | Direct `api.auth.*` / `api.adminAuth.*` in context | Leave as-is (no React Query) |
+| Auth (login/register)              | Direct `api.auth.*` / `api.adminAuth.*` in context       | Leave as-is (no React Query)                                                                                                |
 
 ### Components
 
-| File | Current pattern | Use React Query for |
-|------|------------------|---------------------|
-| `components/examples/TenantAwareLeadsList.tsx` | **useTenantData** | Switch to **useTenantQuery** for cache and consistency |
-| `components/examples/TenantAwareCreateLead.tsx` | **useTenantMutation** from useTenantData | Switch to **useTenantMutation** from `useTenantQuery.ts` with `invalidateQueries: [['leads']]` |
-| `components/admin/agent-info-modal.tsx` | Direct `api.get<AgentInfo>(...)` | Optional **useQuery** keyed by lead/user if modal is shown often |
-| `components/admin/sdk-tables.tsx` | Direct `api.get` for tables | Optional **useQuery** for caching |
-| `components/admin/database-schema.tsx` | `api.general.getDatabaseSchema()` | Optional **useQuery** `queryKey: ['schema']` |
-| `components/debug/debug-panel.tsx` | Direct `api.dev.*` (system info, clear cache, test DB) | Can stay as direct calls or **useMutation** for actions |
+| File                                            | Current pattern                                        | Use React Query for                                                                            |
+| ----------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| `components/examples/TenantAwareLeadsList.tsx`  | **useTenantData**                                      | Switch to **useTenantQuery** for cache and consistency                                         |
+| `components/examples/TenantAwareCreateLead.tsx` | **useTenantMutation** from useTenantData               | Switch to **useTenantMutation** from `useTenantQuery.ts` with `invalidateQueries: [['leads']]` |
+| `components/admin/agent-info-modal.tsx`         | Direct `api.get<AgentInfo>(...)`                       | Optional **useQuery** keyed by lead/user if modal is shown often                               |
+| `components/admin/sdk-tables.tsx`               | Direct `api.get` for tables                            | Optional **useQuery** for caching                                                              |
+| `components/admin/database-schema.tsx`          | `api.general.getDatabaseSchema()`                      | Optional **useQuery** `queryKey: ['schema']`                                                   |
+| `components/debug/debug-panel.tsx`              | Direct `api.dev.*` (system info, clear cache, test DB) | Can stay as direct calls or **useMutation** for actions                                        |
 
 ---
 
@@ -183,22 +183,22 @@ Use **useTenantQuery** (or **useQuery** when no tenant) for loading the entity; 
 
 Suggested `staleTime` (and optionally `gcTime`) per resource type when migrating to React Query:
 
-| Resource | Suggested staleTime | Notes |
-|----------|---------------------|--------|
-| Dashboard stats, system status | 1–2 min | Refreshes often; 401 handling already in place |
-| Leads, contacts, bookings (lists) | 1–2 min | Balance freshness vs requests |
-| Strategies, forms (templates/list) | 2–5 min | Changes less often |
-| Single lead/contact/booking/strategy (detail) | 1–2 min | Invalidate on list mutation |
-| Prompt templates | 5 min | Rarely changes |
-| Subaccounts, admin users | 5 min | Config-like |
-| Public form template (by slug) | 5–15 min | High read, low write; invalidate on form update |
-| Integration list/detail | 2–5 min | |
+| Resource                                      | Suggested staleTime | Notes                                           |
+| --------------------------------------------- | ------------------- | ----------------------------------------------- |
+| Dashboard stats, system status                | 1–2 min             | Refreshes often; 401 handling already in place  |
+| Leads, contacts, bookings (lists)             | 1–2 min             | Balance freshness vs requests                   |
+| Strategies, forms (templates/list)            | 2–5 min             | Changes less often                              |
+| Single lead/contact/booking/strategy (detail) | 1–2 min             | Invalidate on list mutation                     |
+| Prompt templates                              | 5 min               | Rarely changes                                  |
+| Subaccounts, admin users                      | 5 min               | Config-like                                     |
+| Public form template (by slug)                | 5–15 min            | High read, low write; invalidate on form update |
+| Integration list/detail                       | 2–5 min             |                                                 |
 
 Example:
 
 ```ts
 useTenantQuery({
-  queryKey: ['leads'],
+  queryKey: ["leads"],
   queryFn: ({ subAccountId }) => api.leads.getLeads({ subAccountId }),
   staleTime: 2 * 60 * 1000, // 2 minutes
 });

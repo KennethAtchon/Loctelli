@@ -1,38 +1,39 @@
+import { mock } from "bun:test";
 // Mock dependencies before importing the module
-jest.mock("@/lib/cookies", () => ({
+// Mock removed - use Bun mocks instead"@/lib/cookies", () => ({
   AuthCookies: {
-    getAdminAccessToken: jest.fn(),
-    getAdminRefreshToken: jest.fn(),
-    getAccessToken: jest.fn(),
-    getRefreshToken: jest.fn(),
-    setAdminAccessToken: jest.fn(),
-    setAdminRefreshToken: jest.fn(),
-    setAccessToken: jest.fn(),
-    setRefreshToken: jest.fn(),
-    clearAdminTokens: jest.fn(),
-    clearUserTokens: jest.fn(),
+    getAdminAccessToken: mock(),
+    getAdminRefreshToken: mock(),
+    getAccessToken: mock(),
+    getRefreshToken: mock(),
+    setAdminAccessToken: mock(),
+    setAdminRefreshToken: mock(),
+    setAccessToken: mock(),
+    setRefreshToken: mock(),
+    clearAdminTokens: mock(),
+    clearUserTokens: mock(),
   },
 }));
 
-jest.mock("@/lib/logger", () => ({
+// Mock removed - use Bun mocks instead"@/lib/logger", () => ({
   __esModule: true,
   default: {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    setLevel: jest.fn(),
+    debug: mock(),
+    info: mock(),
+    warn: mock(),
+    error: mock(),
+    setLevel: mock(),
   },
 }));
 
-jest.mock("@/lib/envUtils", () => ({
+// Mock removed - use Bun mocks instead"@/lib/envUtils", () => ({
   API_CONFIG: {
     BASE_URL: "http://localhost:3001",
   },
 }));
 
 // Mock fetch globally
-global.fetch = jest.fn();
+global.fetch = mock();
 
 import { ApiClient } from "@/lib/api/client";
 import { AuthCookies } from "@/lib/cookies";
@@ -79,12 +80,12 @@ class TestApiClient extends ApiClient {
 
 describe("ApiClient", () => {
   let apiClient: TestApiClient;
-  const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
-  const mockAuthCookies = AuthCookies as jest.Mocked<typeof AuthCookies>;
-  const mockLogger = logger as jest.Mocked<typeof logger>;
+  const mockFetch = fetch;
+  const mockAuthCookies = AuthCookies;
+  const mockLogger = logger;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    // Bun mocks cleared automatically
     apiClient = new TestApiClient("http://localhost:3001");
 
     // Reset fetch mock
@@ -146,7 +147,7 @@ describe("ApiClient", () => {
       mockFetch.mockResolvedValue({
         ok: true,
         status: 200,
-        json: jest.fn().mockResolvedValue({ data: "success" }),
+        json: mock().mockResolvedValue({ data: "success" }),
       } as any);
     });
 
@@ -249,7 +250,7 @@ describe("ApiClient", () => {
         ok: false,
         status: 401,
         statusText: "Unauthorized",
-        json: jest.fn().mockResolvedValue({ message: "Unauthorized" }),
+        json: mock().mockResolvedValue({ message: "Unauthorized" }),
       } as any);
 
       // Mock refresh token
@@ -282,7 +283,7 @@ describe("ApiClient", () => {
         ok: false,
         status: 401,
         statusText: "Unauthorized",
-        json: jest.fn().mockResolvedValue({ message: "Invalid credentials" }),
+        json: mock().mockResolvedValue({ message: "Invalid credentials" }),
       } as any);
 
       // Mock refresh tokens to ensure they're not used
@@ -322,7 +323,7 @@ describe("ApiClient", () => {
         ok: false,
         status: 401,
         statusText: "Unauthorized",
-        json: jest.fn().mockResolvedValue({ message: "Invalid credentials" }),
+        json: mock().mockResolvedValue({ message: "Invalid credentials" }),
       } as any);
 
       // Mock refresh tokens to ensure they're not used
@@ -397,7 +398,7 @@ describe("ApiClient", () => {
       mockFetch.mockResolvedValue({
         ok: true,
         status: 200,
-        json: jest.fn().mockResolvedValue({ data: "success" }),
+        json: mock().mockResolvedValue({ data: "success" }),
       } as any);
 
       await apiClient.get("/test", { timeout: 5000 });
@@ -414,7 +415,7 @@ describe("ApiClient", () => {
       mockFetch.mockResolvedValue({
         ok: true,
         status: 200,
-        json: jest.fn().mockResolvedValue({ data: "success" }),
+        json: mock().mockResolvedValue({ data: "success" }),
       } as any);
 
       await apiClient.get("/test", {

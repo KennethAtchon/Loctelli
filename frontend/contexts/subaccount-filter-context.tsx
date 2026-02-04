@@ -1,6 +1,11 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useCallback,
+} from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { SubAccount } from "@/lib/api";
@@ -30,7 +35,8 @@ export function SubaccountFilterProvider({
   children: React.ReactNode;
 }) {
   const queryClient = useQueryClient();
-  const [currentFilter, setCurrentFilterState] = React.useState<string>("GLOBAL");
+  const [currentFilter, setCurrentFilterState] =
+    React.useState<string>("GLOBAL");
 
   const {
     data: availableSubaccounts = [],

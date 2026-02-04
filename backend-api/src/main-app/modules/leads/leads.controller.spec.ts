@@ -1,3 +1,4 @@
+import { test, expect, describe, beforeEach, afterEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { LeadsController } from './leads.controller';
 import { LeadsService } from './leads.service';
@@ -10,16 +11,16 @@ describe('LeadsController', () => {
   let leadsService: LeadsService;
 
   const mockLeadsService = {
-    create: jest.fn(),
-    findAll: jest.fn(),
-    findAllBySubAccount: jest.fn(),
-    findAllByAdmin: jest.fn(),
-    findOne: jest.fn(),
-    findByUserId: jest.fn(),
-    findByStrategyId: jest.fn(),
-    update: jest.fn(),
-    appendMessage: jest.fn(),
-    remove: jest.fn(),
+    create: mock(),
+    findAll: mock(),
+    findAllBySubAccount: mock(),
+    findAllByAdmin: mock(),
+    findOne: mock(),
+    findByUserId: mock(),
+    findByStrategyId: mock(),
+    update: mock(),
+    appendMessage: mock(),
+    remove: mock(),
   };
 
   const mockAdminUser = {
@@ -54,10 +55,10 @@ describe('LeadsController', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    // Bun mocks cleared automatically;
   });
 
-  it('should be defined', () => {
+  test('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
@@ -76,7 +77,7 @@ describe('LeadsController', () => {
       ...createLeadDto,
     };
 
-    it('should create a lead for admin user', async () => {
+    test('should create a lead for admin user', async () => {
       mockLeadsService.create.mockResolvedValue(mockCreatedLead);
 
       const result = await controller.create(createLeadDto, mockAdminUser);
@@ -88,7 +89,7 @@ describe('LeadsController', () => {
       );
     });
 
-    it('should create a lead for regular user', async () => {
+    test('should create a lead for regular user', async () => {
       mockLeadsService.create.mockResolvedValue(mockCreatedLead);
 
       const result = await controller.create(createLeadDto, mockUser);
@@ -107,7 +108,7 @@ describe('LeadsController', () => {
       { id: 2, name: 'Lead 2', userId: 2 },
     ];
 
-    it('should return all leads for admin when no query parameters', async () => {
+    test('should return all leads for admin when no query parameters', async () => {
       mockLeadsService.findAllByAdmin.mockResolvedValue(mockLeads);
 
       const result = await controller.findAll(mockAdminUser);
@@ -118,7 +119,7 @@ describe('LeadsController', () => {
       );
     });
 
-    it('should return leads by subAccount for regular user when no query parameters', async () => {
+    test('should return leads by subAccount for regular user when no query parameters', async () => {
       mockLeadsService.findAllBySubAccount.mockResolvedValue(mockLeads);
 
       const result = await controller.findAll(mockUser);
@@ -129,7 +130,7 @@ describe('LeadsController', () => {
       );
     });
 
-    it('should return leads by userId when userId query parameter is provided', async () => {
+    test('should return leads by userId when userId query parameter is provided', async () => {
       const userLeads = [{ id: 1, name: 'Lead 1', userId: 1 }];
       mockLeadsService.findByUserId.mockResolvedValue(userLeads);
 
@@ -139,7 +140,7 @@ describe('LeadsController', () => {
       expect(mockLeadsService.findByUserId).toHaveBeenCalledWith(1);
     });
 
-    it('should return leads by strategyId when strategyId query parameter is provided', async () => {
+    test('should return leads by strategyId when strategyId query parameter is provided', async () => {
       const strategyLeads = [{ id: 1, name: 'Lead 1', strategyId: 1 }];
       mockLeadsService.findByStrategyId.mockResolvedValue(strategyLeads);
 
@@ -153,7 +154,7 @@ describe('LeadsController', () => {
       );
     });
 
-    it('should return leads by subAccountId for admin when subAccountId query parameter is provided', async () => {
+    test('should return leads by subAccountId for admin when subAccountId query parameter is provided', async () => {
       mockLeadsService.findAllBySubAccount.mockResolvedValue(mockLeads);
 
       const result = await controller.findAll(
@@ -167,7 +168,7 @@ describe('LeadsController', () => {
       expect(mockLeadsService.findAllBySubAccount).toHaveBeenCalledWith(1);
     });
 
-    it('should throw HttpException for invalid userId parameter', async () => {
+    test('should throw HttpException for invalid userId parameter', async () => {
       await expect(
         controller.findAll(mockAdminUser, 'invalid'),
       ).rejects.toThrow(
@@ -175,7 +176,7 @@ describe('LeadsController', () => {
       );
     });
 
-    it('should throw HttpException for invalid strategyId parameter', async () => {
+    test('should throw HttpException for invalid strategyId parameter', async () => {
       await expect(
         controller.findAll(mockAdminUser, undefined, 'invalid'),
       ).rejects.toThrow(
@@ -195,7 +196,7 @@ describe('LeadsController', () => {
       strategyId: 1,
     };
 
-    it('should return a lead by id', async () => {
+    test('should return a lead by id', async () => {
       mockLeadsService.findOne.mockResolvedValue(mockLead);
 
       const result = await controller.findOne(1, mockAdminUser);
@@ -221,7 +222,7 @@ describe('LeadsController', () => {
       strategyId: 1,
     };
 
-    it('should update a lead', async () => {
+    test('should update a lead', async () => {
       mockLeadsService.update.mockResolvedValue(mockUpdatedLead);
 
       const result = await controller.update(1, updateLeadDto, mockAdminUser);
@@ -249,7 +250,7 @@ describe('LeadsController', () => {
       messageHistory: JSON.stringify([mockMessage]),
     };
 
-    it('should append a message to a lead', async () => {
+    test('should append a message to a lead', async () => {
       mockLeadsService.appendMessage.mockResolvedValue(mockUpdatedLead);
 
       const result = await controller.appendMessage(1, mockMessage);
@@ -269,7 +270,7 @@ describe('LeadsController', () => {
       userId: 1,
     };
 
-    it('should delete a lead', async () => {
+    test('should delete a lead', async () => {
       mockLeadsService.remove.mockResolvedValue(mockDeletedLead);
 
       const result = await controller.remove(1, mockAdminUser);

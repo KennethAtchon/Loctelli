@@ -20,9 +20,7 @@ export default function AboutPage() {
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-4">
               About Us
             </h1>
-            <p className="text-muted-foreground">
-              {BRANDING.company.tagline}
-            </p>
+            <p className="text-muted-foreground">{BRANDING.company.tagline}</p>
           </header>
 
           <div className="prose prose-gray max-w-none space-y-6 text-gray-700">
@@ -42,7 +40,10 @@ export default function AboutPage() {
                 Get in touch
               </Link>{" "}
               or{" "}
-              <Link href="/#services" className="text-primary hover:underline font-medium">
+              <Link
+                href="/#services"
+                className="text-primary hover:underline font-medium"
+              >
                 explore our services
               </Link>
               .

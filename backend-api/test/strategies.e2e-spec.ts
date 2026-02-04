@@ -1,3 +1,4 @@
+import { test, expect, describe, beforeAll, afterAll } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
@@ -39,23 +40,21 @@ describe('StrategiesController (e2e)', () => {
   let strategyId: number;
 
   describe('/strategies (POST)', () => {
-    it('should create a new strategy', () => {
-      return request(app.getHttpServer())
+    test('should create a new strategy', async () => {
+      const response = await request(app.getHttpServer())
         .post('/strategies')
         .set('x-api-key', getApiKey())
         .send(testStrategy)
-        .expect(201)
-        .then((response) => {
-          expect(response.body).toHaveProperty('id');
-          expect(response.body.name).toBe(testStrategy.name);
-          expect(response.body.description).toBe(testStrategy.description);
+        .expect(201);
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.name).toBe(testStrategy.name);
+      expect(response.body.description).toBe(testStrategy.description);
 
-          strategyId = response.body.id;
-        });
+      strategyId = response.body.id;
     });
 
-    it('should not create a strategy with invalid data', () => {
-      return request(app.getHttpServer())
+    test('should not create a strategy with invalid data', async () => {
+      await request(app.getHttpServer())
         .post('/strategies')
         .set('x-api-key', getApiKey())
         .send({
@@ -67,39 +66,35 @@ describe('StrategiesController (e2e)', () => {
   });
 
   describe('/strategies (GET)', () => {
-    it('should return all strategies', () => {
-      return request(app.getHttpServer())
+    test('should return all strategies', async () => {
+      const response = await request(app.getHttpServer())
         .get('/strategies')
         .set('x-api-key', getApiKey())
-        .expect(200)
-        .then((response) => {
-          expect(Array.isArray(response.body)).toBe(true);
-          expect(response.body.length).toBeGreaterThan(0);
-          expect(response.body[0]).toHaveProperty('id');
-          expect(response.body[0]).toHaveProperty('name');
-          expect(response.body[0]).toHaveProperty('description');
-        });
+        .expect(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0]).toHaveProperty('id');
+      expect(response.body[0]).toHaveProperty('name');
+      expect(response.body[0]).toHaveProperty('description');
     });
   });
 
   describe('/strategies/:id (GET)', () => {
-    it('should return a strategy by id', () => {
-      return request(app.getHttpServer())
+    test('should return a strategy by id', async () => {
+      const response = await request(app.getHttpServer())
         .get(`/strategies/${strategyId}`)
         .set('x-api-key', getApiKey())
-        .expect(200)
-        .then((response) => {
-          expect(response.body).toHaveProperty('id', strategyId);
-          expect(response.body).toHaveProperty('name', testStrategy.name);
-          expect(response.body).toHaveProperty(
-            'description',
-            testStrategy.description,
-          );
-        });
+        .expect(200);
+      expect(response.body).toHaveProperty('id', strategyId);
+      expect(response.body).toHaveProperty('name', testStrategy.name);
+      expect(response.body).toHaveProperty(
+        'description',
+        testStrategy.description,
+      );
     });
 
-    it('should return 404 for non-existent strategy', () => {
-      return request(app.getHttpServer())
+    test('should return 404 for non-existent strategy', async () => {
+      await request(app.getHttpServer())
         .get('/strategies/9999')
         .set('x-api-key', getApiKey())
         .expect(404);
@@ -107,38 +102,34 @@ describe('StrategiesController (e2e)', () => {
   });
 
   describe('/strategies/:id (PATCH)', () => {
-    it('should update a strategy', () => {
+    test('should update a strategy', async () => {
       const updatedName = 'Updated Strategy';
 
-      return request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .patch(`/strategies/${strategyId}`)
         .set('x-api-key', getApiKey())
         .send({ name: updatedName })
-        .expect(200)
-        .then((response) => {
-          expect(response.body).toHaveProperty('id', strategyId);
-          expect(response.body).toHaveProperty('name', updatedName);
-          expect(response.body).toHaveProperty(
-            'description',
-            testStrategy.description,
-          );
-        });
+        .expect(200);
+      expect(response.body).toHaveProperty('id', strategyId);
+      expect(response.body).toHaveProperty('name', updatedName);
+      expect(response.body).toHaveProperty(
+        'description',
+        testStrategy.description,
+      );
     });
   });
 
   describe('/strategies/:id (DELETE)', () => {
-    it('should delete a strategy', () => {
-      return request(app.getHttpServer())
+    test('should delete a strategy', async () => {
+      const response = await request(app.getHttpServer())
         .delete(`/strategies/${strategyId}`)
         .set('x-api-key', getApiKey())
-        .expect(200)
-        .then((response) => {
-          expect(response.body).toHaveProperty('id', strategyId);
-        });
+        .expect(200);
+      expect(response.body).toHaveProperty('id', strategyId);
     });
 
-    it('should return 404 after strategy is deleted', () => {
-      return request(app.getHttpServer())
+    test('should return 404 after strategy is deleted', async () => {
+      await request(app.getHttpServer())
         .get(`/strategies/${strategyId}`)
         .set('x-api-key', getApiKey())
         .expect(404);

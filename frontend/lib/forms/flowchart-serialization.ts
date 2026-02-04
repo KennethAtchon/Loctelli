@@ -1,4 +1,5 @@
 import type { FormField } from "@/lib/api";
+import type { FlowchartNodeData } from "./flowchart-types";
 import type { FlowchartGraph, FlowchartNode } from "./flowchart-types";
 import { START_NODE_ID, END_NODE_ID } from "./flowchart-types";
 
@@ -50,7 +51,7 @@ export function flowchartToSchema(graph: FlowchartGraph): FormField[] {
     } else if (node.type === "statement") {
       const statementField: FormField = {
         id: data.fieldId ?? node.id,
-        type: "statement" as any,
+        type: "statement",
         label: data.statementText ?? data.label ?? "Statement",
         placeholder: data.label,
         required: false,

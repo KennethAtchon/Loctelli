@@ -110,8 +110,7 @@ export default function AdminDashboardPage() {
 
   const recentLeadsQuery = useTenantQuery({
     queryKey: ["dashboard", "recentLeads"],
-    queryFn: async () =>
-      api.adminAuth.getRecentLeads(adminFilter ?? undefined),
+    queryFn: async () => api.adminAuth.getRecentLeads(adminFilter ?? undefined),
     staleTime: DASHBOARD_STALE_MS,
   });
 
@@ -119,9 +118,13 @@ export default function AdminDashboardPage() {
   const systemStatus = systemStatusQuery.data ?? null;
   const recentLeads = recentLeadsQuery.data ?? [];
   const isLoading =
-    statsQuery.isLoading || systemStatusQuery.isLoading || recentLeadsQuery.isLoading;
+    statsQuery.isLoading ||
+    systemStatusQuery.isLoading ||
+    recentLeadsQuery.isLoading;
   const isRefreshing =
-    statsQuery.isFetching || systemStatusQuery.isFetching || recentLeadsQuery.isFetching;
+    statsQuery.isFetching ||
+    systemStatusQuery.isFetching ||
+    recentLeadsQuery.isFetching;
   const error =
     statsQuery.error || systemStatusQuery.error || recentLeadsQuery.error
       ? "Failed to load dashboard data"

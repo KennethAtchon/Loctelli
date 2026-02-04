@@ -14,7 +14,11 @@ export function StartNode({ data, selected }: NodeProps) {
         <Play className="h-5 w-5 text-primary" />
         <span className="font-semibold text-sm">START</span>
       </div>
-      <Handle type="source" position={Position.Bottom} className="!bg-primary" />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        className="!bg-primary"
+      />
     </div>
   );
 }

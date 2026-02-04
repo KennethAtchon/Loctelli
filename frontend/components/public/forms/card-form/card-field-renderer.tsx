@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle } from "lucide-react";
 import Image from "next/image";
 import type { FormField, CardMedia } from "@/lib/api";
+import { applyPiping } from "@/lib/forms/conditional-logic";
 
 export interface CardFieldRendererProps {
   field: FormField;
@@ -26,6 +27,10 @@ export interface CardFieldRendererProps {
   uploading?: boolean;
   uploadedFile?: { url: string; originalName: string };
   disabled?: boolean;
+  /** All form fields (for piping) */
+  allFields?: FormField[];
+  /** Current form data (for piping) */
+  formData?: Record<string, unknown>;
 }
 
 function MediaRenderer({ media }: { media: CardMedia }) {
@@ -78,7 +83,11 @@ function MediaRenderer({ media }: { media: CardMedia }) {
     if (media.type === "icon" && media.url) {
       return (
         <div className="w-full flex justify-center mb-4">
-          <img src={media.url} alt={media.altText || ""} className="h-24 w-24 object-contain" />
+          <img
+            src={media.url}
+            alt={media.altText || ""}
+            className="h-24 w-24 object-contain"
+          />
         </div>
       );
     }
@@ -89,9 +98,7 @@ function MediaRenderer({ media }: { media: CardMedia }) {
 
   if (media.position === "background") {
     return (
-      <div className="absolute inset-0 -z-10 opacity-20">
-        {mediaContent}
-      </div>
+      <div className="absolute inset-0 -z-10 opacity-20">{mediaContent}</div>
     );
   }
 
@@ -107,11 +114,22 @@ export function CardFieldRenderer({
   uploading = false,
   uploadedFile,
   disabled,
+  allFields = [],
+  formData = {},
 }: CardFieldRendererProps) {
   const stringValue = (value as string | undefined) ?? "";
   const requiredMark = field.required ? (
     <span className="text-destructive ml-0.5">*</span>
   ) : null;
+
+  // Apply piping if enabled
+  const displayLabel = field.enablePiping
+    ? applyPiping(field.label, formData, allFields)
+    : field.label;
+  const displayPlaceholder =
+    field.enablePiping && field.placeholder
+      ? applyPiping(field.placeholder, formData, allFields)
+      : field.placeholder;
 
   const media = field.media;
   const showMediaAbove = media && media.position === "above";
@@ -122,215 +140,215 @@ export function CardFieldRenderer({
 
   const renderFieldContent = () => {
     switch (field.type) {
-    case "text":
-    case "email":
-    case "phone":
-      return (
-        <div className="space-y-3">
-          <Label htmlFor={field.id} className="text-base font-medium">
-            {field.label}
-            {requiredMark}
-          </Label>
-          <Input
-            id={field.id}
-            type={
-              field.type === "email"
-                ? "email"
-                : field.type === "phone"
-                  ? "tel"
-                  : "text"
-            }
-            placeholder={field.placeholder}
-            value={stringValue}
-            onChange={(e) => onChange(e.target.value)}
-            required={field.required}
-            disabled={disabled}
-            className="h-12 text-base"
-            autoFocus
-          />
-        </div>
-      );
-
-    case "textarea":
-      return (
-        <div className="space-y-3">
-          <Label htmlFor={field.id} className="text-base font-medium">
-            {field.label}
-            {requiredMark}
-          </Label>
-          <Textarea
-            id={field.id}
-            placeholder={field.placeholder}
-            value={stringValue}
-            onChange={(e) => onChange(e.target.value)}
-            required={field.required}
-            disabled={disabled}
-            rows={4}
-            className="text-base resize-none"
-            autoFocus
-          />
-        </div>
-      );
-
-    case "select":
-      return (
-        <div className="space-y-3">
-          <Label htmlFor={field.id} className="text-base font-medium">
-            {field.label}
-            {requiredMark}
-          </Label>
-          <Select
-            value={stringValue}
-            onValueChange={(val) => onChange(val)}
-            disabled={disabled}
-          >
-            <SelectTrigger className="h-12 text-base">
-              <SelectValue
-                placeholder={field.placeholder || "Select an option"}
-              />
-            </SelectTrigger>
-            <SelectContent>
-              {field.options?.map((option) => (
-                <SelectItem key={option} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      );
-
-    case "radio":
-      return (
-        <div className="space-y-4">
-          <Label className="text-base font-medium">
-            {field.label}
-            {requiredMark}
-          </Label>
-          <RadioGroup
-            value={stringValue}
-            onValueChange={(val) => onChange(val)}
-            disabled={disabled}
-            className="flex flex-col gap-3"
-          >
-            {field.options?.map((option) => (
-              <div
-                key={option}
-                className="flex items-center space-x-3 rounded-lg border p-4 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 transition-colors"
-              >
-                <RadioGroupItem
-                  value={option}
-                  id={`${field.id}-${option}`}
-                  className="flex-shrink-0"
-                />
-                <Label
-                  htmlFor={`${field.id}-${option}`}
-                  className="flex-1 cursor-pointer font-normal text-base"
-                >
-                  {option}
-                </Label>
-              </div>
-            ))}
-          </RadioGroup>
-        </div>
-      );
-
-    case "checkbox": {
-      const selectedValues = (value as string[] | undefined) || [];
-      return (
-        <div className="space-y-4">
-          <Label className="text-base font-medium">
-            {field.label}
-            {requiredMark}
-          </Label>
-          <div className="flex flex-col gap-3">
-            {field.options?.map((option) => (
-              <div
-                key={option}
-                className="flex items-center space-x-3 rounded-lg border p-4 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 transition-colors"
-              >
-                <Checkbox
-                  id={`${field.id}-${option}`}
-                  checked={selectedValues.includes(option)}
-                  onCheckedChange={(checked) =>
-                    onCheckboxChange?.(option, checked === true)
-                  }
-                  disabled={disabled}
-                  className="flex-shrink-0"
-                />
-                <Label
-                  htmlFor={`${field.id}-${option}`}
-                  className="flex-1 cursor-pointer font-normal text-base"
-                >
-                  {option}
-                </Label>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-    case "file":
-    case "image":
-      return (
-        <div className="space-y-3">
-          <Label htmlFor={field.id} className="text-base font-medium">
-            {field.label}
-            {requiredMark}
-          </Label>
-          <Input
-            id={field.id}
-            type="file"
-            accept={field.type === "image" ? "image/*" : undefined}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file && onFileUpload) {
-                onFileUpload(field.id, file);
+      case "text":
+      case "email":
+      case "phone":
+        return (
+          <div className="space-y-3">
+            <Label htmlFor={field.id} className="text-base font-medium">
+              {displayLabel}
+              {requiredMark}
+            </Label>
+            <Input
+              id={field.id}
+              type={
+                field.type === "email"
+                  ? "email"
+                  : field.type === "phone"
+                    ? "tel"
+                    : "text"
               }
-            }}
-            required={field.required && !uploadedFile}
-            disabled={disabled || uploading}
-            className="h-12 text-base file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium"
-          />
-          {uploading && (
-            <div className="flex items-center text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              Uploading...
-            </div>
-          )}
-          {uploadedFile && (
-            <div className="flex items-center text-sm text-green-600 dark:text-green-400">
-              <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-              <span className="truncate">{uploadedFile.originalName}</span>
-              {field.type === "image" && uploadedFile.url && (
-                <div className="mt-2 w-full">
-                  <Image
-                    src={uploadedFile.url}
-                    alt="Uploaded"
-                    width={320}
-                    height={128}
-                    className="max-w-full h-auto max-h-32 object-contain rounded border"
+              placeholder={displayPlaceholder}
+              value={stringValue}
+              onChange={(e) => onChange(e.target.value)}
+              required={field.required}
+              disabled={disabled}
+              className="h-12 text-base"
+              autoFocus
+            />
+          </div>
+        );
+
+      case "textarea":
+        return (
+          <div className="space-y-3">
+            <Label htmlFor={field.id} className="text-base font-medium">
+              {displayLabel}
+              {requiredMark}
+            </Label>
+            <Textarea
+              id={field.id}
+              placeholder={displayPlaceholder}
+              value={stringValue}
+              onChange={(e) => onChange(e.target.value)}
+              required={field.required}
+              disabled={disabled}
+              rows={4}
+              className="text-base resize-none"
+              autoFocus
+            />
+          </div>
+        );
+
+      case "select":
+        return (
+          <div className="space-y-3">
+            <Label htmlFor={field.id} className="text-base font-medium">
+              {displayLabel}
+              {requiredMark}
+            </Label>
+            <Select
+              value={stringValue}
+              onValueChange={(val) => onChange(val)}
+              disabled={disabled}
+            >
+              <SelectTrigger className="h-12 text-base">
+                <SelectValue
+                  placeholder={displayPlaceholder || "Select an option"}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {field.options?.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        );
+
+      case "radio":
+        return (
+          <div className="space-y-4">
+            <Label className="text-base font-medium">
+              {displayLabel}
+              {requiredMark}
+            </Label>
+            <RadioGroup
+              value={stringValue}
+              onValueChange={(val) => onChange(val)}
+              disabled={disabled}
+              className="flex flex-col gap-3"
+            >
+              {field.options?.map((option) => (
+                <div
+                  key={option}
+                  className="flex items-center space-x-3 rounded-lg border p-4 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 transition-colors"
+                >
+                  <RadioGroupItem
+                    value={option}
+                    id={`${field.id}-${option}`}
+                    className="flex-shrink-0"
                   />
+                  <Label
+                    htmlFor={`${field.id}-${option}`}
+                    className="flex-1 cursor-pointer font-normal text-base"
+                  >
+                    {option}
+                  </Label>
                 </div>
-              )}
+              ))}
+            </RadioGroup>
+          </div>
+        );
+
+      case "checkbox": {
+        const selectedValues = (value as string[] | undefined) || [];
+        return (
+          <div className="space-y-4">
+            <Label className="text-base font-medium">
+              {displayLabel}
+              {requiredMark}
+            </Label>
+            <div className="flex flex-col gap-3">
+              {field.options?.map((option) => (
+                <div
+                  key={option}
+                  className="flex items-center space-x-3 rounded-lg border p-4 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 transition-colors"
+                >
+                  <Checkbox
+                    id={`${field.id}-${option}`}
+                    checked={selectedValues.includes(option)}
+                    onCheckedChange={(checked) =>
+                      onCheckboxChange?.(option, checked === true)
+                    }
+                    disabled={disabled}
+                    className="flex-shrink-0"
+                  />
+                  <Label
+                    htmlFor={`${field.id}-${option}`}
+                    className="flex-1 cursor-pointer font-normal text-base"
+                  >
+                    {option}
+                  </Label>
+                </div>
+              ))}
             </div>
-          )}
-        </div>
-      );
+          </div>
+        );
+      }
 
-    case "statement":
-      return (
-        <div className="space-y-3 text-center">
-          <div className="text-lg font-medium">{field.label}</div>
-          {field.placeholder && (
-            <div className="text-muted-foreground">{field.placeholder}</div>
-          )}
-        </div>
-      );
+      case "file":
+      case "image":
+        return (
+          <div className="space-y-3">
+            <Label htmlFor={field.id} className="text-base font-medium">
+              {displayLabel}
+              {requiredMark}
+            </Label>
+            <Input
+              id={field.id}
+              type="file"
+              accept={field.type === "image" ? "image/*" : undefined}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file && onFileUpload) {
+                  onFileUpload(field.id, file);
+                }
+              }}
+              required={field.required && !uploadedFile}
+              disabled={disabled || uploading}
+              className="h-12 text-base file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium"
+            />
+            {uploading && (
+              <div className="flex items-center text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Uploading...
+              </div>
+            )}
+            {uploadedFile && (
+              <div className="flex items-center text-sm text-green-600 dark:text-green-400">
+                <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="truncate">{uploadedFile.originalName}</span>
+                {field.type === "image" && uploadedFile.url && (
+                  <div className="mt-2 w-full">
+                    <Image
+                      src={uploadedFile.url}
+                      alt="Uploaded"
+                      width={320}
+                      height={128}
+                      className="max-w-full h-auto max-h-32 object-contain rounded border"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
 
-    default:
-      return null;
+      case "statement":
+        return (
+          <div className="space-y-3 text-center">
+            <div className="text-lg font-medium">{displayLabel}</div>
+            {displayPlaceholder && (
+              <div className="text-muted-foreground">{displayPlaceholder}</div>
+            )}
+          </div>
+        );
+
+      default:
+        return null;
     }
   };
 
@@ -349,8 +367,14 @@ export function CardFieldRenderer({
 
   if (showMediaLeft || showMediaRight) {
     return (
-      <div className={`flex gap-4 items-start ${showMediaLeft ? "flex-row" : "flex-row-reverse"}`}>
-        {media && <div className="flex-shrink-0"><MediaRenderer media={media} /></div>}
+      <div
+        className={`flex gap-4 items-start ${showMediaLeft ? "flex-row" : "flex-row-reverse"}`}
+      >
+        {media && (
+          <div className="flex-shrink-0">
+            <MediaRenderer media={media} />
+          </div>
+        )}
         <div className="flex-1">{fieldContent}</div>
       </div>
     );

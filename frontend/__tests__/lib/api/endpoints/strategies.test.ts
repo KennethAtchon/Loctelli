@@ -1,21 +1,22 @@
+import { mock } from "bun:test";
 import { StrategiesApi } from "@/lib/api/endpoints/strategies";
 import { Strategy, CreateStrategyDto } from "@/types";
 import { ApiClient } from "@/lib/api/client";
 
-jest.mock("@/lib/logger", () => ({
+// Mock removed - use Bun mocks instead"@/lib/logger", () => ({
   default: {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
+    debug: mock(),
+    info: mock(),
+    warn: mock(),
+    error: mock(),
   },
 }));
 
-const mockGet = jest.fn();
-const mockPost = jest.fn();
-const mockPut = jest.fn();
-const mockPatch = jest.fn();
-const mockDelete = jest.fn();
+const mockGet = mock();
+const mockPost = mock();
+const mockPut = mock();
+const mockPatch = mock();
+const mockDelete = mock();
 
 let mockClient: ApiClient;
 
@@ -30,7 +31,7 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  // Bun mocks cleared automatically
 });
 
 describe("StrategiesApi", () => {

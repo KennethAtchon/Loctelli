@@ -14,6 +14,7 @@ import { CreateFormSubmissionDto } from './dto/create-form-submission.dto';
 import { UpdateFormSubmissionDto } from './dto/update-form-submission.dto';
 import { CreateFormSessionDto } from './dto/create-form-session.dto';
 import { UpdateFormSessionDto } from './dto/update-form-session.dto';
+import { ProfileEstimationAIService } from './services/profile-estimation-ai.service';
 import { randomUUID } from 'node:crypto';
 
 @Injectable()
@@ -23,6 +24,7 @@ export class FormsService {
   constructor(
     private prisma: PrismaService,
     private r2StorageService: R2StorageService,
+    private profileEstimationAI: ProfileEstimationAIService,
   ) {}
 
   // Form Templates
@@ -77,9 +79,13 @@ export class FormsService {
           slug,
           createdByAdminId: adminId,
           subAccountId: finalSubAccountId,
-          schema: JSON.parse(JSON.stringify(data.schema)) as Prisma.InputJsonValue,
+          schema: JSON.parse(
+            JSON.stringify(data.schema),
+          ) as Prisma.InputJsonValue,
           cardSettings: data.cardSettings as Prisma.InputJsonValue | undefined,
-          profileEstimation: data.profileEstimation as Prisma.InputJsonValue | undefined,
+          profileEstimation: data.profileEstimation as
+            | Prisma.InputJsonValue
+            | undefined,
           styling: data.styling as Prisma.InputJsonValue | undefined,
         },
       });
@@ -412,7 +418,10 @@ export class FormsService {
     if (session.completedAt) {
       throw new BadRequestException('This session has already been completed');
     }
-    const updateData: { currentCardIndex?: number; partialData?: Prisma.InputJsonValue } = {};
+    const updateData: {
+      currentCardIndex?: number;
+      partialData?: Prisma.InputJsonValue;
+    } = {};
     if (dto.currentCardIndex !== undefined) {
       updateData.currentCardIndex = dto.currentCardIndex;
     }
@@ -520,5 +529,132 @@ export class FormsService {
     } catch (error) {
       throw new BadRequestException(`Failed to upload file: ${error.message}`);
     }
+  }
+
+  // Profile estimation calculation
+  async calculateProfileEstimation(
+    slug: string,
+    answers: Record<string, unknown>,
+  ) {
+    const template = await this.findFormTemplateBySlug(slug);
+
+    if (!template.profileEstimation) {
+      throw new BadRequestException(
+        'Profile estimation is not configured for this form',
+      );
+    }
+
+    const profileEstimation = template.profileEstimation as any;
+
+    if (!profileEstimation.enabled) {
+      throw new BadRequestException(
+        'Profile estimation is not enabled for this form',
+      );
+    }
+
+    // First calculate rule-based result
+    const ruleBasedResult = this.calculateRuleBasedResult(
+      profileEstimation,
+      answers,
+      template.schema as any[],
+    );
+
+    // If AI is enabled, enhance with AI
+    if (profileEstimation.aiConfig?.enabled) {
+      try {
+        const aiResult = await this.profileEstimationAI.enhanceWithAI({
+          profileEstimation,
+          answers,
+          fields: template.schema as any[],
+          ruleBasedResult,
+        });
+
+        // Merge AI result with rule-based result
+        return {
+          ...ruleBasedResult,
+          aiEnhanced: true,
+          aiResult,
+        };
+      } catch (error) {
+        this.logger.warn(
+          'AI enhancement failed, using rule-based result',
+          error,
+        );
+        // Fallback to rule-based result
+        return {
+          ...ruleBasedResult,
+          aiEnhanced: false,
+          error: 'AI enhancement failed, using rule-based results',
+        };
+      }
+    }
+
+    return {
+      ...ruleBasedResult,
+      aiEnhanced: false,
+    };
+  }
+
+  /**
+   * Calculate rule-based profile estimation result
+   * This delegates to frontend calculation logic via API call or shared library
+   * For now, returns a basic structure - full implementation would share calculation logic
+   */
+  private calculateRuleBasedResult(
+    profileEstimation: any,
+    answers: Record<string, unknown>,
+    fields: any[],
+  ): any {
+    // Basic rule-based calculation placeholder
+    // In production, you'd want to share the calculation logic from frontend
+    // or have a shared calculation service
+
+    const resultType = profileEstimation.type;
+
+    if (resultType === 'percentage') {
+      // Would calculate percentage score here
+      return {
+        type: 'percentage',
+        result: {
+          score: 0,
+          range: '',
+          description: '',
+        },
+      };
+    }
+
+    if (resultType === 'category') {
+      // Would match category here
+      return {
+        type: 'category',
+        result: {
+          category: null,
+          confidence: 0,
+        },
+      };
+    }
+
+    if (resultType === 'multi_dimension') {
+      return {
+        type: 'multi_dimension',
+        result: {
+          scores: {},
+        },
+      };
+    }
+
+    if (resultType === 'recommendation') {
+      return {
+        type: 'recommendation',
+        result: {
+          recommendations: [],
+        },
+      };
+    }
+
+    return {
+      type: resultType,
+      result: {},
+    };
   }
 }

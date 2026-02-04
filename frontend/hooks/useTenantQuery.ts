@@ -253,20 +253,28 @@ export function useTenantInfiniteQuery<
   TData = unknown,
   TError = Error,
   TPageParam = unknown,
->(options: {
-  queryKey: readonly unknown[];
-  queryFn: (context: {
-    pageParam: TPageParam;
-    subAccountId: number | null;
-  }) => Promise<TData>;
-  initialPageParam: TPageParam;
-  getNextPageParam: (lastPage: TData) => TPageParam | undefined;
-  getPreviousPageParam?: (firstPage: TData) => TPageParam | undefined;
-  enabled?: boolean;
-} & Omit<
-  UseInfiniteQueryOptions<TData, TError, InfiniteData<TData, TPageParam>, readonly unknown[], TPageParam>,
-  "queryKey" | "queryFn" | "initialPageParam" | "getNextPageParam"
->) {
+>(
+  options: {
+    queryKey: readonly unknown[];
+    queryFn: (context: {
+      pageParam: TPageParam;
+      subAccountId: number | null;
+    }) => Promise<TData>;
+    initialPageParam: TPageParam;
+    getNextPageParam: (lastPage: TData) => TPageParam | undefined;
+    getPreviousPageParam?: (firstPage: TData) => TPageParam | undefined;
+    enabled?: boolean;
+  } & Omit<
+    UseInfiniteQueryOptions<
+      TData,
+      TError,
+      InfiniteData<TData, TPageParam>,
+      readonly unknown[],
+      TPageParam
+    >,
+    "queryKey" | "queryFn" | "initialPageParam" | "getNextPageParam"
+  >
+) {
   const { subAccountId, mode, validateTenantAccess } = useTenant();
 
   const tenantQueryKey = [
@@ -274,7 +282,13 @@ export function useTenantInfiniteQuery<
     { tenantMode: mode, subAccountId },
   ];
 
-  return useInfiniteQuery<TData, TError, InfiniteData<TData, TPageParam>, readonly unknown[], TPageParam>({
+  return useInfiniteQuery<
+    TData,
+    TError,
+    InfiniteData<TData, TPageParam>,
+    readonly unknown[],
+    TPageParam
+  >({
     ...options,
     queryKey: tenantQueryKey,
     queryFn: async ({ pageParam }) => {

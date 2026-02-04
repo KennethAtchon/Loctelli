@@ -1,3 +1,4 @@
+import { test, expect, describe, beforeEach, afterEach } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
@@ -28,50 +29,44 @@ describe('AuthController (e2e)', () => {
       budget: '1000-5000',
     };
 
-    it('should register a new user successfully', () => {
-      return request(app.getHttpServer())
+    test('should register a new user successfully', async () => {
+      const res = await request(app.getHttpServer())
         .post('/auth/register')
         .send(validRegisterData)
-        .expect(201)
-        .expect((res) => {
-          expect(res.body).toHaveProperty('id');
-          expect(res.body).toHaveProperty('name', 'Test User');
-          expect(res.body).toHaveProperty('email', 'test@example.com');
-          expect(res.body).toHaveProperty('company', 'Test Company');
-          expect(res.body).toHaveProperty('budget', '1000-5000');
-          expect(res.body).not.toHaveProperty('password');
-        });
+        .expect(201);
+      expect(res.body).toHaveProperty('id');
+      expect(res.body).toHaveProperty('name', 'Test User');
+      expect(res.body).toHaveProperty('email', 'test@example.com');
+      expect(res.body).toHaveProperty('company', 'Test Company');
+      expect(res.body).toHaveProperty('budget', '1000-5000');
+      expect(res.body).not.toHaveProperty('password');
     });
 
-    it('should reject registration with invalid email', () => {
-      return request(app.getHttpServer())
+    test('should reject registration with invalid email', async () => {
+      const res = await request(app.getHttpServer())
         .post('/auth/register')
         .send({
           ...validRegisterData,
           email: 'invalid-email',
         })
-        .expect(400)
-        .expect((res) => {
-          expect(res.body.message).toContain('Invalid email format');
-        });
+        .expect(400);
+      expect(res.body.message).toContain('Invalid email format');
     });
 
-    it('should reject registration with weak password', () => {
-      return request(app.getHttpServer())
+    test('should reject registration with weak password', async () => {
+      const res = await request(app.getHttpServer())
         .post('/auth/register')
         .send({
           ...validRegisterData,
           password: 'weak',
         })
-        .expect(400)
-        .expect((res) => {
-          expect(res.body.message).toContain(
-            'Password must be at least 8 characters long',
-          );
-        });
+        .expect(400);
+      expect(res.body.message).toContain(
+        'Password must be at least 8 characters long',
+      );
     });
 
-    it('should reject duplicate email registration', async () => {
+    test('should reject duplicate email registration', async () => {
       // First registration
       await request(app.getHttpServer())
         .post('/auth/register')
@@ -79,15 +74,11 @@ describe('AuthController (e2e)', () => {
         .expect(201);
 
       // Second registration with same email
-      return request(app.getHttpServer())
+      const res = await request(app.getHttpServer())
         .post('/auth/register')
         .send(validRegisterData)
-        .expect(409)
-        .expect((res) => {
-          expect(res.body.message).toContain(
-            'User with this email already exists',
-          );
-        });
+        .expect(409);
+      expect(res.body.message).toContain('User with this email already exists');
     });
   });
 
@@ -110,58 +101,50 @@ describe('AuthController (e2e)', () => {
         .expect(201);
     });
 
-    it('should login successfully with valid credentials', () => {
-      return request(app.getHttpServer())
+    test('should login successfully with valid credentials', async () => {
+      const res = await request(app.getHttpServer())
         .post('/auth/login')
         .send(validLoginData)
-        .expect(200)
-        .expect((res) => {
-          expect(res.body).toHaveProperty('access_token');
-          expect(res.body).toHaveProperty('refresh_token');
-          expect(res.body).toHaveProperty('user');
-          expect(res.body.user).toHaveProperty('id');
-          expect(res.body.user).toHaveProperty('email', 'test@example.com');
-          expect(res.body.user).toHaveProperty('name', 'Test User');
-        });
+        .expect(200);
+      expect(res.body).toHaveProperty('access_token');
+      expect(res.body).toHaveProperty('refresh_token');
+      expect(res.body).toHaveProperty('user');
+      expect(res.body.user).toHaveProperty('id');
+      expect(res.body.user).toHaveProperty('email', 'test@example.com');
+      expect(res.body.user).toHaveProperty('name', 'Test User');
     });
 
-    it('should reject login with invalid email', () => {
-      return request(app.getHttpServer())
+    test('should reject login with invalid email', async () => {
+      const res = await request(app.getHttpServer())
         .post('/auth/login')
         .send({
           ...validLoginData,
           email: 'invalid-email',
         })
-        .expect(400)
-        .expect((res) => {
-          expect(res.body.message).toContain('Invalid email format');
-        });
+        .expect(400);
+      expect(res.body.message).toContain('Invalid email format');
     });
 
-    it('should reject login with wrong password', () => {
-      return request(app.getHttpServer())
+    test('should reject login with wrong password', async () => {
+      const res = await request(app.getHttpServer())
         .post('/auth/login')
         .send({
           ...validLoginData,
           password: 'WrongPassword123!',
         })
-        .expect(401)
-        .expect((res) => {
-          expect(res.body.message).toContain('Invalid credentials');
-        });
+        .expect(401);
+      expect(res.body.message).toContain('Invalid credentials');
     });
 
-    it('should reject login with non-existent email', () => {
-      return request(app.getHttpServer())
+    test('should reject login with non-existent email', async () => {
+      const res = await request(app.getHttpServer())
         .post('/auth/login')
         .send({
           email: 'nonexistent@example.com',
           password: 'Password123!',
         })
-        .expect(401)
-        .expect((res) => {
-          expect(res.body.message).toContain('Invalid credentials');
-        });
+        .expect(401);
+      expect(res.body.message).toContain('Invalid credentials');
     });
   });
 
@@ -191,25 +174,23 @@ describe('AuthController (e2e)', () => {
       accessToken = loginResponse.body.access_token;
     });
 
-    it('should get user profile with valid token', () => {
-      return request(app.getHttpServer())
+    test('should get user profile with valid token', async () => {
+      const res = await request(app.getHttpServer())
         .get('/auth/profile')
         .set('Authorization', `Bearer ${accessToken}`)
-        .expect(200)
-        .expect((res) => {
-          expect(res.body).toHaveProperty('id');
-          expect(res.body).toHaveProperty('name', 'Test User');
-          expect(res.body).toHaveProperty('email', 'test@example.com');
-          expect(res.body).toHaveProperty('company', 'Test Company');
-        });
+        .expect(200);
+      expect(res.body).toHaveProperty('id');
+      expect(res.body).toHaveProperty('name', 'Test User');
+      expect(res.body).toHaveProperty('email', 'test@example.com');
+      expect(res.body).toHaveProperty('company', 'Test Company');
     });
 
-    it('should reject profile access without token', () => {
-      return request(app.getHttpServer()).get('/auth/profile').expect(401);
+    test('should reject profile access without token', async () => {
+      await request(app.getHttpServer()).get('/auth/profile').expect(401);
     });
 
-    it('should reject profile access with invalid token', () => {
-      return request(app.getHttpServer())
+    test('should reject profile access with invalid token', async () => {
+      await request(app.getHttpServer())
         .get('/auth/profile')
         .set('Authorization', 'Bearer invalid-token')
         .expect(401);
@@ -242,27 +223,23 @@ describe('AuthController (e2e)', () => {
       refreshToken = loginResponse.body.refresh_token;
     });
 
-    it('should refresh tokens successfully', () => {
-      return request(app.getHttpServer())
+    test('should refresh tokens successfully', async () => {
+      const res = await request(app.getHttpServer())
         .post('/auth/refresh')
         .send({ refresh_token: refreshToken })
-        .expect(200)
-        .expect((res) => {
-          expect(res.body).toHaveProperty('access_token');
-          expect(res.body).toHaveProperty('refresh_token');
-          expect(res.body.access_token).not.toBe(refreshToken);
-          expect(res.body.refresh_token).not.toBe(refreshToken);
-        });
+        .expect(200);
+      expect(res.body).toHaveProperty('access_token');
+      expect(res.body).toHaveProperty('refresh_token');
+      expect(res.body.access_token).not.toBe(refreshToken);
+      expect(res.body.refresh_token).not.toBe(refreshToken);
     });
 
-    it('should reject refresh with invalid token', () => {
-      return request(app.getHttpServer())
+    test('should reject refresh with invalid token', async () => {
+      const res = await request(app.getHttpServer())
         .post('/auth/refresh')
         .send({ refresh_token: 'invalid-token' })
-        .expect(401)
-        .expect((res) => {
-          expect(res.body.message).toContain('Invalid refresh token');
-        });
+        .expect(401);
+      expect(res.body.message).toContain('Invalid refresh token');
     });
   });
 
@@ -292,18 +269,16 @@ describe('AuthController (e2e)', () => {
       accessToken = loginResponse.body.access_token;
     });
 
-    it('should logout successfully', () => {
-      return request(app.getHttpServer())
+    test('should logout successfully', async () => {
+      const res = await request(app.getHttpServer())
         .post('/auth/logout')
         .set('Authorization', `Bearer ${accessToken}`)
-        .expect(200)
-        .expect((res) => {
-          expect(res.body.message).toBe('Logged out successfully');
-        });
+        .expect(200);
+      expect(res.body.message).toBe('Logged out successfully');
     });
 
-    it('should reject logout without token', () => {
-      return request(app.getHttpServer()).post('/auth/logout').expect(401);
+    test('should reject logout without token', async () => {
+      await request(app.getHttpServer()).post('/auth/logout').expect(401);
     });
   });
 
@@ -333,52 +308,46 @@ describe('AuthController (e2e)', () => {
       accessToken = loginResponse.body.access_token;
     });
 
-    it('should change password successfully', () => {
-      return request(app.getHttpServer())
+    test('should change password successfully', async () => {
+      const res = await request(app.getHttpServer())
         .post('/auth/change-password')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           oldPassword: 'Password123!',
           newPassword: 'NewPassword123!',
         })
-        .expect(200)
-        .expect((res) => {
-          expect(res.body.message).toBe('Password changed successfully');
-        });
+        .expect(200);
+      expect(res.body.message).toBe('Password changed successfully');
     });
 
-    it('should reject password change with wrong old password', () => {
-      return request(app.getHttpServer())
+    test('should reject password change with wrong old password', async () => {
+      const res = await request(app.getHttpServer())
         .post('/auth/change-password')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           oldPassword: 'WrongPassword123!',
           newPassword: 'NewPassword123!',
         })
-        .expect(401)
-        .expect((res) => {
-          expect(res.body.message).toContain('Current password is incorrect');
-        });
+        .expect(401);
+      expect(res.body.message).toContain('Current password is incorrect');
     });
 
-    it('should reject password change with weak new password', () => {
-      return request(app.getHttpServer())
+    test('should reject password change with weak new password', async () => {
+      const res = await request(app.getHttpServer())
         .post('/auth/change-password')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           oldPassword: 'Password123!',
           newPassword: 'weak',
         })
-        .expect(400)
-        .expect((res) => {
-          expect(res.body.message).toContain(
-            'Password must be at least 8 characters long',
-          );
-        });
+        .expect(400);
+      expect(res.body.message).toContain(
+        'Password must be at least 8 characters long',
+      );
     });
 
-    it('should reject password change without token', () => {
-      return request(app.getHttpServer())
+    test('should reject password change without token', async () => {
+      await request(app.getHttpServer())
         .post('/auth/change-password')
         .send({
           oldPassword: 'Password123!',

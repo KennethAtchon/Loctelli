@@ -31,16 +31,17 @@ export default function TermsOfServicePage() {
                 1. Agreement to Terms
               </h2>
               <p>
-                These Terms of Service (“Terms”) govern your access to and use of
-                the Loctelli platform, including our website, applications, CRM,
-                AI-powered chat, lead management, sales strategies, booking and
-                scheduling (including integration with Calendly), SMS campaigns,
-                and related services (collectively, the “Services”) operated by{" "}
-                {BRANDING.company.name}, {BRANDING.company.legalStructure}, (“we,” “us,” or “our”). By registering,
-                logging in, or otherwise using the Services, you agree to be
-                bound by these Terms. If you are using the Services on behalf of
-                an organization, you represent that you have authority to bind
-                that organization to these Terms.
+                These Terms of Service (“Terms”) govern your access to and use
+                of the Loctelli platform, including our website, applications,
+                CRM, AI-powered chat, lead management, sales strategies, booking
+                and scheduling (including integration with Calendly), SMS
+                campaigns, and related services (collectively, the “Services”)
+                operated by {BRANDING.company.name},{" "}
+                {BRANDING.company.legalStructure}, (“we,” “us,” or “our”). By
+                registering, logging in, or otherwise using the Services, you
+                agree to be bound by these Terms. If you are using the Services
+                on behalf of an organization, you represent that you have
+                authority to bind that organization to these Terms.
               </p>
             </section>
 
@@ -149,9 +150,9 @@ export default function TermsOfServicePage() {
               </h2>
               <p>
                 You retain ownership of the data you submit to the Services
-                (“Your Data”). You grant us a limited license to use, store,
-                and process Your Data as necessary to provide, improve, and
-                secure the Services and as described in our{" "}
+                (“Your Data”). You grant us a limited license to use, store, and
+                process Your Data as necessary to provide, improve, and secure
+                the Services and as described in our{" "}
                 <Link
                   href={BRANDING.legal.privacy}
                   className="text-blue-600 hover:underline"
@@ -174,10 +175,10 @@ export default function TermsOfServicePage() {
               <p>
                 The Services may integrate with or link to third-party services
                 (e.g., Calendly for scheduling, Twilio for SMS, GoHighLevel).
-                Your use of those services is subject to their respective
-                terms and privacy policies. We are not responsible for
-                third-party services. For booking-related data processed by
-                Calendly, please review Calendly’s{" "}
+                Your use of those services is subject to their respective terms
+                and privacy policies. We are not responsible for third-party
+                services. For booking-related data processed by Calendly, please
+                review Calendly’s{" "}
                 <a
                   href={BRANDING.legal.calendly.terms}
                   target="_blank"
@@ -204,9 +205,9 @@ export default function TermsOfServicePage() {
                 7. Intellectual Property
               </h2>
               <p>
-                We own or license the Services, including the software,
-                design, text, graphics, and other content we provide (excluding
-                Your Data). These Terms do not grant you any right, title, or
+                We own or license the Services, including the software, design,
+                text, graphics, and other content we provide (excluding Your
+                Data). These Terms do not grant you any right, title, or
                 interest in our intellectual property except the limited right
                 to use the Services in accordance with these Terms. You may not
                 copy, modify, distribute, or create derivative works from our
@@ -222,12 +223,11 @@ export default function TermsOfServicePage() {
                 THE SERVICES ARE PROVIDED “AS IS” AND “AS AVAILABLE” WITHOUT
                 WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
                 LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-                PARTICULAR PURPOSE, AND NON-INFRINGEMENT. WE DO NOT WARRANT
-                THAT THE SERVICES WILL BE UNINTERRUPTED, ERROR-FREE, OR FREE OF
-                HARMFUL COMPONENTS. AI FEATURES (INCLUDING CHAT AND
-                AUTOMATION) MAY PRODUCE INACCURATE OR INAPPROPRIATE OUTPUT;
-                YOU ARE RESPONSIBLE FOR REVIEWING AND USING SUCH OUTPUT
-                APPROPRIATELY.
+                PARTICULAR PURPOSE, AND NON-INFRINGEMENT. WE DO NOT WARRANT THAT
+                THE SERVICES WILL BE UNINTERRUPTED, ERROR-FREE, OR FREE OF
+                HARMFUL COMPONENTS. AI FEATURES (INCLUDING CHAT AND AUTOMATION)
+                MAY PRODUCE INACCURATE OR INAPPROPRIATE OUTPUT; YOU ARE
+                RESPONSIBLE FOR REVIEWING AND USING SUCH OUTPUT APPROPRIATELY.
               </p>
             </section>
 
@@ -244,11 +244,11 @@ export default function TermsOfServicePage() {
                 THE SERVICES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
                 DAMAGES. OUR TOTAL LIABILITY FOR ANY CLAIMS ARISING OUT OF OR
                 RELATED TO THESE TERMS OR THE SERVICES SHALL NOT EXCEED THE
-                AMOUNT YOU PAID US IN THE TWELVE (12) MONTHS PRECEDING THE
-                CLAIM (OR ONE HUNDRED U.S. DOLLARS IF NO AMOUNT WAS PAID).
-                SOME JURISDICTIONS DO NOT ALLOW CERTAIN LIMITATIONS; IN SUCH
-                CASES, OUR LIABILITY WILL BE LIMITED TO THE MAXIMUM EXTENT
-                PERMITTED BY LAW.
+                AMOUNT YOU PAID US IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM
+                (OR ONE HUNDRED U.S. DOLLARS IF NO AMOUNT WAS PAID). SOME
+                JURISDICTIONS DO NOT ALLOW CERTAIN LIMITATIONS; IN SUCH CASES,
+                OUR LIABILITY WILL BE LIMITED TO THE MAXIMUM EXTENT PERMITTED BY
+                LAW.
               </p>
             </section>
 
@@ -259,10 +259,10 @@ export default function TermsOfServicePage() {
               <p>
                 You agree to indemnify, defend, and hold harmless Loctelli and
                 its affiliates, officers, directors, employees, and agents from
-                and against any claims, damages, losses, liabilities, costs,
-                and expenses (including reasonable attorneys’ fees) arising out
-                of or related to: (a) your use of the Services; (b) Your Data
-                or your violation of any law or third-party rights; or (c) any
+                and against any claims, damages, losses, liabilities, costs, and
+                expenses (including reasonable attorneys’ fees) arising out of
+                or related to: (a) your use of the Services; (b) Your Data or
+                your violation of any law or third-party rights; or (c) any
                 breach of these Terms by you.
               </p>
             </section>
@@ -274,10 +274,11 @@ export default function TermsOfServicePage() {
               <p>
                 We may suspend or terminate your access to the Services at any
                 time, with or without cause or notice, including for violation
-                of these Terms. You may stop using the Services at any time. Upon
-                termination, your right to use the Services ceases immediately.
-                Provisions that by their nature should survive (including
-                Sections 5–10 and this sentence) will survive termination.
+                of these Terms. You may stop using the Services at any time.
+                Upon termination, your right to use the Services ceases
+                immediately. Provisions that by their nature should survive
+                (including Sections 5–10 and this sentence) will survive
+                termination.
               </p>
             </section>
 
@@ -290,8 +291,8 @@ export default function TermsOfServicePage() {
                 Loctelli regarding the Services and supersede any prior
                 agreements. Our failure to enforce any right or provision does
                 not waive that right or provision. If any provision is held
-                invalid, the remaining provisions remain in effect. We may assign
-                these Terms; you may not assign without our prior written
+                invalid, the remaining provisions remain in effect. We may
+                assign these Terms; you may not assign without our prior written
                 consent. These Terms are governed by the laws of the State of
                 New York (or the jurisdiction specified in your agreement, if
                 any), without regard to conflict of law principles.

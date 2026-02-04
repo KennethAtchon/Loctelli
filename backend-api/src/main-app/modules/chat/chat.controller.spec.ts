@@ -1,3 +1,4 @@
+import { test, expect, describe, beforeEach, afterEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
@@ -12,16 +13,16 @@ describe('ChatController', () => {
   let prismaService: PrismaService;
 
   const mockChatService = {
-    sendMessage: jest.fn(),
-    getMessageHistory: jest.fn(),
-    sendMessageByCustomId: jest.fn(),
-    handleGeneralChat: jest.fn(),
-    clearMessageHistory: jest.fn(),
+    sendMessage: mock(),
+    getMessageHistory: mock(),
+    sendMessageByCustomId: mock(),
+    handleGeneralChat: mock(),
+    clearMessageHistory: mock(),
   };
 
   const mockPrismaService = {
     lead: {
-      findUnique: jest.fn(),
+      findUnique: mock(),
     },
   };
 
@@ -56,10 +57,10 @@ describe('ChatController', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    // Bun mocks cleared automatically;
   });
 
-  it('should be defined', () => {
+  test('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
@@ -81,7 +82,7 @@ describe('ChatController', () => {
       lead: { id: 1 },
     };
 
-    it('should send message when user owns the lead', async () => {
+    test('should send message when user owns the lead', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(mockLead);
       mockChatService.sendMessage.mockResolvedValue(mockResponse);
 
@@ -94,7 +95,7 @@ describe('ChatController', () => {
       expect(mockChatService.sendMessage).toHaveBeenCalledWith(chatMessageDto);
     });
 
-    it('should send message when user is admin', async () => {
+    test('should send message when user is admin', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(mockLead);
       mockChatService.sendMessage.mockResolvedValue(mockResponse);
 
@@ -106,7 +107,7 @@ describe('ChatController', () => {
       expect(result).toEqual(mockResponse);
     });
 
-    it('should throw HttpException when lead not found', async () => {
+    test('should throw HttpException when lead not found', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(null);
 
       await expect(
@@ -116,7 +117,7 @@ describe('ChatController', () => {
       );
     });
 
-    it('should throw HttpException when user does not have access', async () => {
+    test('should throw HttpException when user does not have access', async () => {
       const leadWithDifferentUser = { ...mockLead, userId: 2 };
       mockPrismaService.lead.findUnique.mockResolvedValue(
         leadWithDifferentUser,
@@ -145,7 +146,7 @@ describe('ChatController', () => {
       },
     ];
 
-    it('should get messages when user owns the lead', async () => {
+    test('should get messages when user owns the lead', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(mockLead);
       mockChatService.getMessageHistory.mockResolvedValue(mockMessages);
 
@@ -158,7 +159,7 @@ describe('ChatController', () => {
       expect(mockChatService.getMessageHistory).toHaveBeenCalledWith(1);
     });
 
-    it('should get messages when user is admin', async () => {
+    test('should get messages when user is admin', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(mockLead);
       mockChatService.getMessageHistory.mockResolvedValue(mockMessages);
 
@@ -167,7 +168,7 @@ describe('ChatController', () => {
       expect(result).toEqual(mockMessages);
     });
 
-    it('should throw HttpException when lead not found', async () => {
+    test('should throw HttpException when lead not found', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(null);
 
       await expect(controller.getMessages(999, mockUser)).rejects.toThrow(
@@ -175,7 +176,7 @@ describe('ChatController', () => {
       );
     });
 
-    it('should throw HttpException when user does not have access', async () => {
+    test('should throw HttpException when user does not have access', async () => {
       const leadWithDifferentUser = { ...mockLead, userId: 2 };
       mockPrismaService.lead.findUnique.mockResolvedValue(
         leadWithDifferentUser,
@@ -188,7 +189,7 @@ describe('ChatController', () => {
   });
 
   describe('markMessageAsRead', () => {
-    it('should return placeholder response', () => {
+    test('should return placeholder response', () => {
       const result = controller.markMessageAsRead('message-123', mockUser);
 
       expect(result).toEqual({ message: 'Message marked as read' });
@@ -196,7 +197,7 @@ describe('ChatController', () => {
   });
 
   describe('deleteMessage', () => {
-    it('should return placeholder response', () => {
+    test('should return placeholder response', () => {
       const result = controller.deleteMessage('message-123', mockUser);
 
       expect(result).toEqual({ message: 'Message deleted' });
@@ -209,7 +210,7 @@ describe('ChatController', () => {
       userId: 1,
     };
 
-    it('should return unread count when user owns the lead', async () => {
+    test('should return unread count when user owns the lead', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(mockLead);
 
       const result = await controller.getUnreadMessagesCount(1, mockUser);
@@ -220,7 +221,7 @@ describe('ChatController', () => {
       });
     });
 
-    it('should return unread count when user is admin', async () => {
+    test('should return unread count when user is admin', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(mockLead);
 
       const result = await controller.getUnreadMessagesCount(1, mockAdminUser);
@@ -228,7 +229,7 @@ describe('ChatController', () => {
       expect(result).toBe(0);
     });
 
-    it('should throw HttpException when lead not found', async () => {
+    test('should throw HttpException when lead not found', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(null);
 
       await expect(
@@ -238,7 +239,7 @@ describe('ChatController', () => {
       );
     });
 
-    it('should throw HttpException when user does not have access', async () => {
+    test('should throw HttpException when user does not have access', async () => {
       const leadWithDifferentUser = { ...mockLead, userId: 2 };
       mockPrismaService.lead.findUnique.mockResolvedValue(
         leadWithDifferentUser,
@@ -258,7 +259,7 @@ describe('ChatController', () => {
       userId: 1,
     };
 
-    it('should mark all as read when user owns the lead', async () => {
+    test('should mark all as read when user owns the lead', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(mockLead);
 
       const result = await controller.markAllAsRead(1, mockUser);
@@ -269,7 +270,7 @@ describe('ChatController', () => {
       });
     });
 
-    it('should mark all as read when user is admin', async () => {
+    test('should mark all as read when user is admin', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(mockLead);
 
       const result = await controller.markAllAsRead(1, mockAdminUser);
@@ -277,7 +278,7 @@ describe('ChatController', () => {
       expect(result).toEqual({ message: 'All messages marked as read' });
     });
 
-    it('should throw HttpException when lead not found', async () => {
+    test('should throw HttpException when lead not found', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(null);
 
       await expect(controller.markAllAsRead(999, mockUser)).rejects.toThrow(
@@ -285,7 +286,7 @@ describe('ChatController', () => {
       );
     });
 
-    it('should throw HttpException when user does not have access', async () => {
+    test('should throw HttpException when user does not have access', async () => {
       const leadWithDifferentUser = { ...mockLead, userId: 2 };
       mockPrismaService.lead.findUnique.mockResolvedValue(
         leadWithDifferentUser,
@@ -308,7 +309,7 @@ describe('ChatController', () => {
       message: 'Thank you for your message.',
     };
 
-    it('should send message by custom ID', async () => {
+    test('should send message by custom ID', async () => {
       mockChatService.sendMessageByCustomId.mockResolvedValue(mockResponse);
 
       const result = await controller.sendMessageByCustomId(sendMessageDto);
@@ -323,7 +324,7 @@ describe('ChatController', () => {
   describe('generalChatEndpoint', () => {
     const testData = { message: 'Hello', userId: 123 };
 
-    it('should handle general chat', () => {
+    test('should handle general chat', () => {
       const mockResponse = { received: testData };
       mockChatService.handleGeneralChat.mockResolvedValue(mockResponse);
 
@@ -340,7 +341,7 @@ describe('ChatController', () => {
       userId: 1,
     };
 
-    it('should clear lead messages when user owns the lead', async () => {
+    test('should clear lead messages when user owns the lead', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(mockLead);
       mockChatService.clearMessageHistory.mockResolvedValue(undefined);
 
@@ -353,7 +354,7 @@ describe('ChatController', () => {
       expect(mockChatService.clearMessageHistory).toHaveBeenCalledWith(1);
     });
 
-    it('should clear lead messages when user is admin', async () => {
+    test('should clear lead messages when user is admin', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(mockLead);
       mockChatService.clearMessageHistory.mockResolvedValue(undefined);
 
@@ -362,7 +363,7 @@ describe('ChatController', () => {
       expect(result).toEqual({ message: 'Chat history cleared' });
     });
 
-    it('should throw HttpException when lead not found', async () => {
+    test('should throw HttpException when lead not found', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(null);
 
       await expect(controller.clearLeadMessages(999, mockUser)).rejects.toThrow(
@@ -370,7 +371,7 @@ describe('ChatController', () => {
       );
     });
 
-    it('should throw HttpException when user does not have access', async () => {
+    test('should throw HttpException when user does not have access', async () => {
       const leadWithDifferentUser = { ...mockLead, userId: 2 };
       mockPrismaService.lead.findUnique.mockResolvedValue(
         leadWithDifferentUser,

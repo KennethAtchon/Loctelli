@@ -27,7 +27,10 @@ export function ProgressIndicator({
 
   if (style === "numbers") {
     return (
-      <div className={className} aria-label={`Question ${current + 1} of ${total}`}>
+      <div
+        className={className}
+        aria-label={`Question ${current + 1} of ${total}`}
+      >
         <span className="text-sm font-medium text-muted-foreground">
           {current + 1} / {total}
         </span>

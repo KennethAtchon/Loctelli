@@ -27,13 +27,16 @@ export default function ResourcesPage() {
 
           <div className="prose prose-gray max-w-none space-y-6 text-gray-700">
             <p>
-              Placeholder resource hub. Add blog posts, guides, and tools here as
-              you create them.
+              Placeholder resource hub. Add blog posts, guides, and tools here
+              as you create them.
             </p>
 
             <ul className="list-disc pl-6 space-y-2">
               <li>
-                <Link href="/#services" className="text-primary hover:underline">
+                <Link
+                  href="/#services"
+                  className="text-primary hover:underline"
+                >
                   Our services
                 </Link>{" "}
                 — Free websites, Google reviews, reactivation, lead generation

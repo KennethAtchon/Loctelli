@@ -387,7 +387,8 @@ export default function AgentInfoModal({
                   <div>
                     <CardTitle>System Prompt</CardTitle>
                     <CardDescription>
-                      {agentInfo.systemPromptLength?.toLocaleString() || 0} characters
+                      {agentInfo.systemPromptLength?.toLocaleString() || 0}{" "}
+                      characters
                     </CardDescription>
                   </div>
                   <Button
@@ -410,27 +411,29 @@ export default function AgentInfoModal({
                   <pre className="text-xs font-mono bg-gray-50 p-4 rounded border overflow-x-auto max-h-96 overflow-y-auto break-words whitespace-pre-wrap">
                     {getSystemPromptDisplay()}
                   </pre>
-                  {agentInfo.systemPromptLength && agentInfo.systemPromptLength > 500 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={toggleFullPrompt}
-                      className="mt-2"
-                    >
-                      {showFullPrompt ? (
-                        <>
-                          <ChevronUp className="h-4 w-4 mr-1" />
-                          Show Less
-                        </>
-                      ) : (
-                        <>
-                          <ChevronDown className="h-4 w-4 mr-1" />
-                          Show Full Prompt (
-                          {agentInfo.systemPromptLength?.toLocaleString()} chars)
-                        </>
-                      )}
-                    </Button>
-                  )}
+                  {agentInfo.systemPromptLength &&
+                    agentInfo.systemPromptLength > 500 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={toggleFullPrompt}
+                        className="mt-2"
+                      >
+                        {showFullPrompt ? (
+                          <>
+                            <ChevronUp className="h-4 w-4 mr-1" />
+                            Show Less
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="h-4 w-4 mr-1" />
+                            Show Full Prompt (
+                            {agentInfo.systemPromptLength?.toLocaleString()}{" "}
+                            chars)
+                          </>
+                        )}
+                      </Button>
+                    )}
                 </div>
               </CardContent>
             </Card>

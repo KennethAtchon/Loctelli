@@ -60,7 +60,8 @@ export function ListView({
             node.type === "statement"
               ? node.data?.statementText || node.data?.label || "Statement"
               : node.data?.label || node.data?.field?.label || "Question";
-          const fieldType = node.data?.fieldType || node.data?.field?.type || "";
+          const fieldType =
+            node.data?.fieldType || node.data?.field?.type || "";
 
           return (
             <Card

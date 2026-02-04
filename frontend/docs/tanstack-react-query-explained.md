@@ -78,13 +78,13 @@ We invalidate when:
 
 ## Queries vs Mutations
 
-| | **Query** | **Mutation** |
-|---|-----------|---------------|
-| **Purpose** | **Read** data (GET). | **Change** data (POST/PUT/PATCH/DELETE). |
-| **When it runs** | Automatically when the component mounts (and when the key is stale/no data). | When you call `mutate()` or `mutateAsync()` (e.g. on button click). |
-| **Cache** | Result is cached under the query key. | No cache; it’s a one-off request. |
-| **Typical use** | “Load leads,” “Load form template,” “Load dashboard stats.” | “Create lead,” “Delete lead,” “Update contact.” |
-| **After success** | — | We usually **invalidate** related query keys so lists/details refetch. |
+|                   | **Query**                                                                    | **Mutation**                                                           |
+| ----------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| **Purpose**       | **Read** data (GET).                                                         | **Change** data (POST/PUT/PATCH/DELETE).                               |
+| **When it runs**  | Automatically when the component mounts (and when the key is stale/no data). | When you call `mutate()` or `mutateAsync()` (e.g. on button click).    |
+| **Cache**         | Result is cached under the query key.                                        | No cache; it’s a one-off request.                                      |
+| **Typical use**   | “Load leads,” “Load form template,” “Load dashboard stats.”                  | “Create lead,” “Delete lead,” “Update contact.”                        |
+| **After success** | —                                                                            | We usually **invalidate** related query keys so lists/details refetch. |
 
 So: **queries** = “give me this data (and cache it).” **Mutations** = “do this action, then mark these queries stale so they refetch.”
 
@@ -263,12 +263,12 @@ sequenceDiagram
 
 ## Which Hook Do I Use?
 
-| You want to… | Use | Example |
-|--------------|-----|--------|
-| Load a list or detail **per tenant** (leads, contacts, bookings, dashboard, etc.) | **useTenantQuery** | `useTenantQuery({ queryKey: ['leads'], queryFn: ({ subAccountId }) => api.leads.getLeads({ subAccountId }) })` |
-| Create/update/delete and then **refresh a tenant list** | **useTenantMutation** with **invalidateQueries** | `useTenantMutation({ mutationFn: ..., invalidateQueries: [['leads']] })` |
-| Load data **not** tied to tenant (subaccounts list, public form by slug) | **useQuery** | `useQuery({ queryKey: ['subaccounts'], queryFn: () => api.adminSubAccounts.getAllSubAccounts() })` |
-| Do a one-off change **and** invalidate a list | **useMutation** (or useTenantMutation) + **invalidateQueries** | Same as above; or `queryClient.invalidateQueries({ queryKey: ['subaccounts'] })` in onSuccess |
+| You want to…                                                                      | Use                                                            | Example                                                                                                        |
+| --------------------------------------------------------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Load a list or detail **per tenant** (leads, contacts, bookings, dashboard, etc.) | **useTenantQuery**                                             | `useTenantQuery({ queryKey: ['leads'], queryFn: ({ subAccountId }) => api.leads.getLeads({ subAccountId }) })` |
+| Create/update/delete and then **refresh a tenant list**                           | **useTenantMutation** with **invalidateQueries**               | `useTenantMutation({ mutationFn: ..., invalidateQueries: [['leads']] })`                                       |
+| Load data **not** tied to tenant (subaccounts list, public form by slug)          | **useQuery**                                                   | `useQuery({ queryKey: ['subaccounts'], queryFn: () => api.adminSubAccounts.getAllSubAccounts() })`             |
+| Do a one-off change **and** invalidate a list                                     | **useMutation** (or useTenantMutation) + **invalidateQueries** | Same as above; or `queryClient.invalidateQueries({ queryKey: ['subaccounts'] })` in onSuccess                  |
 
 So: **tenant-scoped read** → useTenantQuery. **Tenant-scoped write + refresh list** → useTenantMutation + invalidateQueries. **Global read** → useQuery.
 
@@ -278,11 +278,11 @@ So: **tenant-scoped read** → useTenantQuery. **Tenant-scoped write + refresh l
 
 ### Files
 
-| File | What it does |
-|-----|----------------|
-| `frontend/components/providers.tsx` | Creates the single `QueryClient` and sets default options (staleTime, retry, 401 handling). |
-| `frontend/hooks/useTenantQuery.ts` | **useTenantQuery**, **useTenantMutation**, **useTenantQueryKey**, **useInvalidateTenantQueries**, **useTenantInfiniteQuery**. Puts tenant in the key and in the fetch. |
-| `frontend/contexts/subaccount-filter-context.tsx` | Loads subaccounts with **useQuery**; when the filter changes, invalidates all tenant-scoped queries. |
+| File                                              | What it does                                                                                                                                                           |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `frontend/components/providers.tsx`               | Creates the single `QueryClient` and sets default options (staleTime, retry, 401 handling).                                                                            |
+| `frontend/hooks/useTenantQuery.ts`                | **useTenantQuery**, **useTenantMutation**, **useTenantQueryKey**, **useInvalidateTenantQueries**, **useTenantInfiniteQuery**. Puts tenant in the key and in the fetch. |
+| `frontend/contexts/subaccount-filter-context.tsx` | Loads subaccounts with **useQuery**; when the filter changes, invalidates all tenant-scoped queries.                                                                   |
 
 ### Concepts
 

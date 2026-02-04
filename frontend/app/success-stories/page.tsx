@@ -27,10 +27,10 @@ export default function SuccessStoriesPage() {
 
           <div className="prose prose-gray max-w-none space-y-8 text-gray-700">
             <p>
-              We help local and regional businesses increase visibility, win back
-              customers, and generate more leads using AI-powered tools. Here
-              are a few examples (placeholder content—replace with real stories
-              when ready).
+              We help local and regional businesses increase visibility, win
+              back customers, and generate more leads using AI-powered tools.
+              Here are a few examples (placeholder content—replace with real
+              stories when ready).
             </p>
 
             <section className="border-l-4 border-primary/30 pl-6">
@@ -57,7 +57,10 @@ export default function SuccessStoriesPage() {
             </section>
 
             <p>
-              <Link href="/#contact" className="text-primary hover:underline font-medium">
+              <Link
+                href="/#contact"
+                className="text-primary hover:underline font-medium"
+              >
                 Tell us your goals
               </Link>{" "}
               and we can outline how we’d help.

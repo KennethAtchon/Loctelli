@@ -70,10 +70,8 @@ export default function FormsPage() {
     };
   }, [templates, submissions]);
 
-  const isLoading =
-    templatesQuery.isLoading || submissionsQuery.isLoading;
-  const isRefreshing =
-    templatesQuery.isFetching || submissionsQuery.isFetching;
+  const isLoading = templatesQuery.isLoading || submissionsQuery.isLoading;
+  const isRefreshing = templatesQuery.isFetching || submissionsQuery.isFetching;
 
   // Use the pagination hook for templates
   const {

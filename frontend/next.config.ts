@@ -5,7 +5,13 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
+  },
+  
+  // Disable static optimization for error pages
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
+    missingSuspenseWithCSRBailout: false,
   },
 
   // Fix image optimization
@@ -13,10 +19,6 @@ const nextConfig = {
     formats: ["image/webp", "image/avif"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-  },
-
-  experimental: {
-    optimizePackageImports: ["lucide-react"],
   },
 
   trailingSlash: true,

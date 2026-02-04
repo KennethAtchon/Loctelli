@@ -58,7 +58,10 @@ export default function CaseStudiesPage() {
             </section>
 
             <p>
-              <Link href="/#contact" className="text-primary hover:underline font-medium">
+              <Link
+                href="/#contact"
+                className="text-primary hover:underline font-medium"
+              >
                 Contact us
               </Link>{" "}
               to discuss your situation and possible next steps.

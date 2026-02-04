@@ -20,12 +20,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Trash2, Upload, X, Loader2, Image as ImageIcon, Video, FileImage } from "lucide-react";
+import { Trash2, X, Loader2 } from "lucide-react";
 import Image from "next/image";
-import type { FlowchartNode, FlowchartNodeData, CardMedia } from "@/lib/forms/flowchart-types";
-import type { FormField } from "@/lib/api";
+import type {
+  FlowchartNode,
+  FlowchartNodeData,
+  CardMedia,
+} from "@/lib/forms/flowchart-types";
+import type { FormField, ConditionalLogic } from "@/lib/api";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { LogicBuilder } from "./logic-builder";
 
 const fieldTypes = [
   { value: "text", label: "Text Input" },
@@ -46,6 +51,8 @@ export interface CardSettingsPanelProps {
   onUpdate: (nodeId: string, updates: Partial<FlowchartNodeData>) => void;
   onDelete?: (nodeId: string) => void;
   formSlug?: string;
+  /** All fields in the form (for conditional logic reference) */
+  allFields?: FormField[];
 }
 
 export function CardSettingsPanel({
@@ -55,6 +62,7 @@ export function CardSettingsPanel({
   onUpdate,
   onDelete,
   formSlug,
+  allFields = [],
 }: CardSettingsPanelProps) {
   const { toast } = useToast();
   const [label, setLabel] = useState("");
@@ -65,13 +73,23 @@ export function CardSettingsPanel({
   const [newOption, setNewOption] = useState("");
   const [statementText, setStatementText] = useState("");
   const [media, setMedia] = useState<CardMedia | undefined>(undefined);
-  const [mediaType, setMediaType] = useState<"image" | "video" | "gif" | "icon">("image");
-  const [mediaPosition, setMediaPosition] = useState<"above" | "below" | "background" | "left" | "right">("above");
+  const [mediaType, setMediaType] = useState<
+    "image" | "video" | "gif" | "icon"
+  >("image");
+  const [mediaPosition, setMediaPosition] = useState<
+    "above" | "below" | "background" | "left" | "right"
+  >("above");
   const [mediaUrl, setMediaUrl] = useState("");
   const [mediaAltText, setMediaAltText] = useState("");
-  const [videoType, setVideoType] = useState<"youtube" | "vimeo" | "upload">("youtube");
+  const [videoType, setVideoType] = useState<"youtube" | "vimeo" | "upload">(
+    "youtube"
+  );
   const [videoId, setVideoId] = useState("");
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [enablePiping, setEnablePiping] = useState(false);
+  const [conditionalLogic, setConditionalLogic] = useState<
+    ConditionalLogic | undefined
+  >(undefined);
 
   useEffect(() => {
     if (!node) return;
@@ -85,6 +103,8 @@ export function CardSettingsPanel({
       setRequired(field?.required || false);
       setPlaceholder(field?.placeholder || "");
       setOptions(field?.options || []);
+      setEnablePiping(field?.enablePiping || false);
+      setConditionalLogic(field?.conditionalLogic);
     }
     // Load media settings
     if (data.media) {
@@ -125,7 +145,8 @@ export function CardSettingsPanel({
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to upload media",
+        description:
+          error instanceof Error ? error.message : "Failed to upload media",
         variant: "destructive",
       });
     } finally {
@@ -146,7 +167,11 @@ export function CardSettingsPanel({
         label,
         required,
         placeholder: placeholder || undefined,
-        options: ["select", "radio", "checkbox"].includes(fieldType) ? options : undefined,
+        options: ["select", "radio", "checkbox"].includes(fieldType)
+          ? options
+          : undefined,
+        enablePiping,
+        conditionalLogic: conditionalLogic,
       };
       updates.field = field;
       updates.label = label;
@@ -300,6 +325,40 @@ export function CardSettingsPanel({
             </>
           )}
 
+          {/* Conditional Logic & Piping Section */}
+          {isQuestion && (
+            <div className="pt-4 border-t space-y-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="enable-piping"
+                  checked={enablePiping}
+                  onCheckedChange={setEnablePiping}
+                />
+                <Label htmlFor="enable-piping">
+                  Enable piping (use {"{{fieldId}}"} in labels to insert
+                  previous answers)
+                </Label>
+              </div>
+
+              <div className="space-y-4">
+                <Label>Conditional Logic</Label>
+                <LogicBuilder
+                  fields={allFields.filter(
+                    (f) => f.id !== (node.data?.fieldId || node.id)
+                  )}
+                  value={conditionalLogic?.showIf}
+                  onChange={(showIf) =>
+                    setConditionalLogic({
+                      ...conditionalLogic,
+                      showIf,
+                    })
+                  }
+                  label="Show this field if"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Media Section */}
           <div className="pt-4 border-t space-y-4">
             <div className="flex items-center justify-between">
@@ -324,7 +383,10 @@ export function CardSettingsPanel({
               <>
                 <div>
                   <Label htmlFor="media-type">Media Type</Label>
-                  <Select value={mediaType} onValueChange={(v) => setMediaType(v as typeof mediaType)}>
+                  <Select
+                    value={mediaType}
+                    onValueChange={(v) => setMediaType(v as typeof mediaType)}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -339,7 +401,9 @@ export function CardSettingsPanel({
 
                 {mediaType === "image" || mediaType === "gif" ? (
                   <div>
-                    <Label htmlFor="media-upload">Upload {mediaType === "gif" ? "GIF" : "Image"}</Label>
+                    <Label htmlFor="media-upload">
+                      Upload {mediaType === "gif" ? "GIF" : "Image"}
+                    </Label>
                     <div className="mt-2">
                       <Input
                         id="media-upload"
@@ -373,7 +437,12 @@ export function CardSettingsPanel({
                   <>
                     <div>
                       <Label htmlFor="video-type">Video Source</Label>
-                      <Select value={videoType} onValueChange={(v) => setVideoType(v as typeof videoType)}>
+                      <Select
+                        value={videoType}
+                        onValueChange={(v) =>
+                          setVideoType(v as typeof videoType)
+                        }
+                      >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -400,12 +469,20 @@ export function CardSettingsPanel({
                       </div>
                     ) : (
                       <div>
-                        <Label htmlFor="video-id">{videoType === "youtube" ? "YouTube Video ID" : "Vimeo Video ID"}</Label>
+                        <Label htmlFor="video-id">
+                          {videoType === "youtube"
+                            ? "YouTube Video ID"
+                            : "Vimeo Video ID"}
+                        </Label>
                         <Input
                           id="video-id"
                           value={videoId}
                           onChange={(e) => setVideoId(e.target.value)}
-                          placeholder={videoType === "youtube" ? "dQw4w9WgXcQ" : "123456789"}
+                          placeholder={
+                            videoType === "youtube"
+                              ? "dQw4w9WgXcQ"
+                              : "123456789"
+                          }
                         />
                         <p className="text-xs text-muted-foreground mt-1">
                           {videoType === "youtube"
@@ -432,7 +509,12 @@ export function CardSettingsPanel({
                   <>
                     <div>
                       <Label htmlFor="media-position">Position</Label>
-                      <Select value={mediaPosition} onValueChange={(v) => setMediaPosition(v as typeof mediaPosition)}>
+                      <Select
+                        value={mediaPosition}
+                        onValueChange={(v) =>
+                          setMediaPosition(v as typeof mediaPosition)
+                        }
+                      >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -470,7 +552,9 @@ export function CardSettingsPanel({
                       className="object-contain"
                     />
                   </div>
-                ) : mediaType === "video" && videoType === "youtube" && videoId ? (
+                ) : mediaType === "video" &&
+                  videoType === "youtube" &&
+                  videoId ? (
                   <div className="aspect-video border rounded-lg overflow-hidden">
                     <iframe
                       src={`https://www.youtube.com/embed/${videoId}`}
@@ -478,7 +562,9 @@ export function CardSettingsPanel({
                       allowFullScreen
                     />
                   </div>
-                ) : mediaType === "video" && videoType === "vimeo" && videoId ? (
+                ) : mediaType === "video" &&
+                  videoType === "vimeo" &&
+                  videoId ? (
                   <div className="aspect-video border rounded-lg overflow-hidden">
                     <iframe
                       src={`https://player.vimeo.com/video/${videoId}`}

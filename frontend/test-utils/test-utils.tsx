@@ -2,118 +2,122 @@ import React, { ReactElement } from "react";
 import { render, RenderOptions } from "@testing-library/react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { UnifiedAuthProvider } from "@/contexts/unified-auth-context";
+import { mock } from "bun:test";
 
 // Mock the API client
-jest.mock("@/lib/api/client", () => ({
-  ApiClient: jest.fn().mockImplementation(() => ({
-    get: jest.fn(),
-    post: jest.fn(),
-    put: jest.fn(),
-    patch: jest.fn(),
-    delete: jest.fn(),
+const mockApiClient = {
+  ApiClient: mock(() => ({
+    get: mock(),
+    post: mock(),
+    put: mock(),
+    patch: mock(),
+    delete: mock(),
   })),
-}));
+};
 
 // Mock the entire API module
-jest.mock("@/lib/api", () => ({
+const mockApi = {
   api: {
     auth: {
-      login: jest.fn(),
-      register: jest.fn(),
-      logout: jest.fn(),
-      getProfile: jest.fn(),
+      login: mock(),
+      register: mock(),
+      logout: mock(),
+      getProfile: mock(),
     },
     adminAuth: {
-      adminLogin: jest.fn(),
-      adminRegister: jest.fn(),
-      adminLogout: jest.fn(),
-      getAdminProfile: jest.fn(),
+      adminLogin: mock(),
+      adminRegister: mock(),
+      adminLogout: mock(),
+      getAdminProfile: mock(),
     },
     users: {
-      getUsers: jest.fn(),
-      getUser: jest.fn(),
-      createUser: jest.fn(),
-      updateUser: jest.fn(),
-      deleteUser: jest.fn(),
+      getUsers: mock(),
+      getUser: mock(),
+      createUser: mock(),
+      updateUser: mock(),
+      deleteUser: mock(),
     },
     leads: {
-      getLeads: jest.fn(),
-      getLead: jest.fn(),
-      createLead: jest.fn(),
-      updateLead: jest.fn(),
-      deleteLead: jest.fn(),
+      getLeads: mock(),
+      getLead: mock(),
+      createLead: mock(),
+      updateLead: mock(),
+      deleteLead: mock(),
     },
     strategies: {
-      getStrategies: jest.fn(),
-      getStrategy: jest.fn(),
-      createStrategy: jest.fn(),
-      updateStrategy: jest.fn(),
-      deleteStrategy: jest.fn(),
+      getStrategies: mock(),
+      getStrategy: mock(),
+      createStrategy: mock(),
+      updateStrategy: mock(),
+      deleteStrategy: mock(),
     },
     bookings: {
-      getBookings: jest.fn(),
-      getBooking: jest.fn(),
-      createBooking: jest.fn(),
-      updateBooking: jest.fn(),
-      deleteBooking: jest.fn(),
+      getBookings: mock(),
+      getBooking: mock(),
+      createBooking: mock(),
+      updateBooking: mock(),
+      deleteBooking: mock(),
     },
     chat: {
-      sendMessage: jest.fn(),
-      getChatHistory: jest.fn(),
+      sendMessage: mock(),
+      getChatHistory: mock(),
     },
     promptTemplates: {
-      getPromptTemplates: jest.fn(),
-      getPromptTemplate: jest.fn(),
-      createPromptTemplate: jest.fn(),
-      updatePromptTemplate: jest.fn(),
-      deletePromptTemplate: jest.fn(),
+      getPromptTemplates: mock(),
+      getPromptTemplate: mock(),
+      createPromptTemplate: mock(),
+      updatePromptTemplate: mock(),
+      deletePromptTemplate: mock(),
     },
     status: {
-      getSystemStatus: jest.fn(),
+      getSystemStatus: mock(),
     },
     general: {
-      getHealth: jest.fn(),
+      getHealth: mock(),
     },
   },
-  AuthApi: jest.fn(),
-  AdminAuthApi: jest.fn(),
-  UsersApi: jest.fn(),
-  LeadsApi: jest.fn(),
-  StrategiesApi: jest.fn(),
-  BookingsApi: jest.fn(),
-  ChatApi: jest.fn(),
-  PromptTemplatesApi: jest.fn(),
-  StatusApi: jest.fn(),
-  GeneralApi: jest.fn(),
-}));
+};
+
+const mockApiExports = {
+  AuthApi: mock(),
+  AdminAuthApi: mock(),
+  UsersApi: mock(),
+  LeadsApi: mock(),
+  StrategiesApi: mock(),
+  BookingsApi: mock(),
+  ChatApi: mock(),
+  PromptTemplatesApi: mock(),
+  StatusApi: mock(),
+  GeneralApi: mock(),
+};
 
 // Mock the logger as default export
-jest.mock("@/lib/logger", () => ({
+const mockLogger = {
   __esModule: true,
   default: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn(),
+    info: mock(),
+    warn: mock(),
+    error: mock(),
+    debug: mock(),
   },
-}));
+};
 
 // Mock the cookies module
-jest.mock("@/lib/cookies", () => ({
+const mockCookies = {
   AuthCookies: {
-    hasUserTokens: jest.fn(),
-    hasAdminTokens: jest.fn(),
-    setAccessToken: jest.fn(),
-    setRefreshToken: jest.fn(),
-    setAdminAccessToken: jest.fn(),
-    setAdminRefreshToken: jest.fn(),
-    getAdminAccessToken: jest.fn(),
-    getAdminRefreshToken: jest.fn(),
-    clearUserTokens: jest.fn(),
-    clearAdminTokens: jest.fn(),
-    clearAll: jest.fn(),
+    hasUserTokens: mock(),
+    hasAdminTokens: mock(),
+    setAccessToken: mock(),
+    setRefreshToken: mock(),
+    setAdminAccessToken: mock(),
+    setAdminRefreshToken: mock(),
+    getAdminAccessToken: mock(),
+    getAdminRefreshToken: mock(),
+    clearUserTokens: mock(),
+    clearAdminTokens: mock(),
+    clearAll: mock(),
   },
-}));
+};
 
 interface AllTheProvidersProps {
   children: React.ReactNode;
@@ -170,18 +174,18 @@ export const mockAuthContext = {
   user: mockUser,
   isAuthenticated: true,
   isLoading: false,
-  login: jest.fn(),
-  logout: jest.fn(),
-  register: jest.fn(),
+  login: mock(),
+  logout: mock(),
+  register: mock(),
 };
 
 export const mockAdminAuthContext = {
   user: mockAdminUser,
   isAuthenticated: true,
   isLoading: false,
-  login: jest.fn(),
-  logout: jest.fn(),
-  verifyCode: jest.fn(),
+  login: mock(),
+  logout: mock(),
+  verifyCode: mock(),
 };
 
 // Common test helpers
@@ -205,4 +209,13 @@ export const createMockApiError = (message: string, status = 400) => {
       statusText: "Bad Request",
     },
   });
+};
+
+// Export mocks for use in tests
+export {
+  mockApiClient,
+  mockApi,
+  mockApiExports,
+  mockLogger,
+  mockCookies,
 };

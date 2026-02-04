@@ -72,8 +72,7 @@ export default function PublicFormPage() {
       }
       return formsApi.getPublicForm(slug);
     },
-    enabled:
-      !!slug && slug !== "wake-up" && slug !== "invalid-form",
+    enabled: !!slug && slug !== "wake-up" && slug !== "invalid-form",
     staleTime: PUBLIC_FORM_STALE_MS,
     retry: 2,
     retryDelay: (attemptIndex) => (attemptIndex + 1) * 500,
@@ -82,9 +81,9 @@ export default function PublicFormPage() {
   const template = formQuery.data ?? null;
   const isLoading = formQuery.isLoading;
   const loadError = formQuery.error
-    ? (formQuery.error instanceof Error
-        ? formQuery.error.message
-        : "Failed to load form")
+    ? formQuery.error instanceof Error
+      ? formQuery.error.message
+      : "Failed to load form"
     : slug === "wake-up" || slug === "invalid-form"
       ? "Invalid form URL"
       : null;

@@ -74,6 +74,21 @@ export const formsConfig: EndpointGroup = {
     responseType: {} as FormSubmission,
   },
 
+  calculateProfileEstimation: {
+    method: "POST",
+    path: "/forms/public/:slug/calculate-profile",
+    pathParams: [{ name: "slug", required: true, type: "string" }],
+    requiresBody: true,
+    bodyType: {} as { answers: Record<string, unknown> },
+    responseType: {} as {
+      type: string;
+      result: Record<string, unknown>;
+      aiEnhanced?: boolean;
+      aiResult?: Record<string, unknown>;
+      error?: string;
+    },
+  },
+
   wakeUpDatabase: {
     method: "GET",
     path: "/forms/public/wake-up",
@@ -166,5 +181,51 @@ export const formsConfig: EndpointGroup = {
     method: "GET",
     path: "/forms/submissions/stats",
     responseType: {} as FormStats,
+  },
+
+  getFormAnalytics: {
+    method: "GET",
+    path: "/forms/templates/:id/analytics",
+    pathParams: [{ name: "id", required: true, type: "string" }],
+    responseType: {} as {
+      totalViews: number;
+      totalStarted: number;
+      totalCompleted: number;
+      completionRate: number;
+      averageTime: number;
+      dropOffAnalysis: Array<{
+        cardIndex: number;
+        cardId: string;
+        cardLabel: string;
+        views: number;
+        dropOffRate: number;
+        averageTime: number;
+      }>;
+      timePerCard: Record<string, number>;
+      deviceBreakdown: {
+        mobile: number;
+        tablet: number;
+        desktop: number;
+        unknown: number;
+      };
+      profileResults?: Array<{
+        result: string;
+        count: number;
+        percentage: number;
+      }>;
+    },
+  },
+
+  trackCardTime: {
+    method: "POST",
+    path: "/forms/public/:slug/track-time",
+    pathParams: [{ name: "slug", required: true, type: "string" }],
+    requiresBody: true,
+    bodyType: {} as {
+      sessionToken: string;
+      cardId: string;
+      timeSeconds: number;
+    },
+    responseType: {} as { success: boolean },
   },
 };

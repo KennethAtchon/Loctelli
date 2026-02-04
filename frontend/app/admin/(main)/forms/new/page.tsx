@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, Plus, Download, FileText, LayoutGrid } from "lucide-react";
+import {
+  ArrowLeft,
+  Save,
+  Plus,
+  Download,
+  FileText,
+  LayoutGrid,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -202,7 +209,9 @@ export default function NewFormTemplatePage() {
           <h1 className="text-2xl font-bold">Create New Form</h1>
         </div>
         <p className="text-muted-foreground mb-6">
-          Choose the form type. Simple Form shows all fields on one page; Card Form shows one question per screen with a flowchart builder (coming soon).
+          Choose the form type. Simple Form shows all fields on one page; Card
+          Form shows one question per screen with a flowchart builder (coming
+          soon).
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl">
           <Card
@@ -218,7 +227,8 @@ export default function NewFormTemplatePage() {
                 <div>
                   <CardTitle>Simple Form</CardTitle>
                   <CardDescription>
-                    Traditional layout: all fields visible on one page. Best for contact forms and quick surveys.
+                    Traditional layout: all fields visible on one page. Best for
+                    contact forms and quick surveys.
                   </CardDescription>
                 </div>
               </div>
@@ -237,7 +247,8 @@ export default function NewFormTemplatePage() {
                 <div>
                   <CardTitle>Card Form</CardTitle>
                   <CardDescription>
-                    One question per screen with progress and branching. Builder (flowchart) coming soon.
+                    One question per screen with progress and branching. Builder
+                    (flowchart) coming soon.
                   </CardDescription>
                 </div>
               </div>
@@ -281,7 +292,9 @@ export default function NewFormTemplatePage() {
         <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-900">
           <CardContent className="pt-6">
             <p className="text-sm text-amber-800 dark:text-amber-200">
-              Card form builder (flowchart, one-question-per-screen) is coming in a future update. You can create a placeholder now and add questions later.
+              Card form builder (flowchart, one-question-per-screen) is coming
+              in a future update. You can create a placeholder now and add
+              questions later.
             </p>
           </CardContent>
         </Card>

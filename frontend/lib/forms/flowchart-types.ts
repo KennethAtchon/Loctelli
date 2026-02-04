@@ -1,5 +1,5 @@
 import type { Node, Edge } from "@xyflow/react";
-import type { FormField } from "@/lib/api";
+import type { FormField, ConditionGroup } from "@/lib/api";
 
 export const FLOWCHART_NODE_TYPES = [
   "start",
@@ -33,8 +33,18 @@ export interface FlowchartNodeData {
   media?: CardMedia;
 }
 
-export type FlowchartNode = Node<FlowchartNodeData, FlowchartNodeType>;
-export type FlowchartEdge = Edge;
+export interface FlowchartEdgeData {
+  /** Condition for this edge (if present, edge is conditional) */
+  condition?: ConditionGroup;
+  /** Label shown on the edge */
+  label?: string;
+}
+
+export type FlowchartNode = Node<
+  FlowchartNodeData & Record<string, unknown>,
+  FlowchartNodeType
+>;
+export type FlowchartEdge = Edge<FlowchartEdgeData & Record<string, unknown>>;
 
 export interface FlowchartViewport {
   x: number;

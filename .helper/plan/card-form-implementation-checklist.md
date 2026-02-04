@@ -58,35 +58,35 @@
 
 ## Phase 4: Conditional Logic
 
-- [ ] Condition editor UI (show/hide, jump)
-- [ ] Piping (insert previous answers into labels)
-- [ ] Runtime: evaluate conditions and branching
+- [x] Condition editor UI (show/hide, jump)
+- [x] Piping (insert previous answers into labels)
+- [x] Runtime: evaluate conditions and branching
 
 ---
 
 ## Phase 5: Profile Estimation (Rule-Based)
 
-- [ ] Scoring configuration UI (percentage, category, multi-dimension, recommendation)
-- [ ] Rule-based calculation for each result type
-- [ ] Result visualization components
-- [ ] Per-form "Enable AI" toggle (default off)
+- [x] Scoring configuration UI (percentage, category, multi-dimension, recommendation)
+- [x] Rule-based calculation for each result type
+- [x] Result visualization components
+- [x] Per-form "Enable AI" toggle (default off)
 
 ---
 
 ## Phase 6: AI Enhancement (Optional)
 
-- [ ] AI config UI; integrate when enabled
-- [ ] Text analysis / personalized descriptions
-- [ ] Rule-based fallback when AI disabled
+- [x] AI config UI; integrate when enabled
+- [x] Text analysis / personalized descriptions
+- [x] Rule-based fallback when AI disabled
 
 ---
 
 ## Phase 7: Analytics & Optimization
 
-- [ ] Form view tracking
-- [ ] Drop-off analysis; time-per-card
-- [ ] Analytics dashboard
-- [ ] A/B testing (optional)
+- [x] Form view tracking
+- [x] Drop-off analysis; time-per-card
+- [x] Analytics dashboard
+- [ ] A/B testing (optional - skipped per user request)
 
 ---
 
@@ -99,4 +99,4 @@
 
 ---
 
-*Last updated: Phase 2 completed*
+*Last updated: Phase 7 completed (A/B testing skipped)*

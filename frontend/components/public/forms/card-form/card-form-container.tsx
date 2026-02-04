@@ -14,10 +14,20 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, AlertCircle, ChevronLeft } from "lucide-react";
 import type { FormTemplate, FormField, FormsApi } from "@/lib/api";
 import { CardFieldRenderer } from "./card-field-renderer";
+import { ProgressIndicator, getCardFormSessionKey } from "./progress-indicator";
 import {
-  ProgressIndicator,
-  getCardFormSessionKey,
-} from "./progress-indicator";
+  getNextCardIndex,
+  getVisibleFields,
+  getDynamicLabel,
+  shouldShowField,
+} from "@/lib/forms/conditional-logic";
+import { calculateProfileEstimation } from "@/lib/forms/profile-estimation";
+import {
+  PercentageResult,
+  CategoryResult,
+  MultiDimensionResult,
+  RecommendationResult,
+} from "./results";
 
 const cardVariants = (reducedMotion: boolean) =>
   reducedMotion
@@ -56,7 +66,6 @@ export function CardFormContainer({
   onSuccess,
 }: CardFormContainerProps) {
   const schema = (template.schema ?? []) as FormField[];
-  const totalCards = schema.length;
 
   const [formData, setFormData] = useState<Record<string, unknown>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -66,7 +75,20 @@ export function CardFormContainer({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
+  const [profileResult, setProfileResult] = useState<{
+    type: string;
+    result: Record<string, unknown>;
+    aiEnhanced?: boolean;
+    aiResult?: Record<string, unknown>;
+    error?: string;
+  } | null>(null);
+  const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>(
+    {}
+  );
+  const [cardStartTimes, setCardStartTimes] = useState<Record<number, number>>(
+    {}
+  );
+  const [formViewed, setFormViewed] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<
     Record<string, { url: string; originalName: string }>
   >({});
@@ -76,9 +98,15 @@ export function CardFormContainer({
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const variants = cardVariants(!!reducedMotion);
 
-  const currentField = schema[currentIndex];
-  const isFirst = currentIndex === 0;
-  const isLast = currentIndex === totalCards - 1;
+  // Get visible fields based on conditional logic
+  const visibleFields = getVisibleFields(schema, formData);
+  const totalCards = visibleFields.length;
+
+  // Find the current field in the visible fields array
+  const currentVisibleIndex = Math.min(currentIndex, visibleFields.length - 1);
+  const currentField = visibleFields[currentVisibleIndex];
+  const isFirst = currentVisibleIndex === 0;
+  const isLast = currentVisibleIndex === visibleFields.length - 1;
 
   const initFormData = useCallback(() => {
     const initial: Record<string, unknown> = {};
@@ -129,7 +157,10 @@ export function CardFormContainer({
               typeof session.partialData === "object" &&
               Object.keys(session.partialData).length > 0
             ) {
-              setFormData((prev) => ({ ...initFormData(), ...session.partialData }));
+              setFormData((prev) => ({
+                ...initFormData(),
+                ...session.partialData,
+              }));
             }
             setSessionToken(session.sessionToken);
             setSessionRestored(true);
@@ -137,14 +168,22 @@ export function CardFormContainer({
           }
         }
         const created = await formsApi.createFormSession(slug, {
-          deviceType: typeof navigator !== "undefined" ? (navigator as { userAgentData?: { mobile?: boolean } }).userAgentData?.mobile ? "mobile" : "desktop" : undefined,
+          deviceType:
+            typeof navigator !== "undefined"
+              ? (navigator as { userAgentData?: { mobile?: boolean } })
+                  .userAgentData?.mobile
+                ? "mobile"
+                : "desktop"
+              : undefined,
         });
         if (!cancelled && created) {
           persistSessionToken(created.sessionToken);
         }
       } catch {
         if (!cancelled) {
-          const created = await formsApi.createFormSession(slug).catch(() => null);
+          const created = await formsApi
+            .createFormSession(slug)
+            .catch(() => null);
           if (created) persistSessionToken(created.sessionToken);
         }
       } finally {
@@ -155,7 +194,15 @@ export function CardFormContainer({
     return () => {
       cancelled = true;
     };
-  }, [slug, totalCards, saveProgress, formsApi, initFormData, persistSessionToken, template]);
+  }, [
+    slug,
+    totalCards,
+    saveProgress,
+    formsApi,
+    initFormData,
+    persistSessionToken,
+    template,
+  ]);
 
   const validateCurrent = useCallback((): boolean => {
     if (!currentField) return true;
@@ -175,12 +222,27 @@ export function CardFormContainer({
     setFormError(null);
     if (isLast) return;
     setDirection(1);
-    const nextIndex = currentIndex + 1;
-    setCurrentIndex(nextIndex);
+
+    // Use conditional logic to determine next card
+    const nextVisibleIndex = getNextCardIndex(
+      currentVisibleIndex,
+      visibleFields,
+      formData
+    );
+    const nextField = visibleFields[nextVisibleIndex];
+
+    // Find the actual index in the full schema
+    const nextSchemaIndex = nextField
+      ? schema.findIndex((f) => f.id === nextField.id)
+      : currentIndex + 1;
+    const finalNextIndex =
+      nextSchemaIndex !== -1 ? nextSchemaIndex : currentIndex + 1;
+
+    setCurrentIndex(finalNextIndex);
     if (saveProgress && sessionToken) {
       try {
         await formsApi.updateFormSession(slug, sessionToken, {
-          currentCardIndex: nextIndex,
+          currentCardIndex: finalNextIndex,
           partialData: formData,
         });
       } catch {
@@ -191,10 +253,13 @@ export function CardFormContainer({
     validateCurrent,
     isLast,
     currentIndex,
+    currentVisibleIndex,
+    visibleFields,
+    schema,
+    formData,
     saveProgress,
     sessionToken,
     slug,
-    formData,
     formsApi,
   ]);
 
@@ -202,8 +267,20 @@ export function CardFormContainer({
     setFormError(null);
     if (isFirst) return;
     setDirection(-1);
-    setCurrentIndex((i) => i - 1);
-  }, [isFirst]);
+    // Go back to previous visible field
+    const prevVisibleIndex = currentVisibleIndex - 1;
+    if (prevVisibleIndex >= 0) {
+      const prevField = visibleFields[prevVisibleIndex];
+      const prevSchemaIndex = prevField
+        ? schema.findIndex((f) => f.id === prevField.id)
+        : currentIndex - 1;
+      setCurrentIndex(
+        prevSchemaIndex !== -1 ? prevSchemaIndex : currentIndex - 1
+      );
+    } else {
+      setCurrentIndex((i) => Math.max(0, i - 1));
+    }
+  }, [isFirst, currentVisibleIndex, visibleFields, schema, currentIndex]);
 
   const handleSubmit = useCallback(async () => {
     if (!validateCurrent()) {
@@ -213,6 +290,43 @@ export function CardFormContainer({
     setFormError(null);
     setIsSubmitting(true);
     try {
+      // Calculate profile estimation if enabled
+      if (template.profileEstimation?.enabled) {
+        try {
+          // If AI is enabled, call backend API
+          if (template.profileEstimation.aiConfig?.enabled) {
+            const aiResult = await formsApi.calculateProfileEstimation(
+              slug,
+              formData
+            );
+            if (aiResult) {
+              setProfileResult(aiResult);
+            }
+          } else {
+            // Use rule-based calculation
+            const result = calculateProfileEstimation(
+              template.profileEstimation,
+              formData,
+              schema
+            );
+            if (result) {
+              setProfileResult(result);
+            }
+          }
+        } catch (err) {
+          // Fallback to rule-based if AI fails
+          console.warn("AI calculation failed, using rule-based:", err);
+          const result = calculateProfileEstimation(
+            template.profileEstimation,
+            formData,
+            schema
+          );
+          if (result) {
+            setProfileResult(result);
+          }
+        }
+      }
+
       await formsApi.submitPublicForm(slug, {
         data: formData,
         files: uploadedFiles,
@@ -228,7 +342,9 @@ export function CardFormContainer({
       onSuccess?.();
     } catch (err) {
       setFormError(
-        err instanceof Error ? err.message : "Failed to submit. Please try again."
+        err instanceof Error
+          ? err.message
+          : "Failed to submit. Please try again."
       );
     } finally {
       setIsSubmitting(false);
@@ -241,6 +357,8 @@ export function CardFormContainer({
     sessionToken,
     formsApi,
     onSuccess,
+    template,
+    schema,
   ]);
 
   const handleKeyDown = useCallback(
@@ -258,9 +376,12 @@ export function CardFormContainer({
     [goBack, goNext, isLast, handleSubmit]
   );
 
-  const handleInputChange = useCallback((fieldId: string, value: string | string[]) => {
-    setFormData((prev) => ({ ...prev, [fieldId]: value }));
-  }, []);
+  const handleInputChange = useCallback(
+    (fieldId: string, value: string | string[]) => {
+      setFormData((prev) => ({ ...prev, [fieldId]: value }));
+    },
+    []
+  );
 
   const handleCheckboxChange = useCallback(
     (fieldId: string, option: string, checked: boolean) => {
@@ -297,6 +418,77 @@ export function CardFormContainer({
     cardRef.current?.focus({ preventScroll: true });
   }, [currentIndex]);
 
+  // Track form view
+  useEffect(() => {
+    if (!formViewed && template.analyticsEnabled && sessionRestored) {
+      setFormViewed(true);
+      // Form view is tracked via session creation, so this is already handled
+    }
+  }, [formViewed, template.analyticsEnabled, sessionRestored]);
+
+  // Track time per card
+  useEffect(() => {
+    if (!template.analyticsEnabled || !sessionToken) return;
+
+    const currentField = visibleFields[currentVisibleIndex];
+    if (!currentField) return;
+
+    // Record start time for current card
+    const startTime = Date.now();
+    setCardStartTimes((prev) => ({ ...prev, [currentIndex]: startTime }));
+
+    // Cleanup: track time when leaving card
+    return () => {
+      const endTime = Date.now();
+      const timeSpent = (endTime - startTime) / 1000; // Convert to seconds
+
+      if (timeSpent > 0 && sessionToken && currentField) {
+        // Update time per card via API
+        formsApi
+          .trackCardTime(slug, {
+            sessionToken,
+            cardId: currentField.id,
+            timeSeconds: Math.round(timeSpent),
+          })
+          .catch(() => {
+            // Non-blocking - analytics failures shouldn't break the form
+          });
+      }
+    };
+  }, [
+    currentIndex,
+    currentVisibleIndex,
+    visibleFields,
+    sessionToken,
+    slug,
+    template.analyticsEnabled,
+    formsApi,
+  ]);
+
+  // Update current index when visible fields change (due to conditional logic)
+  useEffect(() => {
+    if (currentField && !shouldShowField(currentField, formData)) {
+      // Current field is now hidden, move to next visible field
+      const nextVisibleIndex = currentVisibleIndex + 1;
+      if (nextVisibleIndex < visibleFields.length) {
+        const nextField = visibleFields[nextVisibleIndex];
+        const nextSchemaIndex = nextField
+          ? schema.findIndex((f) => f.id === nextField.id)
+          : currentIndex + 1;
+        if (nextSchemaIndex !== -1) {
+          setCurrentIndex(nextSchemaIndex);
+        }
+      }
+    }
+  }, [
+    formData,
+    currentField,
+    currentVisibleIndex,
+    visibleFields,
+    schema,
+    currentIndex,
+  ]);
+
   if (totalCards === 0) {
     return (
       <Card>
@@ -310,6 +502,125 @@ export function CardFormContainer({
   }
 
   if (success) {
+    // Show profile estimation result if available
+    if (profileResult && template.profileEstimation?.enabled) {
+      const { type, result, aiEnhanced, aiResult } = profileResult;
+
+      // Use AI result if available, otherwise use rule-based result
+      const displayResult =
+        aiEnhanced && aiResult ? { ...result, ...aiResult } : result;
+
+      if (
+        type === "percentage" &&
+        template.profileEstimation.percentageConfig
+      ) {
+        const scoreValue = displayResult.score || result.score;
+        const score = typeof scoreValue === "number" ? scoreValue : 0;
+        return (
+          <PercentageResult
+            config={template.profileEstimation.percentageConfig}
+            score={score}
+          />
+        );
+      }
+
+      if (type === "category" && template.profileEstimation.categoryConfig) {
+        const categoryValue = displayResult.category || result.category;
+        if (categoryValue && template.profileEstimation.categoryConfig) {
+          // Find category in config or use AI result
+          const categoryObj =
+            typeof categoryValue === "object" && categoryValue !== null
+              ? (categoryValue as { id?: string; name?: string })
+              : { name: String(categoryValue) };
+          const foundCategory =
+            template.profileEstimation.categoryConfig.categories.find(
+              (c) =>
+                c.id === categoryObj.id ||
+                c.name === categoryObj.name ||
+                c.name === categoryValue
+            );
+
+          if (!foundCategory) {
+            // If category not found, skip rendering
+            return null;
+          }
+
+          const categoryConfig = foundCategory;
+
+          const confidenceValue = displayResult.confidence || result.confidence;
+          const confidence =
+            typeof confidenceValue === "number" ? confidenceValue : 0;
+          return (
+            <CategoryResult
+              config={template.profileEstimation.categoryConfig}
+              category={categoryConfig}
+              confidence={confidence}
+            />
+          );
+        }
+      }
+
+      if (
+        type === "multi_dimension" &&
+        template.profileEstimation.dimensionConfig &&
+        (displayResult.scores || result.scores)
+      ) {
+        const scoresValue = displayResult.scores || result.scores;
+        const scores =
+          typeof scoresValue === "object" &&
+          scoresValue !== null &&
+          !Array.isArray(scoresValue)
+            ? (scoresValue as Record<string, number>)
+            : {};
+        if (
+          template.profileEstimation.dimensionConfig &&
+          Object.keys(scores).length > 0
+        ) {
+          return (
+            <MultiDimensionResult
+              config={template.profileEstimation.dimensionConfig}
+              scores={scores}
+            />
+          );
+        }
+      }
+
+      if (
+        type === "recommendation" &&
+        template.profileEstimation.recommendationConfig
+      ) {
+        const recommendationsValue =
+          displayResult.recommendations || result.recommendations;
+        const recommendations = Array.isArray(recommendationsValue)
+          ? recommendationsValue.map((r: unknown) => {
+              const rec = r as { recommendation?: unknown; score?: unknown };
+              return {
+                recommendation: (rec.recommendation || {}) as {
+                  id: string;
+                  name: string;
+                  description: string;
+                  image?: string;
+                  matchingCriteria: unknown[];
+                },
+                score: typeof rec.score === "number" ? rec.score : 0,
+              };
+            })
+          : [];
+        if (
+          recommendations.length > 0 &&
+          template.profileEstimation.recommendationConfig
+        ) {
+          return (
+            <RecommendationResult
+              config={template.profileEstimation.recommendationConfig}
+              recommendations={recommendations}
+            />
+          );
+        }
+      }
+    }
+
+    // Default success message
     return (
       <Card>
         <CardContent className="pt-6 text-center">
@@ -387,11 +698,15 @@ export function CardFormContainer({
                   value=""
                   onChange={() => {}}
                   disabled={isSubmitting}
+                  allFields={schema}
+                  formData={formData}
                 />
               ) : (
                 <CardFieldRenderer
                   field={currentField}
-                  value={formData[currentField.id] as string | string[] | undefined}
+                  value={
+                    formData[currentField.id] as string | string[] | undefined
+                  }
                   onChange={(v) => handleInputChange(currentField.id, v)}
                   onCheckboxChange={(option, checked) =>
                     handleCheckboxChange(currentField.id, option, checked)
@@ -400,6 +715,8 @@ export function CardFormContainer({
                   uploading={uploadingFiles[currentField.id]}
                   uploadedFile={uploadedFiles[currentField.id]}
                   disabled={isSubmitting}
+                  allFields={schema}
+                  formData={formData}
                 />
               )}
             </motion.div>
@@ -429,7 +746,7 @@ export function CardFormContainer({
                   Submitting...
                 </>
               ) : (
-                template.submitButtonText ?? "Submit"
+                (template.submitButtonText ?? "Submit")
               )}
             </Button>
           ) : (
@@ -439,8 +756,10 @@ export function CardFormContainer({
           )}
         </div>
         <p className="text-xs text-muted-foreground mt-4 text-center">
-          Press <kbd className="rounded border px-1.5 py-0.5 font-mono">Enter</kbd> to
-          continue · <kbd className="rounded border px-1.5 py-0.5 font-mono">Esc</kbd> to
+          Press{" "}
+          <kbd className="rounded border px-1.5 py-0.5 font-mono">Enter</kbd> to
+          continue ·{" "}
+          <kbd className="rounded border px-1.5 py-0.5 font-mono">Esc</kbd> to
           go back
         </p>
       </CardContent>

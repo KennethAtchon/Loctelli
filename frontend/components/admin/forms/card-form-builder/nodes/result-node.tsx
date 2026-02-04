@@ -1,11 +1,12 @@
 "use client";
 
-import { Handle, Position, NodeProps } from "@xyflow/react";
+import { Handle, Position, NodeProps, Node } from "@xyflow/react";
 import { Trophy } from "lucide-react";
 import type { FlowchartNodeData } from "@/lib/forms/flowchart-types";
 
-export function ResultNode({ data, selected }: NodeProps<FlowchartNodeData>) {
-  const label = data?.label || "Results";
+export function ResultNode({ data, selected }: NodeProps) {
+  const nodeData = data as unknown as FlowchartNodeData;
+  const label = nodeData?.label || "Results";
 
   return (
     <div
@@ -17,7 +18,9 @@ export function ResultNode({ data, selected }: NodeProps<FlowchartNodeData>) {
       <div className="flex items-start gap-2">
         <Trophy className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <div className="text-xs text-muted-foreground mb-1">Profile Result</div>
+          <div className="text-xs text-muted-foreground mb-1">
+            Profile Result
+          </div>
           <div className="text-sm font-medium truncate">{label}</div>
         </div>
       </div>

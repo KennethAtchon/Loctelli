@@ -1,3 +1,4 @@
+import { test, expect, describe, beforeEach, afterEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { LeadsService } from './leads.service';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
@@ -11,14 +12,14 @@ describe('LeadsService', () => {
 
   const mockPrismaService = {
     lead: {
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
+      findMany: mock(),
+      findUnique: mock(),
+      create: mock(),
+      update: mock(),
+      delete: mock(),
     },
     strategy: {
-      findUnique: jest.fn(),
+      findUnique: mock(),
     },
   };
 
@@ -38,10 +39,10 @@ describe('LeadsService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    // Bun mocks cleared automatically;
   });
 
-  it('should be defined', () => {
+  test('should be defined', () => {
     expect(service).toBeDefined();
   });
 
@@ -60,7 +61,7 @@ describe('LeadsService', () => {
       messageHistory: '[]',
     };
 
-    it('should create and return a lead', async () => {
+    test('should create and return a lead', async () => {
       mockPrismaService.lead.create.mockResolvedValue(mockCreatedLead);
 
       const result = await service.create(createLeadDto, 1);
@@ -80,7 +81,7 @@ describe('LeadsService', () => {
       { id: 2, name: 'Lead 2', userId: 1, strategyId: 2 },
     ];
 
-    it('should return an array of leads', async () => {
+    test('should return an array of leads', async () => {
       mockPrismaService.lead.findMany.mockResolvedValue(mockLeads);
 
       const result = await service.findAll();
@@ -106,7 +107,7 @@ describe('LeadsService', () => {
       bookings: [],
     };
 
-    it('should return a lead if it exists and user has permission', async () => {
+    test('should return a lead if it exists and user has permission', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(mockLead);
 
       const result = await service.findOne(1, 1, 'user');
@@ -121,14 +122,14 @@ describe('LeadsService', () => {
       });
     });
 
-    it('should return a lead if user is admin', async () => {
+    test('should return a lead if user is admin', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(mockLead);
 
       const result = await service.findOne(1, 999, 'admin');
       expect(result).toEqual(mockLead);
     });
 
-    it('should throw NotFoundException if lead does not exist', async () => {
+    test('should throw NotFoundException if lead does not exist', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(null);
 
       await expect(service.findOne(999, 1, 'user')).rejects.toThrow(
@@ -144,7 +145,7 @@ describe('LeadsService', () => {
       });
     });
 
-    it('should throw ForbiddenException if user does not have permission', async () => {
+    test('should throw ForbiddenException if user does not have permission', async () => {
       const leadWithDifferentUser = { ...mockLead, userId: 2 };
       mockPrismaService.lead.findUnique.mockResolvedValue(
         leadWithDifferentUser,
@@ -162,7 +163,7 @@ describe('LeadsService', () => {
       { id: 2, name: 'Lead 2', userId: 1, strategyId: 2 },
     ];
 
-    it('should return leads for a specific user', async () => {
+    test('should return leads for a specific user', async () => {
       mockPrismaService.lead.findMany.mockResolvedValue(mockLeads);
 
       const result = await service.findByUserId(1);
@@ -184,7 +185,7 @@ describe('LeadsService', () => {
       { id: 2, name: 'Lead 2', strategyId: 1 },
     ];
 
-    it('should return leads for a strategy if user has permission', async () => {
+    test('should return leads for a strategy if user has permission', async () => {
       mockPrismaService.strategy.findUnique.mockResolvedValue(mockStrategy);
       mockPrismaService.lead.findMany.mockResolvedValue(mockLeads);
 
@@ -202,7 +203,7 @@ describe('LeadsService', () => {
       });
     });
 
-    it('should return leads for a strategy if user is admin', async () => {
+    test('should return leads for a strategy if user is admin', async () => {
       mockPrismaService.strategy.findUnique.mockResolvedValue(mockStrategy);
       mockPrismaService.lead.findMany.mockResolvedValue(mockLeads);
 
@@ -210,7 +211,7 @@ describe('LeadsService', () => {
       expect(result).toEqual(mockLeads);
     });
 
-    it('should throw NotFoundException if strategy does not exist', async () => {
+    test('should throw NotFoundException if strategy does not exist', async () => {
       mockPrismaService.strategy.findUnique.mockResolvedValue(null);
 
       await expect(service.findByStrategyId(999, 1, 'user')).rejects.toThrow(
@@ -218,7 +219,7 @@ describe('LeadsService', () => {
       );
     });
 
-    it('should throw ForbiddenException if user does not have permission', async () => {
+    test('should throw ForbiddenException if user does not have permission', async () => {
       const strategyWithDifferentUser = { ...mockStrategy, userId: 2 };
       mockPrismaService.strategy.findUnique.mockResolvedValue(
         strategyWithDifferentUser,
@@ -240,7 +241,7 @@ describe('LeadsService', () => {
       strategyId: 1,
     };
 
-    it('should update and return a lead if user has permission', async () => {
+    test('should update and return a lead if user has permission', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(mockLead);
       mockPrismaService.lead.update.mockResolvedValue(mockUpdatedLead);
 
@@ -255,7 +256,7 @@ describe('LeadsService', () => {
       });
     });
 
-    it('should update and return a lead if user is admin', async () => {
+    test('should update and return a lead if user is admin', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(mockLead);
       mockPrismaService.lead.update.mockResolvedValue(mockUpdatedLead);
 
@@ -263,7 +264,7 @@ describe('LeadsService', () => {
       expect(result).toEqual(mockUpdatedLead);
     });
 
-    it('should throw NotFoundException if lead does not exist', async () => {
+    test('should throw NotFoundException if lead does not exist', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(null);
 
       await expect(
@@ -271,7 +272,7 @@ describe('LeadsService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw ForbiddenException if user does not have permission', async () => {
+    test('should throw ForbiddenException if user does not have permission', async () => {
       const leadWithDifferentUser = { ...mockLead, userId: 2 };
       mockPrismaService.lead.findUnique.mockResolvedValue(
         leadWithDifferentUser,
@@ -282,7 +283,7 @@ describe('LeadsService', () => {
       );
     });
 
-    it('should throw NotFoundException if update fails', async () => {
+    test('should throw NotFoundException if update fails', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(mockLead);
       mockPrismaService.lead.update.mockRejectedValue(
         new Error('Update failed'),
@@ -302,7 +303,7 @@ describe('LeadsService', () => {
 
     const newMessage = { role: 'assistant', content: 'Hi there!' };
 
-    it('should append message to lead history', async () => {
+    test('should append message to lead history', async () => {
       const updatedLead = {
         ...mockLead,
         messageHistory: JSON.stringify([
@@ -332,7 +333,7 @@ describe('LeadsService', () => {
       });
     });
 
-    it('should handle empty message history', async () => {
+    test('should handle empty message history', async () => {
       const leadWithEmptyHistory = { id: 1, messageHistory: null };
       const updatedLead = {
         ...leadWithEmptyHistory,
@@ -348,7 +349,7 @@ describe('LeadsService', () => {
       expect(result).toEqual(updatedLead);
     });
 
-    it('should throw NotFoundException if lead does not exist', async () => {
+    test('should throw NotFoundException if lead does not exist', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(null);
 
       await expect(service.appendMessage(999, newMessage)).rejects.toThrow(
@@ -361,7 +362,7 @@ describe('LeadsService', () => {
     const mockLead = { id: 1, name: 'Lead 1', userId: 1, strategyId: 1 };
     const mockDeletedLead = { id: 1, name: 'Lead 1', userId: 1, strategyId: 1 };
 
-    it('should delete and return a lead if user has permission', async () => {
+    test('should delete and return a lead if user has permission', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(mockLead);
       mockPrismaService.lead.delete.mockResolvedValue(mockDeletedLead);
 
@@ -375,7 +376,7 @@ describe('LeadsService', () => {
       });
     });
 
-    it('should delete and return a lead if user is admin', async () => {
+    test('should delete and return a lead if user is admin', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(mockLead);
       mockPrismaService.lead.delete.mockResolvedValue(mockDeletedLead);
 
@@ -383,7 +384,7 @@ describe('LeadsService', () => {
       expect(result).toEqual(mockDeletedLead);
     });
 
-    it('should throw NotFoundException if lead does not exist', async () => {
+    test('should throw NotFoundException if lead does not exist', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(null);
 
       await expect(service.remove(999, 1, 'user')).rejects.toThrow(
@@ -391,7 +392,7 @@ describe('LeadsService', () => {
       );
     });
 
-    it('should throw ForbiddenException if user does not have permission', async () => {
+    test('should throw ForbiddenException if user does not have permission', async () => {
       const leadWithDifferentUser = { ...mockLead, userId: 2 };
       mockPrismaService.lead.findUnique.mockResolvedValue(
         leadWithDifferentUser,
@@ -402,7 +403,7 @@ describe('LeadsService', () => {
       );
     });
 
-    it('should throw NotFoundException if delete fails', async () => {
+    test('should throw NotFoundException if delete fails', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(mockLead);
       mockPrismaService.lead.delete.mockRejectedValue(
         new Error('Delete failed'),

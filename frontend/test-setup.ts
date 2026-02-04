@@ -1,5 +1,4 @@
-import '@testing-library/jest-dom';
-import { expect } from 'bun:test';
+import { expect, beforeAll, afterAll } from "bun:test";
 
 // Mock Next.js router
 const mockRouter = {
@@ -12,26 +11,26 @@ const mockRouter = {
 };
 
 const mockSearchParams = new URLSearchParams();
-const mockPathname = '/';
+const mockPathname = "/";
 
 // Mock Next.js navigation
-if (typeof global !== 'undefined') {
+if (typeof global !== "undefined") {
   (global as any).useRouter = () => mockRouter;
   (global as any).useSearchParams = () => mockSearchParams;
   (global as any).usePathname = () => mockPathname;
 }
 
 // Mock Next.js image component
-if (typeof global !== 'undefined') {
+if (typeof global !== "undefined") {
   (global as any).nextImage = (props: any) => {
     // eslint-disable-next-line @next/next/no-img-element
-    return { type: 'img', props };
+    return { type: "img", props };
   };
 }
 
 // Mock window.matchMedia
-if (typeof window !== 'undefined') {
-  Object.defineProperty(window, 'matchMedia', {
+if (typeof window !== "undefined") {
+  Object.defineProperty(window, "matchMedia", {
     writable: true,
     value: (query: string) => ({
       matches: false,
@@ -47,7 +46,7 @@ if (typeof window !== 'undefined') {
 }
 
 // Mock IntersectionObserver
-if (typeof global !== 'undefined') {
+if (typeof global !== "undefined") {
   global.IntersectionObserver = class IntersectionObserver {
     constructor() {}
     disconnect() {}
@@ -57,7 +56,7 @@ if (typeof global !== 'undefined') {
 }
 
 // Mock ResizeObserver
-if (typeof global !== 'undefined') {
+if (typeof global !== "undefined") {
   global.ResizeObserver = class ResizeObserver {
     constructor() {}
     disconnect() {}
@@ -70,12 +69,12 @@ if (typeof global !== 'undefined') {
 const originalError = console.error;
 const originalWarn = console.warn;
 
-if (typeof beforeAll !== 'undefined') {
+if (typeof beforeAll !== "undefined") {
   beforeAll(() => {
     console.error = (...args: any[]) => {
       if (
-        typeof args[0] === 'string' &&
-        args[0].includes('Warning: ReactDOM.render is no longer supported')
+        typeof args[0] === "string" &&
+        args[0].includes("Warning: ReactDOM.render is no longer supported")
       ) {
         return;
       }
@@ -83,8 +82,8 @@ if (typeof beforeAll !== 'undefined') {
     };
     console.warn = (...args: any[]) => {
       if (
-        typeof args[0] === 'string' &&
-        args[0].includes('Warning: componentWillReceiveProps has been renamed')
+        typeof args[0] === "string" &&
+        args[0].includes("Warning: componentWillReceiveProps has been renamed")
       ) {
         return;
       }
@@ -92,7 +91,7 @@ if (typeof beforeAll !== 'undefined') {
     };
   });
 
-  if (typeof afterAll !== 'undefined') {
+  if (typeof afterAll !== "undefined") {
     afterAll(() => {
       console.error = originalError;
       console.warn = originalWarn;

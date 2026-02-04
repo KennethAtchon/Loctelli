@@ -44,8 +44,11 @@ import type {
   FormTemplate,
   UpdateFormTemplateDto,
   FormField,
+  ProfileEstimation,
 } from "@/lib/api/endpoints/forms";
 import { CardFormBuilder } from "@/components/admin/forms/card-form-builder";
+import { ProfileEstimationSetup } from "@/components/admin/forms/profile-estimation/setup-wizard";
+import { AnalyticsDashboard } from "@/components/admin/forms/analytics-dashboard";
 
 const fieldTypes = [
   { value: "text", label: "Text Input" },
@@ -113,7 +116,14 @@ export default function EditFormTemplatePage() {
 
   const handleInputChange = (
     field: keyof UpdateFormTemplateDto,
-    value: string | number | boolean | FormField[] | undefined
+    value:
+      | string
+      | number
+      | boolean
+      | FormField[]
+      | Record<string, unknown>
+      | ProfileEstimation
+      | undefined
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -436,13 +446,52 @@ export default function EditFormTemplatePage() {
           <CardContent>
             <CardFormBuilder
               schema={formData.schema || []}
-              cardSettings={formData.cardSettings as Record<string, unknown> | undefined}
-              onSchemaChange={(newSchema) => handleInputChange("schema", newSchema)}
+              cardSettings={
+                formData.cardSettings as Record<string, unknown> | undefined
+              }
+              onSchemaChange={(newSchema) =>
+                handleInputChange("schema", newSchema)
+              }
               onCardSettingsChange={(settings) =>
                 handleInputChange("cardSettings", settings)
               }
               formSlug={formData.slug}
             />
+          </CardContent>
+        </Card>
+      )}
+
+      {isCardForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Profile Estimation</CardTitle>
+            <CardDescription>
+              Configure personalized results based on user answers
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ProfileEstimationSetup
+              value={formData.profileEstimation as ProfileEstimation | undefined}
+              fields={formData.schema || []}
+              onChange={(config) =>
+                handleInputChange("profileEstimation", config as ProfileEstimation | undefined)
+              }
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Analytics Dashboard */}
+      {formData.analyticsEnabled && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Analytics</CardTitle>
+            <CardDescription>
+              View form performance metrics and user behavior
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AnalyticsDashboard formTemplateId={formId} />
           </CardContent>
         </Card>
       )}
@@ -560,68 +609,71 @@ export default function EditFormTemplatePage() {
                     <Download className="h-4 w-4 mr-2" />
                     Export JSON
                   </Button>
-                  <Dialog open={showJsonImport} onOpenChange={setShowJsonImport}>
-                  <DialogTrigger asChild>
-                    <Button type="button" variant="outline" size="sm">
-                      <Upload className="h-4 w-4 mr-2" />
-                      Import JSON
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>Import Form Fields from JSON</DialogTitle>
-                      <DialogDescription>
-                        Paste your JSON schema below to bulk import form fields.
-                        This will replace existing fields.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="jsonInput">JSON Schema</Label>
-                        <Textarea
-                          id="jsonInput"
-                          value={jsonInput}
-                          onChange={(e) => setJsonInput(e.target.value)}
-                          placeholder="Paste your JSON schema here..."
-                          className="min-h-[200px] font-mono text-sm"
-                        />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setJsonInput(getExampleJSON())}
-                        >
-                          <FileJson className="h-4 w-4 mr-2" />
-                          Load Example
-                        </Button>
-                        <div className="flex gap-2">
+                  <Dialog
+                    open={showJsonImport}
+                    onOpenChange={setShowJsonImport}
+                  >
+                    <DialogTrigger asChild>
+                      <Button type="button" variant="outline" size="sm">
+                        <Upload className="h-4 w-4 mr-2" />
+                        Import JSON
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Import Form Fields from JSON</DialogTitle>
+                        <DialogDescription>
+                          Paste your JSON schema below to bulk import form
+                          fields. This will replace existing fields.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="jsonInput">JSON Schema</Label>
+                          <Textarea
+                            id="jsonInput"
+                            value={jsonInput}
+                            onChange={(e) => setJsonInput(e.target.value)}
+                            placeholder="Paste your JSON schema here..."
+                            className="min-h-[200px] font-mono text-sm"
+                          />
+                        </div>
+                        <div className="flex items-center justify-between">
                           <Button
                             type="button"
                             variant="outline"
-                            onClick={() => {
-                              setJsonInput("");
-                              setShowJsonImport(false);
-                            }}
+                            size="sm"
+                            onClick={() => setJsonInput(getExampleJSON())}
                           >
-                            Cancel
+                            <FileJson className="h-4 w-4 mr-2" />
+                            Load Example
                           </Button>
-                          <Button
-                            type="button"
-                            onClick={importSchemaFromJSON}
-                            disabled={!jsonInput.trim()}
-                          >
-                            Import Fields
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => {
+                                setJsonInput("");
+                                setShowJsonImport(false);
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              type="button"
+                              onClick={importSchemaFromJSON}
+                              disabled={!jsonInput.trim()}
+                            >
+                              Import Fields
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                      <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                        <h4 className="text-sm font-medium mb-2">
-                          Expected JSON Format:
-                        </h4>
-                        <pre className="text-xs bg-white dark:bg-gray-900 p-2 rounded border overflow-x-auto">
-                          {`[
+                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                          <h4 className="text-sm font-medium mb-2">
+                            Expected JSON Format:
+                          </h4>
+                          <pre className="text-xs bg-white dark:bg-gray-900 p-2 rounded border overflow-x-auto">
+                            {`[
   {
     "id": "field_id",
     "type": "text|email|phone|textarea|select|checkbox|radio|file|image",
@@ -631,149 +683,153 @@ export default function EditFormTemplatePage() {
     "options": ["Option 1", "Option 2"] // For select/radio only
   }
 ]`}
-                        </pre>
+                          </pre>
+                        </div>
                       </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-                <Button type="button" onClick={addField} size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Field
-                </Button>
-              </div>
-            </CardTitle>
-            <CardDescription>
-              Define the fields that users will fill out. Use JSON import for
-              bulk operations.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {(formData.schema || []).map((field, index) => (
-              <Card key={field.id}>
-                <CardContent className="pt-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <h4 className="text-sm font-medium">Field {index + 1}</h4>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeField(index)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <Label>Field Type</Label>
-                      <Select
-                        value={field.type}
-                        onValueChange={(value) =>
-                          updateField(index, {
-                            type: value as FormField["type"],
-                          })
-                        }
+                    </DialogContent>
+                  </Dialog>
+                  <Button type="button" onClick={addField} size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Field
+                  </Button>
+                </div>
+              </CardTitle>
+              <CardDescription>
+                Define the fields that users will fill out. Use JSON import for
+                bulk operations.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {(formData.schema || []).map((field, index) => (
+                <Card key={field.id}>
+                  <CardContent className="pt-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <h4 className="text-sm font-medium">Field {index + 1}</h4>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeField(index)}
+                        className="text-red-600 hover:text-red-700"
                       >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {fieldTypes.map((type) => (
-                            <SelectItem key={type.value} value={type.value}>
-                              {type.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <div>
-                      <Label>Field Label *</Label>
-                      <Input
-                        value={field.label}
-                        onChange={(e) =>
-                          updateField(index, {
-                            label: e.target.value,
-                          })
-                        }
-                        placeholder="Enter field label"
-                      />
-                    </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <Label>Placeholder Text</Label>
-                      <Input
-                        value={field.placeholder || ""}
-                        onChange={(e) =>
-                          updateField(index, {
-                            placeholder: e.target.value,
-                          })
-                        }
-                        placeholder="Enter placeholder text"
-                      />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        checked={field.required || false}
-                        onCheckedChange={(checked) =>
-                          updateField(index, { required: checked })
-                        }
-                      />
-                      <Label>Required Field</Label>
-                    </div>
-                  </div>
-
-                  {(field.type === "select" || field.type === "radio") && (
-                    <div>
-                      <Label>Options</Label>
-                      <div className="space-y-2">
-                        {(field.options || []).map((option, optionIndex) => (
-                          <div
-                            key={optionIndex}
-                            className="flex items-center gap-2"
-                          >
-                            <Input
-                              value={option}
-                              onChange={(e) =>
-                                updateOption(index, optionIndex, e.target.value)
-                              }
-                              placeholder="Enter option"
-                            />
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => removeOption(index, optionIndex)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => addOption(index)}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <Label>Field Type</Label>
+                        <Select
+                          value={field.type}
+                          onValueChange={(value) =>
+                            updateField(index, {
+                              type: value as FormField["type"],
+                            })
+                          }
                         >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Option
-                        </Button>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {fieldTypes.map((type) => (
+                              <SelectItem key={type.value} value={type.value}>
+                                {type.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Field Label *</Label>
+                        <Input
+                          value={field.label}
+                          onChange={(e) =>
+                            updateField(index, {
+                              label: e.target.value,
+                            })
+                          }
+                          placeholder="Enter field label"
+                        />
                       </div>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
 
-            {(formData.schema || []).length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                No fields added yet. Click "Add Field" to get started.
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <Label>Placeholder Text</Label>
+                        <Input
+                          value={field.placeholder || ""}
+                          onChange={(e) =>
+                            updateField(index, {
+                              placeholder: e.target.value,
+                            })
+                          }
+                          placeholder="Enter placeholder text"
+                        />
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          checked={field.required || false}
+                          onCheckedChange={(checked) =>
+                            updateField(index, { required: checked })
+                          }
+                        />
+                        <Label>Required Field</Label>
+                      </div>
+                    </div>
+
+                    {(field.type === "select" || field.type === "radio") && (
+                      <div>
+                        <Label>Options</Label>
+                        <div className="space-y-2">
+                          {(field.options || []).map((option, optionIndex) => (
+                            <div
+                              key={optionIndex}
+                              className="flex items-center gap-2"
+                            >
+                              <Input
+                                value={option}
+                                onChange={(e) =>
+                                  updateOption(
+                                    index,
+                                    optionIndex,
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Enter option"
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => removeOption(index, optionIndex)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => addOption(index)}
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Option
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+
+              {(formData.schema || []).length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  No fields added yet. Click "Add Field" to get started.
+                </div>
+              )}
+            </CardContent>
+          </Card>
         )}
 
         {/* Advanced Settings */}

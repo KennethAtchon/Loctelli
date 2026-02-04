@@ -1,3 +1,4 @@
+import { test, expect, describe, beforeEach, afterEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
@@ -10,14 +11,14 @@ describe('UsersController', () => {
   let usersService: UsersService;
 
   const mockUsersService = {
-    create: jest.fn(),
-    findAll: jest.fn(),
-    findAllBySubAccount: jest.fn(),
-    findAllByAdmin: jest.fn(),
-    findOne: jest.fn(),
-    update: jest.fn(),
-    remove: jest.fn(),
-    importGhlUsers: jest.fn(),
+    create: mock(),
+    findAll: mock(),
+    findAllBySubAccount: mock(),
+    findAllByAdmin: mock(),
+    findOne: mock(),
+    update: mock(),
+    remove: mock(),
+    importGhlUsers: mock(),
   };
 
   beforeEach(async () => {
@@ -36,10 +37,10 @@ describe('UsersController', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    // Bun mocks cleared automatically;
   });
 
-  it('should be defined', () => {
+  test('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
@@ -61,7 +62,7 @@ describe('UsersController', () => {
       role: 'user',
     };
 
-    it('should successfully create a user for admin', async () => {
+    test('should successfully create a user for admin', async () => {
       mockUsersService.create.mockResolvedValue(mockCreatedUser);
 
       const result = await controller.create(createUserDto, {
@@ -77,7 +78,7 @@ describe('UsersController', () => {
       expect(result).toEqual(mockCreatedUser);
     });
 
-    it('should successfully create a user for regular user', async () => {
+    test('should successfully create a user for regular user', async () => {
       mockUsersService.create.mockResolvedValue(mockCreatedUser);
 
       const result = await controller.create(createUserDto, {
@@ -115,7 +116,7 @@ describe('UsersController', () => {
       bookings: [],
     };
 
-    it('should return all users for admin when no userId provided', async () => {
+    test('should return all users for admin when no userId provided', async () => {
       mockUsersService.findAllByAdmin.mockResolvedValue([mockUserData]);
 
       const result = await controller.findAll(mockAdminUser);
@@ -126,7 +127,7 @@ describe('UsersController', () => {
       expect(result).toEqual([mockUserData]);
     });
 
-    it('should return users by subAccount for regular user when no userId provided', async () => {
+    test('should return users by subAccount for regular user when no userId provided', async () => {
       mockUsersService.findAllBySubAccount.mockResolvedValue([mockUserData]);
 
       const result = await controller.findAll(mockRegularUser);
@@ -137,7 +138,7 @@ describe('UsersController', () => {
       expect(result).toEqual([mockUserData]);
     });
 
-    it('should return specific user data when userId provided and user is admin', async () => {
+    test('should return specific user data when userId provided and user is admin', async () => {
       mockUsersService.findOne.mockResolvedValue(mockUserData);
 
       const result = await controller.findAll(mockAdminUser, '2');
@@ -146,7 +147,7 @@ describe('UsersController', () => {
       expect(result).toEqual(mockUserData);
     });
 
-    it('should return specific user data when userId matches current user', async () => {
+    test('should return specific user data when userId matches current user', async () => {
       mockUsersService.findOne.mockResolvedValue(mockUserData);
 
       const result = await controller.findAll(mockRegularUser, '1');
@@ -155,13 +156,13 @@ describe('UsersController', () => {
       expect(result).toEqual(mockUserData);
     });
 
-    it('should throw HttpException for invalid userId parameter', () => {
+    test('should throw HttpException for invalid userId parameter', () => {
       expect(() => controller.findAll(mockRegularUser, 'invalid')).toThrow(
         HttpException,
       );
     });
 
-    it('should throw HttpException when user tries to access other user data without admin role', () => {
+    test('should throw HttpException when user tries to access other user data without admin role', () => {
       expect(() => controller.findAll(mockRegularUser, '2')).toThrow(
         HttpException,
       );
@@ -183,7 +184,7 @@ describe('UsersController', () => {
       bookings: [],
     };
 
-    it('should return user data when user is admin', async () => {
+    test('should return user data when user is admin', async () => {
       mockUsersService.findOne.mockResolvedValue(mockUserData);
 
       const result = controller.findOne(2, { ...mockUser, role: 'admin' });
@@ -192,7 +193,7 @@ describe('UsersController', () => {
       await expect(result).resolves.toEqual(mockUserData);
     });
 
-    it('should return user data when user accesses own data', async () => {
+    test('should return user data when user accesses own data', async () => {
       mockUsersService.findOne.mockResolvedValue(mockUserData);
 
       const result = controller.findOne(1, mockUser);
@@ -201,7 +202,7 @@ describe('UsersController', () => {
       await expect(result).resolves.toEqual(mockUserData);
     });
 
-    it('should throw HttpException when user tries to access other user data without admin role', () => {
+    test('should throw HttpException when user tries to access other user data without admin role', () => {
       expect(() => controller.findOne(2, mockUser)).toThrow(HttpException);
     });
   });
@@ -224,7 +225,7 @@ describe('UsersController', () => {
       company: 'Updated Company',
     };
 
-    it('should successfully update user when user is admin', async () => {
+    test('should successfully update user when user is admin', async () => {
       mockUsersService.update.mockResolvedValue(mockUpdatedUser);
 
       const result = controller.update(2, updateUserDto, {
@@ -236,7 +237,7 @@ describe('UsersController', () => {
       await expect(result).resolves.toEqual(mockUpdatedUser);
     });
 
-    it('should successfully update user when user updates own data', async () => {
+    test('should successfully update user when user updates own data', async () => {
       mockUsersService.update.mockResolvedValue(mockUpdatedUser);
 
       const result = controller.update(1, updateUserDto, mockUser);
@@ -245,7 +246,7 @@ describe('UsersController', () => {
       await expect(result).resolves.toEqual(mockUpdatedUser);
     });
 
-    it('should throw HttpException when user tries to update other user data without admin role', () => {
+    test('should throw HttpException when user tries to update other user data without admin role', () => {
       expect(() => controller.update(2, updateUserDto, mockUser)).toThrow(
         HttpException,
       );
@@ -264,7 +265,7 @@ describe('UsersController', () => {
       email: 'test@example.com',
     };
 
-    it('should successfully delete user when user is admin', async () => {
+    test('should successfully delete user when user is admin', async () => {
       mockUsersService.remove.mockResolvedValue(mockDeletedUser);
 
       const result = controller.remove(2, { ...mockUser, role: 'admin' });
@@ -273,7 +274,7 @@ describe('UsersController', () => {
       await expect(result).resolves.toEqual(mockDeletedUser);
     });
 
-    it('should successfully delete user when user deletes own data', async () => {
+    test('should successfully delete user when user deletes own data', async () => {
       mockUsersService.remove.mockResolvedValue(mockDeletedUser);
 
       const result = controller.remove(1, mockUser);
@@ -282,7 +283,7 @@ describe('UsersController', () => {
       await expect(result).resolves.toEqual(mockDeletedUser);
     });
 
-    it('should throw HttpException when user tries to delete other user data without admin role', () => {
+    test('should throw HttpException when user tries to delete other user data without admin role', () => {
       expect(() => controller.remove(2, mockUser)).toThrow(HttpException);
     });
   });
@@ -306,7 +307,7 @@ describe('UsersController', () => {
       },
     ];
 
-    it('should successfully import GHL users', async () => {
+    test('should successfully import GHL users', async () => {
       mockUsersService.importGhlUsers.mockResolvedValue(mockImportedUsers);
 
       const result = controller.importGhlUsers(mockUser);

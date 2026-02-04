@@ -1,3 +1,4 @@
+import { test, expect, describe, beforeEach, afterEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { SubAccountsService } from './subaccounts.service';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
@@ -11,14 +12,14 @@ describe('SubAccountsService', () => {
 
   const mockPrismaService = {
     subAccount: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      findFirst: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
+      create: mock(),
+      findMany: mock(),
+      findFirst: mock(),
+      update: mock(),
+      delete: mock(),
     },
     user: {
-      findFirst: jest.fn(),
+      findFirst: mock(),
     },
   };
 
@@ -38,15 +39,15 @@ describe('SubAccountsService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    // Bun mocks cleared automatically;
   });
 
-  it('should be defined', () => {
+  test('should be defined', () => {
     expect(service).toBeDefined();
   });
 
   describe('create', () => {
-    it('should create a new SubAccount', async () => {
+    test('should create a new SubAccount', async () => {
       const adminId = 1;
       const createDto: CreateSubAccountDto = {
         name: 'Test SubAccount',
@@ -93,7 +94,7 @@ describe('SubAccountsService', () => {
   });
 
   describe('findAll', () => {
-    it('should return all SubAccounts for an admin', async () => {
+    test('should return all SubAccounts for an admin', async () => {
       const adminId = 1;
       const expectedResult = [
         {
@@ -134,7 +135,7 @@ describe('SubAccountsService', () => {
   });
 
   describe('findOne', () => {
-    it('should return a SubAccount if found', async () => {
+    test('should return a SubAccount if found', async () => {
       const adminId = 1;
       const subAccountId = 1;
       const expectedResult = {
@@ -199,7 +200,7 @@ describe('SubAccountsService', () => {
       expect(result).toEqual(expectedResult);
     });
 
-    it('should throw NotFoundException if SubAccount not found', async () => {
+    test('should throw NotFoundException if SubAccount not found', async () => {
       const adminId = 1;
       const subAccountId = 999;
 
@@ -212,7 +213,7 @@ describe('SubAccountsService', () => {
   });
 
   describe('update', () => {
-    it('should update a SubAccount if found', async () => {
+    test('should update a SubAccount if found', async () => {
       const adminId = 1;
       const subAccountId = 1;
       const updateDto: UpdateSubAccountDto = {
@@ -251,7 +252,7 @@ describe('SubAccountsService', () => {
       expect(result).toEqual(expectedResult);
     });
 
-    it('should throw NotFoundException if SubAccount not found', async () => {
+    test('should throw NotFoundException if SubAccount not found', async () => {
       const adminId = 1;
       const subAccountId = 999;
       const updateDto: UpdateSubAccountDto = { name: 'Updated' };
@@ -265,7 +266,7 @@ describe('SubAccountsService', () => {
   });
 
   describe('remove', () => {
-    it('should delete a SubAccount if found', async () => {
+    test('should delete a SubAccount if found', async () => {
       const adminId = 1;
       const subAccountId = 1;
 
@@ -288,7 +289,7 @@ describe('SubAccountsService', () => {
       expect(result).toEqual({ message: 'SubAccount deleted successfully' });
     });
 
-    it('should throw NotFoundException if SubAccount not found', async () => {
+    test('should throw NotFoundException if SubAccount not found', async () => {
       const adminId = 1;
       const subAccountId = 999;
 
@@ -301,7 +302,7 @@ describe('SubAccountsService', () => {
   });
 
   describe('validateSubAccountAccess', () => {
-    it('should validate admin access to SubAccount', async () => {
+    test('should validate admin access to SubAccount', async () => {
       const adminId = 1;
       const subAccountId = 1;
 
@@ -327,7 +328,7 @@ describe('SubAccountsService', () => {
       expect(result).toEqual(expectedSubAccount);
     });
 
-    it('should validate user access to SubAccount', async () => {
+    test('should validate user access to SubAccount', async () => {
       const userId = 1;
       const subAccountId = 1;
 
@@ -351,7 +352,7 @@ describe('SubAccountsService', () => {
       expect(result).toEqual(expectedUser);
     });
 
-    it('should throw ForbiddenException for invalid admin access', async () => {
+    test('should throw ForbiddenException for invalid admin access', async () => {
       const adminId = 1;
       const subAccountId = 1;
 
@@ -362,7 +363,7 @@ describe('SubAccountsService', () => {
       ).rejects.toThrow(ForbiddenException);
     });
 
-    it('should throw ForbiddenException for invalid user access', async () => {
+    test('should throw ForbiddenException for invalid user access', async () => {
       const userId = 1;
       const subAccountId = 1;
 
