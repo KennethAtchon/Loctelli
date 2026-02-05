@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, AlertCircle, ChevronLeft } from "lucide-react";
 import type { FormTemplate, FormField, FormsApi } from "@/lib/api";
 import type { FlowchartGraph } from "@/lib/forms/flowchart-types";
+import { flowchartToSchema } from "@/lib/forms/flowchart-serialization";
 import { CardFieldRenderer } from "./card-field-renderer";
 import { ProgressIndicator, getCardFormSessionKey } from "./progress-indicator";
 import {
@@ -66,15 +67,21 @@ export function CardFormContainer({
   progressStyle = "bar",
   onSuccess,
 }: CardFormContainerProps) {
-  const schema = (template.schema ?? []) as FormField[];
-
-  // Get flowchart graph to find success card
+  // Get flowchart graph to find success card and convert to schema
   const flowchartGraph = useMemo(() => {
     const cardSettings = template.cardSettings as
       | { flowchartGraph?: FlowchartGraph }
       | undefined;
     return cardSettings?.flowchartGraph;
   }, [template.cardSettings]);
+
+  // For card forms, convert flowchart graph to schema; otherwise use template.schema
+  const schema = useMemo(() => {
+    if (flowchartGraph) {
+      return flowchartToSchema(flowchartGraph);
+    }
+    return (template.schema ?? []) as FormField[];
+  }, [flowchartGraph, template.schema]);
 
   // Find success card from flowchart graph
   const successCard = useMemo(() => {

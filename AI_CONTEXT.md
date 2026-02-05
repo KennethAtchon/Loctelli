@@ -93,6 +93,7 @@
 - **Public Forms**: `GET /forms/public/:slug`, `POST /forms/public/:slug/submit`, `POST /forms/public/:slug/upload`
 - **Form Sessions** (card form save/resume): `POST /forms/public/:slug/session`, `GET/PATCH /forms/public/:slug/session/:token`, `POST .../session/:token/complete`
 - **Card Form Renderer**: `frontend/components/public/forms/card-form/` – one-question-per-screen, Framer Motion transitions, progress indicator, keyboard (Enter/Esc), session restore via sessionStorage + API
+- **Form system re-architecture** (code-first, maintainable structure): `.helper/architecture/08-form-system-rearchitecture.md` – types in `lib/forms/types.ts`, domain in `lib/forms/*.ts`, card form split into hooks + CardFormView; use for refactors and onboarding
 
 #### **System**
 - **Status**: `/status/*` - Health, version, system status
