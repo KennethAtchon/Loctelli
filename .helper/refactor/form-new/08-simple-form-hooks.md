@@ -36,9 +36,10 @@ Simple forms are single-page forms without navigation or session management. The
 
 ```ts
 import { useState, useCallback } from 'react';
-import type { FormField, FormTemplate } from '@/lib/forms/types';
+import { useMutation } from '@tanstack/react-query';
+import type { FormField, FormTemplate, CreateFormSubmissionDto } from '@/lib/forms/types';
 import { getInitialFormData, validateForm } from '@/lib/forms/form-validation';
-import { formsApi } from '@/lib/api/endpoints/forms';
+import { api } from '@/lib/api';
 
 export function useSimpleFormState(
   schema: FormField[],
@@ -71,8 +72,36 @@ export function useSimpleFormState(
   
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, File[]>>({});
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  
+  // TanStack Query: File upload mutation
+  const fileUploadMutation = useMutation({
+    mutationFn: async ({ fieldId, file }: { fieldId: string; file: File }) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('fieldId', fieldId);
+      return api.forms.uploadFormFile(slug, formData);
+    },
+  });
+  
+  // TanStack Query: Form submission mutation
+  const submitMutation = useMutation({
+    mutationFn: async (data: CreateFormSubmissionDto) => {
+      return api.forms.submitPublicForm(slug, data);
+    },
+    onSuccess: (result) => {
+      if (options.onSubmitSuccess) {
+        options.onSubmitSuccess(result);
+      }
+    },
+    onError: (error) => {
+      const errorMessage = error instanceof Error ? error.message : 'Submission failed';
+      setFormError(errorMessage);
+      if (options.onSubmitError) {
+        options.onSubmitError(error instanceof Error ? error : new Error(errorMessage));
+      }
+    },
+  });
   
   const handleInputChange = useCallback((fieldId: string, value: unknown) => {
     setFormData(prev => ({ ...prev, [fieldId]: value }));
@@ -104,7 +133,7 @@ export function useSimpleFormState(
     setFormError(null);
     
     try {
-      const result = await formsApi.uploadFormFile(slug, fieldId, file);
+      const result = await fileUploadMutation.mutateAsync({ fieldId, file });
       setUploadedFiles(prev => ({
         ...prev,
         [fieldId]: [...(prev[fieldId] || []), file]
@@ -120,7 +149,7 @@ export function useSimpleFormState(
     } finally {
       setUploadingFiles(prev => ({ ...prev, [fieldId]: false }));
     }
-  }, [slug]);
+  }, [fileUploadMutation]);
   
   const handleSubmit = useCallback(async () => {
     // Validate form
@@ -129,29 +158,14 @@ export function useSimpleFormState(
       return;
     }
     
-    setIsSubmitting(true);
     setFormError(null);
     
-    try {
-      const result = await formsApi.submitForm(slug, formData);
-      
-      if (options.onSubmitSuccess) {
-        options.onSubmitSuccess(result);
-      }
-      
-      // Reset form on success (optional)
-      // resetForm();
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Submission failed';
-      setFormError(errorMessage);
-      
-      if (options.onSubmitError) {
-        options.onSubmitError(error instanceof Error ? error : new Error(errorMessage));
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [schema, formData, slug, options]);
+    // Submit using TanStack Query mutation
+    await submitMutation.mutateAsync({
+      data: formData,
+      source: 'simple-form',
+    });
+  }, [schema, formData, slug, submitMutation]);
   
   const resetForm = useCallback(() => {
     setFormData(getInitialFormData(schema));
@@ -163,8 +177,8 @@ export function useSimpleFormState(
     formData,
     uploadedFiles,
     uploadingFiles,
-    isSubmitting,
-    formError,
+    isSubmitting: submitMutation.isPending,
+    formError: formError || submitMutation.error?.message || null,
     handleInputChange,
     handleCheckboxChange,
     handleFileUpload,
@@ -179,6 +193,8 @@ export function useSimpleFormState(
 - Shared validation with card form
 - No navigation or session logic
 - Error handling for validation and submission
+- **TanStack Query**: Uses `useMutation` for form submission and file uploads
+- Submission mutation provides `isPending` and `error` states automatically
 
 ---
 

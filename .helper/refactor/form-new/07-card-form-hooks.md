@@ -503,27 +503,37 @@ export function useCardFormData(
 
 ```ts
 import { useState, useCallback } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import type { FormField, FormTemplate, ProfileEstimation } from '@/lib/forms/types';
 import { calculateProfileEstimation } from '@/lib/forms/profile-estimation';
-import { formsApi } from '@/lib/api/endpoints/forms';
+import { api } from '@/lib/api';
 
 export function useCardFormProfile(
   template: FormTemplate | null,
-  schema: FormField[]
+  schema: FormField[],
+  slug: string
 ): {
   profileResult: { type: string; result: Record<string, unknown> } | null;
   isCalculating: boolean;
-  computeProfile: (formData: Record<string, unknown>, slug: string, sessionToken?: string) => Promise<void>;
+  computeProfile: (formData: Record<string, unknown>, sessionToken?: string) => Promise<void>;
 } {
   const [profileResult, setProfileResult] = useState<{
     type: string;
     result: Record<string, unknown>;
   } | null>(null);
-  const [isCalculating, setIsCalculating] = useState(false);
+  
+  // TanStack Query: AI profile calculation mutation
+  const aiProfileMutation = useMutation({
+    mutationFn: async (answers: Record<string, unknown>) => {
+      return api.forms.calculateProfileEstimation(slug, answers);
+    },
+    onError: (error) => {
+      console.warn('AI profile calculation failed:', error);
+    },
+  });
   
   const computeProfile = useCallback(async (
     formData: Record<string, unknown>,
-    slug: string,
     sessionToken?: string
   ) => {
     if (!template?.profileEstimation?.enabled) {
@@ -531,7 +541,6 @@ export function useCardFormProfile(
       return;
     }
     
-    setIsCalculating(true);
     try {
       const config = template.profileEstimation;
       
@@ -545,7 +554,7 @@ export function useCardFormProfile(
       // If AI is enabled, use AI; otherwise use rule-based
       if (config.aiConfig?.enabled) {
         try {
-          const aiResult = await formsApi.calculateProfile(slug, formData, sessionToken);
+          const aiResult = await aiProfileMutation.mutateAsync(formData);
           setProfileResult(aiResult);
         } catch (error) {
           // Fallback to rule-based on AI failure
@@ -558,14 +567,12 @@ export function useCardFormProfile(
     } catch (error) {
       console.error('Profile calculation failed:', error);
       setProfileResult(null);
-    } finally {
-      setIsCalculating(false);
     }
-  }, [template, schema]);
+  }, [template, schema, slug, aiProfileMutation]);
   
   return {
     profileResult,
-    isCalculating,
+    isCalculating: aiProfileMutation.isPending,
     computeProfile
   };
 }
@@ -596,7 +603,9 @@ export function useCardFormProfile(
 
 ```ts
 import { useReducer, useEffect, useRef, useCallback } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import type { FormTemplate } from '@/lib/forms/types';
+import { api } from '@/lib/api';
 import { formsApi } from '@/lib/api/endpoints/forms';
 import { validateForm } from '@/lib/forms/form-validation';
 import { useCardFormSchema } from './useCardFormSchema';
@@ -742,7 +751,7 @@ export function useCardFormState(
     (index) => dispatch({ type: 'SET_INDEX', payload: { index: typeof index === 'function' ? index(state.currentIndex) : index } })
   );
   
-  const { profileResult, computeProfile } = useCardFormProfile(template, schema);
+  const { profileResult, computeProfile } = useCardFormProfile(template, schema, slug);
   
   // Sync session restore into state
   useEffect(() => {
@@ -790,6 +799,30 @@ export function useCardFormState(
     baseGoBack();
   }, [baseGoBack]);
   
+  // TanStack Query: Form submission mutation
+  const submitMutation = useMutation({
+    mutationFn: async (data: { formData: Record<string, unknown>; sessionToken?: string }) => {
+      return api.forms.submitPublicForm(slug, {
+        formTemplateId: template.id,
+        data: data.formData,
+        source: 'card-form',
+      });
+    },
+    onSuccess: async () => {
+      // Complete session after successful submission
+      if (session?.sessionToken) {
+        await completeSession();
+      }
+      dispatch({ type: 'SUBMIT_SUCCESS' });
+    },
+    onError: (error) => {
+      dispatch({
+        type: 'SUBMIT_ERROR',
+        payload: { error: error instanceof Error ? error.message : 'Submission failed' }
+      });
+    },
+  });
+  
   // Submit handler
   const handleSubmit = useCallback(async () => {
     // Validate form
@@ -803,25 +836,18 @@ export function useCardFormState(
     try {
       // Compute profile if enabled
       if (template.profileEstimation?.enabled) {
-        await computeProfile(formData, slug, session?.sessionToken);
+        await computeProfile(formData, session?.sessionToken);
       }
       
-      // Submit form
-      await formsApi.submitForm(slug, formData, session?.sessionToken);
-      
-      // Complete session
-      if (session?.sessionToken) {
-        await completeSession();
-      }
-      
-      dispatch({ type: 'SUBMIT_SUCCESS' });
-    } catch (error) {
-      dispatch({
-        type: 'SUBMIT_ERROR',
-        payload: { error: error instanceof Error ? error.message : 'Submission failed' }
+      // Submit form using TanStack Query mutation
+      await submitMutation.mutateAsync({
+        formData,
+        sessionToken: session?.sessionToken,
       });
+    } catch (error) {
+      // Error handled by mutation's onError
     }
-  }, [schema, formData, template, computeProfile, slug, session, completeSession]);
+  }, [schema, formData, template, computeProfile, slug, session, submitMutation, completeSession]);
   
   // File upload handler
   const handleFileUpload = useCallback(async (fieldId: string, file: File) => {
@@ -915,6 +941,8 @@ export function useCardFormState(
 - Uses reducer for machine state
 - Two effects: analytics and session sync
 - Handlers call domain functions and dispatch actions
+- **TanStack Query**: Uses `useMutation` for form submission, file uploads, and session operations
+- Submission mutation handles success/error states automatically
 
 ---
 
