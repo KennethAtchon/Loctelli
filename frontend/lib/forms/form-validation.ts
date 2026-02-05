@@ -28,10 +28,7 @@ export function getInitialFormData(
  * @param value - The value to validate
  * @returns true if valid, false otherwise
  */
-export function validateField(
-  field: FormField,
-  value: unknown
-): boolean {
+export function validateField(field: FormField, value: unknown): boolean {
   // Required check
   if (field.required) {
     if (value === "" || value === null || value === undefined) {

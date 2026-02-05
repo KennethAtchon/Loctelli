@@ -171,10 +171,7 @@ export function useCardFormSession(
   return {
     session,
     sessionRestored,
-    sessionError:
-      sessionError ||
-      createSessionMutation.error?.message ||
-      null,
+    sessionError: sessionError || createSessionMutation.error?.message || null,
     persistProgress,
     completeSession,
     clearStoredToken,

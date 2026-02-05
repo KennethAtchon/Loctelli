@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
-    "build:all": "bun run format:check && bun run lint && bun run tsc --noEmit && bun run build",
+    "build:all": "bun run format && bun run lint && bun run tsc --noEmit && bun run build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "bun run --bun nest start",

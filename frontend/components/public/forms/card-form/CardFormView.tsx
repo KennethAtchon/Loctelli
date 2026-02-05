@@ -3,11 +3,7 @@
 import { useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, AlertCircle, ChevronLeft } from "lucide-react";
 import type { FormTemplate, FormField } from "@/lib/forms/types";
@@ -58,7 +54,11 @@ export interface CardFormViewProps {
   uploadedFiles: Record<string, File[]>;
   uploadingFiles: Record<string, boolean>;
   handleInputChange: (fieldId: string, value: unknown) => void;
-  handleCheckboxChange: (fieldId: string, value: string, checked: boolean) => void;
+  handleCheckboxChange: (
+    fieldId: string,
+    value: string,
+    checked: boolean
+  ) => void;
   handleFileUpload: (fieldId: string, file: File) => Promise<void>;
   goNext: () => void;
   goBack: () => void;

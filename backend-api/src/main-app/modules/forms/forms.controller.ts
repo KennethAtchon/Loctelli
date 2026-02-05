@@ -223,7 +223,11 @@ export class FormsController {
     );
 
     try {
-      const result = await this.formsService.uploadFormFile(slug, fieldId, file);
+      const result = await this.formsService.uploadFormFile(
+        slug,
+        fieldId,
+        file,
+      );
       const duration = Date.now() - startTime;
       this.logger.log(
         `[PUBLIC] File upload completed successfully - slug: ${slug}, fieldId: ${fieldId}, key: ${result.key}, url: ${result.url}, duration: ${duration}ms`,

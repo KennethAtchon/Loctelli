@@ -487,7 +487,9 @@ export class FormsService {
       );
     }
 
-    this.logger.debug(`[ADMIN MEDIA] R2 storage check passed for slug: ${slug}`);
+    this.logger.debug(
+      `[ADMIN MEDIA] R2 storage check passed for slug: ${slug}`,
+    );
 
     // Verify form template exists (but don't validate field)
     let template;

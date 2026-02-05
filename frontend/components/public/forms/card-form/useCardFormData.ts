@@ -13,9 +13,7 @@ export function useCardFormData(
   initialData?: Record<string, unknown>
 ): {
   formData: Record<string, unknown>;
-  setFormData: React.Dispatch<
-    React.SetStateAction<Record<string, unknown>>
-  >;
+  setFormData: React.Dispatch<React.SetStateAction<Record<string, unknown>>>;
   uploadedFiles: Record<string, File[]>;
   uploadingFiles: Record<string, boolean>;
   handleInputChange: (fieldId: string, value: unknown) => void;
@@ -52,19 +50,16 @@ export function useCardFormData(
     );
   }
 
-  const [uploadedFiles, setUploadedFiles] = useState<
-    Record<string, File[]>
-  >({});
-  const [uploadingFiles, setUploadingFiles] = useState<
-    Record<string, boolean>
-  >({});
-
-  const handleInputChange = useCallback(
-    (fieldId: string, value: unknown) => {
-      setFormData((prev) => ({ ...prev, [fieldId]: value }));
-    },
-    []
+  const [uploadedFiles, setUploadedFiles] = useState<Record<string, File[]>>(
+    {}
   );
+  const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>(
+    {}
+  );
+
+  const handleInputChange = useCallback((fieldId: string, value: unknown) => {
+    setFormData((prev) => ({ ...prev, [fieldId]: value }));
+  }, []);
 
   const handleCheckboxChange = useCallback(
     (fieldId: string, value: string, checked: boolean) => {
@@ -93,14 +88,14 @@ export function useCardFormData(
         const formDataObj = new FormData();
         formDataObj.append("file", file);
         formDataObj.append("fieldId", fieldId);
-        
+
         const result = await api.forms.uploadFormFile(slug, formDataObj);
-        
+
         setUploadedFiles((prev) => ({
           ...prev,
           [fieldId]: [...(prev[fieldId] || []), file],
         }));
-        
+
         // Store file URL in formData if needed
         setFormData((prev) => ({
           ...prev,

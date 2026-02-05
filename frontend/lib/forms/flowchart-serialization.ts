@@ -137,7 +137,7 @@ export function schemaToFlowchart(
  * Merge saved flowchart graph with current schema: use saved nodes/edges/viewport,
  * and ensure every question/statement node has up-to-date field data from the given
  * schema (by matching field id). Used when loading a form that has both schema and flowchartGraph.
- * 
+ *
  * IMPORTANT: The graph is the source of truth - we preserve ALL nodes from the graph.
  * Schema is only used to update field data, not to add/remove nodes.
  */

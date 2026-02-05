@@ -25,7 +25,11 @@ export function useSimpleFormState(
   isSubmitting: boolean;
   formError: string | null;
   handleInputChange: (fieldId: string, value: unknown) => void;
-  handleCheckboxChange: (fieldId: string, value: string, checked: boolean) => void;
+  handleCheckboxChange: (
+    fieldId: string,
+    value: string,
+    checked: boolean
+  ) => void;
   handleFileUpload: (fieldId: string, file: File) => Promise<void>;
   handleSubmit: () => Promise<void>;
   resetForm: () => void;
@@ -42,20 +46,14 @@ export function useSimpleFormState(
   const [uploadedFiles, setUploadedFiles] = useState<
     Record<string, UploadedFile>
   >({});
-  const [uploadingFiles, setUploadingFiles] = useState<
-    Record<string, boolean>
-  >({});
+  const [uploadingFiles, setUploadingFiles] = useState<Record<string, boolean>>(
+    {}
+  );
   const [formError, setFormError] = useState<string | null>(null);
 
   // TanStack Query: File upload mutation
   const fileUploadMutation = useMutation({
-    mutationFn: async ({
-      fieldId,
-      file,
-    }: {
-      fieldId: string;
-      file: File;
-    }) => {
+    mutationFn: async ({ fieldId, file }: { fieldId: string; file: File }) => {
       const formDataUpload = new FormData();
       formDataUpload.append("file", file);
       formDataUpload.append("fieldId", fieldId);
@@ -85,14 +83,11 @@ export function useSimpleFormState(
     },
   });
 
-  const handleInputChange = useCallback(
-    (fieldId: string, value: unknown) => {
-      setFormData((prev) => ({ ...prev, [fieldId]: value }));
-      // Clear error when user starts typing
-      setFormError(null);
-    },
-    []
-  );
+  const handleInputChange = useCallback((fieldId: string, value: unknown) => {
+    setFormData((prev) => ({ ...prev, [fieldId]: value }));
+    // Clear error when user starts typing
+    setFormError(null);
+  }, []);
 
   const handleCheckboxChange = useCallback(
     (fieldId: string, value: string, checked: boolean) => {

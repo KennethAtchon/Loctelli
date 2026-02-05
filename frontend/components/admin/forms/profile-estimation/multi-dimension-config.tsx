@@ -12,7 +12,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Trash2, Plus } from "lucide-react";
-import type { ProfileEstimation, FormField, FieldScoring } from "@/lib/forms/types";
+import type {
+  ProfileEstimation,
+  FormField,
+  FieldScoring,
+} from "@/lib/forms/types";
 
 export interface MultiDimensionConfigProps {
   value?: ProfileEstimation["dimensionConfig"];

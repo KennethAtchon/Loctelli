@@ -1,9 +1,9 @@
 /**
  * Form System Types - Single Source of Truth
- * 
- * All form-related types used across the application (API, flowchart, 
+ *
+ * All form-related types used across the application (API, flowchart,
  * conditional logic, profile estimation) are defined here.
- * 
+ *
  * No duplicate type definitions should exist elsewhere.
  */
 

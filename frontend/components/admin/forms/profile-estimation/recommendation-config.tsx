@@ -6,7 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Trash2, Plus } from "lucide-react";
-import type { ProfileEstimation, FormField, ScoringRule } from "@/lib/forms/types";
+import type {
+  ProfileEstimation,
+  FormField,
+  ScoringRule,
+} from "@/lib/forms/types";
 import { LogicBuilder } from "@/components/admin/forms/card-form-builder/logic-builder";
 
 export interface RecommendationConfigProps {

@@ -36,7 +36,7 @@ export function CardFormBuilder({
 }: CardFormBuilderProps) {
   const [viewMode, setViewMode] = useState<"canvas" | "list">("canvas");
   const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>();
-  
+
   // Initialize graph from cardSettings (source of truth for card forms)
   // For card forms, flowchartGraph is the source of truth, not schema
   const initializeGraph = useCallback(() => {
@@ -143,11 +143,11 @@ export function CardFormBuilder({
   const handleAddNode = useCallback(
     (type: "question" | "statement") => {
       const newNodeId = `node_${Date.now()}`;
-      
+
       // Ensure we have START and END nodes
       const hasStart = graph.nodes.some((n) => n.id === START_NODE_ID);
       const hasEnd = graph.nodes.some((n) => n.id === END_NODE_ID);
-      
+
       const nodesToAdd: FlowchartNode[] = [];
       if (!hasStart) {
         nodesToAdd.push({
@@ -165,7 +165,7 @@ export function CardFormBuilder({
           data: {},
         });
       }
-      
+
       const lastQuestionNode = graph.nodes
         .filter((n) => n.type === "question" || n.type === "statement")
         .slice(-1)[0];

@@ -56,7 +56,8 @@ export function SimpleFormView({
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Thank You!</h2>
           <p className="text-gray-600">
-            {template.successMessage || "Your form has been submitted successfully."}
+            {template.successMessage ||
+              "Your form has been submitted successfully."}
           </p>
         </CardContent>
       </Card>

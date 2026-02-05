@@ -116,7 +116,10 @@ function QuestionLabel({
 }) {
   if (mode === "card") {
     return (
-      <Label htmlFor={htmlFor} className="text-2xl font-medium text-center block">
+      <Label
+        htmlFor={htmlFor}
+        className="text-2xl font-medium text-center block"
+      >
         {children}
       </Label>
     );
@@ -375,9 +378,7 @@ export function FieldRenderer({
             </Label>
             <div
               className={
-                mode === "card"
-                  ? "flex flex-col gap-3"
-                  : "flex flex-col gap-2"
+                mode === "card" ? "flex flex-col gap-3" : "flex flex-col gap-2"
               }
             >
               {field.options?.map((option) => (
@@ -464,21 +465,23 @@ export function FieldRenderer({
               <div className="flex items-center text-sm text-green-600 dark:text-green-400">
                 <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0" />
                 <span className="truncate">
-                  {Array.isArray(uploadedFile) 
-                    ? uploadedFile.map(f => f.name).join(', ')
+                  {Array.isArray(uploadedFile)
+                    ? uploadedFile.map((f) => f.name).join(", ")
                     : uploadedFile.originalName}
                 </span>
-                {field.type === "image" && !Array.isArray(uploadedFile) && uploadedFile.url && (
-                  <div className="mt-2 w-full">
-                    <Image
-                      src={uploadedFile.url}
-                      alt="Uploaded"
-                      width={320}
-                      height={128}
-                      className="max-w-full h-auto max-h-32 object-contain rounded border"
-                    />
-                  </div>
-                )}
+                {field.type === "image" &&
+                  !Array.isArray(uploadedFile) &&
+                  uploadedFile.url && (
+                    <div className="mt-2 w-full">
+                      <Image
+                        src={uploadedFile.url}
+                        alt="Uploaded"
+                        width={320}
+                        height={128}
+                        className="max-w-full h-auto max-h-32 object-contain rounded border"
+                      />
+                    </div>
+                  )}
               </div>
             )}
             {error && (

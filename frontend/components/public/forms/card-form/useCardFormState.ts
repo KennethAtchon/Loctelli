@@ -1,6 +1,10 @@
 import { useReducer, useEffect, useRef, useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
-import type { FormTemplate, FormField, CreateFormSubmissionDto } from "@/lib/forms/types";
+import type {
+  FormTemplate,
+  FormField,
+  CreateFormSubmissionDto,
+} from "@/lib/forms/types";
 import type { FlowchartNode } from "@/lib/forms/flowchart-types";
 import { api } from "@/lib/api";
 import { validateForm } from "@/lib/forms/form-validation";
@@ -181,21 +185,16 @@ export function useCardFormState(
     isLast,
     goNext: baseGoNext,
     goBack: baseGoBack,
-  } = useCardFormNavigation(
-    schema,
-    formData,
-    state.currentIndex,
-    (index) => {
-      const newIndex =
-        typeof index === "function" ? index(state.currentIndex) : index;
-      dispatch({
-        type: "SET_INDEX",
-        payload: {
-          index: newIndex,
-        },
-      });
-    }
-  );
+  } = useCardFormNavigation(schema, formData, state.currentIndex, (index) => {
+    const newIndex =
+      typeof index === "function" ? index(state.currentIndex) : index;
+    dispatch({
+      type: "SET_INDEX",
+      payload: {
+        index: newIndex,
+      },
+    });
+  });
 
   const { profileResult, computeProfile } = useCardFormProfile(
     template,
@@ -286,7 +285,7 @@ export function useCardFormState(
     }
 
     const prevIndex = state.currentIndex;
-    
+
     // Call base navigation which will update index via dispatch
     baseGoNext();
 
@@ -384,9 +383,7 @@ export function useCardFormState(
         .trackCardTime(slug, {
           sessionToken: session.sessionToken,
           cardId: prevCardIdRef.current,
-          timeSeconds: Math.round(
-            (Date.now() - startTimeRef.current) / 1000
-          ),
+          timeSeconds: Math.round((Date.now() - startTimeRef.current) / 1000),
         })
         .catch((err) => console.error("Analytics error:", err));
     }
@@ -406,9 +403,7 @@ export function useCardFormState(
           .trackCardTime(slug, {
             sessionToken: session.sessionToken,
             cardId: prevCardIdRef.current,
-            timeSeconds: Math.round(
-              (Date.now() - startTimeRef.current) / 1000
-            ),
+            timeSeconds: Math.round((Date.now() - startTimeRef.current) / 1000),
           })
           .catch((err) => console.error("Analytics error:", err));
       }

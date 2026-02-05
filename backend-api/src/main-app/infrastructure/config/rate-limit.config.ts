@@ -35,10 +35,7 @@ export const defaultRateLimitConfig: RateLimitConfig = {
 /**
  * Helper function to create a route matcher
  */
-export function matchRoute(
-  matcher: RouteMatcher,
-  req: Request,
-): boolean {
+export function matchRoute(matcher: RouteMatcher, req: Request): boolean {
   const { method, path } = matcher;
   const reqMethod = req.method;
   const reqPath = req.path;
@@ -73,14 +70,14 @@ export function matchRoute(
 /**
  * Rate limit rules - ordered by priority (higher priority first)
  * Rules are evaluated in order, first match wins
- * 
+ *
  * To add a new rate limit rule:
  * 1. Add a new object to the rateLimitRules array
  * 2. Set a unique `name` for the rule
  * 3. Define a `matcher` with method/path conditions
  * 4. Set `priority` (higher = checked first, default: 0)
  * 5. Define the `config` with windowMs, maxRequests, and optional keyGenerator
- * 
+ *
  * Example:
  * ```typescript
  * {

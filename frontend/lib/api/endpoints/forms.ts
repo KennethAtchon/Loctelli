@@ -96,7 +96,10 @@ export class FormsApi {
     slug: string,
     formData: FormData
   ): Promise<UploadedFile> {
-    return this.api.uploadAdminFile({ slug }, formData) as Promise<UploadedFile>;
+    return this.api.uploadAdminFile(
+      { slug },
+      formData
+    ) as Promise<UploadedFile>;
   }
 
   // Form session (card form save/resume)

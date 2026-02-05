@@ -441,8 +441,8 @@ export function CardSettingsPanel({
                     </Label>
                     {!formSlug && (
                       <p className="text-sm text-muted-foreground mt-1 mb-2">
-                        Please save the form first to enable file uploads. You can
-                        also enter a URL below instead.
+                        Please save the form first to enable file uploads. You
+                        can also enter a URL below instead.
                       </p>
                     )}
                     <div className="mt-2">

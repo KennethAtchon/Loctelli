@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "NODE_ENV=development bun run --bun next dev --turbopack",
     "build": "NODE_ENV=production bun run --bun next build",
-    "build:all": "bun run format:check && bun run lint && bun run tsc --noEmit && bun run build",
+    "build:all": "bun run format && bun run lint && bun run tsc --noEmit && bun run build",
     "start": "bun run --bun next start",
     "lint": "eslint .",
     "format": "prettier --write .",
