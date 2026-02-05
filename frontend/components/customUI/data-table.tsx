@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, ReactNode } from "react";
+import { useState, useEffect, useCallback, useRef, ReactNode } from "react";
 import {
   Card,
   CardContent,
@@ -157,6 +157,7 @@ export function DataTable<T extends { id: number | string }>({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedItems, setSelectedItems] = useState<T[]>([]);
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});
+  const previousDataRef = useRef<string>("");
 
   // Handle search
   const handleSearchChange = (value: string) => {
@@ -188,9 +189,13 @@ export function DataTable<T extends { id: number | string }>({
     }
   };
 
-  // Clear selections when data changes
+  // Clear selections when data actually changes (compare IDs, not reference)
   useEffect(() => {
-    setSelectedItems([]);
+    const currentDataKey = data.map((item) => item.id).join(",");
+    if (previousDataRef.current !== currentDataKey) {
+      previousDataRef.current = currentDataKey;
+      setSelectedItems([]);
+    }
   }, [data]);
 
   // Default empty state

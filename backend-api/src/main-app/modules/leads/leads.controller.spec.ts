@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/await-thenable */
 import { test, expect, describe, beforeEach, afterEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { LeadsController } from './leads.controller';
@@ -75,7 +76,7 @@ describe('LeadsController', () => {
     const mockCreatedLead = {
       id: 1,
       ...createLeadDto,
-    };
+    } as any;
 
     test('should create a lead for admin user', async () => {
       mockLeadsService.create.mockResolvedValue(mockCreatedLead);
@@ -106,14 +107,14 @@ describe('LeadsController', () => {
     const mockLeads = [
       { id: 1, name: 'Lead 1', userId: 1 },
       { id: 2, name: 'Lead 2', userId: 2 },
-    ];
+    ] as any[];
 
     test('should return all leads for admin when no query parameters', async () => {
       mockLeadsService.findAllByAdmin.mockResolvedValue(mockLeads);
 
       const result = await controller.findAll(mockAdminUser);
 
-      expect(result).toEqual(mockLeads);
+      expect(result).toEqual(mockLeads as any);
       expect(mockLeadsService.findAllByAdmin).toHaveBeenCalledWith(
         mockAdminUser.userId,
       );
@@ -141,12 +142,12 @@ describe('LeadsController', () => {
     });
 
     test('should return leads by strategyId when strategyId query parameter is provided', async () => {
-      const strategyLeads = [{ id: 1, name: 'Lead 1', strategyId: 1 }];
+      const strategyLeads = [{ id: 1, name: 'Lead 1', strategyId: 1 }] as any[];
       mockLeadsService.findByStrategyId.mockResolvedValue(strategyLeads);
 
       const result = await controller.findAll(mockAdminUser, undefined, '1');
 
-      expect(result).toEqual(strategyLeads);
+      expect(result).toEqual(strategyLeads as any);
       expect(mockLeadsService.findByStrategyId).toHaveBeenCalledWith(
         1,
         mockAdminUser.userId,
@@ -194,7 +195,7 @@ describe('LeadsController', () => {
       name: 'Lead 1',
       userId: 1,
       strategyId: 1,
-    };
+    } as any;
 
     test('should return a lead by id', async () => {
       mockLeadsService.findOne.mockResolvedValue(mockLead);
@@ -220,7 +221,7 @@ describe('LeadsController', () => {
       name: 'Updated Lead',
       userId: 1,
       strategyId: 1,
-    };
+    } as any;
 
     test('should update a lead', async () => {
       mockLeadsService.update.mockResolvedValue(mockUpdatedLead);
@@ -248,7 +249,7 @@ describe('LeadsController', () => {
       id: 1,
       name: 'Lead 1',
       messageHistory: JSON.stringify([mockMessage]),
-    };
+    } as any;
 
     test('should append a message to a lead', async () => {
       mockLeadsService.appendMessage.mockResolvedValue(mockUpdatedLead);
@@ -268,7 +269,7 @@ describe('LeadsController', () => {
       id: 1,
       name: 'Lead 1',
       userId: 1,
-    };
+    } as any;
 
     test('should delete a lead', async () => {
       mockLeadsService.remove.mockResolvedValue(mockDeletedLead);

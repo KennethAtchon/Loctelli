@@ -2,14 +2,7 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Plus, List, Eye } from "lucide-react";
+import { Plus, List, LayoutGrid, Eye } from "lucide-react";
 import { FlowchartCanvas } from "./flowchart-canvas";
 import { CardSettingsPanel } from "./card-settings-panel";
 import { ListView } from "./list-view";
@@ -41,7 +34,7 @@ export function CardFormBuilder({
   onCardSettingsChange,
   formSlug,
 }: CardFormBuilderProps) {
-  const [listModalOpen, setListModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"canvas" | "list">("canvas");
   const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>();
   const [graph, setGraph] = useState<FlowchartGraph>(() => {
     const savedGraph = cardSettings?.flowchartGraph as
@@ -176,7 +169,7 @@ export function CardFormBuilder({
 
   const handlePreview = useCallback(() => {
     if (formSlug) {
-      window.open(`/forms/${formSlug}`, "_blank");
+      window.open(`/forms/card/${formSlug}`, "_blank");
     }
   }, [formSlug]);
 
@@ -204,56 +197,26 @@ export function CardFormBuilder({
           </Button>
         </div>
         <div className="flex items-center gap-2">
-          <Dialog open={listModalOpen} onOpenChange={setListModalOpen}>
-            <DialogTrigger asChild>
-              <Button type="button" variant="outline" size="sm">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              setViewMode((m) => (m === "canvas" ? "list" : "canvas"))
+            }
+          >
+            {viewMode === "canvas" ? (
+              <>
                 <List className="h-4 w-4 mr-2" />
                 List View
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
-              <DialogHeader>
-                <DialogTitle>List View</DialogTitle>
-              </DialogHeader>
-              <div className="overflow-y-auto flex-1 min-h-0 -mx-1 px-1">
-                <ListView
-                  nodes={graph.nodes}
-                  onNodeClick={(nodeId) => {
-                    handleNodeClick(nodeId);
-                    setListModalOpen(false);
-                  }}
-                  onNodeDelete={handleNodeDelete}
-                  onReorder={(orderedIds) => {
-                    const orderedNodes = orderedIds
-                      .map((id) => graph.nodes.find((n) => n.id === id))
-                      .filter(Boolean) as FlowchartNode[];
-                    const newEdges: FlowchartEdge[] = [];
-                    if (orderedNodes.length > 0) {
-                      newEdges.push({
-                        id: `e-${START_NODE_ID}-${orderedNodes[0].id}`,
-                        source: START_NODE_ID,
-                        target: orderedNodes[0].id,
-                      });
-                      for (let i = 0; i < orderedNodes.length - 1; i++) {
-                        newEdges.push({
-                          id: `e-${orderedNodes[i].id}-${orderedNodes[i + 1].id}`,
-                          source: orderedNodes[i].id,
-                          target: orderedNodes[i + 1].id,
-                        });
-                      }
-                      newEdges.push({
-                        id: `e-${orderedNodes[orderedNodes.length - 1].id}-${END_NODE_ID}`,
-                        source: orderedNodes[orderedNodes.length - 1].id,
-                        target: END_NODE_ID,
-                      });
-                    }
-                    const updatedGraph = { ...graph, edges: newEdges };
-                    handleGraphChange(updatedGraph);
-                  }}
-                />
-              </div>
-            </DialogContent>
-          </Dialog>
+              </>
+            ) : (
+              <>
+                <LayoutGrid className="h-4 w-4 mr-2" />
+                Canvas
+              </>
+            )}
+          </Button>
           {formSlug && (
             <Button
               type="button"
@@ -269,12 +232,49 @@ export function CardFormBuilder({
       </div>
 
       <div className="h-[600px] w-full mt-4">
-        <FlowchartCanvas
-          graph={graph}
-          onGraphChange={handleGraphChange}
-          onNodeClick={handleNodeClick}
-          selectedNodeId={selectedNodeId}
-        />
+        {viewMode === "canvas" ? (
+          <FlowchartCanvas
+            graph={graph}
+            onGraphChange={handleGraphChange}
+            onNodeClick={handleNodeClick}
+            selectedNodeId={selectedNodeId}
+          />
+        ) : (
+          <div className="h-full overflow-y-auto rounded-lg border bg-muted/30 p-4">
+            <ListView
+              nodes={graph.nodes}
+              onNodeClick={handleNodeClick}
+              onNodeDelete={handleNodeDelete}
+              onReorder={(orderedIds) => {
+                const orderedNodes = orderedIds
+                  .map((id) => graph.nodes.find((n) => n.id === id))
+                  .filter(Boolean) as FlowchartNode[];
+                const newEdges: FlowchartEdge[] = [];
+                if (orderedNodes.length > 0) {
+                  newEdges.push({
+                    id: `e-${START_NODE_ID}-${orderedNodes[0].id}`,
+                    source: START_NODE_ID,
+                    target: orderedNodes[0].id,
+                  });
+                  for (let i = 0; i < orderedNodes.length - 1; i++) {
+                    newEdges.push({
+                      id: `e-${orderedNodes[i].id}-${orderedNodes[i + 1].id}`,
+                      source: orderedNodes[i].id,
+                      target: orderedNodes[i + 1].id,
+                    });
+                  }
+                  newEdges.push({
+                    id: `e-${orderedNodes[orderedNodes.length - 1].id}-${END_NODE_ID}`,
+                    source: orderedNodes[orderedNodes.length - 1].id,
+                    target: END_NODE_ID,
+                  });
+                }
+                const updatedGraph = { ...graph, edges: newEdges };
+                handleGraphChange(updatedGraph);
+              }}
+            />
+          </div>
+        )}
       </div>
 
       <CardSettingsPanel

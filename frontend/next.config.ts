@@ -7,8 +7,7 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
-  
-  // Disable static optimization for error pages
+
   experimental: {
     optimizePackageImports: ["lucide-react"],
   },

@@ -72,7 +72,7 @@ describe('BookingsController', () => {
     const mockCreatedBooking = {
       id: 1,
       ...createBookingDto,
-    };
+    } as any;
 
     test('should create a booking for admin user', async () => {
       mockBookingsService.create.mockResolvedValue(mockCreatedBooking);
@@ -109,7 +109,7 @@ describe('BookingsController', () => {
         bookingType: 'meeting',
         status: 'confirmed',
       },
-    ];
+    ] as any[];
 
     test('should return all bookings for admin when no query parameters', async () => {
       mockBookingsService.findAllByAdmin.mockResolvedValue(mockBookings);
@@ -136,24 +136,24 @@ describe('BookingsController', () => {
     test('should return bookings by userId when userId query parameter is provided', async () => {
       const userBookings = [
         { id: 1, userId: 1, leadId: 1, bookingType: 'call', status: 'pending' },
-      ];
+      ] as any[];
       mockBookingsService.findByUserId.mockResolvedValue(userBookings);
 
       const result = await controller.findAll(mockAdminUser, '1');
 
-      expect(result).toEqual(userBookings);
+      expect(result).toEqual(userBookings as any);
       expect(mockBookingsService.findByUserId).toHaveBeenCalledWith(1);
     });
 
     test('should return bookings by leadId when leadId query parameter is provided', async () => {
       const leadBookings = [
         { id: 1, userId: 1, leadId: 1, bookingType: 'call', status: 'pending' },
-      ];
+      ] as any[];
       mockBookingsService.findByleadId.mockResolvedValue(leadBookings);
 
       const result = await controller.findAll(mockAdminUser, undefined, '1');
 
-      expect(result).toEqual(leadBookings);
+      expect(result).toEqual(leadBookings as any);
       expect(mockBookingsService.findByleadId).toHaveBeenCalledWith(
         1,
         mockAdminUser.userId,
@@ -183,7 +183,7 @@ describe('BookingsController', () => {
       leadId: 1,
       bookingType: 'call',
       status: 'pending',
-    };
+    } as any;
 
     test('should return a booking by id', async () => {
       mockBookingsService.findOne.mockResolvedValue(mockBooking);
@@ -210,7 +210,7 @@ describe('BookingsController', () => {
       leadId: 1,
       bookingType: 'call',
       status: 'confirmed',
-    };
+    } as any;
 
     test('should update a booking', async () => {
       mockBookingsService.update.mockResolvedValue(mockUpdatedBooking);
@@ -240,7 +240,7 @@ describe('BookingsController', () => {
       leadId: 1,
       bookingType: 'call',
       status: 'confirmed',
-    };
+    } as any;
 
     test('should update booking status', async () => {
       mockBookingsService.update.mockResolvedValue(mockUpdatedBooking);
@@ -268,7 +268,7 @@ describe('BookingsController', () => {
       leadId: 1,
       bookingType: 'call',
       status: 'pending',
-    };
+    } as any;
 
     test('should delete a booking', async () => {
       mockBookingsService.remove.mockResolvedValue(mockDeletedBooking);

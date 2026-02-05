@@ -119,9 +119,16 @@ export default function FormsPage() {
           <div className="font-medium">{template.name}</div>
           <div
             className="text-xs text-gray-500 cursor-pointer hover:text-blue-600"
-            onClick={() => router.push(`/forms/${template.slug}`)}
+            onClick={() =>
+              router.push(
+                template.formType === "CARD"
+                  ? `/forms/card/${template.slug}`
+                  : `/forms/${template.slug}`
+              )
+            }
           >
-            /{template.slug}
+            /{template.formType === "CARD" ? "forms/card/" : "forms/"}
+            {template.slug}
           </div>
         </div>
       ),
@@ -388,14 +395,18 @@ export default function FormsPage() {
               <div>
                 <h3 className="font-semibold mb-3">Form Configuration</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <strong>Submit Button:</strong>{" "}
-                    {selectedTemplate.submitButtonText}
-                  </div>
-                  <div>
-                    <strong>Success Message:</strong>{" "}
-                    {selectedTemplate.successMessage}
-                  </div>
+                  {selectedTemplate.formType !== "CARD" && (
+                    <>
+                      <div>
+                        <strong>Submit Button:</strong>{" "}
+                        {selectedTemplate.submitButtonText}
+                      </div>
+                      <div>
+                        <strong>Success Message:</strong>{" "}
+                        {selectedTemplate.successMessage}
+                      </div>
+                    </>
+                  )}
                   <div>
                     <strong>Wake-up Required:</strong>{" "}
                     {selectedTemplate.requiresWakeUp ? "Yes" : "No"}

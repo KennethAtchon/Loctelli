@@ -466,58 +466,79 @@ export class FormsService {
     }
   }
 
-  // File upload for forms
-  async uploadFormFile(
+  // Admin file upload for media/assets (no field validation required)
+  async uploadAdminMediaFile(
     slug: string,
     fieldId: string,
     file: Express.Multer.File,
   ) {
+    const startTime = Date.now();
+    this.logger.log(
+      `[ADMIN MEDIA] Starting admin media upload - slug: ${slug}, fieldId: ${fieldId}, fileName: ${file.originalname}, size: ${file.size} bytes, mimeType: ${file.mimetype}`,
+    );
+
+    // Check R2 storage availability
     if (!this.r2StorageService.isEnabled()) {
+      this.logger.error(
+        `[ADMIN MEDIA] File upload failed - R2 storage is disabled for slug: ${slug}, fieldId: ${fieldId}`,
+      );
       throw new BadRequestException(
         'File upload is not available - R2 storage is disabled',
       );
     }
 
-    // Verify form template exists
-    const template = await this.findFormTemplateBySlug(slug);
+    this.logger.debug(`[ADMIN MEDIA] R2 storage check passed for slug: ${slug}`);
 
-    // Verify field exists and is a file/image field
-    if (!template.schema || !Array.isArray(template.schema)) {
-      throw new BadRequestException('Form template schema is invalid');
+    // Verify form template exists (but don't validate field)
+    let template;
+    try {
+      template = await this.findFormTemplateBySlug(slug);
+      this.logger.debug(
+        `[ADMIN MEDIA] Form template found - slug: ${slug}, templateId: ${template.id}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `[ADMIN MEDIA] Form template not found - slug: ${slug}, error: ${error.message}`,
+      );
+      throw error;
     }
 
-    const schema = template.schema as any[];
-    const field = schema.find((f: any) => f.id === fieldId);
-    if (!field) {
+    // Validate file type (images only for media uploads)
+    if (!file.mimetype.startsWith('image/')) {
+      this.logger.error(
+        `[ADMIN MEDIA] Invalid file type for media upload - slug: ${slug}, fieldId: ${fieldId}, fileMimeType: ${file.mimetype}`,
+      );
       throw new BadRequestException(
-        `Field '${fieldId}' not found in form template`,
+        'Only image files are allowed for media uploads',
       );
     }
 
-    if (field.type !== 'file' && field.type !== 'image') {
-      throw new BadRequestException(
-        `Field '${fieldId}' is not a file upload field`,
-      );
-    }
-
-    // Validate file type for image fields
-    if (field.type === 'image' && !file.mimetype.startsWith('image/')) {
-      throw new BadRequestException(
-        'Only image files are allowed for this field',
-      );
-    }
+    this.logger.debug(
+      `[ADMIN MEDIA] File validation passed - slug: ${slug}, fieldId: ${fieldId}`,
+    );
 
     try {
       // Generate unique file key
       const timestamp = Date.now();
       const fileExtension = file.originalname.split('.').pop() || '';
-      const key = `forms/${slug}/${fieldId}/${timestamp}.${fileExtension}`;
+      const key = `forms/${slug}/media/${fieldId}/${timestamp}.${fileExtension}`;
 
+      this.logger.log(
+        `[ADMIN MEDIA] Uploading file to R2 - slug: ${slug}, fieldId: ${fieldId}, key: ${key}, size: ${file.size} bytes`,
+      );
+
+      const uploadStartTime = Date.now();
       // Upload to R2
       const url = await this.r2StorageService.uploadFile(
         key,
         file.buffer,
         file.mimetype,
+      );
+      const uploadDuration = Date.now() - uploadStartTime;
+
+      const totalDuration = Date.now() - startTime;
+      this.logger.log(
+        `[ADMIN MEDIA] File upload successful - slug: ${slug}, fieldId: ${fieldId}, key: ${key}, url: ${url}, uploadDuration: ${uploadDuration}ms, totalDuration: ${totalDuration}ms`,
       );
 
       return {
@@ -528,6 +549,133 @@ export class FormsService {
         mimeType: file.mimetype,
       };
     } catch (error) {
+      const totalDuration = Date.now() - startTime;
+      this.logger.error(
+        `[ADMIN MEDIA] File upload failed - slug: ${slug}, fieldId: ${fieldId}, fileName: ${file.originalname}, error: ${error.message}, stack: ${error.stack}, duration: ${totalDuration}ms`,
+      );
+      throw new BadRequestException(`Failed to upload file: ${error.message}`);
+    }
+  }
+
+  // File upload for forms
+  async uploadFormFile(
+    slug: string,
+    fieldId: string,
+    file: Express.Multer.File,
+  ) {
+    const startTime = Date.now();
+    this.logger.log(
+      `Starting file upload - slug: ${slug}, fieldId: ${fieldId}, fileName: ${file.originalname}, size: ${file.size} bytes, mimeType: ${file.mimetype}`,
+    );
+
+    // Check R2 storage availability
+    if (!this.r2StorageService.isEnabled()) {
+      this.logger.error(
+        `File upload failed - R2 storage is disabled for slug: ${slug}, fieldId: ${fieldId}`,
+      );
+      throw new BadRequestException(
+        'File upload is not available - R2 storage is disabled',
+      );
+    }
+
+    this.logger.debug(`R2 storage check passed for slug: ${slug}`);
+
+    // Verify form template exists
+    let template;
+    try {
+      template = await this.findFormTemplateBySlug(slug);
+      this.logger.debug(
+        `Form template found - slug: ${slug}, templateId: ${template.id}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Form template not found - slug: ${slug}, error: ${error.message}`,
+      );
+      throw error;
+    }
+
+    // Verify field exists and is a file/image field
+    if (!template.schema || !Array.isArray(template.schema)) {
+      this.logger.error(
+        `Invalid form template schema - slug: ${slug}, templateId: ${template.id}`,
+      );
+      throw new BadRequestException('Form template schema is invalid');
+    }
+
+    const schema = template.schema as any[];
+    const field = schema.find((f: any) => f.id === fieldId);
+    if (!field) {
+      this.logger.error(
+        `Field not found in template - slug: ${slug}, fieldId: ${fieldId}, availableFields: ${schema.map((f) => f.id).join(', ')}`,
+      );
+      throw new BadRequestException(
+        `Field '${fieldId}' not found in form template`,
+      );
+    }
+
+    this.logger.debug(
+      `Field found - slug: ${slug}, fieldId: ${fieldId}, fieldType: ${field.type}`,
+    );
+
+    if (field.type !== 'file' && field.type !== 'image') {
+      this.logger.error(
+        `Invalid field type for upload - slug: ${slug}, fieldId: ${fieldId}, fieldType: ${field.type}, expected: file or image`,
+      );
+      throw new BadRequestException(
+        `Field '${fieldId}' is not a file upload field`,
+      );
+    }
+
+    // Validate file type for image fields
+    if (field.type === 'image' && !file.mimetype.startsWith('image/')) {
+      this.logger.error(
+        `Invalid file type for image field - slug: ${slug}, fieldId: ${fieldId}, fileMimeType: ${file.mimetype}`,
+      );
+      throw new BadRequestException(
+        'Only image files are allowed for this field',
+      );
+    }
+
+    this.logger.debug(
+      `File validation passed - slug: ${slug}, fieldId: ${fieldId}, fieldType: ${field.type}`,
+    );
+
+    try {
+      // Generate unique file key
+      const timestamp = Date.now();
+      const fileExtension = file.originalname.split('.').pop() || '';
+      const key = `forms/${slug}/${fieldId}/${timestamp}.${fileExtension}`;
+
+      this.logger.log(
+        `Uploading file to R2 - slug: ${slug}, fieldId: ${fieldId}, key: ${key}, size: ${file.size} bytes`,
+      );
+
+      const uploadStartTime = Date.now();
+      // Upload to R2
+      const url = await this.r2StorageService.uploadFile(
+        key,
+        file.buffer,
+        file.mimetype,
+      );
+      const uploadDuration = Date.now() - uploadStartTime;
+
+      const totalDuration = Date.now() - startTime;
+      this.logger.log(
+        `File upload successful - slug: ${slug}, fieldId: ${fieldId}, key: ${key}, url: ${url}, uploadDuration: ${uploadDuration}ms, totalDuration: ${totalDuration}ms`,
+      );
+
+      return {
+        url,
+        key,
+        originalName: file.originalname,
+        size: file.size,
+        mimeType: file.mimetype,
+      };
+    } catch (error) {
+      const totalDuration = Date.now() - startTime;
+      this.logger.error(
+        `File upload failed - slug: ${slug}, fieldId: ${fieldId}, fileName: ${file.originalname}, error: ${error.message}, stack: ${error.stack}, duration: ${totalDuration}ms`,
+      );
       throw new BadRequestException(`Failed to upload file: ${error.message}`);
     }
   }

@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Trash2, X, Loader2 } from "lucide-react";
-import Image from "next/image";
 import type {
   FlowchartNode,
   FlowchartNodeData,
@@ -90,12 +89,14 @@ export function CardSettingsPanel({
   const [conditionalLogic, setConditionalLogic] = useState<
     ConditionalLogic | undefined
   >(undefined);
+  const [isSuccessCard, setIsSuccessCard] = useState(false);
 
   useEffect(() => {
     if (!node) return;
     const data = node.data ?? {};
     if (node.type === "statement") {
       setStatementText(data.statementText || data.label || "");
+      setIsSuccessCard(data.isSuccessCard ?? false);
     } else if (node.type === "question") {
       const field = data.field;
       setLabel(field?.label || data.label || "");
@@ -125,8 +126,9 @@ export function CardSettingsPanel({
   const handleMediaUpload = async (file: File) => {
     if (!formSlug) {
       toast({
-        title: "Error",
-        description: "Form slug is required for media upload",
+        title: "Form Not Saved",
+        description:
+          "Please save the form first before uploading files. You can use a URL instead, or save the form and try again.",
         variant: "destructive",
       });
       return;
@@ -136,7 +138,7 @@ export function CardSettingsPanel({
       const formData = new FormData();
       formData.append("file", file);
       formData.append("fieldId", `media_${node?.id || Date.now()}`);
-      const result = await api.forms.uploadFormFile(formSlug, formData);
+      const result = await api.forms.uploadAdminFile(formSlug, formData);
       setMediaUrl(result.url);
       toast({
         title: "Success",
@@ -160,6 +162,7 @@ export function CardSettingsPanel({
     if (node.type === "statement") {
       updates.statementText = statementText;
       updates.label = statementText;
+      updates.isSuccessCard = isSuccessCard;
     } else if (node.type === "question") {
       const field: FormField = {
         id: node.data?.fieldId || node.id,
@@ -212,18 +215,18 @@ export function CardSettingsPanel({
   const needsOptions = ["select", "radio", "checkbox"].includes(fieldType);
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="w-full sm:max-w-3xl max-h-[90vh] overflow-y-auto p-0 gap-0">
+        <DialogHeader className="p-6 pb-0">
+          <DialogTitle>
             {isStatement ? "Statement Settings" : "Question Settings"}
-          </SheetTitle>
-          <SheetDescription>
+          </DialogTitle>
+          <DialogDescription>
             Configure this card's content and behavior
-          </SheetDescription>
-        </SheetHeader>
+          </DialogDescription>
+        </DialogHeader>
 
-        <div className="space-y-6 mt-6">
+        <div className="space-y-6 mt-6 p-6 pt-4">
           {isStatement ? (
             <>
               <div>
@@ -235,6 +238,16 @@ export function CardSettingsPanel({
                   placeholder="Enter the statement text..."
                   rows={4}
                 />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="is-success-card"
+                  checked={isSuccessCard}
+                  onCheckedChange={setIsSuccessCard}
+                />
+                <Label htmlFor="is-success-card">
+                  Show this card after form submission
+                </Label>
               </div>
             </>
           ) : (
@@ -379,6 +392,28 @@ export function CardSettingsPanel({
               )}
             </div>
 
+            {/* Position selector - always visible */}
+            <div>
+              <Label htmlFor="media-position">Position</Label>
+              <Select
+                value={mediaPosition}
+                onValueChange={(v) =>
+                  setMediaPosition(v as typeof mediaPosition)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="above">Above Question</SelectItem>
+                  <SelectItem value="below">Below Question</SelectItem>
+                  <SelectItem value="background">Background</SelectItem>
+                  <SelectItem value="left">Left Side</SelectItem>
+                  <SelectItem value="right">Right Side</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             {!mediaUrl ? (
               <>
                 <div>
@@ -404,6 +439,12 @@ export function CardSettingsPanel({
                     <Label htmlFor="media-upload">
                       Upload {mediaType === "gif" ? "GIF" : "Image"}
                     </Label>
+                    {!formSlug && (
+                      <p className="text-sm text-muted-foreground mt-1 mb-2">
+                        Please save the form first to enable file uploads. You can
+                        also enter a URL below instead.
+                      </p>
+                    )}
                     <div className="mt-2">
                       <Input
                         id="media-upload"
@@ -420,6 +461,11 @@ export function CardSettingsPanel({
                           <Loader2 className="h-4 w-4 animate-spin" />
                           Uploading...
                         </div>
+                      )}
+                      {!formSlug && (
+                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                          File upload disabled: Form must be saved first
+                        </p>
                       )}
                     </div>
                     <div className="mt-2">
@@ -456,6 +502,11 @@ export function CardSettingsPanel({
                     {videoType === "upload" ? (
                       <div>
                         <Label htmlFor="video-upload">Upload Video</Label>
+                        {!formSlug && (
+                          <p className="text-sm text-muted-foreground mt-1 mb-2">
+                            Please save the form first to enable file uploads.
+                          </p>
+                        )}
                         <Input
                           id="video-upload"
                           type="file"
@@ -466,6 +517,11 @@ export function CardSettingsPanel({
                           }}
                           disabled={uploadingMedia || !formSlug}
                         />
+                        {!formSlug && (
+                          <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                            File upload disabled: Form must be saved first
+                          </p>
+                        )}
                       </div>
                     ) : (
                       <div>
@@ -507,26 +563,6 @@ export function CardSettingsPanel({
 
                 {mediaUrl && (
                   <>
-                    <div>
-                      <Label htmlFor="media-position">Position</Label>
-                      <Select
-                        value={mediaPosition}
-                        onValueChange={(v) =>
-                          setMediaPosition(v as typeof mediaPosition)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="above">Above Question</SelectItem>
-                          <SelectItem value="below">Below Question</SelectItem>
-                          <SelectItem value="background">Background</SelectItem>
-                          <SelectItem value="left">Left Side</SelectItem>
-                          <SelectItem value="right">Right Side</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
                     {(mediaType === "image" || mediaType === "gif") && (
                       <div>
                         <Label htmlFor="media-alt">Alt Text</Label>
@@ -544,12 +580,11 @@ export function CardSettingsPanel({
             ) : (
               <div className="space-y-2">
                 {mediaType === "image" || mediaType === "gif" ? (
-                  <div className="relative w-full h-48 border rounded-lg overflow-hidden">
-                    <Image
+                  <div className="w-full h-48 border rounded-lg overflow-hidden flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                    <img
                       src={mediaUrl}
                       alt={mediaAltText || "Card media"}
-                      fill
-                      className="object-contain"
+                      className="max-w-full max-h-full object-contain"
                     />
                   </div>
                 ) : mediaType === "video" &&
@@ -602,7 +637,7 @@ export function CardSettingsPanel({
             )}
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }

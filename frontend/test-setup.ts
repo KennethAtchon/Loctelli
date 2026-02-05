@@ -1,4 +1,4 @@
-import { expect, beforeAll, afterAll } from "bun:test";
+import { beforeAll, afterAll } from "bun:test";
 
 // Mock Next.js router
 const mockRouter = {
@@ -15,13 +15,17 @@ const mockPathname = "/";
 
 // Mock Next.js navigation
 if (typeof global !== "undefined") {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (global as any).useRouter = () => mockRouter;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (global as any).useSearchParams = () => mockSearchParams;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (global as any).usePathname = () => mockPathname;
 }
 
 // Mock Next.js image component
 if (typeof global !== "undefined") {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (global as any).nextImage = (props: any) => {
     // eslint-disable-next-line @next/next/no-img-element
     return { type: "img", props };
@@ -52,7 +56,9 @@ if (typeof global !== "undefined") {
     disconnect() {}
     observe() {}
     unobserve() {}
-  } as any;
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (global.IntersectionObserver as any) = global.IntersectionObserver;
 }
 
 // Mock ResizeObserver
@@ -62,7 +68,9 @@ if (typeof global !== "undefined") {
     disconnect() {}
     observe() {}
     unobserve() {}
-  } as any;
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (global.ResizeObserver as any) = global.ResizeObserver;
 }
 
 // Mock console methods to reduce noise in tests
@@ -71,6 +79,7 @@ const originalWarn = console.warn;
 
 if (typeof beforeAll !== "undefined") {
   beforeAll(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     console.error = (...args: any[]) => {
       if (
         typeof args[0] === "string" &&
@@ -80,6 +89,7 @@ if (typeof beforeAll !== "undefined") {
       }
       originalError.call(console, ...args);
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     console.warn = (...args: any[]) => {
       if (
         typeof args[0] === "string" &&

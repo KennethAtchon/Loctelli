@@ -212,10 +212,4 @@ export const createMockApiError = (message: string, status = 400) => {
 };
 
 // Export mocks for use in tests
-export {
-  mockApiClient,
-  mockApi,
-  mockApiExports,
-  mockLogger,
-  mockCookies,
-};
+export { mockApiClient, mockApi, mockApiExports, mockLogger, mockCookies };

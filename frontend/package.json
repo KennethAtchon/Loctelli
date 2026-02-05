@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "bun run --bun next dev --turbopack",
-    "build": "bun run --bun next build",
+    "dev": "NODE_ENV=development bun run --bun next dev --turbopack",
+    "build": "NODE_ENV=production bun run --bun next build",
     "build:all": "bun run format:check && bun run lint && bun run tsc --noEmit && bun run build",
     "start": "bun run --bun next start",
     "lint": "eslint .",

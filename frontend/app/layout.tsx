@@ -55,6 +55,9 @@ export const metadata: Metadata = {
     description: "Triple your revenue with AI marketing automation",
     images: ["/twitter-image.jpg"],
   },
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 // Validate environment variables on app startup
@@ -74,9 +77,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-      </head>
       <body className={inter.className}>
         <Providers>
           <ThemeProvider

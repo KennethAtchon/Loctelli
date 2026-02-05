@@ -138,7 +138,13 @@ export function LogicBuilder({
       return (
         <Input
           type="number"
-          value={typeof condition.value === "number" ? condition.value : typeof condition.value === "string" ? condition.value : ""}
+          value={
+            typeof condition.value === "number"
+              ? condition.value
+              : typeof condition.value === "string"
+                ? condition.value
+                : ""
+          }
           onChange={(e) => updateCondition(index, { value: e.target.value })}
           placeholder="Enter number"
           className="w-[180px]"
@@ -150,7 +156,15 @@ export function LogicBuilder({
     return (
       <Input
         type="text"
-        value={typeof condition.value === "string" ? condition.value : typeof condition.value === "number" ? String(condition.value) : Array.isArray(condition.value) ? condition.value.join(", ") : ""}
+        value={
+          typeof condition.value === "string"
+            ? condition.value
+            : typeof condition.value === "number"
+              ? String(condition.value)
+              : Array.isArray(condition.value)
+                ? condition.value.join(", ")
+                : ""
+        }
         onChange={(e) => updateCondition(index, { value: e.target.value })}
         placeholder="Enter value"
         className="w-[180px]"

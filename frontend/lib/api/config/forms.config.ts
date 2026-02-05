@@ -103,6 +103,14 @@ export const formsConfig: EndpointGroup = {
     responseType: {} as UploadedFile,
   },
 
+  uploadAdminFile: {
+    method: "POST",
+    path: "/forms/templates/:slug/upload",
+    pathParams: [{ name: "slug", required: true, type: "string" }],
+    isFileUpload: true,
+    responseType: {} as UploadedFile,
+  },
+
   // Form session (card form save/resume)
   createFormSession: {
     method: "POST",

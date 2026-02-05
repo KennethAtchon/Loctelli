@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/await-thenable */
 import { test, expect, describe, beforeEach, afterEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BookingsService } from './bookings.service';
@@ -58,7 +59,7 @@ describe('BookingsService', () => {
     const mockCreatedBooking = {
       id: 1,
       ...createBookingDto,
-    };
+    } as any;
 
     test('should create and return a booking', async () => {
       mockPrismaService.booking.create.mockResolvedValue(mockCreatedBooking);
@@ -92,13 +93,13 @@ describe('BookingsService', () => {
         details: {},
         status: 'confirmed',
       },
-    ];
+    ] as any[];
 
     test('should return an array of bookings', async () => {
       mockPrismaService.booking.findMany.mockResolvedValue(mockBookings);
 
       const result = await service.findAll();
-      expect(result).toEqual(mockBookings);
+      expect(result).toEqual(mockBookings as any);
       expect(mockPrismaService.booking.findMany).toHaveBeenCalledWith({
         include: {
           user: true,
@@ -118,7 +119,7 @@ describe('BookingsService', () => {
       status: 'pending',
       user: { id: 1, name: 'User 1' },
       lead: { id: 1, name: 'Lead 1' },
-    };
+    } as any;
 
     test('should return a booking if it exists and user has permission', async () => {
       mockPrismaService.booking.findUnique.mockResolvedValue(mockBooking);
@@ -144,9 +145,9 @@ describe('BookingsService', () => {
     test('should throw NotFoundException if booking does not exist', async () => {
       mockPrismaService.booking.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne(999, 1, 'user')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        async () => await service.findOne(999, 1, 'user'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     test('should throw ForbiddenException if user does not have permission', async () => {
@@ -155,9 +156,9 @@ describe('BookingsService', () => {
         bookingWithDifferentUser,
       );
 
-      await expect(service.findOne(1, 1, 'user')).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        async () => await service.findOne(1, 1, 'user'),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 
@@ -179,13 +180,13 @@ describe('BookingsService', () => {
         details: {},
         status: 'confirmed',
       },
-    ];
+    ] as any[];
 
     test('should return bookings for a specific user', async () => {
       mockPrismaService.booking.findMany.mockResolvedValue(mockBookings);
 
       const result = await service.findByUserId(1);
-      expect(result).toEqual(mockBookings);
+      expect(result).toEqual(mockBookings as any);
       expect(mockPrismaService.booking.findMany).toHaveBeenCalledWith({
         where: { userId: 1 },
         include: {
@@ -196,7 +197,7 @@ describe('BookingsService', () => {
   });
 
   describe('findByleadId', () => {
-    const mockLead = { id: 1, name: 'Lead 1', userId: 1 };
+    const mockLead = { id: 1, name: 'Lead 1', userId: 1 } as any;
     const mockBookings = [
       {
         id: 1,
@@ -206,14 +207,14 @@ describe('BookingsService', () => {
         details: {},
         status: 'pending',
       },
-    ];
+    ] as any[];
 
     test('should return bookings for a lead if user has permission', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(mockLead);
       mockPrismaService.booking.findMany.mockResolvedValue(mockBookings);
 
       const result = await service.findByleadId(1, 1, 'user');
-      expect(result).toEqual(mockBookings);
+      expect(result).toEqual(mockBookings as any);
       expect(mockPrismaService.lead.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
       });
@@ -230,15 +231,15 @@ describe('BookingsService', () => {
       mockPrismaService.booking.findMany.mockResolvedValue(mockBookings);
 
       const result = await service.findByleadId(1, 999, 'admin');
-      expect(result).toEqual(mockBookings);
+      expect(result).toEqual(mockBookings as any);
     });
 
     test('should throw NotFoundException if lead does not exist', async () => {
       mockPrismaService.lead.findUnique.mockResolvedValue(null);
 
-      await expect(service.findByleadId(999, 1, 'user')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        async () => await service.findByleadId(999, 1, 'user'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     test('should throw ForbiddenException if user does not have permission', async () => {
@@ -247,9 +248,9 @@ describe('BookingsService', () => {
         leadWithDifferentUser,
       );
 
-      await expect(service.findByleadId(1, 1, 'user')).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        async () => await service.findByleadId(1, 1, 'user'),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 
@@ -262,7 +263,7 @@ describe('BookingsService', () => {
       bookingType: 'call',
       details: {},
       status: 'pending',
-    };
+    } as any;
     const mockUpdatedBooking = {
       id: 1,
       userId: 1,
@@ -272,7 +273,7 @@ describe('BookingsService', () => {
       status: 'confirmed',
       user: { id: 1, name: 'User 1' },
       lead: { id: 1, name: 'Lead 1' },
-    };
+    } as any;
 
     test('should update and return a booking if user has permission', async () => {
       mockPrismaService.booking.findUnique.mockResolvedValue(mockBooking);
@@ -305,7 +306,7 @@ describe('BookingsService', () => {
       mockPrismaService.booking.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.update(999, updateBookingDto, 1, 'user'),
+        async () => await service.update(999, updateBookingDto, 1, 'user'),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -316,7 +317,7 @@ describe('BookingsService', () => {
       );
 
       await expect(
-        service.update(1, updateBookingDto, 1, 'user'),
+        async () => await service.update(1, updateBookingDto, 1, 'user'),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -327,7 +328,7 @@ describe('BookingsService', () => {
       );
 
       await expect(
-        service.update(1, updateBookingDto, 1, 'user'),
+        async () => await service.update(1, updateBookingDto, 1, 'user'),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -338,7 +339,7 @@ describe('BookingsService', () => {
       mockPrismaService.booking.update.mockRejectedValue(foreignKeyError);
 
       await expect(
-        service.update(1, updateBookingDto, 1, 'user'),
+        async () => await service.update(1, updateBookingDto, 1, 'user'),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -351,7 +352,7 @@ describe('BookingsService', () => {
       bookingType: 'call',
       details: {},
       status: 'pending',
-    };
+    } as any;
     const mockDeletedBooking = {
       id: 1,
       userId: 1,
@@ -359,7 +360,7 @@ describe('BookingsService', () => {
       bookingType: 'call',
       details: {},
       status: 'pending',
-    };
+    } as any;
 
     test('should delete and return a booking if user has permission', async () => {
       mockPrismaService.booking.findUnique.mockResolvedValue(mockBooking);
@@ -386,9 +387,9 @@ describe('BookingsService', () => {
     test('should throw NotFoundException if booking does not exist', async () => {
       mockPrismaService.booking.findUnique.mockResolvedValue(null);
 
-      await expect(service.remove(999, 1, 'user')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        async () => await service.remove(999, 1, 'user'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     test('should throw ForbiddenException if user does not have permission', async () => {
@@ -397,9 +398,9 @@ describe('BookingsService', () => {
         bookingWithDifferentUser,
       );
 
-      await expect(service.remove(1, 1, 'user')).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        async () => await service.remove(1, 1, 'user'),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     test('should throw NotFoundException if delete fails', async () => {
@@ -408,9 +409,9 @@ describe('BookingsService', () => {
         new Error('Delete failed'),
       );
 
-      await expect(service.remove(1, 1, 'user')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        async () => await service.remove(1, 1, 'user'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });

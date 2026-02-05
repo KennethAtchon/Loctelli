@@ -16,6 +16,7 @@ import {
   UploadedFile,
   UploadedFiles,
   Logger,
+  Request,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import type { Express } from 'express';
@@ -129,6 +130,59 @@ export class FormsController {
     return this.formsService.wakeUpDatabase();
   }
 
+  // Admin file upload endpoint for form media/assets
+  @Post('templates/:slug/upload')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadAdminFile(
+    @Param('slug') slug: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Body('fieldId') fieldId: string,
+    @CurrentUser() user: any,
+  ) {
+    const startTime = Date.now();
+    this.logger.log(
+      `[ADMIN] File upload request received - slug: ${slug}, fieldId: ${fieldId}, userId: ${user?.sub || 'unknown'}, email: ${user?.email || 'unknown'}`,
+    );
+
+    if (!file) {
+      this.logger.warn(
+        `[ADMIN] File upload failed - no file provided - slug: ${slug}, fieldId: ${fieldId}, userId: ${user?.sub || 'unknown'}`,
+      );
+      throw new BadRequestException('No file provided');
+    }
+
+    if (!fieldId) {
+      this.logger.warn(
+        `[ADMIN] File upload failed - fieldId missing - slug: ${slug}, fileName: ${file.originalname}, userId: ${user?.sub || 'unknown'}`,
+      );
+      throw new BadRequestException('Field ID is required');
+    }
+
+    this.logger.debug(
+      `[ADMIN] File upload validation passed - slug: ${slug}, fieldId: ${fieldId}, fileName: ${file.originalname}, size: ${file.size} bytes, mimeType: ${file.mimetype}`,
+    );
+
+    try {
+      const result = await this.formsService.uploadAdminMediaFile(
+        slug,
+        fieldId,
+        file,
+      );
+      const duration = Date.now() - startTime;
+      this.logger.log(
+        `[ADMIN] File upload completed successfully - slug: ${slug}, fieldId: ${fieldId}, key: ${result.key}, url: ${result.url}, duration: ${duration}ms`,
+      );
+      return result;
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      this.logger.error(
+        `[ADMIN] File upload failed - slug: ${slug}, fieldId: ${fieldId}, fileName: ${file.originalname}, error: ${error.message}, duration: ${duration}ms`,
+      );
+      throw error;
+    }
+  }
+
   // File upload endpoint for forms (specific path before parameterized)
   @Post('public/:slug/upload')
   @Public()
@@ -137,16 +191,51 @@ export class FormsController {
     @Param('slug') slug: string,
     @UploadedFile() file: Express.Multer.File,
     @Body('fieldId') fieldId: string,
+    @Req() req: Request,
   ) {
+    const startTime = Date.now();
+    const clientIp =
+      (req as any).ip ||
+      (req as any).socket?.remoteAddress ||
+      req.headers['x-forwarded-for'] ||
+      'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    this.logger.log(
+      `[PUBLIC] File upload request received - slug: ${slug}, fieldId: ${fieldId}, clientIp: ${clientIp}, userAgent: ${userAgent.substring(0, 100)}`,
+    );
+
     if (!file) {
+      this.logger.warn(
+        `[PUBLIC] File upload failed - no file provided - slug: ${slug}, fieldId: ${fieldId}, clientIp: ${clientIp}`,
+      );
       throw new BadRequestException('No file provided');
     }
 
     if (!fieldId) {
+      this.logger.warn(
+        `[PUBLIC] File upload failed - fieldId missing - slug: ${slug}, fileName: ${file.originalname}, clientIp: ${clientIp}`,
+      );
       throw new BadRequestException('Field ID is required');
     }
 
-    return this.formsService.uploadFormFile(slug, fieldId, file);
+    this.logger.debug(
+      `[PUBLIC] File upload validation passed - slug: ${slug}, fieldId: ${fieldId}, fileName: ${file.originalname}, size: ${file.size} bytes, mimeType: ${file.mimetype}`,
+    );
+
+    try {
+      const result = await this.formsService.uploadFormFile(slug, fieldId, file);
+      const duration = Date.now() - startTime;
+      this.logger.log(
+        `[PUBLIC] File upload completed successfully - slug: ${slug}, fieldId: ${fieldId}, key: ${result.key}, url: ${result.url}, duration: ${duration}ms`,
+      );
+      return result;
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      this.logger.error(
+        `[PUBLIC] File upload failed - slug: ${slug}, fieldId: ${fieldId}, fileName: ${file.originalname}, error: ${error.message}, clientIp: ${clientIp}, duration: ${duration}ms`,
+      );
+      throw error;
+    }
   }
 
   // Form session (card form save/resume) - before generic GET public/:slug

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/await-thenable */
 import { test, expect, describe, beforeEach, afterEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { SubAccountsService } from './subaccounts.service';
@@ -64,7 +65,7 @@ describe('SubAccountsService', () => {
         createdByAdminId: adminId,
         createdByAdmin: { id: adminId, name: 'Admin', email: 'admin@test.com' },
         _count: { users: 0, strategies: 0, leads: 0, bookings: 0 },
-      };
+      } as any;
 
       mockPrismaService.subAccount.create.mockResolvedValue(expectedResult);
 
@@ -108,7 +109,7 @@ describe('SubAccountsService', () => {
           },
           _count: { users: 0, strategies: 0, leads: 0, bookings: 0 },
         },
-      ];
+      ] as any;
 
       mockPrismaService.subAccount.findMany.mockResolvedValue(expectedResult);
 
@@ -147,7 +148,7 @@ describe('SubAccountsService', () => {
         strategies: [],
         leads: [],
         bookings: [],
-      };
+      } as any;
 
       mockPrismaService.subAccount.findFirst.mockResolvedValue(expectedResult);
 
@@ -206,9 +207,9 @@ describe('SubAccountsService', () => {
 
       mockPrismaService.subAccount.findFirst.mockResolvedValue(null);
 
-      await expect(service.findOne(subAccountId, adminId)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        async () => await service.findOne(subAccountId, adminId),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -225,7 +226,7 @@ describe('SubAccountsService', () => {
         id: subAccountId,
         name: 'Test SubAccount',
         createdByAdminId: adminId,
-      };
+      } as any;
 
       const expectedResult = {
         ...existingSubAccount,
@@ -274,7 +275,7 @@ describe('SubAccountsService', () => {
         id: subAccountId,
         name: 'Test SubAccount',
         createdByAdminId: adminId,
-      };
+      } as any;
 
       mockPrismaService.subAccount.findFirst.mockResolvedValue(
         existingSubAccount,
@@ -295,9 +296,9 @@ describe('SubAccountsService', () => {
 
       mockPrismaService.subAccount.findFirst.mockResolvedValue(null);
 
-      await expect(service.remove(subAccountId, adminId)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        async () => await service.remove(subAccountId, adminId),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -310,7 +311,7 @@ describe('SubAccountsService', () => {
         id: subAccountId,
         name: 'Test SubAccount',
         createdByAdminId: adminId,
-      };
+      } as any;
 
       mockPrismaService.subAccount.findFirst.mockResolvedValue(
         expectedSubAccount,
@@ -336,7 +337,7 @@ describe('SubAccountsService', () => {
         id: userId,
         name: 'Test User',
         subAccountId: subAccountId,
-      };
+      } as any;
 
       mockPrismaService.user.findFirst.mockResolvedValue(expectedUser);
 
@@ -359,7 +360,12 @@ describe('SubAccountsService', () => {
       mockPrismaService.subAccount.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.validateSubAccountAccess(adminId, subAccountId, 'admin'),
+        async () =>
+          await service.validateSubAccountAccess(
+            adminId,
+            subAccountId,
+            'admin',
+          ),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -370,7 +376,8 @@ describe('SubAccountsService', () => {
       mockPrismaService.user.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.validateSubAccountAccess(userId, subAccountId, 'user'),
+        async () =>
+          await service.validateSubAccountAccess(userId, subAccountId, 'user'),
       ).rejects.toThrow(ForbiddenException);
     });
   });

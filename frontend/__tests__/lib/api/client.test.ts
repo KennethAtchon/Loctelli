@@ -1,36 +1,6 @@
 import { mock } from "bun:test";
 // Mock dependencies before importing the module
-// Mock removed - use Bun mocks instead"@/lib/cookies", () => ({
-  AuthCookies: {
-    getAdminAccessToken: mock(),
-    getAdminRefreshToken: mock(),
-    getAccessToken: mock(),
-    getRefreshToken: mock(),
-    setAdminAccessToken: mock(),
-    setAdminRefreshToken: mock(),
-    setAccessToken: mock(),
-    setRefreshToken: mock(),
-    clearAdminTokens: mock(),
-    clearUserTokens: mock(),
-  },
-}));
-
-// Mock removed - use Bun mocks instead"@/lib/logger", () => ({
-  __esModule: true,
-  default: {
-    debug: mock(),
-    info: mock(),
-    warn: mock(),
-    error: mock(),
-    setLevel: mock(),
-  },
-}));
-
-// Mock removed - use Bun mocks instead"@/lib/envUtils", () => ({
-  API_CONFIG: {
-    BASE_URL: "http://localhost:3001",
-  },
-}));
+// Mock removed - use Bun mocks instead
 
 // Mock fetch globally
 global.fetch = mock();

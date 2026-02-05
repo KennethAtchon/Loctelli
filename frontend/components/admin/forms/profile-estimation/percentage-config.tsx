@@ -292,7 +292,15 @@ export function PercentageConfig({
                   className="flex items-center gap-2 text-sm"
                 >
                   <Input
-                    value={typeof score.answer === "string" ? score.answer : typeof score.answer === "number" ? String(score.answer) : Array.isArray(score.answer) ? score.answer.join(", ") : ""}
+                    value={
+                      typeof score.answer === "string"
+                        ? score.answer
+                        : typeof score.answer === "number"
+                          ? String(score.answer)
+                          : Array.isArray(score.answer)
+                            ? score.answer.join(", ")
+                            : ""
+                    }
                     onChange={(e) => {
                       const updated = [...fieldScore.scoring];
                       updated[scoreIndex] = {

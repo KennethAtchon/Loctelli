@@ -29,6 +29,8 @@ export interface FlowchartNodeData {
   field?: FormField;
   /** Statement-only: display text */
   statementText?: string;
+  /** Statement-only: if true, this card is shown after form submission */
+  isSuccessCard?: boolean;
   /** Media (image/video/gif) for this card */
   media?: CardMedia;
 }

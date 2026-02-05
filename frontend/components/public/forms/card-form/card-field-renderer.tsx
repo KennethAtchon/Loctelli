@@ -39,12 +39,11 @@ function MediaRenderer({ media }: { media: CardMedia }) {
   const mediaContent = (() => {
     if (media.type === "image" || media.type === "gif") {
       return (
-        <div className="w-full relative aspect-video rounded-lg overflow-hidden mb-4">
-          <Image
+        <div className="w-full aspect-video rounded-lg overflow-hidden mb-4 flex items-center justify-center">
+          <img
             src={media.url!}
             alt={media.altText || ""}
-            fill
-            className="object-cover"
+            className="max-w-full max-h-full object-contain"
           />
         </div>
       );
@@ -105,6 +104,20 @@ function MediaRenderer({ media }: { media: CardMedia }) {
   return mediaContent;
 }
 
+function QuestionLabel({
+  htmlFor,
+  children,
+}: {
+  htmlFor?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Label htmlFor={htmlFor} className="text-2xl font-medium text-center block">
+      {children}
+    </Label>
+  );
+}
+
 export function CardFieldRenderer({
   field,
   value,
@@ -144,11 +157,11 @@ export function CardFieldRenderer({
       case "email":
       case "phone":
         return (
-          <div className="space-y-3">
-            <Label htmlFor={field.id} className="text-base font-medium">
+          <div className="space-y-6">
+            <QuestionLabel htmlFor={field.id}>
               {displayLabel}
               {requiredMark}
-            </Label>
+            </QuestionLabel>
             <Input
               id={field.id}
               type={
@@ -171,11 +184,11 @@ export function CardFieldRenderer({
 
       case "textarea":
         return (
-          <div className="space-y-3">
-            <Label htmlFor={field.id} className="text-base font-medium">
+          <div className="space-y-6">
+            <QuestionLabel htmlFor={field.id}>
               {displayLabel}
               {requiredMark}
-            </Label>
+            </QuestionLabel>
             <Textarea
               id={field.id}
               placeholder={displayPlaceholder}
@@ -192,11 +205,11 @@ export function CardFieldRenderer({
 
       case "select":
         return (
-          <div className="space-y-3">
-            <Label htmlFor={field.id} className="text-base font-medium">
+          <div className="space-y-6">
+            <QuestionLabel htmlFor={field.id}>
               {displayLabel}
               {requiredMark}
-            </Label>
+            </QuestionLabel>
             <Select
               value={stringValue}
               onValueChange={(val) => onChange(val)}
@@ -220,16 +233,16 @@ export function CardFieldRenderer({
 
       case "radio":
         return (
-          <div className="space-y-4">
-            <Label className="text-base font-medium">
+          <div className="space-y-6">
+            <QuestionLabel>
               {displayLabel}
               {requiredMark}
-            </Label>
+            </QuestionLabel>
             <RadioGroup
               value={stringValue}
               onValueChange={(val) => onChange(val)}
               disabled={disabled}
-              className="flex flex-col gap-3"
+              className="grid grid-cols-2 gap-3"
             >
               {field.options?.map((option) => (
                 <div
@@ -256,8 +269,8 @@ export function CardFieldRenderer({
       case "checkbox": {
         const selectedValues = (value as string[] | undefined) || [];
         return (
-          <div className="space-y-4">
-            <Label className="text-base font-medium">
+          <div className="space-y-6">
+            <Label className="text-xl font-medium text-center block">
               {displayLabel}
               {requiredMark}
             </Label>
@@ -292,11 +305,11 @@ export function CardFieldRenderer({
       case "file":
       case "image":
         return (
-          <div className="space-y-3">
-            <Label htmlFor={field.id} className="text-base font-medium">
+          <div className="space-y-6">
+            <QuestionLabel htmlFor={field.id}>
               {displayLabel}
               {requiredMark}
-            </Label>
+            </QuestionLabel>
             <Input
               id={field.id}
               type="file"
@@ -339,11 +352,8 @@ export function CardFieldRenderer({
 
       case "statement":
         return (
-          <div className="space-y-3 text-center">
-            <div className="text-lg font-medium">{displayLabel}</div>
-            {displayPlaceholder && (
-              <div className="text-muted-foreground">{displayPlaceholder}</div>
-            )}
+          <div className="text-center">
+            <div className="text-xl md:text-2xl font-medium">{displayLabel}</div>
           </div>
         );
 

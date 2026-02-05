@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +30,6 @@ import { FormTemplate, FormField, api, UploadedFile } from "@/lib/api";
 import logger from "@/lib/logger";
 import { Navigation } from "@/components/version2/navigation";
 import { Footer } from "@/components/version2/footer";
-import { CardFormContainer } from "@/components/public/forms/card-form";
 import Image from "next/image";
 
 const PUBLIC_FORM_STALE_MS = 5 * 60 * 1000; // 5 min
@@ -466,22 +466,24 @@ export default function PublicFormPage() {
   if (!template) return null;
 
   if (template.formType === "CARD") {
-    const cardSettings = template.cardSettings as
-      | { progressStyle?: "bar" | "dots" | "numbers"; saveProgress?: boolean }
-      | undefined;
     return (
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-background">
         <Navigation />
-        <div className="flex-1 py-8 flex items-center justify-center px-4">
-          <div className="w-full max-w-xl">
-            <CardFormContainer
-              slug={slug}
-              template={template}
-              formsApi={formsApi}
-              saveProgress={cardSettings?.saveProgress ?? true}
-              progressStyle={cardSettings?.progressStyle ?? "bar"}
-            />
-          </div>
+        <div className="flex-1 flex items-center justify-center px-4">
+          <Card className="max-w-md w-full">
+            <CardHeader>
+              <CardTitle>Card form</CardTitle>
+              <CardDescription>
+                This form is a card form and is available at a different
+                address. Use the link below to open it.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Link href={`/forms/card/${slug}`}>
+                <Button className="w-full">Open card form</Button>
+              </Link>
+            </CardContent>
+          </Card>
         </div>
         <Footer />
       </div>

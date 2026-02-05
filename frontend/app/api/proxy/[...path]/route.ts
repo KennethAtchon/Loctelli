@@ -81,7 +81,9 @@ async function handleRequest(
   try {
     // Build backend URL (accessed at runtime)
     const pathSegments = params.path || [];
-    const backendPath = `/${pathSegments.join("/")}`;
+    // Remove empty segments and trailing slashes
+    const cleanSegments = pathSegments.filter((s) => s !== "");
+    const backendPath = `/${cleanSegments.join("/")}`.replace(/\/+$/, "") || "/";
     const queryString = request.nextUrl.searchParams.toString();
     const backendUrl = `${API_CONFIG.BACKEND_URL}${backendPath}${queryString ? `?${queryString}` : ""}`;
 
@@ -123,7 +125,10 @@ async function handleRequest(
     // Get response body
     const contentType = response.headers.get("content-type") || "";
     let responseBody: BodyInit;
-
+    
+    // 304 Not Modified is a successful response (cache hit), not an error
+    const isSuccessStatus = response.ok || response.status === 304;
+    
     if (
       contentType.includes("application/octet-stream") ||
       contentType.includes("application/pdf") ||
@@ -134,7 +139,18 @@ async function handleRequest(
       responseBody = await response.blob();
     } else {
       // Text-based responses (including JSON)
-      responseBody = await response.text();
+      const textBody = await response.text();
+      responseBody = textBody;
+      
+      // Log error responses for debugging (but not 304 Not Modified)
+      if (!isSuccessStatus) {
+        console.error("Backend error response:", {
+          status: response.status,
+          statusText: response.statusText,
+          url: backendUrl,
+          body: textBody,
+        });
+      }
     }
 
     // Forward all response headers except those that would break things

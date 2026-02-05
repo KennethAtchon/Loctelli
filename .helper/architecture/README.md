@@ -16,6 +16,7 @@ Welcome to the comprehensive architecture documentation for the Loctelli AI-powe
 - Booking system? → [06-booking-system.md](./06-booking-system.md)
 - Integration issues? → [07-integrations.md](./07-integrations.md)
 - SMS campaigns? → [04-sms-campaigns.md](./04-sms-campaigns.md)
+- Form system? → [08-form-system.md](./08-form-system.md)
 
 ## Documentation Structure
 
@@ -189,6 +190,31 @@ A high-level view of the entire system including:
 - Configuring GHL integration
 - Implementing new external platform
 - Troubleshooting sync problems
+
+---
+
+### 📝 [08-form-system.md](./08-form-system.md)
+**Form System Architecture**
+
+**Problem Solved**: Dual form system with Simple Forms (traditional) and Card Forms (interactive, flowchart-based)
+
+**Key Topics**:
+- Simple Forms: Traditional single-page forms
+- Card Forms: One-question-per-screen with animations
+- Flowchart-based builder: Visual canvas for building branching forms
+- Conditional logic: Show/hide, jump, dynamic labels, piping
+- Profile estimation: Rule-based scoring with optional AI enhancement
+- Analytics: Drop-off analysis, time tracking, result distributions
+- Session management: Partial form saves and resume
+
+**When to read**:
+- Building or modifying form features
+- Understanding form builder architecture
+- Implementing conditional logic
+- Configuring profile estimation
+- Debugging form rendering issues
+- Adding new field types
+- Understanding flowchart serialization
 
 ---
 

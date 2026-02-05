@@ -49,6 +49,10 @@ export function flowchartToSchema(graph: FlowchartGraph): FormField[] {
       }
       schema.push(field);
     } else if (node.type === "statement") {
+      // Skip success cards - they're shown after submission, not in the normal flow
+      if (data.isSuccessCard === true) {
+        continue;
+      }
       const statementField: FormField = {
         id: data.fieldId ?? node.id,
         type: "statement",

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/await-thenable */
 import { test, expect, describe, beforeEach, afterEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
@@ -60,7 +61,7 @@ describe('UsersController', () => {
       email: 'test@example.com',
       company: 'Test Company',
       role: 'user',
-    };
+    } as any;
 
     test('should successfully create a user for admin', async () => {
       mockUsersService.create.mockResolvedValue(mockCreatedUser);
@@ -114,7 +115,7 @@ describe('UsersController', () => {
       strategies: [],
       leads: [],
       bookings: [],
-    };
+    } as any;
 
     test('should return all users for admin when no userId provided', async () => {
       mockUsersService.findAllByAdmin.mockResolvedValue([mockUserData]);
@@ -124,7 +125,7 @@ describe('UsersController', () => {
       expect(mockUsersService.findAllByAdmin).toHaveBeenCalledWith(
         mockAdminUser.userId,
       );
-      expect(result).toEqual([mockUserData]);
+      expect(result).toEqual([mockUserData] as any);
     });
 
     test('should return users by subAccount for regular user when no userId provided', async () => {
@@ -135,7 +136,7 @@ describe('UsersController', () => {
       expect(mockUsersService.findAllBySubAccount).toHaveBeenCalledWith(
         mockRegularUser.subAccountId,
       );
-      expect(result).toEqual([mockUserData]);
+      expect(result).toEqual([mockUserData] as any);
     });
 
     test('should return specific user data when userId provided and user is admin', async () => {
@@ -182,7 +183,7 @@ describe('UsersController', () => {
       strategies: [],
       leads: [],
       bookings: [],
-    };
+    } as any;
 
     test('should return user data when user is admin', async () => {
       mockUsersService.findOne.mockResolvedValue(mockUserData);
@@ -223,7 +224,7 @@ describe('UsersController', () => {
       name: 'Updated User',
       email: 'test@example.com',
       company: 'Updated Company',
-    };
+    } as any;
 
     test('should successfully update user when user is admin', async () => {
       mockUsersService.update.mockResolvedValue(mockUpdatedUser);
@@ -263,7 +264,7 @@ describe('UsersController', () => {
       id: 1,
       name: 'Test User',
       email: 'test@example.com',
-    };
+    } as any;
 
     test('should successfully delete user when user is admin', async () => {
       mockUsersService.remove.mockResolvedValue(mockDeletedUser);
@@ -305,7 +306,7 @@ describe('UsersController', () => {
         name: 'Imported User 2',
         email: 'user2@example.com',
       },
-    ];
+    ] as any[];
 
     test('should successfully import GHL users', async () => {
       mockUsersService.importGhlUsers.mockResolvedValue(mockImportedUsers);
@@ -313,7 +314,7 @@ describe('UsersController', () => {
       const result = controller.importGhlUsers(mockUser);
 
       expect(mockUsersService.importGhlUsers).toHaveBeenCalled();
-      await expect(result).resolves.toEqual(mockImportedUsers);
+      await expect(result).resolves.toEqual(mockImportedUsers as any);
     });
   });
 });

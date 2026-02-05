@@ -6,14 +6,7 @@ import {
 } from "@/lib/api/endpoints/general";
 import { ApiClient } from "@/lib/api/client";
 
-// Mock removed - use Bun mocks instead"@/lib/logger", () => ({
-  default: {
-    debug: mock(),
-    info: mock(),
-    warn: mock(),
-    error: mock(),
-  },
-}));
+// Mock removed - use Bun mocks instead
 
 const mockGet = mock();
 const mockPost = mock();

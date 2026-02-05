@@ -210,8 +210,9 @@ export function calculateProfileEstimation(
 
       // For percentage, we need field scoring from the config
       // If fieldScoring is not configured, return 0
-      const fieldScoring = (profileEstimation.percentageConfig as Record<string, unknown>)
-        .fieldScoring as FieldScoring[] | undefined;
+      const fieldScoring = (
+        profileEstimation.percentageConfig as Record<string, unknown>
+      ).fieldScoring as FieldScoring[] | undefined;
       const score = fieldScoring
         ? calculatePercentageScore(answers, fields, fieldScoring)
         : 0;

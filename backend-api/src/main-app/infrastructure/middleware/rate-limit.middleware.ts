@@ -7,25 +7,15 @@ import {
 } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { CacheService } from '../cache/cache.service';
-
-interface RateLimitConfig {
-  windowMs: number; // Time window in milliseconds
-  maxRequests: number; // Maximum requests per window
-  keyGenerator?: (req: Request) => string; // Custom key generator
-  skipSuccessfulRequests?: boolean; // Skip counting successful requests
-  skipFailedRequests?: boolean; // Skip counting failed requests
-}
+import {
+  RateLimitConfig,
+  getRateLimitConfig,
+  findRateLimitRule,
+} from '../config/rate-limit.config';
 
 @Injectable()
 export class RateLimitMiddleware implements NestMiddleware {
   private readonly logger = new Logger(RateLimitMiddleware.name);
-
-  private readonly defaultConfig: RateLimitConfig = {
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    maxRequests: 100, // 100 requests per 15 minutes
-    skipSuccessfulRequests: false,
-    skipFailedRequests: false,
-  };
 
   constructor(private readonly cacheService: CacheService) {}
 
@@ -34,53 +24,23 @@ export class RateLimitMiddleware implements NestMiddleware {
       `🚀 Rate limit middleware triggered for: ${req.method} ${req.url} from ${req.ip || req.connection.remoteAddress || 'unknown'}`,
     );
 
-    // Determine which configuration to use based on the route
-    const config = this.getConfigForRoute(req);
+    // Get rate limit configuration using the config pattern
+    const rule = findRateLimitRule(req);
+    const config = getRateLimitConfig(req);
+
+    if (rule) {
+      this.logger.log(
+        `🎯 Matched rate limit rule: "${rule.name}" - ${config.description || rule.name}`,
+      );
+    } else {
+      this.logger.log(`🎯 Using default rate limit configuration`);
+    }
+
     this.logger.log(
-      `🎯 Selected rate limit config: ${config.maxRequests} requests per ${config.windowMs / 1000 / 60} minutes`,
+      `⚙️ Rate limit config: ${config.maxRequests} requests per ${config.windowMs / 1000 / 60} minutes`,
     );
 
     void this.handleRateLimit(req, res, next, config);
-  }
-
-  private getConfigForRoute(req: Request): RateLimitConfig {
-    const path = req.path;
-    const method = req.method;
-
-    // Check if this is an auth endpoint
-    const isAuthEndpoint =
-      (path === '/auth/login' && method === 'POST') ||
-      (path === '/auth/register' && method === 'POST') ||
-      (path === '/admin/auth/login' && method === 'POST') ||
-      (path === '/admin/auth/register' && method === 'POST');
-
-    if (isAuthEndpoint) {
-      this.logger.log(
-        `🔐 Auth endpoint detected: ${method} ${path} - using auth rate limit`,
-      );
-      return {
-        ...this.defaultConfig,
-        ...authRateLimit,
-      };
-    }
-
-    // Check if this is a general API endpoint (not status/health)
-    const isApiEndpoint = !path.startsWith('/status/');
-
-    if (isApiEndpoint) {
-      this.logger.log(
-        `🌐 API endpoint detected: ${method} ${path} - using API rate limit`,
-      );
-      return {
-        ...this.defaultConfig,
-        ...apiRateLimit,
-      };
-    }
-
-    this.logger.log(
-      `📊 Default endpoint: ${method} ${path} - using default rate limit`,
-    );
-    return this.defaultConfig;
   }
 
   private async handleRateLimit(
@@ -292,7 +252,8 @@ export class RateLimitMiddleware implements NestMiddleware {
   static create(config: Partial<RateLimitConfig> = {}) {
     return (req: Request, res: Response, next: NextFunction) => {
       const middleware = new RateLimitMiddleware(null as any); // We'll inject RedisService properly
-      const mergedConfig = { ...middleware.defaultConfig, ...config };
+      const baseConfig = getRateLimitConfig(req);
+      const mergedConfig = { ...baseConfig, ...config };
       middleware.logger.log(
         `🔧 Creating custom rate limit middleware with config:`,
         mergedConfig,
@@ -301,23 +262,3 @@ export class RateLimitMiddleware implements NestMiddleware {
     };
   }
 }
-
-// Specific rate limit configurations
-export const authRateLimit = {
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  maxRequests: 5, // 5 login attempts per 15 minutes
-  keyGenerator: (req: Request) => {
-    const ip = req.ip || req.connection.remoteAddress || 'unknown';
-    return `auth_rate_limit:${ip}`;
-  },
-};
-
-export const apiRateLimit = {
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  maxRequests: 1000, // 1000 requests per 15 minutes
-  keyGenerator: (req: Request) => {
-    const ip = req.ip || req.connection.remoteAddress || 'unknown';
-    const userId = (req.user as any)?.userId || 'anonymous';
-    return `api_rate_limit:${ip}:${userId}`;
-  },
-};

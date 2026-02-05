@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, AlertCircle, ChevronLeft } from "lucide-react";
 import type { FormTemplate, FormField, FormsApi } from "@/lib/api";
+import type { FlowchartGraph } from "@/lib/forms/flowchart-types";
 import { CardFieldRenderer } from "./card-field-renderer";
 import { ProgressIndicator, getCardFormSessionKey } from "./progress-indicator";
 import {
@@ -67,6 +68,22 @@ export function CardFormContainer({
 }: CardFormContainerProps) {
   const schema = (template.schema ?? []) as FormField[];
 
+  // Get flowchart graph to find success card
+  const flowchartGraph = useMemo(() => {
+    const cardSettings = template.cardSettings as
+      | { flowchartGraph?: FlowchartGraph }
+      | undefined;
+    return cardSettings?.flowchartGraph;
+  }, [template.cardSettings]);
+
+  // Find success card from flowchart graph
+  const successCard = useMemo(() => {
+    if (!flowchartGraph) return null;
+    return flowchartGraph.nodes.find(
+      (node) => node.type === "statement" && node.data?.isSuccessCard === true
+    );
+  }, [flowchartGraph]);
+
   const [formData, setFormData] = useState<Record<string, unknown>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
@@ -98,8 +115,11 @@ export function CardFormContainer({
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const variants = cardVariants(!!reducedMotion);
 
-  // Get visible fields based on conditional logic
-  const visibleFields = getVisibleFields(schema, formData);
+  // Get visible fields based on conditional logic - memoized to prevent infinite loops
+  const visibleFields = useMemo(
+    () => getVisibleFields(schema, formData),
+    [schema, formData]
+  );
   const totalCards = visibleFields.length;
 
   // Find the current field in the visible fields array
@@ -426,39 +446,86 @@ export function CardFormContainer({
     }
   }, [formViewed, template.analyticsEnabled, sessionRestored]);
 
-  // Track time per card
+  // Track time per card - use refs to prevent infinite loops
+  const previousCardIdRef = useRef<string | null>(null);
+  const cardStartTimeRef = useRef<number | null>(null);
+  const previousIndexRef = useRef<number>(-1);
+
   useEffect(() => {
     if (!template.analyticsEnabled || !sessionToken) return;
 
+    // Get current field from visible fields (memoized, so safe to access)
     const currentField = visibleFields[currentVisibleIndex];
     if (!currentField) return;
 
-    // Record start time for current card
-    const startTime = Date.now();
-    setCardStartTimes((prev) => ({ ...prev, [currentIndex]: startTime }));
+    const currentCardId = currentField.id;
+    const hasCardChanged = previousIndexRef.current !== currentIndex;
 
-    // Cleanup: track time when leaving card
-    return () => {
+    // Only track if we've moved to a different card (by index)
+    if (
+      hasCardChanged &&
+      previousCardIdRef.current !== null &&
+      previousCardIdRef.current !== currentCardId
+    ) {
+      // Track time for the previous card before switching
       const endTime = Date.now();
-      const timeSpent = (endTime - startTime) / 1000; // Convert to seconds
+      const startTime = cardStartTimeRef.current;
+      if (startTime !== null && previousCardIdRef.current) {
+        const timeSpent = (endTime - startTime) / 1000; // Convert to seconds
+        if (timeSpent > 0) {
+          formsApi
+            .trackCardTime(slug, {
+              sessionToken,
+              cardId: previousCardIdRef.current,
+              timeSeconds: Math.round(timeSpent),
+            })
+            .catch(() => {
+              // Non-blocking - analytics failures shouldn't break the form
+            });
+        }
+      }
+    }
 
-      if (timeSpent > 0 && sessionToken && currentField) {
-        // Update time per card via API
-        formsApi
-          .trackCardTime(slug, {
-            sessionToken,
-            cardId: currentField.id,
-            timeSeconds: Math.round(timeSpent),
-          })
-          .catch(() => {
-            // Non-blocking - analytics failures shouldn't break the form
-          });
+    // Only update start time if card actually changed
+    if (hasCardChanged) {
+      const startTime = Date.now();
+      cardStartTimeRef.current = startTime;
+      previousCardIdRef.current = currentCardId;
+      previousIndexRef.current = currentIndex;
+      setCardStartTimes((prev) => ({ ...prev, [currentIndex]: startTime }));
+    }
+
+    // Cleanup: track time when component unmounts
+    return () => {
+      // Only track on unmount if we have a valid card
+      if (
+        previousCardIdRef.current &&
+        cardStartTimeRef.current !== null &&
+        sessionToken
+      ) {
+        const endTime = Date.now();
+        const startTime = cardStartTimeRef.current;
+        const timeSpent = (endTime - startTime) / 1000;
+        if (timeSpent > 0) {
+          formsApi
+            .trackCardTime(slug, {
+              sessionToken,
+              cardId: previousCardIdRef.current,
+              timeSeconds: Math.round(timeSpent),
+            })
+            .catch(() => {
+              // Non-blocking - analytics failures shouldn't break the form
+            });
+        }
       }
     };
+    // Only depend on currentIndex - this prevents infinite loops when visibleFields changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     currentIndex,
-    currentVisibleIndex,
-    visibleFields,
+    // Note: visibleFields and currentVisibleIndex are intentionally excluded from dependencies
+    // to prevent infinite loops. They're memoized and accessed inside the effect safely.
+    // We only want to track when currentIndex changes (user navigates to a different card).
     sessionToken,
     slug,
     template.analyticsEnabled,
@@ -620,12 +687,41 @@ export function CardFormContainer({
       }
     }
 
-    // Default success message
+    // Show success card if available, otherwise default message
+    if (successCard) {
+      const successField: FormField = {
+        id: successCard.data?.fieldId ?? successCard.id,
+        type: "statement",
+        label:
+          successCard.data?.statementText ??
+          successCard.data?.label ??
+          "Thank you for your submission!",
+        placeholder: successCard.data?.label,
+        required: false,
+        media: successCard.data?.media,
+      };
+      return (
+        <Card className="overflow-hidden">
+          <CardContent className="pt-6">
+            <CardFieldRenderer
+              field={successField}
+              value=""
+              onChange={() => {}}
+              disabled={true}
+              allFields={schema}
+              formData={formData}
+            />
+          </CardContent>
+        </Card>
+      );
+    }
+
+    // Default success message (fallback if no success card)
     return (
       <Card>
         <CardContent className="pt-6 text-center">
           <p className="text-lg text-foreground">
-            {template.successMessage ?? "Thank you for your submission!"}
+            Thank you for your submission!
           </p>
         </CardContent>
       </Card>
@@ -643,126 +739,134 @@ export function CardFormContainer({
   }
 
   return (
-    <Card
-      className="overflow-hidden"
-      onKeyDown={handleKeyDown}
-      tabIndex={0}
-      ref={cardRef}
-    >
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between gap-4 mb-2">
-          <ProgressIndicator
-            current={currentIndex}
-            total={totalCards}
-            style={progressStyle}
-            className="flex-1"
-          />
-          <span className="text-sm text-muted-foreground tabular-nums">
-            {currentIndex + 1} / {totalCards}
-          </span>
-        </div>
-        <CardTitle className="text-xl">{template.title}</CardTitle>
+    <div className="space-y-4">
+      <div className="text-center space-y-2">
+        <h1 className="text-2xl font-semibold">{template.title}</h1>
         {template.subtitle && (
-          <CardDescription>{template.subtitle}</CardDescription>
+          <p className="text-muted-foreground">{template.subtitle}</p>
         )}
-      </CardHeader>
-      <CardContent className="min-h-[240px] relative">
+      </div>
+      <Card
+        className="overflow-hidden"
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        ref={cardRef}
+      >
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between gap-4 mb-2">
+            <ProgressIndicator
+              current={currentIndex}
+              total={totalCards}
+              style={progressStyle}
+              className="flex-1"
+            />
+            <span className="text-sm text-muted-foreground tabular-nums">
+              {currentIndex + 1} / {totalCards}
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent className="h-[500px] md:h-[700px] lg:h-[800px] flex flex-col relative overflow-hidden">
         {formError && (
-          <Alert variant="destructive" className="mb-4">
+          <Alert variant="destructive" className="mb-4 flex-shrink-0">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{formError}</AlertDescription>
           </Alert>
         )}
-        <AnimatePresence mode="wait" custom={direction}>
-          {currentField && (
-            <motion.div
-              key={currentIndex}
-              custom={direction}
-              variants={variants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={
-                reducedMotion
-                  ? { duration: 0.15 }
-                  : {
-                      x: { type: "spring", stiffness: 300, damping: 30 },
-                      opacity: { duration: 0.15 },
+        <div className="flex-1 flex items-center justify-center overflow-y-auto min-h-0 relative">
+          <AnimatePresence custom={direction}>
+            {currentField && (
+              <motion.div
+                key={currentIndex}
+                custom={direction}
+                variants={variants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={
+                  reducedMotion
+                    ? { duration: 0.15 }
+                    : {
+                        x: { type: "spring", stiffness: 500, damping: 35 },
+                        opacity: { duration: 0.2 },
+                      }
+                }
+                className="focus:outline-none w-full p-4"
+              >
+                {currentField.type === "statement" ? (
+                  <CardFieldRenderer
+                    field={currentField}
+                    value=""
+                    onChange={() => {}}
+                    disabled={isSubmitting}
+                    allFields={schema}
+                    formData={formData}
+                  />
+                ) : (
+                  <CardFieldRenderer
+                    field={currentField}
+                    value={
+                      formData[currentField.id] as string | string[] | undefined
                     }
-              }
-              className="focus:outline-none"
-            >
-              {currentField.type === "statement" ? (
-                <CardFieldRenderer
-                  field={currentField}
-                  value=""
-                  onChange={() => {}}
-                  disabled={isSubmitting}
-                  allFields={schema}
-                  formData={formData}
-                />
-              ) : (
-                <CardFieldRenderer
-                  field={currentField}
-                  value={
-                    formData[currentField.id] as string | string[] | undefined
-                  }
-                  onChange={(v) => handleInputChange(currentField.id, v)}
-                  onCheckboxChange={(option, checked) =>
-                    handleCheckboxChange(currentField.id, option, checked)
-                  }
-                  onFileUpload={handleFileUpload}
-                  uploading={uploadingFiles[currentField.id]}
-                  uploadedFile={uploadedFiles[currentField.id]}
-                  disabled={isSubmitting}
-                  allFields={schema}
-                  formData={formData}
-                />
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <div className="flex items-center justify-between gap-4 mt-8 pt-4 border-t">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={goBack}
-            disabled={isFirst || isSubmitting}
-            className="gap-2"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Back
-          </Button>
-          {isLast ? (
+                    onChange={(v) => handleInputChange(currentField.id, v)}
+                    onCheckboxChange={(option, checked) =>
+                      handleCheckboxChange(currentField.id, option, checked)
+                    }
+                    onFileUpload={handleFileUpload}
+                    uploading={uploadingFiles[currentField.id]}
+                    uploadedFile={uploadedFiles[currentField.id]}
+                    disabled={isSubmitting}
+                    allFields={schema}
+                    formData={formData}
+                  />
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+        <div className="flex-shrink-0 pt-4 border-t mt-auto">
+          <div className="flex items-center justify-between gap-4 mb-4">
             <Button
               type="button"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="min-w-[120px]"
+              variant="outline"
+              onClick={goBack}
+              disabled={isFirst || isSubmitting}
+              className="gap-2"
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Submitting...
-                </>
-              ) : (
-                (template.submitButtonText ?? "Submit")
-              )}
+              <ChevronLeft className="h-4 w-4" />
+              Back
             </Button>
-          ) : (
-            <Button type="button" onClick={goNext} disabled={isSubmitting}>
-              Continue
-            </Button>
-          )}
+            {isLast ? (
+              <Button
+                type="button"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="min-w-[120px]"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit"
+                )}
+              </Button>
+            ) : (
+              <Button type="button" onClick={goNext} disabled={isSubmitting}>
+                Continue
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground text-center">
+            Press{" "}
+            <kbd className="rounded border px-1.5 py-0.5 font-mono">Enter</kbd> to
+            continue ·{" "}
+            <kbd className="rounded border px-1.5 py-0.5 font-mono">Esc</kbd> to
+            go back
+          </p>
         </div>
-        <p className="text-xs text-muted-foreground mt-4 text-center">
-          Press{" "}
-          <kbd className="rounded border px-1.5 py-0.5 font-mono">Enter</kbd> to
-          continue ·{" "}
-          <kbd className="rounded border px-1.5 py-0.5 font-mono">Esc</kbd> to
-          go back
-        </p>
       </CardContent>
     </Card>
+    </div>
   );
 }

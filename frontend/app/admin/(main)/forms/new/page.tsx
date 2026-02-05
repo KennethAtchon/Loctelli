@@ -2,33 +2,24 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  ArrowLeft,
-  Save,
-  Plus,
-  Download,
-  FileText,
-  LayoutGrid,
-} from "lucide-react";
+import { ArrowLeft, Save, FileText, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
-  CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 import { useTenant } from "@/contexts/tenant-context";
-import { FormFieldEditor } from "@/components/admin/forms/form-field-editor";
-import { JsonImportDialog } from "@/components/admin/forms/json-import-dialog";
-import { CardFormBuilder } from "@/components/admin/forms/card-form-builder";
-import { ProfileEstimationSetup } from "@/components/admin/forms/profile-estimation/setup-wizard";
+import { FormFieldsSection } from "@/components/admin/forms/form-sections/form-fields-section";
+import { FormBasicInfoCard } from "@/components/admin/forms/form-sections/form-basic-info-card";
+import { FormDisplaySettingsCard } from "@/components/admin/forms/form-sections/form-display-settings-card";
+import { FormAdvancedSettingsCard } from "@/components/admin/forms/form-sections/form-advanced-settings-card";
+import { FormCardBuilderSection } from "@/components/admin/forms/form-sections/form-card-builder-section";
+import { FormProfileEstimationSection } from "@/components/admin/forms/form-sections/form-profile-estimation-section";
+import { generateSlug, validateFormTemplate } from "@/lib/forms/form-utils";
 import type {
   CreateFormTemplateDto,
   FormField,
@@ -71,13 +62,6 @@ export default function NewFormTemplatePage() {
       ...prev,
       [field]: value,
     }));
-  };
-
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
   };
 
   const handleNameChange = (name: string) => {
@@ -136,24 +120,19 @@ export default function NewFormTemplatePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      !formData.name.trim() ||
-      !formData.slug.trim() ||
-      !formData.title.trim()
-    ) {
-      toast({
-        title: "Validation Error",
-        description: "Name, slug, and title are required",
-        variant: "destructive",
-      });
-      return;
-    }
+    const isCardForm = formData.formType === "CARD";
+    const validation = validateFormTemplate(
+      formData.name,
+      formData.slug,
+      formData.title,
+      formData.schema,
+      isCardForm
+    );
 
-    const isSimpleForm = formData.formType !== "CARD";
-    if (isSimpleForm && formData.schema.length === 0) {
+    if (!validation.isValid) {
       toast({
         title: "Validation Error",
-        description: "At least one form field is required for Simple Forms",
+        description: validation.error,
         variant: "destructive",
       });
       return;
@@ -163,7 +142,7 @@ export default function NewFormTemplatePage() {
     const invalidFields = formData.schema.filter(
       (field) => !field.label?.trim()
     );
-    if (isSimpleForm && invalidFields.length > 0) {
+    if (!isCardForm && invalidFields.length > 0) {
       toast({
         title: "Validation Error",
         description: "All form fields must have labels",
@@ -220,7 +199,8 @@ export default function NewFormTemplatePage() {
         </div>
         <p className="text-muted-foreground mb-6">
           Choose the form type. Simple Form shows all fields on one page; Card
-          Form shows one question per screen with an interactive flowchart builder.
+          Form shows one question per screen with an interactive flowchart
+          builder.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl">
           <Card
@@ -299,239 +279,90 @@ export default function NewFormTemplatePage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
-            <CardDescription>
-              Basic details about your form template
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="name">Form Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  placeholder="e.g., Contact Form, Lead Capture"
-                />
-              </div>
-              <div>
-                <Label htmlFor="slug">URL Slug *</Label>
-                <Input
-                  id="slug"
-                  value={formData.slug}
-                  onChange={(e) => handleInputChange("slug", e.target.value)}
-                  placeholder="e.g., contact-form"
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  handleInputChange("description", e.target.value)
-                }
-                placeholder="Brief description of this form template"
-              />
-            </div>
-          </CardContent>
-        </Card>
+        <FormBasicInfoCard
+          name={formData.name}
+          slug={formData.slug}
+          description={formData.description || ""}
+          onNameChange={handleNameChange}
+          onSlugChange={(slug) => handleInputChange("slug", slug)}
+          onDescriptionChange={(description) =>
+            handleInputChange("description", description)
+          }
+        />
 
         {/* Form Display Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Form Display Settings</CardTitle>
-            <CardDescription>How the form appears to users</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="title">Form Title *</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => handleInputChange("title", e.target.value)}
-                placeholder="Title shown to users"
-              />
-            </div>
-            <div>
-              <Label htmlFor="subtitle">Subtitle</Label>
-              <Input
-                id="subtitle"
-                value={formData.subtitle}
-                onChange={(e) => handleInputChange("subtitle", e.target.value)}
-                placeholder="Optional subtitle or description"
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="submitButtonText">Submit Button Text</Label>
-                <Input
-                  id="submitButtonText"
-                  value={formData.submitButtonText}
-                  onChange={(e) =>
-                    handleInputChange("submitButtonText", e.target.value)
-                  }
-                  placeholder="Submit"
-                />
-              </div>
-              <div>
-                <Label htmlFor="successMessage">Success Message</Label>
-                <Input
-                  id="successMessage"
-                  value={formData.successMessage}
-                  onChange={(e) =>
-                    handleInputChange("successMessage", e.target.value)
-                  }
-                  placeholder="Thank you for your submission!"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <FormDisplaySettingsCard
+          title={formData.title || ""}
+          subtitle={formData.subtitle || ""}
+          submitButtonText={formData.submitButtonText}
+          successMessage={formData.successMessage}
+          isCardForm={isCardForm}
+          onTitleChange={(title) => handleInputChange("title", title)}
+          onSubtitleChange={(subtitle) =>
+            handleInputChange("subtitle", subtitle)
+          }
+          onSubmitButtonTextChange={(text) =>
+            handleInputChange("submitButtonText", text)
+          }
+          onSuccessMessageChange={(message) =>
+            handleInputChange("successMessage", message)
+          }
+        />
 
         {/* Card Form Builder (Card Form only) */}
         {isCardForm && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Card Form Builder</CardTitle>
-              <CardDescription>
-                Build your interactive card form using the flowchart editor.
-                Preview will be available after you create the form.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <CardFormBuilder
-                schema={formData.schema || []}
-                cardSettings={
-                  formData.cardSettings as Record<string, unknown> | undefined
-                }
-                onSchemaChange={(newSchema) =>
-                  handleInputChange("schema", newSchema)
-                }
-                onCardSettingsChange={(settings) =>
-                  handleInputChange("cardSettings", settings)
-                }
-              />
-            </CardContent>
-          </Card>
+          <FormCardBuilderSection
+            schema={formData.schema || []}
+            cardSettings={
+              formData.cardSettings as Record<string, unknown> | undefined
+            }
+            onSchemaChange={(newSchema) =>
+              handleInputChange("schema", newSchema)
+            }
+            onCardSettingsChange={(settings) =>
+              handleInputChange("cardSettings", settings)
+            }
+            description="Build your interactive card form using the flowchart editor. Preview will be available after you create the form."
+          />
         )}
 
         {/* Profile Estimation (Card Form only) */}
         {isCardForm && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Estimation</CardTitle>
-              <CardDescription>
-                Configure personalized results based on user answers
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ProfileEstimationSetup
-                value={
-                  formData.profileEstimation as ProfileEstimation | undefined
-                }
-                fields={formData.schema || []}
-                onChange={(config) =>
-                  handleInputChange(
-                    "profileEstimation",
-                    config as ProfileEstimation | undefined
-                  )
-                }
-              />
-            </CardContent>
-          </Card>
+          <FormProfileEstimationSection
+            value={formData.profileEstimation as ProfileEstimation | undefined}
+            fields={formData.schema || []}
+            onChange={(config) =>
+              handleInputChange(
+                "profileEstimation",
+                config as ProfileEstimation | undefined
+              )
+            }
+          />
         )}
 
         {/* Form Fields (Simple Form only; Card Forms use the flowchart builder above) */}
         {!isCardForm && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                Form Fields
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={exportSchemaToJSON}
-                    disabled={formData.schema.length === 0}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Export JSON
-                  </Button>
-                  <JsonImportDialog onImport={handleImportFields} />
-                  <Button type="button" onClick={addField} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Field
-                  </Button>
-                </div>
-              </CardTitle>
-              <CardDescription>
-                Define the fields that users will fill out. Use JSON import for
-                bulk operations.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {formData.schema.map((field, index) => (
-                <FormFieldEditor
-                  key={field.id}
-                  field={field}
-                  index={index}
-                  onUpdate={(updates) => updateField(index, updates)}
-                  onRemove={() => removeField(index)}
-                />
-              ))}
-
-              {formData.schema.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  No fields added yet. Click "Add Field" to get started.
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <FormFieldsSection
+            schema={formData.schema}
+            onAddField={addField}
+            onUpdateField={updateField}
+            onRemoveField={removeField}
+            onImportFields={handleImportFields}
+            onExportSchema={exportSchemaToJSON}
+          />
         )}
 
         {/* Advanced Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Advanced Settings</CardTitle>
-            <CardDescription>Additional configuration options</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Switch
-                checked={formData.requiresWakeUp || false}
-                onCheckedChange={(checked) =>
-                  handleInputChange("requiresWakeUp", checked)
-                }
-              />
-              <Label>Enable Database Wake-up</Label>
-            </div>
-            {formData.requiresWakeUp && (
-              <div>
-                <Label htmlFor="wakeUpInterval">
-                  Wake-up Interval (seconds)
-                </Label>
-                <Input
-                  id="wakeUpInterval"
-                  type="number"
-                  min="10"
-                  value={formData.wakeUpInterval}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "wakeUpInterval",
-                      parseInt(e.target.value)
-                    )
-                  }
-                />
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <FormAdvancedSettingsCard
+          requiresWakeUp={formData.requiresWakeUp || false}
+          wakeUpInterval={formData.wakeUpInterval || 0}
+          onRequiresWakeUpChange={(enabled) =>
+            handleInputChange("requiresWakeUp", enabled)
+          }
+          onWakeUpIntervalChange={(interval) =>
+            handleInputChange("wakeUpInterval", interval)
+          }
+        />
 
         {/* Submit Button */}
         <div className="flex items-center justify-end gap-4">
