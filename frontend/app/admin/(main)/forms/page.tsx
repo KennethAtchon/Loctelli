@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FormTemplate, FormSubmission } from "@/lib/api";
+import type { FormTemplate, FormSubmission } from "@/lib/forms/types";
 import { FileText, Users, Calendar, CheckCircle } from "lucide-react";
 import logger from "@/lib/logger";
 import { useTenantQuery } from "@/hooks/useTenantQuery";

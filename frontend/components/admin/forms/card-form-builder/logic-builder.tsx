@@ -17,7 +17,7 @@ import type {
   ConditionGroup,
   ConditionOperator,
   FormField,
-} from "@/lib/api";
+} from "@/lib/forms/types";
 
 export interface LogicBuilderProps {
   /** All fields in the form (for reference in conditions) */

@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CardFormBuilder } from "../card-form-builder";
-import type { FormField } from "@/lib/api/endpoints/forms";
+import type { FormField } from "@/lib/forms/types";
 
 interface FormCardBuilderSectionProps {
   schema: FormField[];

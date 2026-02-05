@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, AlertCircle, ChevronLeft } from "lucide-react";
-import type { FormTemplate, FormField, FormsApi } from "@/lib/api";
+import type { FormTemplate, FormField } from "@/lib/forms/types";
+import type { FormsApi } from "@/lib/api";
 import type { FlowchartGraph } from "@/lib/forms/flowchart-types";
 import { flowchartToSchema } from "@/lib/forms/flowchart-serialization";
 import { CardFieldRenderer } from "./card-field-renderer";

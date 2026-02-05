@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import type { FormField } from "@/lib/api/endpoints/forms";
+import type { FormField } from "@/lib/forms/types";
 
 const fieldTypes = [
   { value: "text", label: "Text Input" },

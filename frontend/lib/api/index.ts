@@ -113,27 +113,5 @@ export type {
   TestConnectionResponse,
   SyncDataResponse,
 } from "./endpoints/integrations";
-export type {
-  FormTemplate,
-  FormSubmission,
-  FormField,
-  FormType,
-  CreateFormTemplateDto,
-  UpdateFormTemplateDto,
-  CreateFormSubmissionDto,
-  UpdateFormSubmissionDto,
-  FormStats,
-  UploadedFile,
-  FormSessionPayload,
-  CreateFormSessionDto,
-  UpdateFormSessionDto,
-  Condition,
-  ConditionGroup,
-  ConditionOperator,
-  ConditionalLogic,
-  ProfileEstimation,
-  AIProfileConfig,
-  ScoringRule,
-  FieldScoring,
-  CardMedia,
-} from "./endpoints/forms";
+// Form types are now exported from @/lib/forms/types
+// No backwards compatibility - import directly from @/lib/forms/types

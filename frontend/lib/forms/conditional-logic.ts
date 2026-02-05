@@ -1,4 +1,4 @@
-import type { Condition, ConditionGroup, FormField } from "@/lib/api";
+import type { Condition, ConditionGroup, FormField } from "./types";
 
 /**
  * Evaluate a single condition against form data

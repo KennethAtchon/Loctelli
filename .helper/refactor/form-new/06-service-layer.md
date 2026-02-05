@@ -453,10 +453,236 @@ export async function getFormTemplate(slug: string): Promise<FormTemplate> {
 
 ---
 
+## TanStack Query Integration
+
+**Important**: All form data fetching and mutations should use TanStack Query (`@tanstack/react-query`) for proper caching, error handling, and loading states.
+
+### Query Keys
+
+Use consistent query keys for form-related queries:
+
+```ts
+// Form template queries
+const FORM_TEMPLATE_KEYS = {
+  all: ['forms', 'templates'] as const,
+  lists: () => [...FORM_TEMPLATE_KEYS.all, 'list'] as const,
+  list: (filters: Record<string, unknown>) => [...FORM_TEMPLATE_KEYS.lists(), filters] as const,
+  details: () => [...FORM_TEMPLATE_KEYS.all, 'detail'] as const,
+  detail: (id: string) => [...FORM_TEMPLATE_KEYS.details(), id] as const,
+  public: (slug: string) => ['forms', 'public', slug] as const,
+  publicCard: (slug: string) => ['forms', 'public', 'card', slug] as const,
+} as const;
+
+// Form session queries
+const FORM_SESSION_KEYS = {
+  all: ['forms', 'sessions'] as const,
+  detail: (slug: string, token: string) => [...FORM_SESSION_KEYS.all, slug, token] as const,
+} as const;
+
+// Form submission queries
+const FORM_SUBMISSION_KEYS = {
+  all: ['forms', 'submissions'] as const,
+  lists: () => [...FORM_SUBMISSION_KEYS.all, 'list'] as const,
+  list: (filters: Record<string, unknown>) => [...FORM_SUBMISSION_KEYS.lists(), filters] as const,
+  details: () => [...FORM_SUBMISSION_KEYS.all, 'detail'] as const,
+  detail: (id: string) => [...FORM_SUBMISSION_KEYS.details(), id] as const,
+} as const;
+```
+
+### Using TanStack Query with Forms API
+
+**Pattern**: The API client (`formsApi`) provides the functions, but hooks should wrap them with `useQuery` or `useMutation`.
+
+#### Fetching Form Template
+
+```ts
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+
+export function useFormTemplate(slug: string, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: ['forms', 'public', slug],
+    queryFn: async () => {
+      // Optional: Wake up database before fetching
+      try {
+        await api.forms.wakeUpDatabase();
+      } catch (error) {
+        // Non-blocking; continue even if wake-up fails
+        console.warn('Database wake-up failed:', error);
+      }
+      return api.forms.getPublicForm(slug);
+    },
+    enabled: options?.enabled !== false && !!slug && slug !== 'wake-up' && slug !== 'invalid-form',
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2,
+    retryDelay: (attemptIndex) => (attemptIndex + 1) * 500,
+  });
+}
+```
+
+#### Form Submission with Mutation
+
+```ts
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import type { CreateFormSubmissionDto } from '@/lib/forms/types';
+
+export function useSubmitForm(slug: string) {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (data: CreateFormSubmissionDto) => {
+      return api.forms.submitPublicForm(slug, data);
+    },
+    onSuccess: () => {
+      // Invalidate form template to refresh if needed
+      queryClient.invalidateQueries({ queryKey: ['forms', 'public', slug] });
+      // Invalidate submissions list if viewing submissions
+      queryClient.invalidateQueries({ queryKey: ['forms', 'submissions'] });
+    },
+  });
+}
+```
+
+#### File Upload with Mutation
+
+```ts
+import { useMutation } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+
+export function useUploadFormFile(slug: string) {
+  return useMutation({
+    mutationFn: async ({ fieldId, file }: { fieldId: string; file: File }) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('fieldId', fieldId);
+      return api.forms.uploadFormFile(slug, formData);
+    },
+    // File uploads typically don't need cache invalidation
+  });
+}
+```
+
+#### Session Management with Mutations
+
+```ts
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import type { CreateFormSessionDto, UpdateFormSessionDto } from '@/lib/forms/types';
+
+export function useCreateFormSession(slug: string) {
+  return useMutation({
+    mutationFn: async (data?: CreateFormSessionDto) => {
+      return api.forms.createFormSession(slug, data);
+    },
+  });
+}
+
+export function useUpdateFormSession(slug: string, token: string) {
+  return useMutation({
+    mutationFn: async (data: UpdateFormSessionDto) => {
+      return api.forms.updateFormSession(slug, token, data);
+    },
+    // Session updates don't need cache invalidation (optimistic updates)
+  });
+}
+
+export function useCompleteFormSession(slug: string, token: string) {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async () => {
+      return api.forms.completeFormSession(slug, token);
+    },
+    onSuccess: () => {
+      // Invalidate session query
+      queryClient.invalidateQueries({ 
+        queryKey: ['forms', 'sessions', slug, token] 
+      });
+    },
+  });
+}
+```
+
+#### Profile Estimation with Mutation
+
+```ts
+import { useMutation } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+
+export function useCalculateProfile(slug: string) {
+  return useMutation({
+    mutationFn: async (answers: Record<string, unknown>) => {
+      return api.forms.calculateProfileEstimation(slug, answers);
+    },
+    // Profile calculation is a one-off computation, no cache needed
+  });
+}
+```
+
+### Best Practices
+
+1. **Use `useQuery` for fetching**: Form templates, sessions, submissions
+2. **Use `useMutation` for mutations**: Submissions, file uploads, session updates, profile calculations
+3. **Invalidate queries on success**: When mutations affect cached data, invalidate relevant queries
+4. **Optimistic updates**: For session updates, consider optimistic updates instead of invalidation
+5. **Error handling**: TanStack Query provides `error` and `isError` states automatically
+6. **Loading states**: Use `isLoading`, `isFetching`, `isPending` from queries/mutations
+7. **Retry logic**: Configure retry for network requests (already in example above)
+
+### Example: Complete Form Hook with TanStack Query
+
+```ts
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import type { FormTemplate, CreateFormSubmissionDto } from '@/lib/forms/types';
+
+export function useFormWithSubmission(slug: string) {
+  const queryClient = useQueryClient();
+  
+  // Fetch form template
+  const formQuery = useQuery({
+    queryKey: ['forms', 'public', slug],
+    queryFn: async () => {
+      try {
+        await api.forms.wakeUpDatabase();
+      } catch (error) {
+        console.warn('Wake-up failed:', error);
+      }
+      return api.forms.getPublicForm(slug);
+    },
+    enabled: !!slug,
+    staleTime: 5 * 60 * 1000,
+  });
+  
+  // Submit form mutation
+  const submitMutation = useMutation({
+    mutationFn: async (data: CreateFormSubmissionDto) => {
+      return api.forms.submitPublicForm(slug, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['forms', 'public', slug] });
+    },
+  });
+  
+  return {
+    template: formQuery.data,
+    isLoading: formQuery.isLoading,
+    error: formQuery.error,
+    submitForm: submitMutation.mutate,
+    isSubmitting: submitMutation.isPending,
+    submitError: submitMutation.error,
+  };
+}
+```
+
+---
+
 ## Next Steps
 
 1. Update `lib/api/endpoints/forms.ts` to import types
 2. Remove all form type definitions
 3. Verify backend DTO alignment
-4. Test API functions
-5. Proceed to `07-card-form-hooks.md` for hooks implementation
+4. Create TanStack Query hooks for form operations
+5. Test API functions with TanStack Query
+6. Proceed to `07-card-form-hooks.md` for hooks implementation

@@ -106,8 +106,10 @@ export function useCardFormSchema(template: FormTemplate): {
 
 ```ts
 import { useState, useEffect, useCallback } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import type { FormTemplate } from '@/lib/forms/types';
-import { formsApi } from '@/lib/api/endpoints/forms';
+import { api } from '@/lib/api';
+import type { CreateFormSessionDto, UpdateFormSessionDto } from '@/lib/forms/types';
 
 export function useCardFormSession(
   slug: string,
@@ -129,6 +131,31 @@ export function useCardFormSession(
   const [sessionRestored, setSessionRestored] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
   
+  // TanStack Query: Create session mutation
+  const createSessionMutation = useMutation({
+    mutationFn: async (data?: CreateFormSessionDto) => {
+      return api.forms.createFormSession(slug, data);
+    },
+  });
+  
+  // TanStack Query: Update session mutation (optimistic updates)
+  const updateSessionMutation = useMutation({
+    mutationFn: async ({ token, data }: { token: string; data: UpdateFormSessionDto }) => {
+      return api.forms.updateFormSession(slug, token, data);
+    },
+    // Non-blocking; don't throw on failure
+    onError: (error) => {
+      console.error('Failed to persist progress:', error);
+    },
+  });
+  
+  // TanStack Query: Complete session mutation
+  const completeSessionMutation = useMutation({
+    mutationFn: async (token: string) => {
+      return api.forms.completeFormSession(slug, token);
+    },
+  });
+  
   // Session initialization effect (once per mount)
   useEffect(() => {
     if (!template || !options.saveProgress) {
@@ -145,12 +172,20 @@ export function useCardFormSession(
         let sessionData;
         
         if (storedToken) {
-          sessionData = await formsApi.getFormSession(storedToken);
+          // Use TanStack Query to fetch session
+          try {
+            sessionData = await api.forms.getFormSession(slug, storedToken);
+          } catch (error) {
+            // Session not found or expired, create new one
+            console.warn('Failed to restore session, creating new:', error);
+            sessionData = null;
+          }
         }
         
-        // If no stored session or restore failed, create new
+        // If no stored session or restore failed, create new using mutation
         if (!sessionData) {
-          sessionData = await formsApi.createFormSession(slug);
+          const result = await createSessionMutation.mutateAsync();
+          sessionData = result;
         }
         
         if (!cancelled) {
@@ -173,7 +208,7 @@ export function useCardFormSession(
     return () => {
       cancelled = true;
     };
-  }, [slug, template, options.saveProgress]);
+  }, [slug, template, options.saveProgress, createSessionMutation]);
   
   const persistProgress = useCallback(async (
     currentIndex: number,
@@ -181,24 +216,24 @@ export function useCardFormSession(
   ) => {
     if (!session?.sessionToken || !options.saveProgress) return;
     
-    try {
-      await formsApi.updateFormSession(session.sessionToken, currentIndex, partialData);
-    } catch (error) {
-      // Non-blocking; log but don't throw
-      console.error('Failed to persist progress:', error);
-    }
-  }, [session?.sessionToken, options.saveProgress]);
+    // Use TanStack Query mutation for session update
+    updateSessionMutation.mutate({
+      token: session.sessionToken,
+      data: { currentCardIndex: currentIndex, partialData },
+    });
+  }, [session?.sessionToken, options.saveProgress, updateSessionMutation]);
   
   const completeSession = useCallback(async () => {
     if (!session?.sessionToken) return;
     
+    // Use TanStack Query mutation for session completion
     try {
-      await formsApi.completeFormSession(session.sessionToken);
+      await completeSessionMutation.mutateAsync(session.sessionToken);
       sessionStorage.removeItem(`form-session-${slug}`);
     } catch (error) {
       console.error('Failed to complete session:', error);
     }
-  }, [session?.sessionToken, slug]);
+  }, [session?.sessionToken, slug, completeSessionMutation]);
   
   const clearStoredToken = useCallback(() => {
     sessionStorage.removeItem(`form-session-${slug}`);
@@ -207,7 +242,7 @@ export function useCardFormSession(
   return {
     session,
     sessionRestored,
-    sessionError,
+    sessionError: sessionError || createSessionMutation.error?.message || null,
     persistProgress,
     completeSession,
     clearStoredToken
@@ -394,6 +429,16 @@ export function useCardFormData(
     });
   }, []);
   
+  // TanStack Query: File upload mutation
+  const fileUploadMutation = useMutation({
+    mutationFn: async ({ fieldId, file, sessionToken }: { fieldId: string; file: File; sessionToken?: string }) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('fieldId', fieldId);
+      return api.forms.uploadFormFile(slug, formData);
+    },
+  });
+  
   const handleFileUpload = useCallback(async (
     fieldId: string,
     file: File,
@@ -402,7 +447,7 @@ export function useCardFormData(
   ) => {
     setUploadingFiles(prev => ({ ...prev, [fieldId]: true }));
     try {
-      const result = await formsApi.uploadFormFile(slug, fieldId, file, sessionToken);
+      const result = await fileUploadMutation.mutateAsync({ fieldId, file, sessionToken });
       setUploadedFiles(prev => ({
         ...prev,
         [fieldId]: [...(prev[fieldId] || []), file]
@@ -418,7 +463,7 @@ export function useCardFormData(
     } finally {
       setUploadingFiles(prev => ({ ...prev, [fieldId]: false }));
     }
-  }, []);
+  }, [fileUploadMutation]);
   
   return {
     formData,

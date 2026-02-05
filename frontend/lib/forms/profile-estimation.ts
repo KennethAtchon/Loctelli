@@ -3,7 +3,7 @@ import type {
   ScoringRule,
   FieldScoring,
   FormField,
-} from "@/lib/api";
+} from "./types";
 import { evaluateCondition } from "./conditional-logic";
 
 /**

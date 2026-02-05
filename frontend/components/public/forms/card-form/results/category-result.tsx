@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import type { ProfileEstimation } from "@/lib/api";
+import type { ProfileEstimation } from "@/lib/forms/types";
 
 export interface CategoryResultProps {
   config: NonNullable<ProfileEstimation["categoryConfig"]>;

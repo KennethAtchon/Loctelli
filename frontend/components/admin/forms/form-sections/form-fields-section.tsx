@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { FormFieldEditor } from "../form-field-editor";
 import { JsonImportDialog } from "../json-import-dialog";
-import type { FormField } from "@/lib/api/endpoints/forms";
+import type { FormField } from "@/lib/forms/types";
 
 interface FormFieldsSectionProps {
   schema: FormField[];

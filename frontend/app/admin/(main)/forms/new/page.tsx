@@ -25,7 +25,7 @@ import type {
   FormField,
   FormType,
   ProfileEstimation,
-} from "@/lib/api/endpoints/forms";
+} from "@/lib/forms/types";
 
 export default function NewFormTemplatePage() {
   const { subAccountId } = useTenant();

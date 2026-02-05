@@ -1,5 +1,5 @@
 import type { Node, Edge } from "@xyflow/react";
-import type { FormField, ConditionGroup } from "@/lib/api";
+import type { FormField, ConditionGroup, CardMedia } from "./types";
 
 export const FLOWCHART_NODE_TYPES = [
   "start",
@@ -9,17 +9,6 @@ export const FLOWCHART_NODE_TYPES = [
   "result",
 ] as const;
 export type FlowchartNodeType = (typeof FLOWCHART_NODE_TYPES)[number];
-
-export interface CardMedia {
-  type: "image" | "video" | "gif" | "icon";
-  url?: string;
-  altText?: string;
-  position: "above" | "below" | "background" | "left" | "right";
-  /** Video-specific: source type */
-  videoType?: "youtube" | "vimeo" | "upload";
-  /** Video-specific: video ID for YouTube/Vimeo */
-  videoId?: string;
-}
 
 export interface FlowchartNodeData {
   fieldId?: string;

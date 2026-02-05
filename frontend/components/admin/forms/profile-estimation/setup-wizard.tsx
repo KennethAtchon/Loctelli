@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { ProfileEstimation, FormField } from "@/lib/api";
+import type { ProfileEstimation, FormField } from "@/lib/forms/types";
 import { PercentageConfig } from "./percentage-config";
 import { CategoryConfig } from "./category-config";
 import { MultiDimensionConfig } from "./multi-dimension-config";

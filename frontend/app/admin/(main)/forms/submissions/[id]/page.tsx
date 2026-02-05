@@ -37,7 +37,7 @@ import type {
   UpdateFormSubmissionDto,
   FormField,
   UploadedFile,
-} from "@/lib/api/endpoints/forms";
+} from "@/lib/forms/types";
 
 export default function FormSubmissionDetailPage() {
   const params = useParams();

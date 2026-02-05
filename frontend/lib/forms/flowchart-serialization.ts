@@ -1,4 +1,4 @@
-import type { FormField } from "@/lib/api";
+import type { FormField } from "./types";
 import type { FlowchartNodeData } from "./flowchart-types";
 import type { FlowchartGraph, FlowchartNode } from "./flowchart-types";
 import { START_NODE_ID, END_NODE_ID } from "./flowchart-types";

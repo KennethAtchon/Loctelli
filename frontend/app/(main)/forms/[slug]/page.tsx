@@ -26,7 +26,8 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
-import { FormTemplate, FormField, api, UploadedFile } from "@/lib/api";
+import { api } from "@/lib/api";
+import type { FormTemplate, FormField, UploadedFile } from "@/lib/forms/types";
 import logger from "@/lib/logger";
 import { Navigation } from "@/components/version2/navigation";
 import { Footer } from "@/components/version2/footer";

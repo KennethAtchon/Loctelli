@@ -20,7 +20,7 @@ import type {
   UpdateFormTemplateDto,
   FormField,
   ProfileEstimation,
-} from "@/lib/api/endpoints/forms";
+} from "@/lib/forms/types";
 import { FormFieldsSection } from "@/components/admin/forms/form-sections/form-fields-section";
 import { FormBasicInfoCard } from "@/components/admin/forms/form-sections/form-basic-info-card";
 import { FormDisplaySettingsCard } from "@/components/admin/forms/form-sections/form-display-settings-card";

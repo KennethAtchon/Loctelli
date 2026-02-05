@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { FormField } from "@/lib/api/endpoints/forms";
+import type { FormField } from "@/lib/forms/types";
 
 const fieldTypes = [
   { value: "text", label: "Text Input" },

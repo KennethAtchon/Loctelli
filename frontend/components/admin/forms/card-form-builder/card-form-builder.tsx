@@ -17,7 +17,7 @@ import {
   mergeFlowchartWithSchema,
 } from "@/lib/forms/flowchart-serialization";
 import { START_NODE_ID, END_NODE_ID } from "@/lib/forms/flowchart-types";
-import type { FormField } from "@/lib/api";
+import type { FormField } from "@/lib/forms/types";
 
 export interface CardFormBuilderProps {
   schema: FormField[];

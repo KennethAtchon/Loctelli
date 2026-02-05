@@ -24,9 +24,9 @@ import { Trash2, X, Loader2 } from "lucide-react";
 import type {
   FlowchartNode,
   FlowchartNodeData,
-  CardMedia,
 } from "@/lib/forms/flowchart-types";
-import type { FormField, ConditionalLogic } from "@/lib/api";
+import type { CardMedia } from "@/lib/forms/types";
+import type { FormField, ConditionalLogic } from "@/lib/forms/types";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { LogicBuilder } from "./logic-builder";

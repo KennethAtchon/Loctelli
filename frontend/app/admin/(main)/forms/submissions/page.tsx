@@ -7,7 +7,7 @@ import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
 import { usePagination } from "@/components/customUI";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FormSubmission } from "@/lib/api";
+import type { FormSubmission } from "@/lib/forms/types";
 import {
   Eye,
   ArrowLeft,

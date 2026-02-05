@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import Image from "next/image";
-import type { ProfileEstimation } from "@/lib/api";
+import type { ProfileEstimation } from "@/lib/forms/types";
 
 export interface PercentageResultProps {
   config: ProfileEstimation["percentageConfig"];

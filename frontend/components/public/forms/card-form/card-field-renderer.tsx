@@ -15,7 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle } from "lucide-react";
 import Image from "next/image";
-import type { FormField, CardMedia } from "@/lib/api";
+import type { FormField, CardMedia } from "@/lib/forms/types";
 import { applyPiping } from "@/lib/forms/conditional-logic";
 
 export interface CardFieldRendererProps {

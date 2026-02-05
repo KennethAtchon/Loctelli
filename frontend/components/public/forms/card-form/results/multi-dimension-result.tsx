@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import type { ProfileEstimation } from "@/lib/api";
+import type { ProfileEstimation } from "@/lib/forms/types";
 
 export interface MultiDimensionResultProps {
   config: ProfileEstimation["dimensionConfig"];

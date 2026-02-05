@@ -3,7 +3,7 @@
  */
 
 import { EndpointGroup } from "./endpoint-config";
-import {
+import type {
   FormTemplate,
   FormSubmission,
   CreateFormTemplateDto,
@@ -15,7 +15,7 @@ import {
   FormSessionPayload,
   CreateFormSessionDto,
   UpdateFormSessionDto,
-} from "../endpoints/forms";
+} from "@/lib/forms/types";
 
 export const formsConfig: EndpointGroup = {
   // Form Templates

@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ProfileEstimationSetup } from "../profile-estimation/setup-wizard";
-import type { FormField, ProfileEstimation } from "@/lib/api/endpoints/forms";
+import type { FormField, ProfileEstimation } from "@/lib/forms/types";
 
 interface FormProfileEstimationSectionProps {
   value?: ProfileEstimation;

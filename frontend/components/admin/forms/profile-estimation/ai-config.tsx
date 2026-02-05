@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { AIProfileConfig } from "@/lib/api";
+import type { AIProfileConfig } from "@/lib/forms/types";
 
 export interface AIConfigProps {
   value?: AIProfileConfig;
