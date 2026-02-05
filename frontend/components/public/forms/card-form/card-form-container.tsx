@@ -2,7 +2,7 @@
 
 import type { FormTemplate } from "@/lib/forms/types";
 import type { FormsApi } from "@/lib/api";
-import { useCardFormState } from "./useCardFormState";
+import { useCardFormState } from "./hooks/useCardFormState";
 import { CardFormView } from "./CardFormView";
 
 export interface CardFormContainerProps {

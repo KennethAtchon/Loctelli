@@ -20,8 +20,9 @@ export class RateLimitMiddleware implements NestMiddleware {
   constructor(private readonly cacheService: CacheService) {}
 
   use(req: Request, res: Response, next: NextFunction) {
-    this.logger.log(
-      `🚀 Rate limit middleware triggered for: ${req.method} ${req.url} from ${req.ip || req.connection.remoteAddress || 'unknown'}`,
+    // Reduced verbosity for initial trigger - only log at debug level
+    this.logger.debug(
+      `🚀 Rate limit middleware triggered: ${req.method} ${req.url} from ${req.ip || req.connection.remoteAddress || 'unknown'}`,
     );
 
     // Get rate limit configuration using the config pattern
@@ -29,14 +30,14 @@ export class RateLimitMiddleware implements NestMiddleware {
     const config = getRateLimitConfig(req);
 
     if (rule) {
-      this.logger.log(
+      this.logger.debug(
         `🎯 Matched rate limit rule: "${rule.name}" - ${config.description || rule.name}`,
       );
     } else {
-      this.logger.log(`🎯 Using default rate limit configuration`);
+      this.logger.debug(`🎯 Using default rate limit configuration`);
     }
 
-    this.logger.log(
+    this.logger.debug(
       `⚙️ Rate limit config: ${config.maxRequests} requests per ${config.windowMs / 1000 / 60} minutes`,
     );
 
@@ -52,49 +53,91 @@ export class RateLimitMiddleware implements NestMiddleware {
     const route = `${req.method} ${req.url}`;
     const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
 
-    this.logger.log(
-      `🔍 Starting rate limit check for: ${route} from ${clientIP}`,
+    // Reduced verbosity - only log at debug level unless approaching limit
+    this.logger.debug(
+      `🔍 Starting rate limit check: ${route} from ${clientIP}`,
     );
-    this.logger.log(
+    this.logger.debug(
       `⚙️ Rate limit config: ${config.maxRequests} requests per ${config.windowMs / 1000 / 60} minutes`,
     );
 
     try {
       const key = this.generateKey(req, config);
-      this.logger.log(`🔑 Generated rate limit key: ${key}`);
+      this.logger.debug(`🔑 Generated rate limit key: ${key}`);
 
       const current = await this.getCurrentRequests(key);
-      this.logger.log(
-        `📊 Current requests for ${key}: ${current}/${config.maxRequests} (${Math.round((current / config.maxRequests) * 100)}% used)`,
-      );
+      const usagePercent = Math.round((current / config.maxRequests) * 100);
+
+      // Log usage at different levels based on percentage
+      if (usagePercent >= 90) {
+        this.logger.warn(
+          `📊 Current requests for ${key}: ${current}/${config.maxRequests} (${usagePercent}% used) - APPROACHING LIMIT!`,
+        );
+      } else if (usagePercent >= 75) {
+        this.logger.warn(
+          `📊 Current requests for ${key}: ${current}/${config.maxRequests} (${usagePercent}% used)`,
+        );
+      } else {
+        this.logger.debug(
+          `📊 Current requests for ${key}: ${current}/${config.maxRequests} (${usagePercent}% used)`,
+        );
+      }
 
       if (current >= config.maxRequests) {
         const retryAfter = await this.getRetryAfter(key, config.windowMs);
+        const resetTime = Date.now() + retryAfter * 1000;
+        const rule = findRateLimitRule(req);
 
-        this.logger.warn(`🚫 RATE LIMIT EXCEEDED! Key: ${key}`);
-        this.logger.warn(`🚫 Route: ${route} from ${clientIP}`);
+        // Enhanced rate limit exceeded logging
+        this.logger.warn(`🚫 ========== RATE LIMIT EXCEEDED ==========`);
+        this.logger.warn(`🚫 Rule: ${rule?.name || 'default'}`);
+        this.logger.warn(`🚫 Key: ${key}`);
+        this.logger.warn(`🚫 Route: ${route}`);
+        this.logger.warn(`🚫 Method: ${req.method}`);
+        this.logger.warn(`🚫 Path: ${req.path}`);
+        this.logger.warn(`🚫 IP: ${clientIP}`);
         this.logger.warn(
-          `🚫 Current: ${current}/${config.maxRequests} (100% used)`,
+          `🚫 User-Agent: ${req.get('user-agent') || 'unknown'}`,
+        );
+        this.logger.warn(`🚫 Referer: ${req.get('referer') || 'direct'}`);
+        this.logger.warn(
+          `🚫 Request Count: ${current}/${config.maxRequests} (100% used)`,
         );
         this.logger.warn(
-          `🚫 Retry after: ${retryAfter} seconds (${new Date(Date.now() + retryAfter * 1000).toISOString()})`,
+          `🚫 Window: ${config.windowMs / 1000 / 60} minutes (${config.windowMs}ms)`,
         );
+        this.logger.warn(`🚫 Retry After: ${retryAfter} seconds`);
+        this.logger.warn(
+          `🚫 Reset Time: ${new Date(resetTime).toISOString()} (${new Date(resetTime).toLocaleString()})`,
+        );
+        this.logger.warn(
+          `🚫 Time Until Reset: ${Math.round(retryAfter / 60)} minutes ${retryAfter % 60} seconds`,
+        );
+        if (rule) {
+          this.logger.warn(
+            `🚫 Rule Description: ${rule.config.description || rule.name}`,
+          );
+        }
+        this.logger.warn(`🚫 =========================================`);
 
         res.setHeader('X-RateLimit-Limit', config.maxRequests);
         res.setHeader('X-RateLimit-Remaining', 0);
-        res.setHeader('X-RateLimit-Reset', Date.now() + retryAfter * 1000);
-        res.setHeader('Retry-After', retryAfter);
+        res.setHeader('X-RateLimit-Reset', resetTime);
+        res.setHeader('Retry-After', retryAfter.toString());
 
         // Return 429 response without throwing exception to prevent crashes
         res.status(HttpStatus.TOO_MANY_REQUESTS).json({
-          message: 'Too many requests',
+          statusCode: HttpStatus.TOO_MANY_REQUESTS,
+          message: 'ThrottlerException: Too Many Requests',
           retryAfter: retryAfter,
+          limit: config.maxRequests,
+          windowMs: config.windowMs,
         });
         return; // Stop processing, don't call next()
       }
 
-      // Increment request count
-      this.logger.log(`📈 Incrementing request count for key: ${key}`);
+      // Increment request count (only log at debug level)
+      this.logger.debug(`📈 Incrementing request count for key: ${key}`);
       await this.incrementRequests(key, current, config.windowMs);
 
       // Set rate limit headers
@@ -105,20 +148,58 @@ export class RateLimitMiddleware implements NestMiddleware {
       res.setHeader('X-RateLimit-Remaining', remaining);
       res.setHeader('X-RateLimit-Reset', resetTime);
 
-      this.logger.log(`✅ Rate limit check PASSED for key: ${key}`);
-      this.logger.log(`✅ Route: ${route} from ${clientIP}`);
-      this.logger.log(
-        `✅ New count: ${current + 1}/${config.maxRequests} (${Math.round(((current + 1) / config.maxRequests) * 100)}% used)`,
+      const rule = findRateLimitRule(req);
+      const newUsagePercent = Math.round(
+        ((current + 1) / config.maxRequests) * 100,
       );
-      this.logger.log(`✅ Remaining: ${remaining} requests`);
-      this.logger.log(`✅ Reset time: ${new Date(resetTime).toISOString()}`);
+
+      // Log at different levels based on usage
+      if (newUsagePercent >= 90) {
+        this.logger.warn(
+          `⚠️ Rate limit check PASSED (HIGH USAGE) - Key: ${key}`,
+        );
+        this.logger.warn(`⚠️ Route: ${route} from ${clientIP}`);
+        this.logger.warn(
+          `⚠️ New count: ${current + 1}/${config.maxRequests} (${newUsagePercent}% used) - APPROACHING LIMIT!`,
+        );
+        this.logger.warn(`⚠️ Remaining: ${remaining} requests`);
+        this.logger.warn(`⚠️ Reset time: ${new Date(resetTime).toISOString()}`);
+      } else if (newUsagePercent >= 75) {
+        this.logger.warn(
+          `⚠️ Rate limit check PASSED (MODERATE USAGE) - Key: ${key}`,
+        );
+        this.logger.warn(
+          `⚠️ New count: ${current + 1}/${config.maxRequests} (${newUsagePercent}% used)`,
+        );
+        this.logger.warn(`⚠️ Remaining: ${remaining} requests`);
+      } else {
+        // Only log at debug level for low usage to reduce noise
+        this.logger.debug(`✅ Rate limit check PASSED - Key: ${key}`);
+        this.logger.debug(`✅ Route: ${route} from ${clientIP}`);
+        this.logger.debug(
+          `✅ New count: ${current + 1}/${config.maxRequests} (${newUsagePercent}% used)`,
+        );
+        this.logger.debug(`✅ Remaining: ${remaining} requests`);
+      }
+
+      // Always log rule info if available
+      if (rule) {
+        this.logger.debug(
+          `✅ Rule: ${rule.name} - ${rule.config.description || rule.name}`,
+        );
+      }
 
       next();
     } catch (error) {
-      this.logger.error(
-        `❌ Rate limit error for key: ${this.generateKey(req, config)} (${route} from ${clientIP})`,
-      );
-      this.logger.error(`❌ Error details:`, error.stack);
+      const errorKey = this.generateKey(req, config);
+      this.logger.error(`❌ ========== RATE LIMIT ERROR ==========`);
+      this.logger.error(`❌ Rate limit error for key: ${errorKey}`);
+      this.logger.error(`❌ Route: ${route} from ${clientIP}`);
+      this.logger.error(`❌ Method: ${req.method}`);
+      this.logger.error(`❌ Path: ${req.path}`);
+      this.logger.error(`❌ Error type: ${error.constructor.name}`);
+      this.logger.error(`❌ Error message: ${error.message}`);
+      this.logger.error(`❌ Error stack:`, error.stack);
       // If Redis is unavailable, allow the request to proceed
       this.logger.warn(
         `⚠️ Redis unavailable, allowing request to proceed: ${route} from ${clientIP}`,
@@ -126,6 +207,7 @@ export class RateLimitMiddleware implements NestMiddleware {
       this.logger.warn(
         `⚠️ This bypasses rate limiting - Redis should be checked!`,
       );
+      this.logger.error(`❌ =========================================`);
       next();
     }
   }
@@ -133,7 +215,7 @@ export class RateLimitMiddleware implements NestMiddleware {
   private generateKey(req: Request, config: RateLimitConfig): string {
     if (config.keyGenerator) {
       const customKey = config.keyGenerator(req);
-      this.logger.log(`🔧 Using custom key generator: ${customKey}`);
+      this.logger.debug(`🔧 Using custom key generator: ${customKey}`);
       return customKey;
     }
 
@@ -141,29 +223,31 @@ export class RateLimitMiddleware implements NestMiddleware {
     const ip = req.ip || req.connection.remoteAddress || 'unknown';
     const route = req.route?.path || req.path;
     const defaultKey = `rate_limit:${ip}:${route}`;
-    this.logger.log(`🔧 Using default key generator: ${defaultKey}`);
+    this.logger.debug(`🔧 Using default key generator: ${defaultKey}`);
     return defaultKey;
   }
 
   private async getCurrentRequests(key: string): Promise<number> {
     try {
-      this.logger.log(
+      this.logger.debug(
         `🔍 Fetching current request count from Redis for key: ${key}`,
       );
       const data = await this.cacheService.getCache(key);
 
       if (!data) {
-        this.logger.log(`📊 No data found for ${key}, returning 0`);
+        this.logger.debug(`📊 No data found for ${key}, returning 0`);
         return 0;
       }
 
       const parsed = JSON.parse(data as string);
       const count = parsed.count || 0;
-      this.logger.log(`📊 Redis returned count for ${key}: ${count}`);
+      this.logger.debug(`📊 Redis returned count for ${key}: ${count}`);
       return count;
     } catch (error) {
       this.logger.error(`❌ Error getting current requests for key: ${key}`);
       this.logger.error(`❌ Redis error details:`, error.stack);
+      this.logger.error(`❌ Error type: ${error.constructor.name}`);
+      this.logger.error(`❌ Error message: ${error.message}`);
       return 0;
     }
   }
@@ -174,7 +258,7 @@ export class RateLimitMiddleware implements NestMiddleware {
     windowMs: number,
   ): Promise<void> {
     try {
-      this.logger.log(`📈 Starting increment for key: ${key}`);
+      this.logger.debug(`📈 Starting increment for key: ${key}`);
       const newCount = currentCount + 1;
       const ttlSeconds = windowMs / 1000;
 
@@ -185,16 +269,18 @@ export class RateLimitMiddleware implements NestMiddleware {
         windowStart: windowStart,
       });
 
-      this.logger.log(
+      this.logger.debug(
         `📈 Setting Redis cache: key=${key}, value=${data}, ttl=${ttlSeconds}s`,
       );
       await this.cacheService.setCache(key, data, ttlSeconds);
-      this.logger.log(
+      this.logger.debug(
         `✅ Successfully incremented requests for key: ${key} to ${newCount} (TTL: ${ttlSeconds}s)`,
       );
     } catch (error) {
       this.logger.error(`❌ Error incrementing requests for key: ${key}`);
       this.logger.error(`❌ Redis increment error details:`, error.stack);
+      this.logger.error(`❌ Error type: ${error.constructor.name}`);
+      this.logger.error(`❌ Error message: ${error.message}`);
       // If Redis fails, continue without rate limiting
     }
   }

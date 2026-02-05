@@ -273,24 +273,39 @@ export class FormAnalyticsService {
     timeSeconds: number,
   ): Promise<void> {
     try {
+      this.logger.debug(
+        `📊 Updating time per card: sessionToken=${sessionToken.substring(0, 8)}..., cardId=${cardId}, timeSeconds=${timeSeconds}`,
+      );
+
       const session = await this.prisma.formSession.findUnique({
         where: { sessionToken },
       });
 
       if (!session) {
-        this.logger.warn(`Session ${sessionToken} not found for time tracking`);
+        this.logger.warn(
+          `⚠️ Session not found for time tracking: sessionToken=${sessionToken.substring(0, 8)}..., cardId=${cardId}`,
+        );
         return;
       }
 
       const timePerCard = (session.timePerCard as Record<string, number>) || {};
+      const previousTime = timePerCard[cardId] || 0;
       timePerCard[cardId] = timeSeconds;
 
       await this.prisma.formSession.update({
         where: { id: session.id },
         data: { timePerCard: timePerCard as any },
       });
+
+      this.logger.debug(
+        `✅ Successfully updated time per card: sessionId=${session.id}, cardId=${cardId}, previousTime=${previousTime}s, newTime=${timeSeconds}s`,
+      );
     } catch (error) {
-      this.logger.error('Failed to update time per card', error);
+      this.logger.error(
+        `❌ Failed to update time per card: sessionToken=${sessionToken.substring(0, 8)}..., cardId=${cardId}, timeSeconds=${timeSeconds}`,
+      );
+      this.logger.error(`❌ Error: ${error.message}`, error.stack);
+      throw error;
     }
   }
 }

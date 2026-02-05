@@ -1,8 +1,8 @@
 import { useState, useRef, useCallback } from "react";
-import { useMutation } from "@tanstack/react-query";
 import type { FormField } from "@/lib/forms/types";
 import { getInitialFormData } from "@/lib/forms/form-validation";
 import { api } from "@/lib/api";
+import logger from "@/lib/logger";
 
 /**
  * Hook to manage form data (values, validation, file uploads).
@@ -31,6 +31,11 @@ export function useCardFormData(
 } {
   // Initialize formData once when schema is ready (lazy init)
   const [formData, setFormData] = useState<Record<string, unknown>>(() => {
+    logger.debug("📝 useCardFormData: Initializing form data", {
+      schemaLength: schema.length,
+      hasInitialData: !!initialData,
+      initialDataKeys: initialData ? Object.keys(initialData) : [],
+    });
     if (initialData) {
       return { ...getInitialFormData(schema), ...initialData };
     }
@@ -42,6 +47,11 @@ export function useCardFormData(
   const prevSchemaIdRef = useRef(schemaId);
 
   if (schemaId !== prevSchemaIdRef.current) {
+    logger.debug("🔄 useCardFormData: Schema changed, resetting form data", {
+      oldSchemaId: prevSchemaIdRef.current,
+      newSchemaId: schemaId,
+      schemaLength: schema.length,
+    });
     prevSchemaIdRef.current = schemaId;
     setFormData(
       initialData
@@ -58,11 +68,22 @@ export function useCardFormData(
   );
 
   const handleInputChange = useCallback((fieldId: string, value: unknown) => {
+    logger.debug("✏️ useCardFormData: Input changed", {
+      fieldId,
+      valueType: typeof value,
+      valueLength: Array.isArray(value) ? value.length : undefined,
+      hasValue: value !== null && value !== undefined && value !== "",
+    });
     setFormData((prev) => ({ ...prev, [fieldId]: value }));
   }, []);
 
   const handleCheckboxChange = useCallback(
     (fieldId: string, value: string, checked: boolean) => {
+      logger.debug("☑️ useCardFormData: Checkbox changed", {
+        fieldId,
+        value,
+        checked,
+      });
       setFormData((prev) => {
         const current = (prev[fieldId] as string[]) || [];
         if (checked) {
@@ -83,6 +104,14 @@ export function useCardFormData(
       slug: string,
       sessionToken?: string
     ): Promise<void> => {
+      logger.debug("📤 useCardFormData: Starting file upload", {
+        fieldId,
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        slug,
+        hasSessionToken: !!sessionToken,
+      });
       setUploadingFiles((prev) => ({ ...prev, [fieldId]: true }));
       try {
         const formDataObj = new FormData();
@@ -90,6 +119,11 @@ export function useCardFormData(
         formDataObj.append("fieldId", fieldId);
 
         const result = await api.forms.uploadFormFile(slug, formDataObj);
+        logger.debug("✅ useCardFormData: File upload successful", {
+          fieldId,
+          fileName: file.name,
+          result,
+        });
 
         setUploadedFiles((prev) => ({
           ...prev,
@@ -102,10 +136,17 @@ export function useCardFormData(
           [fieldId]: [...((prev[fieldId] as File[]) || []), file],
         }));
       } catch (error) {
-        console.error("File upload failed:", error);
+        logger.error("❌ useCardFormData: File upload failed", {
+          fieldId,
+          fileName: file.name,
+          error,
+        });
         throw error; // Let caller handle error
       } finally {
         setUploadingFiles((prev) => ({ ...prev, [fieldId]: false }));
+        logger.debug("🏁 useCardFormData: File upload completed", {
+          fieldId,
+        });
       }
     },
     []

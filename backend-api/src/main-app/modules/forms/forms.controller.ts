@@ -305,7 +305,8 @@ export class FormsController {
       data: submissionData.data || submissionData,
       files: submissionData.files,
       source: submissionData.source || 'website',
-      ipAddress: req.ip || req.connection?.remoteAddress,
+      ipAddress:
+        req.ip || req.socket?.remoteAddress || req.connection?.remoteAddress,
       userAgent: req.get('user-agent'),
     };
 
@@ -348,13 +349,33 @@ export class FormsController {
   async trackCardTime(
     @Param('slug') slug: string,
     @Body() body: { sessionToken: string; cardId: string; timeSeconds: number },
+    @Req() req: Request,
   ) {
-    await this.formAnalytics.updateTimePerCard(
-      body.sessionToken,
-      body.cardId,
-      body.timeSeconds,
+    const clientIP =
+      (req as any).ip ||
+      (req as any).socket?.remoteAddress ||
+      (req as any).connection?.remoteAddress ||
+      'unknown';
+    this.logger.debug(
+      `📊 Track card time request: slug=${slug}, cardId=${body.cardId}, timeSeconds=${body.timeSeconds}, IP=${clientIP}`,
     );
-    return { success: true };
+
+    try {
+      await this.formAnalytics.updateTimePerCard(
+        body.sessionToken,
+        body.cardId,
+        body.timeSeconds,
+      );
+      this.logger.debug(
+        `✅ Successfully tracked card time: slug=${slug}, cardId=${body.cardId}, timeSeconds=${body.timeSeconds}`,
+      );
+      return { success: true };
+    } catch (error) {
+      this.logger.error(
+        `❌ Failed to track card time: slug=${slug}, cardId=${body.cardId}, error=${error.message}`,
+      );
+      throw error;
+    }
   }
 
   // Public form access (by slug) - parameterized route last

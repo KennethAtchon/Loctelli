@@ -9,6 +9,7 @@
 ## Table of Contents
 
 1. [System Overview](#system-overview)
+   - [Architecture Principles](#architecture-principles)
 2. [Simple Forms](#simple-forms)
 3. [Card Forms](#card-forms)
 4. [Flowchart Builder](#flowchart-builder)
@@ -47,6 +48,65 @@ The platform implements a **dual form system** consisting of two distinct form t
 | Profile Estimation | ❌ | ✅ |
 | Analytics | Basic | Advanced (drop-off, timing) |
 | Session Management | ❌ | ✅ (partial saves) |
+
+### Architecture Principles
+
+The form system follows **clean architecture principles** implemented during a major refactoring (February 2026):
+
+#### Layer Separation
+
+1. **Type Layer** (`lib/forms/types.ts`)
+   - Single source of truth for all form types
+   - No React or API dependencies
+   - Imported by all other layers
+
+2. **Domain Layer** (`lib/forms/*.ts`)
+   - Pure business logic functions
+   - No React hooks or API calls
+   - Functions are testable in isolation
+   - Includes: conditional logic, validation, profile estimation, flowchart serialization
+
+3. **Service Layer** (`lib/api/endpoints/forms.ts`)
+   - API client functions only
+   - Imports types from domain layer
+   - No type definitions or re-exports
+
+4. **Hook Layer** (`components/public/forms/*/hooks/`)
+   - React hooks for state management
+   - Composes domain functions and API calls
+   - Follows strict state/effects discipline
+   - Organized in `hooks/` subdirectories
+
+5. **UI Layer** (`components/public/forms/*/`)
+   - Presentational components
+   - Receives state from hooks
+   - No direct API or domain calls
+
+#### State and Effects Discipline
+
+- **Derived State**: Uses `useMemo` for computed values, never `useEffect` + `setState`
+- **Machine State**: Uses `useReducer` for complex state machines (card form orchestrator)
+- **Side Effects**: `useEffect` only for true side effects (session init, analytics, focus)
+- **No Dependency Hacks**: No `eslint-disable` comments or workarounds
+
+#### Dependency Graph
+
+```
+UI Components → Hooks → Domain Functions → Types
+                ↓
+            API Services → Types
+```
+
+- Unidirectional dependencies only
+- No circular dependencies
+- Clear separation of concerns
+
+#### File Organization
+
+- **Hooks**: Organized in `hooks/` subdirectories (e.g., `card-form/hooks/`)
+- **Shared Components**: Located in `shared/` directory
+- **Domain Logic**: Pure TypeScript files in `lib/forms/`
+- **Consistent Naming**: Hooks use `use*.ts`, components use `*.tsx`
 
 ---
 
@@ -179,45 +239,69 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant Container
-    participant VisibleFields
-    participant CurrentCard
+    participant useCardFormState
+    participant useCardFormNavigation
+    participant useCardFormData
+    participant useCardFormSession
+    participant useCardFormProfile
     participant ConditionalLogic
-    participant SessionAPI
-    participant ProfileEstimation
+    participant CardFormView
 
-    Container->>Container: Load form template
-    Container->>VisibleFields: Filter fields (show/hide logic)
-    VisibleFields->>ConditionalLogic: Evaluate conditions
-    ConditionalLogic-->>VisibleFields: Visible field list
-    VisibleFields-->>Container: Filtered fields
+    Container->>useCardFormState: Initialize with template
+    useCardFormState->>useCardFormSchema: Derive schema from template
+    useCardFormState->>useCardFormSession: Create/restore session
+    useCardFormState->>useCardFormData: Initialize form data
+    useCardFormState->>useCardFormNavigation: Calculate visible fields
+    useCardFormNavigation->>ConditionalLogic: Evaluate show/hide conditions
+    ConditionalLogic-->>useCardFormNavigation: Visible field list
+    useCardFormNavigation-->>useCardFormState: Navigation state
+    
+    useCardFormState-->>Container: Form state (fields, data, navigation)
+    Container->>CardFormView: Render with state
     
     loop Card navigation
-        Container->>CurrentCard: Render card[currentIndex]
-        CurrentCard->>Container: User answers question
-        Container->>Container: Update formData
-        Container->>SessionAPI: Save partial progress
-        Container->>ConditionalLogic: Get next card
-        ConditionalLogic->>ConditionalLogic: Check jump logic
+        CardFormView->>CardFormView: Render current card
+        CardFormView->>useCardFormState: User answers question
+        useCardFormState->>useCardFormData: Update formData
+        useCardFormState->>useCardFormSession: Save partial progress
+        useCardFormState->>useCardFormNavigation: Get next card
+        useCardFormNavigation->>ConditionalLogic: Check jump logic
         alt Jump condition met
-            ConditionalLogic-->>Container: Jump to target card
+            ConditionalLogic-->>useCardFormNavigation: Jump to target card
         else No jump
-            ConditionalLogic-->>Container: Next sequential card
+            ConditionalLogic-->>useCardFormNavigation: Next sequential card
         end
-        Container->>Container: Animate transition
+        useCardFormNavigation-->>useCardFormState: Updated navigation state
+        useCardFormState-->>CardFormView: Updated state
+        CardFormView->>CardFormView: Animate transition
     end
     
-    Container->>ProfileEstimation: Calculate profile result
-    ProfileEstimation-->>Container: Result data
-    Container->>Container: Show result screen
-    Container->>SessionAPI: Submit final form
+    CardFormView->>useCardFormState: Submit form
+    useCardFormState->>useCardFormProfile: Calculate profile result
+    useCardFormProfile-->>useCardFormState: Result data
+    useCardFormState->>useCardFormSession: Submit final form
+    useCardFormState-->>CardFormView: Success state
+    CardFormView->>CardFormView: Show result screen
 ```
 
 ### Components
 
-- **Container**: `frontend/components/public/forms/card-form/card-form-container.tsx` - Main card form orchestrator
-- **Field Renderer**: `frontend/components/public/forms/card-form/card-field-renderer.tsx` - Renders individual field types
-- **Progress**: `frontend/components/public/forms/card-form/progress-indicator.tsx` - Progress bar/indicator
+- **Container**: `frontend/components/public/forms/card-form/card-form-container.tsx` - Thin wrapper component that uses `useCardFormState` hook
+- **View**: `frontend/components/public/forms/card-form/CardFormView.tsx` - Presentational component that renders the card form UI
+- **Field Renderer**: `frontend/components/public/forms/shared/FieldRenderer.tsx` - Shared field renderer used by both simple and card forms
+- **Progress**: `frontend/components/public/forms/card-form/progress-indicator.tsx` - Progress bar/indicator component
 - **Results**: `frontend/components/public/forms/card-form/results/` - Profile estimation result displays
+
+### Hooks (Organized in `hooks/` subdirectory)
+
+All card form hooks are organized in `frontend/components/public/forms/card-form/hooks/`:
+
+- **`useCardFormState.ts`** - Main orchestrator hook that composes all other hooks and manages form state machine
+- **`useCardFormSchema.ts`** - Derives schema and success card from template (pure derivation, no effects)
+- **`useCardFormSession.ts`** - Manages form session creation, restoration, and progress persistence
+- **`useCardFormNavigation.ts`** - Calculates visible fields, current card, and navigation state (pure derivation)
+- **`useCardFormData.ts`** - Manages form data state, input handlers, and file uploads
+- **`useCardFormProfile.ts`** - Handles profile estimation calculation and AI enhancement
 
 ---
 
@@ -609,15 +693,37 @@ sequenceDiagram
 
 ### Frontend - Public Form Components
 
-- **`frontend/components/public/forms/card-form/index.tsx`** - Card form entry point component
-- **`frontend/components/public/forms/card-form/card-form-container.tsx`** - Main container orchestrating card navigation, animations, and submission
-- **`frontend/components/public/forms/card-form/card-field-renderer.tsx`** - Renders individual field types (text, select, radio, etc.) with media support
+#### Card Form Components
+
+- **`frontend/components/public/forms/card-form/index.tsx`** - Card form entry point (re-exports)
+- **`frontend/components/public/forms/card-form/card-form-container.tsx`** - Thin wrapper component that uses `useCardFormState` hook and renders `CardFormView`
+- **`frontend/components/public/forms/card-form/CardFormView.tsx`** - Presentational component that renders card form UI with animations
 - **`frontend/components/public/forms/card-form/progress-indicator.tsx`** - Progress bar/indicator component showing completion status
 - **`frontend/components/public/forms/card-form/results/index.tsx`** - Result display component router
 - **`frontend/components/public/forms/card-form/results/percentage-result.tsx`** - Displays percentage score results with range matching
 - **`frontend/components/public/forms/card-form/results/category-result.tsx`** - Displays category/personality match results
 - **`frontend/components/public/forms/card-form/results/multi-dimension-result.tsx`** - Displays multi-dimension scores with visualization
 - **`frontend/components/public/forms/card-form/results/recommendation-result.tsx`** - Displays ranked recommendation results
+
+#### Card Form Hooks (`card-form/hooks/`)
+
+- **`frontend/components/public/forms/card-form/hooks/useCardFormState.ts`** - Main orchestrator hook (457 lines) that composes all hooks, manages state machine with `useReducer`, and handles submission
+- **`frontend/components/public/forms/card-form/hooks/useCardFormSchema.ts`** - Schema derivation hook (pure `useMemo`, no effects)
+- **`frontend/components/public/forms/card-form/hooks/useCardFormSession.ts`** - Session management hook (uses TanStack Query mutations)
+- **`frontend/components/public/forms/card-form/hooks/useCardFormNavigation.ts`** - Navigation hook (pure derivation with `useMemo`)
+- **`frontend/components/public/forms/card-form/hooks/useCardFormData.ts`** - Form data management hook (lazy initialization, no sync effects)
+- **`frontend/components/public/forms/card-form/hooks/useCardFormProfile.ts`** - Profile estimation hook (computation function, no effects)
+
+#### Shared Components
+
+- **`frontend/components/public/forms/shared/FieldRenderer.tsx`** - Shared field renderer component used by both simple and card forms, supports all field types with conditional logic and piping
+- **`frontend/components/public/forms/shared/index.tsx`** - Shared components re-exports
+
+#### Simple Form Components
+
+- **`frontend/components/public/forms/simple-form/SimpleFormView.tsx`** - Simple form component that renders all fields on a single page
+- **`frontend/components/public/forms/simple-form/useSimpleFormState.ts`** - Simple form state hook using TanStack Query
+- **`frontend/components/public/forms/simple-form/index.tsx`** - Simple form re-exports
 
 ### Frontend - Admin Builder Components
 
@@ -647,12 +753,16 @@ sequenceDiagram
 
 - **`frontend/components/admin/forms/analytics-dashboard.tsx`** - Analytics dashboard displaying form metrics and charts
 
-### Frontend - Form Libraries
+### Frontend - Form Libraries (Domain Layer)
 
+- **`frontend/lib/forms/types.ts`** - Canonical form type definitions (FormTemplate, FormField, etc.) - single source of truth
 - **`frontend/lib/forms/conditional-logic.ts`** - Conditional logic evaluation engine (show/hide, jump, dynamic labels, piping)
 - **`frontend/lib/forms/flowchart-types.ts`** - TypeScript types for flowchart nodes, edges, and graph structure
 - **`frontend/lib/forms/flowchart-serialization.ts`** - Functions to convert between flowchart graph and FormField[] schema
 - **`frontend/lib/forms/profile-estimation.ts`** - Profile estimation calculation functions (rule-based scoring)
+- **`frontend/lib/forms/form-validation.ts`** - Form validation and initial data generation
+- **`frontend/lib/forms/navigation.ts`** - Navigation utilities for form flow
+- **`frontend/lib/forms/form-utils.ts`** - Utility functions (used by admin form builder)
 
 ### Frontend - API & Types
 
@@ -690,5 +800,6 @@ sequenceDiagram
 
 ---
 
-*Document Version: 1.0*  
-*Last Updated: February 4, 2026*
+*Document Version: 2.0*  
+*Last Updated: February 4, 2026*  
+*Updated to reflect refactored architecture with hooks organization and shared FieldRenderer*

@@ -98,6 +98,8 @@ export function matchRoute(matcher: RouteMatcher, req: Request): boolean {
  */
 export const rateLimitRules: RateLimitRule[] = [
   // Track-time endpoint - high frequency analytics
+  // Increased limit to handle rapid card navigation
+  // Frontend now filters out requests < 1 second to reduce spam
   {
     name: 'track-time',
     matcher: {
@@ -107,13 +109,14 @@ export const rateLimitRules: RateLimitRule[] = [
     },
     config: {
       windowMs: 60 * 1000, // 1 minute
-      maxRequests: 100, // 100 requests per minute
+      maxRequests: 200, // 200 requests per minute (increased from 100)
       keyGenerator: (req) => {
         const ip = req.ip || req.connection?.remoteAddress || 'unknown';
         const path = req.path;
         return `track_time_rate_limit:${ip}:${path}`;
       },
-      description: 'Form card time tracking (analytics)',
+      description:
+        'Form card time tracking (analytics) - increased limit with frontend filtering',
     },
   },
 
