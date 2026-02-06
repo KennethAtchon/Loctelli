@@ -1,0 +1,170 @@
+"use client";
+
+import { useMemo, useCallback } from "react";
+import { useToast } from "@/hooks/use-toast";
+import {
+  flowchartToSchema,
+  schemaToFlowchart,
+} from "@/lib/forms/flowchart-serialization";
+import type { FlowchartGraph } from "@/lib/forms/flowchart-types";
+import type { FormField, ProfileEstimation } from "@/lib/forms/types";
+
+/** Minimal shape needed for card/schema form state (shared by Create and Update DTOs). */
+export interface FormTemplateFormState {
+  schema?: FormField[];
+  cardSettings?: Record<string, unknown>;
+  formType?: string;
+}
+
+export interface UseFormTemplateFormStateOptions {
+  /** Used for JSON export filename (e.g. template slug or form slug). */
+  exportFileName?: string;
+}
+
+export interface UseFormTemplateFormStateReturn<T> {
+  /** Stable default graph when no flowchart is saved. */
+  defaultFlowchartGraph: FlowchartGraph;
+  /** For card forms: schema derived from flowchart graph. */
+  cardFormSchema: FormField[];
+  handleInputChange: (
+    field: keyof T,
+    value:
+      | string
+      | number
+      | boolean
+      | FormField[]
+      | Record<string, unknown>
+      | ProfileEstimation
+      | undefined
+  ) => void;
+  addField: () => void;
+  updateField: (index: number, updates: Partial<FormField>) => void;
+  removeField: (index: number) => void;
+  exportSchemaToJSON: () => void;
+  handleImportFields: (fields: FormField[]) => void;
+}
+
+/**
+ * Shared form state logic for both New and Edit form template pages.
+ * Keeps hook order stable and avoids duplicating flowchart/schema logic.
+ */
+export function useFormTemplateFormState<
+  T extends {
+    schema?: FormField[];
+    cardSettings?: Record<string, unknown>;
+    slug?: string;
+  }
+>(
+  formData: T,
+  setFormData: React.Dispatch<React.SetStateAction<T>>,
+  options: UseFormTemplateFormStateOptions = {}
+): UseFormTemplateFormStateReturn<T> {
+  const { toast } = useToast();
+  const { exportFileName } = options;
+
+  const defaultFlowchartGraph = useMemo(
+    () => schemaToFlowchart([]) as FlowchartGraph,
+    []
+  );
+
+  const cardFormSchema = useMemo(
+    () =>
+      flowchartToSchema(
+        (formData.cardSettings?.flowchartGraph as FlowchartGraph | undefined) ??
+          defaultFlowchartGraph
+      ),
+    [formData.cardSettings?.flowchartGraph, defaultFlowchartGraph]
+  );
+
+  const handleInputChange = useCallback(
+    (
+      field: keyof T,
+      value:
+        | string
+        | number
+        | boolean
+        | FormField[]
+        | Record<string, unknown>
+        | ProfileEstimation
+        | undefined
+    ) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    },
+    [setFormData]
+  );
+
+  const currentSchema = formData.schema ?? [];
+
+  const addField = useCallback(() => {
+    const newField: FormField = {
+      id: `field_${Date.now()}`,
+      type: "text",
+      label: "",
+      required: false,
+    };
+    setFormData((prev) => ({
+      ...prev,
+      schema: [...(prev.schema ?? []), newField],
+    }));
+  }, [setFormData]);
+
+  const updateField = useCallback(
+    (index: number, updates: Partial<FormField>) => {
+      setFormData((prev) => {
+        const schema = prev.schema ?? [];
+        return {
+          ...prev,
+          schema: schema.map((field, i) =>
+            i === index ? { ...field, ...updates } : field
+          ),
+        };
+      });
+    },
+    [setFormData]
+  );
+
+  const removeField = useCallback(
+    (index: number) => {
+      setFormData((prev) => ({
+        ...prev,
+        schema: (prev.schema ?? []).filter((_, i) => i !== index),
+      }));
+    },
+    [setFormData]
+  );
+
+  const exportSchemaToJSON = useCallback(() => {
+    const jsonString = JSON.stringify(currentSchema, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${exportFileName ?? formData.slug ?? "form-schema"}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast({
+      title: "Success",
+      description: "Form schema exported successfully",
+    });
+  }, [currentSchema, exportFileName, formData.slug, toast]);
+
+  const handleImportFields = useCallback(
+    (fields: FormField[]) => {
+      setFormData((prev) => ({ ...prev, schema: fields }));
+    },
+    [setFormData]
+  );
+
+  return {
+    defaultFlowchartGraph,
+    cardFormSchema,
+    handleInputChange,
+    addField,
+    updateField,
+    removeField,
+    exportSchemaToJSON,
+    handleImportFields,
+  };
+}

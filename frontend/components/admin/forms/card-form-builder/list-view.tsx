@@ -1,16 +1,14 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Trash2, GripVertical } from "lucide-react";
 import type { FlowchartNode } from "@/lib/forms/flowchart-types";
 import { START_NODE_ID, END_NODE_ID } from "@/lib/forms/flowchart-types";
+
+// Use text/plain so getData() works on drop in all browsers
+const DRAG_DATA_KEY = "text/plain";
 
 export interface ListViewProps {
   nodes: FlowchartNode[];
@@ -25,6 +23,9 @@ export function ListView({
   onNodeDelete,
   onReorder,
 }: ListViewProps) {
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
+
   const questionNodes = nodes.filter(
     (n) => n.type === "question" || n.type === "statement"
   );
@@ -38,12 +39,71 @@ export function ListView({
       newOrder[swapIndex],
       newOrder[index],
     ];
-    const orderedIds = [
+    onReorder([
       START_NODE_ID,
       ...newOrder.map((n) => n.id),
       END_NODE_ID,
-    ];
-    onReorder(orderedIds);
+    ]);
+  };
+
+  const applyReorder = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      if (fromIndex === toIndex) return;
+      const newOrder = [...questionNodes];
+      const [item] = newOrder.splice(fromIndex, 1);
+      newOrder.splice(toIndex, 0, item);
+      onReorder([
+        START_NODE_ID,
+        ...newOrder.map((n) => n.id),
+        END_NODE_ID,
+      ]);
+    },
+    [questionNodes, onReorder]
+  );
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    e.dataTransfer.setData(DRAG_DATA_KEY, String(index));
+    e.dataTransfer.effectAllowed = "move";
+    setDraggedIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDropTargetIndex(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (draggedIndex === null) return;
+    setDropTargetIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDropTargetIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    setDropTargetIndex(null);
+    setDraggedIndex(null);
+    const raw = e.dataTransfer.getData(DRAG_DATA_KEY);
+    if (raw === "") return;
+    const dragIndex = parseInt(raw, 10);
+    if (Number.isNaN(dragIndex) || dragIndex === dropIndex) return;
+    applyReorder(dragIndex, dropIndex);
+  };
+
+  const handleButtonMoveUp = (e: React.MouseEvent, index: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleMove(index, "up");
+  };
+
+  const handleButtonMoveDown = (e: React.MouseEvent, index: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleMove(index, "down");
   };
 
   return (
@@ -62,38 +122,53 @@ export function ListView({
               : node.data?.label || node.data?.field?.label || "Question";
           const fieldType =
             node.data?.fieldType || node.data?.field?.type || "";
+          const isDragging = draggedIndex === index;
+          const isDropTarget = dropTargetIndex === index;
 
           return (
             <Card
               key={node.id}
-              className="cursor-pointer hover:bg-muted/50 transition-colors"
+              className={`cursor-pointer transition-colors ${
+                isDragging ? "opacity-50" : "hover:bg-muted/50"
+              } ${isDropTarget ? "ring-2 ring-primary" : ""}`}
               onClick={() => onNodeClick(node.id)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, index)}
             >
               <CardContent className="pt-4">
                 <div className="flex items-center gap-3">
-                  <GripVertical className="h-5 w-5 text-muted-foreground" />
-                  <div className="flex-1">
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Drag to reorder, currently position ${index + 1}`}
+                    className="cursor-grab active:cursor-grabbing touch-none rounded p-0.5 -m-0.5 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    onDragEnd={handleDragEnd}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <GripVertical className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-muted-foreground">
+                      <span className="text-sm font-medium text-muted-foreground shrink-0">
                         {index + 1}.
                       </span>
-                      <span className="text-sm font-medium">{label}</span>
+                      <span className="text-sm font-medium truncate">{label}</span>
                       {fieldType && (
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-muted-foreground shrink-0">
                           ({fieldType})
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 shrink-0">
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleMove(index, "up");
-                      }}
+                      onClick={(e) => handleButtonMoveUp(e, index)}
                       disabled={index === 0}
                     >
                       ↑
@@ -102,10 +177,7 @@ export function ListView({
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleMove(index, "down");
-                      }}
+                      onClick={(e) => handleButtonMoveDown(e, index)}
                       disabled={index === questionNodes.length - 1}
                     >
                       ↓

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,6 @@ import { api } from "@/lib/api";
 import type {
   FormTemplate,
   UpdateFormTemplateDto,
-  FormField,
   ProfileEstimation,
 } from "@/lib/forms/types";
 import { FormFieldsSection } from "@/components/admin/forms/form-sections/form-fields-section";
@@ -28,6 +27,7 @@ import { FormAdvancedSettingsCard } from "@/components/admin/forms/form-sections
 import { FormCardBuilderSection } from "@/components/admin/forms/form-sections/form-card-builder-section";
 import { FormProfileEstimationSection } from "@/components/admin/forms/form-sections/form-profile-estimation-section";
 import { AnalyticsDashboard } from "@/components/admin/forms/analytics-dashboard";
+import { useFormTemplateFormState } from "../../hooks/use-form-template-form-state";
 import { generateSlug, validateFormTemplate } from "@/lib/forms/form-utils";
 import {
   flowchartToSchema,
@@ -44,6 +44,19 @@ export default function EditFormTemplatePage() {
   const [initialLoading, setInitialLoading] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
+
+  const {
+    defaultFlowchartGraph,
+    cardFormSchema,
+    handleInputChange,
+    addField,
+    updateField,
+    removeField,
+    exportSchemaToJSON,
+    handleImportFields,
+  } = useFormTemplateFormState(formData, setFormData, {
+    exportFileName: template?.slug ?? formData.slug,
+  });
 
   useEffect(() => {
     loadTemplate();
@@ -85,77 +98,11 @@ export default function EditFormTemplatePage() {
     }
   };
 
-  const handleInputChange = (
-    field: keyof UpdateFormTemplateDto,
-    value:
-      | string
-      | number
-      | boolean
-      | FormField[]
-      | Record<string, unknown>
-      | ProfileEstimation
-      | undefined
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
   const handleNameChange = (name: string) => {
     handleInputChange("name", name);
-    // Only auto-update slug if it matches the current auto-generated slug
     if (template && formData.slug === generateSlug(template.name)) {
       handleInputChange("slug", generateSlug(name));
     }
-  };
-
-  const addField = () => {
-    const newField: FormField = {
-      id: `field_${Date.now()}`,
-      type: "text",
-      label: "",
-      required: false,
-    };
-    const currentSchema = formData.schema || [];
-    handleInputChange("schema", [...currentSchema, newField]);
-  };
-
-  const updateField = (index: number, updates: Partial<FormField>) => {
-    const currentSchema = formData.schema || [];
-    const updatedSchema = currentSchema.map((field, i) =>
-      i === index ? { ...field, ...updates } : field
-    );
-    handleInputChange("schema", updatedSchema);
-  };
-
-  const removeField = (index: number) => {
-    const currentSchema = formData.schema || [];
-    const updatedSchema = currentSchema.filter((_, i) => i !== index);
-    handleInputChange("schema", updatedSchema);
-  };
-
-  // JSON Export function
-  const exportSchemaToJSON = () => {
-    const currentSchema = formData.schema || [];
-    const jsonString = JSON.stringify(currentSchema, null, 2);
-    const blob = new Blob([jsonString], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${formData.slug || template?.slug || "form-schema"}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast({
-      title: "Success",
-      description: "Form schema exported successfully",
-    });
-  };
-
-  const handleImportFields = (fields: FormField[]) => {
-    handleInputChange("schema", fields);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -258,21 +205,6 @@ export default function EditFormTemplatePage() {
   }
 
   const isCardForm = template.formType === "CARD";
-
-  /** Stable default graph when no flowchart is saved (Option A: graph is single source of truth). */
-  const defaultFlowchartGraph = useMemo(
-    () => schemaToFlowchart([]) as FlowchartGraph,
-    []
-  );
-  /** For card forms, schema is derived from graph; use this for profile estimation, validation, submit. */
-  const cardFormSchema = useMemo(
-    () =>
-      flowchartToSchema(
-        (formData.cardSettings?.flowchartGraph as FlowchartGraph | undefined) ??
-          defaultFlowchartGraph
-      ),
-    [formData.cardSettings?.flowchartGraph, defaultFlowchartGraph]
-  );
 
   return (
     <div className="space-y-6">
