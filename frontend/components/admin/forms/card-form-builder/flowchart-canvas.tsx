@@ -6,14 +6,16 @@ import {
   Background,
   Controls,
   MiniMap,
-  useNodesState,
-  useEdgesState,
   addEdge,
+  applyNodeChanges,
+  applyEdgeChanges,
   Connection,
   Node,
   Edge,
   NodeTypes,
   EdgeTypes,
+  type OnNodesChange,
+  type OnEdgesChange,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import type {
@@ -53,35 +55,36 @@ export function FlowchartCanvas({
   onNodeClick,
   selectedNodeId: _selectedNodeId,
 }: FlowchartCanvasProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState(graph.nodes as Node[]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(graph.edges as Edge[]);
+  const nodes = graph.nodes as Node[];
+  const edges = graph.edges as Edge[];
 
-  // Sync external graph changes
-  React.useEffect(() => {
-    const nodeIds = new Set(nodes.map((n) => n.id));
-    const graphNodeIds = new Set(graph.nodes.map((n) => n.id));
-    const nodesChanged =
-      nodes.length !== graph.nodes.length ||
-      ![...nodeIds].every((id) => graphNodeIds.has(id)) ||
-      nodes.some((n) => {
-        const g = graph.nodes.find((gn) => gn.id === n.id);
-        return !g || JSON.stringify(g) !== JSON.stringify(n);
+  const onNodesChangeHandler: OnNodesChange = useCallback(
+    (changes) => {
+      const nextNodes = applyNodeChanges(
+        changes,
+        nodes
+      ) as FlowchartNode[];
+      onGraphChange({
+        ...graph,
+        nodes: nextNodes,
       });
-    if (nodesChanged) {
-      setNodes(graph.nodes as Node[]);
-    }
-  }, [graph.nodes, nodes, setNodes]);
+    },
+    [graph, nodes, onGraphChange]
+  );
 
-  React.useEffect(() => {
-    const edgeIds = new Set(edges.map((e) => e.id));
-    const graphEdgeIds = new Set(graph.edges.map((e) => e.id));
-    const edgesChanged =
-      edges.length !== graph.edges.length ||
-      ![...edgeIds].every((id) => graphEdgeIds.has(id));
-    if (edgesChanged) {
-      setEdges(graph.edges as Edge[]);
-    }
-  }, [graph.edges, edges, setEdges]);
+  const onEdgesChangeHandler: OnEdgesChange = useCallback(
+    (changes) => {
+      const nextEdges = applyEdgeChanges(
+        changes,
+        edges
+      ) as FlowchartEdge[];
+      onGraphChange({
+        ...graph,
+        edges: nextEdges,
+      });
+    },
+    [graph, edges, onGraphChange]
+  );
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -91,60 +94,16 @@ export function FlowchartCanvas({
         target: params.target!,
         type: "default",
       };
-      setEdges((eds) => addEdge(newEdge as Edge, eds));
       onGraphChange({
-        nodes: nodes as FlowchartNode[],
-        edges: [...edges, newEdge] as FlowchartEdge[],
-        viewport: graph.viewport,
+        ...graph,
+        edges: addEdge(newEdge as Edge, edges) as FlowchartEdge[],
       });
     },
-    [nodes, edges, graph.viewport, onGraphChange, setEdges]
-  );
-
-  const handleNodesChange = useCallback(
-    (changes: Parameters<typeof onNodesChange>[0]) => {
-      onNodesChange(changes);
-      const updatedNodes = changes.reduce((acc: Node[], change) => {
-        if (
-          change.type === "position" &&
-          "dragging" in change &&
-          change.dragging === false &&
-          "id" in change &&
-          change.id &&
-          "position" in change &&
-          change.position
-        ) {
-          return acc.map((n) =>
-            n.id === change.id ? { ...n, position: change.position! } : n
-          );
-        }
-        return acc;
-      }, nodes);
-      if (updatedNodes.length > 0) {
-        onGraphChange({
-          nodes: updatedNodes as FlowchartNode[],
-          edges: edges as FlowchartEdge[],
-          viewport: graph.viewport,
-        });
-      }
-    },
-    [nodes, edges, graph.viewport, onGraphChange, onNodesChange]
-  );
-
-  const handleEdgesChange = useCallback(
-    (_changes: unknown[]) => {
-      onEdgesChange(_changes as Parameters<typeof onEdgesChange>[0]);
-      onGraphChange({
-        nodes: nodes as FlowchartNode[],
-        edges: edges as FlowchartEdge[],
-        viewport: graph.viewport,
-      });
-    },
-    [nodes, edges, graph.viewport, onGraphChange, onEdgesChange]
+    [graph, edges, onGraphChange]
   );
 
   const onNodeClickHandler = useCallback(
-    (event: React.MouseEvent, node: Node) => {
+    (_event: React.MouseEvent, node: Node) => {
       onNodeClick?.(node.id);
     },
     [onNodeClick]
@@ -160,8 +119,8 @@ export function FlowchartCanvas({
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        onNodesChange={handleNodesChange}
-        onEdgesChange={handleEdgesChange}
+        onNodesChange={onNodesChangeHandler}
+        onEdgesChange={onEdgesChangeHandler}
         onConnect={onConnect}
         onNodeClick={onNodeClickHandler}
         nodeTypes={nodeTypes}

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthModule } from '../shared/auth/auth.module';
 import { OnboardingGuard } from '../shared/guards/onboarding.guard';
@@ -21,6 +21,8 @@ import { ContactsModule } from './modules/contacts/contacts.module';
 import { FormsModule } from './modules/forms/forms.module';
 import { AIReceptionistModule } from './modules/ai-receptionist/ai-receptionist.module';
 import { DevModule } from './dev/dev.module';
+import { RateLimitMiddleware } from './infrastructure/middleware/rate-limit.middleware';
+import { AppCacheModule } from './infrastructure/cache/cache.module';
 
 @Module({
   imports: [
@@ -44,6 +46,7 @@ import { DevModule } from './dev/dev.module';
     FormsModule,
     AIReceptionistModule,
     DevModule,
+    AppCacheModule,
   ],
   providers: [
     // Apply OnboardingGuard globally
@@ -53,4 +56,10 @@ import { DevModule } from './dev/dev.module';
     },
   ],
 })
-export class MainAppModule {}
+export class MainAppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // Apply rate limiting to all routes using the main-app rate limit middleware
+    // This uses rate-limit.config.ts with per-session-token rate limiting for track-time
+    consumer.apply(RateLimitMiddleware).forRoutes('*');
+  }
+}

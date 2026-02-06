@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, List, LayoutGrid, Eye } from "lucide-react";
 import { FlowchartCanvas } from "./flowchart-canvas";
@@ -11,80 +11,23 @@ import type {
   FlowchartNode,
   FlowchartEdge,
 } from "@/lib/forms/flowchart-types";
-import {
-  flowchartToSchema,
-  schemaToFlowchart,
-  mergeFlowchartWithSchema,
-} from "@/lib/forms/flowchart-serialization";
+import { flowchartToSchema } from "@/lib/forms/flowchart-serialization";
 import { START_NODE_ID, END_NODE_ID } from "@/lib/forms/flowchart-types";
-import type { FormField } from "@/lib/forms/types";
 
 export interface CardFormBuilderProps {
-  schema: FormField[];
-  cardSettings?: Record<string, unknown>;
-  onSchemaChange: (schema: FormField[]) => void;
-  onCardSettingsChange: (settings: Record<string, unknown>) => void;
+  /** Graph is owned by parent; builder is controlled. */
+  graph: FlowchartGraph;
+  onGraphChange: (graph: FlowchartGraph) => void;
   formSlug?: string;
 }
 
 export function CardFormBuilder({
-  schema,
-  cardSettings,
-  onSchemaChange,
-  onCardSettingsChange,
+  graph,
+  onGraphChange,
   formSlug,
 }: CardFormBuilderProps) {
   const [viewMode, setViewMode] = useState<"canvas" | "list">("canvas");
   const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>();
-
-  // Initialize graph from cardSettings (source of truth for card forms)
-  // For card forms, flowchartGraph is the source of truth, not schema
-  const initializeGraph = useCallback(() => {
-    const savedGraph = cardSettings?.flowchartGraph as
-      | FlowchartGraph
-      | undefined;
-    if (savedGraph && savedGraph.nodes && savedGraph.nodes.length > 0) {
-      // For card forms, the flowchart graph is the source of truth
-      // Only merge schema updates into existing nodes, don't remove nodes not in schema
-      return mergeFlowchartWithSchema(savedGraph, schema);
-    }
-    // Fallback: create graph from schema if no saved graph exists
-    return schemaToFlowchart(
-      schema,
-      cardSettings?.flowchartViewport as
-        | { x: number; y: number; zoom: number }
-        | undefined
-    );
-  }, [cardSettings, schema]);
-
-  const [graph, setGraph] = useState<FlowchartGraph>(initializeGraph);
-
-  // Sync graph when cardSettings.flowchartGraph changes (e.g., after save/reload)
-  // This ensures the graph stays in sync with saved data
-  // IMPORTANT: For card forms, flowchartGraph is the source of truth, not schema
-  useEffect(() => {
-    const savedGraph = cardSettings?.flowchartGraph as
-      | FlowchartGraph
-      | undefined;
-    if (savedGraph && savedGraph.nodes && savedGraph.nodes.length > 0) {
-      // Only update if the saved graph has different nodes/edges
-      const currentNodeIds = new Set(graph.nodes.map((n) => n.id).sort());
-      const savedNodeIds = new Set(savedGraph.nodes.map((n) => n.id).sort());
-      const nodesChanged =
-        graph.nodes.length !== savedGraph.nodes.length ||
-        currentNodeIds.size !== savedNodeIds.size ||
-        ![...currentNodeIds].every((id) => savedNodeIds.has(id)) ||
-        ![...savedNodeIds].every((id) => currentNodeIds.has(id));
-
-      if (nodesChanged) {
-        // Merge with schema to update field data, but preserve ALL nodes from saved graph
-        // The saved graph is the source of truth
-        const mergedGraph = mergeFlowchartWithSchema(savedGraph, schema);
-        setGraph(mergedGraph);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cardSettings?.flowchartGraph]);
 
   const selectedNode = useMemo(
     () => graph.nodes.find((n) => n.id === selectedNodeId),
@@ -93,17 +36,9 @@ export function CardFormBuilder({
 
   const handleGraphChange = useCallback(
     (newGraph: FlowchartGraph) => {
-      setGraph(newGraph);
-      const newSchema = flowchartToSchema(newGraph);
-      onSchemaChange(newSchema);
-      // Preserve all existing cardSettings and only update flowchart-related fields
-      onCardSettingsChange({
-        ...(cardSettings || {}),
-        flowchartGraph: newGraph,
-        flowchartViewport: newGraph.viewport,
-      });
+      onGraphChange(newGraph);
     },
-    [cardSettings, onSchemaChange, onCardSettingsChange]
+    [onGraphChange]
   );
 
   const handleNodeClick = useCallback((nodeId: string) => {
@@ -144,7 +79,6 @@ export function CardFormBuilder({
     (type: "question" | "statement") => {
       const newNodeId = `node_${Date.now()}`;
 
-      // Ensure we have START and END nodes
       const hasStart = graph.nodes.some((n) => n.id === START_NODE_ID);
       const hasEnd = graph.nodes.some((n) => n.id === END_NODE_ID);
 
@@ -216,7 +150,6 @@ export function CardFormBuilder({
             },
       ];
 
-      // Preserve ALL existing nodes and add the new one
       const updatedGraph = {
         ...graph,
         nodes: [...graph.nodes, ...nodesToAdd, newNode],
@@ -232,6 +165,12 @@ export function CardFormBuilder({
       window.open(`/forms/card/${formSlug}`, "_blank");
     }
   }, [formSlug]);
+
+  /** Schema derived from graph for CardSettingsPanel (e.g. conditional logic field list). */
+  const schemaFromGraph = useMemo(
+    () => flowchartToSchema(graph),
+    [graph]
+  );
 
   return (
     <div className="space-y-4">
@@ -346,7 +285,7 @@ export function CardFormBuilder({
         onUpdate={handleNodeUpdate}
         onDelete={handleNodeDelete}
         formSlug={formSlug}
-        allFields={schema}
+        allFields={schemaFromGraph}
       />
     </div>
   );

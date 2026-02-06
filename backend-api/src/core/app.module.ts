@@ -15,9 +15,6 @@ import { ConfigService } from '@nestjs/config';
 // Main app modules
 import { MainAppModule } from '../main-app/main-app.module';
 
-// Throttler
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-
 // Guards and middleware
 import { JwtAuthGuard } from '../shared/auth/auth.guard';
 import { SecurityHeadersMiddleware } from '../shared/middleware/security-headers.middleware';
@@ -28,14 +25,6 @@ import { InputValidationMiddleware } from '../shared/middleware/input-validation
   imports: [
     // Shared infrastructure
     SharedModule,
-
-    // Throttler configuration for rate limiting
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60000, // Default: 60 seconds
-        limit: 10, // Default: 10 requests per minute (overridden by @Throttle decorators)
-      },
-    ]),
 
     // Main app modules
     MainAppModule,
@@ -51,10 +40,7 @@ import { InputValidationMiddleware } from '../shared/middleware/input-validation
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
+    // ThrottlerGuard removed - using RateLimitMiddleware instead (configured in MainAppModule)
   ],
   exports: [ConfigService],
 })

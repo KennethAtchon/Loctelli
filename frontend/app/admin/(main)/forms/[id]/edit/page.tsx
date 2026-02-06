@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,11 @@ import { FormCardBuilderSection } from "@/components/admin/forms/form-sections/f
 import { FormProfileEstimationSection } from "@/components/admin/forms/form-sections/form-profile-estimation-section";
 import { AnalyticsDashboard } from "@/components/admin/forms/analytics-dashboard";
 import { generateSlug, validateFormTemplate } from "@/lib/forms/form-utils";
+import {
+  flowchartToSchema,
+  schemaToFlowchart,
+} from "@/lib/forms/flowchart-serialization";
+import type { FlowchartGraph } from "@/lib/forms/flowchart-types";
 
 export default function EditFormTemplatePage() {
   const params = useParams();
@@ -157,11 +162,17 @@ export default function EditFormTemplatePage() {
     e.preventDefault();
 
     const isCardForm = formData.formType === "CARD";
+    const schemaForValidation =
+      isCardForm && formData.cardSettings?.flowchartGraph
+        ? flowchartToSchema(
+            formData.cardSettings.flowchartGraph as FlowchartGraph
+          )
+        : formData.schema || [];
     const validation = validateFormTemplate(
       formData.name || "",
       formData.slug || "",
       formData.title || "",
-      formData.schema || [],
+      schemaForValidation,
       isCardForm
     );
 
@@ -188,7 +199,16 @@ export default function EditFormTemplatePage() {
 
     setLoading(true);
     try {
-      await api.forms.updateFormTemplate(formId, formData);
+      const payload: UpdateFormTemplateDto = isCardForm
+        ? {
+            ...formData,
+            schema: flowchartToSchema(
+              (formData.cardSettings?.flowchartGraph as FlowchartGraph) ??
+                schemaToFlowchart([])
+            ),
+          }
+        : formData;
+      await api.forms.updateFormTemplate(formId, payload);
 
       toast({
         title: "Success",
@@ -239,6 +259,21 @@ export default function EditFormTemplatePage() {
 
   const isCardForm = template.formType === "CARD";
 
+  /** Stable default graph when no flowchart is saved (Option A: graph is single source of truth). */
+  const defaultFlowchartGraph = useMemo(
+    () => schemaToFlowchart([]) as FlowchartGraph,
+    []
+  );
+  /** For card forms, schema is derived from graph; use this for profile estimation, validation, submit. */
+  const cardFormSchema = useMemo(
+    () =>
+      flowchartToSchema(
+        (formData.cardSettings?.flowchartGraph as FlowchartGraph | undefined) ??
+          defaultFlowchartGraph
+      ),
+    [formData.cardSettings?.flowchartGraph, defaultFlowchartGraph]
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-6">
@@ -267,13 +302,16 @@ export default function EditFormTemplatePage() {
 
       {isCardForm && (
         <FormCardBuilderSection
-          schema={formData.schema || []}
-          cardSettings={
-            formData.cardSettings as Record<string, unknown> | undefined
+          graph={
+            (formData.cardSettings?.flowchartGraph as FlowchartGraph) ??
+            defaultFlowchartGraph
           }
-          onSchemaChange={(newSchema) => handleInputChange("schema", newSchema)}
-          onCardSettingsChange={(settings) =>
-            handleInputChange("cardSettings", settings)
+          onGraphChange={(newGraph) =>
+            handleInputChange("cardSettings", {
+              ...(formData.cardSettings as Record<string, unknown> | undefined),
+              flowchartGraph: newGraph,
+              flowchartViewport: newGraph.viewport,
+            })
           }
           formSlug={formData.slug || template?.slug}
         />
@@ -282,7 +320,7 @@ export default function EditFormTemplatePage() {
       {isCardForm && (
         <FormProfileEstimationSection
           value={formData.profileEstimation as ProfileEstimation | undefined}
-          fields={formData.schema || []}
+          fields={cardFormSchema}
           onChange={(config) =>
             handleInputChange(
               "profileEstimation",

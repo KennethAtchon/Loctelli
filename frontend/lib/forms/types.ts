@@ -73,6 +73,7 @@ export type FormFieldType =
   | "image"
   | "statement";
 
+/** Form field used in both SIMPLE and CARD forms. Card-specific: media, conditionalLogic, enablePiping. */
 export interface FormField {
   id: string;
   type: FormFieldType;
@@ -177,6 +178,20 @@ export interface ProfileEstimation {
 
 export type FormType = "SIMPLE" | "CARD";
 
+/**
+ * schema vs flowchartGraph (CARD forms only):
+ *
+ * - schema: Linear FormField[] in display order. Runtime source of truth for the
+ *   public form (which card to show, validation). For CARD forms it is derived from
+ *   the flowchart on save (flowchartToSchema) and stored on the template.
+ *
+ * - flowchartGraph: Stored under cardSettings.flowchartGraph. We keep it because
+ *   schema alone cannot be turned back into the builder graph: schema is a flat
+ *   list and does not contain (1) node positions (x, y) or viewport (pan/zoom),
+ *   (2) which edges connect which nodes when there are branches, or (3) per-edge
+ *   condition labels. The graph is the editor's source of truth; we derive schema
+ *   from it for runtime and persist both.
+ */
 export interface FormTemplate {
   id: string;
   name: string;

@@ -16,11 +16,17 @@ export function useCardFormSchema(template: FormTemplate): {
   successCard: FlowchartNode | null;
 } {
   const flowchartGraph = useMemo(() => {
+    const raw = template.cardSettings;
     const graph = (template.cardSettings as { flowchartGraph?: FlowchartGraph })
       ?.flowchartGraph;
-    logger.debug("📋 useCardFormSchema: Flowchart graph derived", {
+    logger.debug("📋 useCardFormSchema: flowchartGraph derived", {
+      hasCardSettings: raw != null,
+      cardSettingsKeys: raw && typeof raw === "object" ? Object.keys(raw) : [],
       hasFlowchartGraph: !!graph,
+      flowchartGraphType: typeof graph,
       nodeCount: graph?.nodes?.length ?? 0,
+      edgeCount: graph?.edges?.length ?? 0,
+      templateId: template.id,
     });
     return graph;
   }, [template.cardSettings]);

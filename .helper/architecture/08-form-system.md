@@ -13,6 +13,7 @@
 2. [Simple Forms](#simple-forms)
 3. [Card Forms](#card-forms)
 4. [Flowchart Builder](#flowchart-builder)
+   - [Flowchart–Schema Parity (design)](./08a-flowchart-schema-parity.md) — keeping flowchart and schema in sync
 5. [Profile Estimation](#profile-estimation)
 6. [Conditional Logic](#conditional-logic)
 7. [Analytics System](#analytics-system)
@@ -173,7 +174,8 @@ Card Forms use a flowchart-based builder where admins create nodes (cards) and c
 ```mermaid
 sequenceDiagram
     participant Admin
-    participant FlowchartBuilder
+    participant EditPage
+    participant CardFormBuilder
     participant API
     participant DB
     participant CardFormContainer
@@ -181,15 +183,19 @@ sequenceDiagram
     participant ProfileEstimation
     participant User
 
-    Admin->>FlowchartBuilder: Create Card Form
-    FlowchartBuilder->>API: POST /forms/templates (formType: CARD)
-    API->>DB: Create FormTemplate
-    DB-->>API: FormTemplate created
-    API-->>FlowchartBuilder: Template returned
+    Admin->>EditPage: Create / Edit Card Form
+    EditPage->>API: POST or GET template (formType: CARD)
+    API->>DB: Create or fetch FormTemplate
+    DB-->>API: Template (flowchartGraph in cardSettings)
+    API-->>EditPage: Template returned
+    EditPage->>CardFormBuilder: graph, onGraphChange (controlled)
     
-    Admin->>FlowchartBuilder: Add nodes to flowchart
-    FlowchartBuilder->>FlowchartBuilder: Serialize graph to schema
-    FlowchartBuilder->>API: PATCH /forms/templates/:id (schema + flowchartGraph)
+    Admin->>CardFormBuilder: Add nodes / edit flowchart
+    CardFormBuilder->>EditPage: onGraphChange(newGraph)
+    EditPage->>EditPage: Update formData.cardSettings.flowchartGraph
+    Admin->>EditPage: Save
+    EditPage->>EditPage: schema = flowchartToSchema(graph)
+    EditPage->>API: PATCH /forms/templates/:id (schema + flowchartGraph)
     API->>DB: Update FormTemplate
     DB-->>API: Updated template
     
@@ -309,46 +315,60 @@ All card form hooks are organized in `frontend/components/public/forms/card-form
 
 ### Architecture
 
-The flowchart builder uses React Flow (@xyflow/react) to provide a visual canvas where admins create nodes (cards) and connect them with edges. The graph structure is serialized to the form schema for runtime execution.
+The flowchart builder uses React Flow (@xyflow/react) to provide a visual canvas where admins create nodes (cards) and connect them with edges. **Flowchart–schema parity** is enforced by design (see [08a-flowchart-schema-parity.md](./08a-flowchart-schema-parity.md)):
+
+- **Single source of truth**: The **flowchart graph** lives in the parent (edit/new page) as `formData.cardSettings.flowchartGraph`. The builder does not hold graph in local state.
+- **Controlled builder**: `CardFormBuilder` receives `graph` and `onGraphChange`. Every user action (add node, delete, reorder, edit settings, canvas drag/connect) calls `onGraphChange(newGraph)`; the parent updates `cardSettings` and re-renders, so the flowchart updates instantly.
+- **Schema is derived**: The linear `FormField[]` schema is never stored separately for the builder. It is derived via `flowchartToSchema(graph)` when needed: for profile estimation (field list), validation, and on save (payload to API). Submit sends both `flowchartGraph` and derived `schema`.
+
+### How you add a node (parity)
+
+**There is no separate “add to schema” action.** To add a card (question or statement), you add a **node**; the schema stays in sync because it is derived from the graph.
+
+- **Add Question** (toolbar button) → adds a new **question node** to the graph + edges from the previous card (or Start) and to the next (or End). One click = one new node = one new card in the derived schema.
+- **Add Statement** (toolbar button) → same, but adds a **statement node**.
+- **List view** → reordering updates edges so the graph order matches; no separate “schema” list.
+- **Delete** (in settings panel or list) → removes the node and its edges; the derived schema no longer includes that card.
+
+So “add question” and “add statement” **are** the ways you add nodes; parity is automatic because the graph is the only source of truth and schema is always `flowchartToSchema(graph)`.
 
 ### Builder Flow
 
 ```mermaid
 sequenceDiagram
     participant Admin
+    participant EditPage
+    participant CardFormBuilder
     participant FlowchartCanvas
-    participant NodeTypes
     participant CardSettingsPanel
     participant Serialization
-    participant API
 
-    Admin->>FlowchartCanvas: Open card form builder
-    FlowchartCanvas->>API: GET /forms/templates/:id
-    API-->>FlowchartCanvas: Template (schema + flowchartGraph)
-    FlowchartCanvas->>Serialization: schemaToFlowchart(schema, flowchartGraph)
-    Serialization-->>FlowchartCanvas: FlowchartGraph (nodes + edges)
+    Admin->>EditPage: Open card form (edit/new)
+    EditPage->>EditPage: graph = cardSettings.flowchartGraph ?? defaultGraph
+    EditPage->>CardFormBuilder: graph, onGraphChange
+    CardFormBuilder->>FlowchartCanvas: graph, onGraphChange
     FlowchartCanvas->>FlowchartCanvas: Render canvas with React Flow
     
-    Admin->>FlowchartCanvas: Click "Add Card"
-    FlowchartCanvas->>FlowchartCanvas: Create new question node
-    FlowchartCanvas->>FlowchartCanvas: Add node to graph
+    Admin->>CardFormBuilder: Click "Add Question" or "Add Statement"
+    CardFormBuilder->>CardFormBuilder: Build updatedGraph (new node + edges)
+    CardFormBuilder->>EditPage: onGraphChange(updatedGraph)
+    EditPage->>EditPage: setFormData({ ...cardSettings, flowchartGraph })
+    EditPage->>CardFormBuilder: Re-render with new graph
+    CardFormBuilder->>FlowchartCanvas: New graph → instant update
     
-    Admin->>FlowchartCanvas: Click node
-    FlowchartCanvas->>CardSettingsPanel: Open settings panel
-    CardSettingsPanel->>CardSettingsPanel: Load node data (field, media, logic)
+    Admin->>CardFormBuilder: Click node
+    CardFormBuilder->>CardSettingsPanel: Open settings (allFields = flowchartToSchema(graph))
     Admin->>CardSettingsPanel: Edit card settings
-    CardSettingsPanel->>FlowchartCanvas: Update node data
-    FlowchartCanvas->>FlowchartCanvas: Update graph
+    CardSettingsPanel->>CardFormBuilder: onUpdate(nodeId, updates)
+    CardFormBuilder->>EditPage: onGraphChange(updatedGraph)
+    EditPage->>EditPage: Update cardSettings
+    EditPage->>CardFormBuilder: New graph
     
-    Admin->>FlowchartCanvas: Connect nodes (drag edge)
-    FlowchartCanvas->>FlowchartCanvas: Create edge with condition
-    FlowchartCanvas->>FlowchartCanvas: Update graph
-    
-    Admin->>FlowchartCanvas: Save form
-    FlowchartCanvas->>Serialization: flowchartToSchema(graph)
-    Serialization-->>FlowchartCanvas: FormField[] schema
-    FlowchartCanvas->>API: PATCH /forms/templates/:id (schema + flowchartGraph)
-    API-->>FlowchartCanvas: Success
+    Admin->>EditPage: Click Save
+    EditPage->>Serialization: flowchartToSchema(formData.cardSettings.flowchartGraph)
+    Serialization-->>EditPage: FormField[] schema
+    EditPage->>EditPage: Build payload { ...formData, schema }
+    EditPage->>EditPage: PATCH /forms/templates/:id (schema + flowchartGraph)
 ```
 
 ### Graph Serialization
@@ -366,7 +386,8 @@ graph LR
 
 ### Components
 
-- **Main Builder**: `frontend/components/admin/forms/card-form-builder/card-form-builder.tsx` - Container component
+- **Main Builder**: `frontend/components/admin/forms/card-form-builder/card-form-builder.tsx` - Controlled component; receives `graph` and `onGraphChange`, derives schema via `flowchartToSchema(graph)` for CardSettingsPanel
+- **Section**: `frontend/components/admin/forms/form-sections/form-card-builder-section.tsx` - Wraps builder; passes through `graph` and `onGraphChange` from parent
 - **Canvas**: `frontend/components/admin/forms/card-form-builder/flowchart-canvas.tsx` - React Flow canvas
 - **Nodes**: `frontend/components/admin/forms/card-form-builder/nodes/` - Node type components (start, end, question, statement, result)
 - **Edges**: `frontend/components/admin/forms/card-form-builder/edges/conditional-edge.tsx` - Conditional edge renderer
@@ -636,24 +657,23 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant Admin
-    participant FlowchartCanvas
+    participant EditPage
     participant Serialization
     participant API
     participant DB
 
-    Admin->>FlowchartCanvas: Edit flowchart graph
-    FlowchartCanvas->>FlowchartCanvas: Update nodes/edges
-    Admin->>FlowchartCanvas: Click Save
-    FlowchartCanvas->>Serialization: flowchartToSchema(graph)
-    Serialization->>Serialization: BFS traversal
-    Serialization->>Serialization: Extract FormFields
-    Serialization-->>FlowchartCanvas: FormField[] schema
-    FlowchartCanvas->>API: PATCH /forms/templates/:id
-    Note over FlowchartCanvas,API: { schema, flowchartGraph, ... }
+    Admin->>EditPage: Edit flowchart (graph in formData.cardSettings)
+    Note over EditPage: Every change → onGraphChange → cardSettings updated
+    Admin->>EditPage: Click Save
+    EditPage->>Serialization: flowchartToSchema(formData.cardSettings.flowchartGraph)
+    Serialization->>Serialization: BFS traversal, extract FormFields
+    Serialization-->>EditPage: FormField[] schema
+    EditPage->>EditPage: payload = { ...formData, schema }
+    EditPage->>API: PATCH /forms/templates/:id (schema + flowchartGraph)
     API->>DB: Update FormTemplate
     DB-->>API: Updated template
-    API-->>FlowchartCanvas: Success
-    FlowchartCanvas->>Admin: Show success message
+    API-->>EditPage: Success
+    EditPage->>Admin: Show success message
 ```
 
 ### Profile Estimation with AI
@@ -727,8 +747,9 @@ sequenceDiagram
 
 ### Frontend - Admin Builder Components
 
-- **`frontend/components/admin/forms/card-form-builder/index.tsx`** - Card form builder container component
-- **`frontend/components/admin/forms/card-form-builder/card-form-builder.tsx`** - Main builder component managing flowchart state and serialization
+- **`frontend/components/admin/forms/card-form-builder/index.tsx`** - Card form builder re-exports
+- **`frontend/components/admin/forms/form-sections/form-card-builder-section.tsx`** - Section that passes `graph` and `onGraphChange` from edit/new page to the builder
+- **`frontend/components/admin/forms/card-form-builder/card-form-builder.tsx`** - Controlled flowchart builder; receives `graph` and `onGraphChange` (no local graph state); derives schema for settings panel
 - **`frontend/components/admin/forms/card-form-builder/flowchart-canvas.tsx`** - React Flow canvas component rendering the flowchart graph
 - **`frontend/components/admin/forms/card-form-builder/card-settings-panel.tsx`** - Side panel for editing card settings (question, media, validation, logic)
 - **`frontend/components/admin/forms/card-form-builder/list-view.tsx`** - Alternative linear list view of cards for reordering
@@ -800,6 +821,6 @@ sequenceDiagram
 
 ---
 
-*Document Version: 2.0*  
-*Last Updated: February 4, 2026*  
-*Updated to reflect refactored architecture with hooks organization and shared FieldRenderer*
+*Document Version: 2.1*  
+*Last Updated: February 5, 2026*  
+*Updated Flowchart Builder to Option A (graph lifted to parent, controlled builder, schema derived). See [08a-flowchart-schema-parity.md](./08a-flowchart-schema-parity.md).*

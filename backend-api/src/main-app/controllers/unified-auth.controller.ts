@@ -11,7 +11,6 @@ import {
   Ip,
   Headers,
 } from '@nestjs/common';
-import { Throttle } from '@nestjs/throttler';
 import { UnifiedAuthService } from '../../shared/auth/services/unified-auth.service';
 import {
   UnifiedLoginDto,
@@ -36,7 +35,7 @@ export class UnifiedAuthController {
   @Post('login')
   @Public()
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests per minute
+  // Rate limiting handled by RateLimitMiddleware (5 requests per 15 minutes)
   async login(
     @Body() loginDto: UnifiedLoginDto,
     @Ip() ipAddress: string,
@@ -80,7 +79,7 @@ export class UnifiedAuthController {
    */
   @Post('register')
   @Public()
-  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 requests per minute
+  // Rate limiting handled by RateLimitMiddleware (5 requests per 15 minutes)
   async register(@Body() registerDto: UnifiedRegisterDto) {
     this.logger.log(
       `📝 Registration attempt: ${registerDto.email} (${registerDto.accountType})`,
@@ -110,7 +109,7 @@ export class UnifiedAuthController {
    */
   @Post('refresh')
   @Public()
-  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute
+  // Rate limiting handled by RateLimitMiddleware (default: 100 requests per 15 minutes)
   async refreshToken(@Body() body: RefreshTokenDto, @Ip() ipAddress: string) {
     this.logger.log(`🔄 Token refresh attempt from IP: ${ipAddress}`);
     this.logger.debug(
@@ -195,7 +194,7 @@ export class UnifiedAuthController {
    */
   @Post('change-password')
   @UseGuards(JwtAuthGuard)
-  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 requests per minute
+  // Rate limiting handled by RateLimitMiddleware (default: 100 requests per 15 minutes)
   async changePassword(
     @CurrentUser() user,
     @Body() passwordData: ChangePasswordDto,

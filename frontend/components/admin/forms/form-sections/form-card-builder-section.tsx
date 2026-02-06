@@ -8,22 +8,19 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CardFormBuilder } from "../card-form-builder";
-import type { FormField } from "@/lib/forms/types";
+import type { FlowchartGraph } from "@/lib/forms/flowchart-types";
 
 interface FormCardBuilderSectionProps {
-  schema: FormField[];
-  cardSettings?: Record<string, unknown>;
-  onSchemaChange: (schema: FormField[]) => void;
-  onCardSettingsChange: (settings: Record<string, unknown>) => void;
+  /** Graph owned by parent (single source of truth). */
+  graph: FlowchartGraph;
+  onGraphChange: (graph: FlowchartGraph) => void;
   formSlug?: string;
   description?: string;
 }
 
 export function FormCardBuilderSection({
-  schema,
-  cardSettings,
-  onSchemaChange,
-  onCardSettingsChange,
+  graph,
+  onGraphChange,
   formSlug,
   description = "Build your interactive card form using the flowchart editor",
 }: FormCardBuilderSectionProps) {
@@ -35,10 +32,8 @@ export function FormCardBuilderSection({
       </CardHeader>
       <CardContent>
         <CardFormBuilder
-          schema={schema}
-          cardSettings={cardSettings}
-          onSchemaChange={onSchemaChange}
-          onCardSettingsChange={onCardSettingsChange}
+          graph={graph}
+          onGraphChange={onGraphChange}
           formSlug={formSlug}
         />
       </CardContent>

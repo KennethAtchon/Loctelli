@@ -354,7 +354,7 @@ model FormTemplate {
   formType     FormType @default(SIMPLE)
 
   // Form configuration - array of field definitions
-  schema       Json     // [{ id: string, type: "...", label: string, ... }] | CardFormField[] for CARD
+  schema       Json     // FormField[]: linear list of fields (for CARD, derived from flowchart on save)
 
   // Styling and presentation
   title        String   // Display title on the form page
