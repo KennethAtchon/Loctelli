@@ -69,11 +69,6 @@ export default function FormsPage() {
         filterState.status === "active" ? t.isActive : !t.isActive
       );
     }
-    if (filterState.wakeUp && filterState.wakeUp !== "all") {
-      list = list.filter((t) =>
-        filterState.wakeUp === "enabled" ? t.requiresWakeUp : !t.requiresWakeUp
-      );
-    }
     return list;
   }, [templates, searchTerm, filterState]);
 
@@ -186,15 +181,6 @@ export default function FormsPage() {
       ),
     },
     {
-      key: "wakeUp",
-      header: "Wake-up",
-      render: (template) => (
-        <Badge variant={template.requiresWakeUp ? "outline" : "secondary"}>
-          {template.requiresWakeUp ? `${template.wakeUpInterval}s` : "Disabled"}
-        </Badge>
-      ),
-    },
-    {
       key: "subAccount",
       header: "Sub-Account",
       render: (template) => template.subAccount?.name || "Global",
@@ -215,15 +201,6 @@ export default function FormsPage() {
       options: [
         { value: "active", label: "Active" },
         { value: "inactive", label: "Inactive" },
-      ],
-    },
-    {
-      key: "wakeUp",
-      label: "Wake-up",
-      type: "select",
-      options: [
-        { value: "enabled", label: "Enabled" },
-        { value: "disabled", label: "Disabled" },
       ],
     },
   ];
@@ -403,14 +380,6 @@ export default function FormsPage() {
                       </div>
                     </>
                   )}
-                  <div>
-                    <strong>Wake-up Required:</strong>{" "}
-                    {selectedTemplate.requiresWakeUp ? "Yes" : "No"}
-                  </div>
-                  <div>
-                    <strong>Wake-up Interval:</strong>{" "}
-                    {selectedTemplate.wakeUpInterval}s
-                  </div>
                 </div>
               </div>
 

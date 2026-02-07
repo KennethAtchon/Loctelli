@@ -33,6 +33,10 @@ import type {
   ConditionBlock,
 } from "@/lib/forms/types";
 import { getPipingDisplayToken } from "@/lib/forms/conditional-logic";
+import {
+  FORM_FIELD_TYPE_OPTIONS,
+  fieldTypeHasOptions,
+} from "@/lib/forms/field-types";
 import { labelToPipingKey } from "@/lib/forms/form-utils";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -57,17 +61,6 @@ function hasAnyConditions(
   return logic.conditions.length > 0;
 }
 
-const fieldTypes = [
-  { value: "text", label: "Text Input" },
-  { value: "email", label: "Email" },
-  { value: "phone", label: "Phone" },
-  { value: "textarea", label: "Text Area" },
-  { value: "select", label: "Select Dropdown" },
-  { value: "checkbox", label: "Checkbox" },
-  { value: "radio", label: "Radio Buttons" },
-  { value: "file", label: "File Upload" },
-  { value: "image", label: "Image Upload" },
-];
 
 const dummyNode = {
   id: "",
@@ -231,7 +224,7 @@ export function CardSettingsPanel({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {fieldTypes.map((type) => (
+                        {FORM_FIELD_TYPE_OPTIONS.map((type) => (
                           <SelectItem key={type.value} value={type.value}>
                             {type.label}
                           </SelectItem>
@@ -354,8 +347,8 @@ export function CardSettingsPanel({
                 name={`${pathPrefix}.fieldType` as Path<FormTemplateFormValues>}
                 control={control}
                 render={({ field: { value: fieldType } }) => {
-                  const needsOptions = ["select", "radio", "checkbox"].includes(
-                    String(fieldType ?? "")
+                  const needsOptions = fieldTypeHasOptions(
+                    (fieldType ?? "text") as FormField["type"]
                   );
                   if (!needsOptions) return <></>;
                   return (

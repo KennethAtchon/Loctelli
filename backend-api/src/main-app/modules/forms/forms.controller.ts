@@ -123,11 +123,11 @@ export class FormsController {
 
   // Public endpoints - ordered by specificity (most specific first)
 
-  // Database wake-up endpoint (public)
-  @Get('public/wake-up')
+  // Database ping endpoint (public) - keeps database warm
+  @Get('public/ping')
   @Public()
-  wakeUpDatabase() {
-    return this.formsService.wakeUpDatabase();
+  pingDatabase() {
+    return this.formsService.pingDatabase();
   }
 
   // Admin file upload endpoint for form media/assets

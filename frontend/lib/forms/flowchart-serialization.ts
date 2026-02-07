@@ -42,8 +42,12 @@ export function flowchartToSchema(graph: FlowchartGraph): FormField[] {
     if (!node) continue;
     const data = node.data ?? {};
     if (node.type === "question" && data.field) {
-      const field = { ...data.field };
-      // Include media from node data
+      // Use data.fieldType as source of truth for type (admin panel binds to fieldType;
+      // data.field.type can lag when user changes the dropdown without a full save)
+      const field: FormField = {
+        ...data.field,
+        type: (data.fieldType as FormField["type"]) ?? data.field.type,
+      };
       if (data.media) {
         field.media = data.media;
       }

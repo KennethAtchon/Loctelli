@@ -6,8 +6,6 @@
   "subtitle": "Help us set up your complete marketing automation system. This will take about 10-15 minutes to complete.",
   "submitButtonText": "Submit Onboarding Information",
   "successMessage": "Thank you! We've received your information and will begin setting up your GHL system and Facebook Ads campaigns. Our team will contact you within 24 hours to confirm the setup.",
-  "requiresWakeUp": true,
-  "wakeUpInterval": 30,
   "schema": [
     {
       "id": "business_info",

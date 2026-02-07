@@ -243,14 +243,31 @@ CREATE TABLE "form_templates" (
     "profileEstimation" JSONB,
     "styling" JSONB,
     "analyticsEnabled" BOOLEAN NOT NULL DEFAULT true,
-    "requiresWakeUp" BOOLEAN NOT NULL DEFAULT true,
-    "wakeUpInterval" INTEGER NOT NULL DEFAULT 30,
     "subAccountId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "createdByAdminId" INTEGER NOT NULL,
 
     CONSTRAINT "form_templates_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "form_sessions" (
+    "id" TEXT NOT NULL,
+    "formTemplateId" TEXT NOT NULL,
+    "sessionToken" TEXT NOT NULL,
+    "currentCardIndex" INTEGER NOT NULL DEFAULT 0,
+    "partialData" JSONB NOT NULL,
+    "startedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastActivityAt" TIMESTAMP(3) NOT NULL,
+    "completedAt" TIMESTAMP(3),
+    "deviceType" TEXT,
+    "browser" TEXT,
+    "os" TEXT,
+    "timePerCard" JSONB,
+    "subAccountId" INTEGER NOT NULL,
+
+    CONSTRAINT "form_sessions_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -417,6 +434,9 @@ CREATE UNIQUE INDEX "SubAccountPromptTemplate_subAccountId_promptTemplateId_key"
 CREATE UNIQUE INDEX "form_templates_slug_key" ON "form_templates"("slug");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "form_sessions_sessionToken_key" ON "form_sessions"("sessionToken");
+
+-- CreateIndex
 CREATE INDEX "auth_attempts_email_accountType_createdAt_idx" ON "auth_attempts"("email", "accountType", "createdAt");
 
 -- CreateIndex
@@ -526,6 +546,12 @@ ALTER TABLE "form_templates" ADD CONSTRAINT "form_templates_subAccountId_fkey" F
 
 -- AddForeignKey
 ALTER TABLE "form_templates" ADD CONSTRAINT "form_templates_createdByAdminId_fkey" FOREIGN KEY ("createdByAdminId") REFERENCES "AdminUser"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "form_sessions" ADD CONSTRAINT "form_sessions_formTemplateId_fkey" FOREIGN KEY ("formTemplateId") REFERENCES "form_templates"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "form_sessions" ADD CONSTRAINT "form_sessions_subAccountId_fkey" FOREIGN KEY ("subAccountId") REFERENCES "SubAccount"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "form_submissions" ADD CONSTRAINT "form_submissions_formTemplateId_fkey" FOREIGN KEY ("formTemplateId") REFERENCES "form_templates"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

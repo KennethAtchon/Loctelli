@@ -553,7 +553,7 @@ See [01-authentication.md](./01-authentication.md) for detailed documentation.
 
 #### File Handling
 - `uploadFormFile()` - Upload file for form field
-- `wakeUpDatabase()` - Database wake-up endpoint
+- `pingDatabase()` - Database ping (keeps DB warm)
 
 **Features**:
 - JSON schema-based form definitions

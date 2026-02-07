@@ -15,19 +15,8 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import type { FormField } from "@/lib/forms/types";
+import { FORM_FIELD_TYPE_OPTIONS } from "@/lib/forms/field-types";
 import { generateStableId } from "@/lib/utils/stable-id";
-
-const fieldTypes = [
-  { value: "text", label: "Text Input" },
-  { value: "email", label: "Email" },
-  { value: "phone", label: "Phone" },
-  { value: "textarea", label: "Text Area" },
-  { value: "select", label: "Select Dropdown" },
-  { value: "checkbox", label: "Checkbox" },
-  { value: "radio", label: "Radio Buttons" },
-  { value: "file", label: "File Upload" },
-  { value: "image", label: "Image Upload" },
-];
 
 interface JsonImportDialogProps {
   onImport: (fields: FormField[]) => void;
@@ -47,20 +36,6 @@ export function JsonImportDialog({ onImport }: JsonImportDialogProps) {
           label: "Full Name",
           placeholder: "Enter your full name",
           required: true,
-        },
-        {
-          id: "email",
-          type: "email",
-          label: "Email Address",
-          placeholder: "Enter your email",
-          required: true,
-        },
-        {
-          id: "phone",
-          type: "phone",
-          label: "Phone Number",
-          placeholder: "Enter your phone number",
-          required: false,
         },
         {
           id: "message",
@@ -97,7 +72,7 @@ export function JsonImportDialog({ onImport }: JsonImportDialogProps) {
           );
         }
 
-        const validTypes = fieldTypes.map((t) => t.value);
+        const validTypes = FORM_FIELD_TYPE_OPTIONS.map((t) => t.value);
         if (!validTypes.includes(field.type)) {
           throw new Error(
             `Invalid field type: ${field.type}. Valid types are: ${validTypes.join(", ")}`

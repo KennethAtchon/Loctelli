@@ -68,15 +68,6 @@ export class UpdateFormTemplateDto {
   @IsOptional()
   isActive?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
-  requiresWakeUp?: boolean;
-
-  @IsInt()
-  @Min(10)
-  @IsOptional()
-  wakeUpInterval?: number;
-
   @IsInt()
   @IsOptional()
   subAccountId?: number;

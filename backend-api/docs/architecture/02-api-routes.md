@@ -593,7 +593,7 @@ Import users from GoHighLevel.
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
-| GET | `/forms/public/wake-up` | Public | Database wake-up endpoint |
+| GET | `/forms/public/ping` | Public | Database ping (keeps DB warm) |
 | GET | `/forms/public/:slug` | Public | Get form template by slug |
 | POST | `/forms/public/:slug/submit` | Public | Submit form |
 | POST | `/forms/public/:slug/upload` | Public | Upload file for form |

@@ -20,7 +20,6 @@ import type { FormTemplate, UpdateFormTemplateDto } from "@/lib/forms/types";
 import { FormFieldsSection } from "@/components/admin/forms/form-sections/form-fields-section";
 import { FormBasicInfoCard } from "@/components/admin/forms/form-sections/form-basic-info-card";
 import { FormDisplaySettingsCard } from "@/components/admin/forms/form-sections/form-display-settings-card";
-import { FormAdvancedSettingsCard } from "@/components/admin/forms/form-sections/form-advanced-settings-card";
 import { FormCardBuilderSection } from "@/components/admin/forms/form-sections/form-card-builder-section";
 import { FormProfileEstimationSection } from "@/components/admin/forms/form-sections/form-profile-estimation-section";
 import { AnalyticsDashboard } from "@/components/admin/forms/analytics-dashboard";
@@ -52,8 +51,6 @@ function templateToFormValues(t: FormTemplate): FormTemplateFormValues {
     submitButtonText: t.submitButtonText,
     successMessage: t.successMessage,
     isActive: t.isActive,
-    requiresWakeUp: t.requiresWakeUp,
-    wakeUpInterval: t.wakeUpInterval ?? 30,
     cardSettings: t.cardSettings,
     profileEstimation: getDefaultFormValues(t.profileEstimation),
     styling: t.styling,
@@ -329,17 +326,6 @@ export default function EditFormTemplatePage() {
               onExportSchema={exportSchemaToJSON}
             />
           )}
-
-          <FormAdvancedSettingsCard
-            requiresWakeUp={watch("requiresWakeUp") ?? false}
-            wakeUpInterval={watch("wakeUpInterval") ?? 30}
-            onRequiresWakeUpChange={(enabled) =>
-              setValue("requiresWakeUp", enabled)
-            }
-            onWakeUpIntervalChange={(interval) =>
-              setValue("wakeUpInterval", interval)
-            }
-          />
 
           <div className="flex items-center justify-end gap-4">
             <Button

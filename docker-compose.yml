@@ -47,6 +47,26 @@ services:
     networks:
       - loctelli-network
 
+  # Main Frontend (CRM)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000/api/proxy}
+        NEXT_PUBLIC_DEBUG: ${NEXT_PUBLIC_DEBUG:-true}
+    container_name: loctelli_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./frontend/.env
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - loctelli-network
+
   # Backend API
   api:
     build:
@@ -87,26 +107,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-
-  # Main Frontend (CRM)
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000/api/proxy}
-        NEXT_PUBLIC_DEBUG: ${NEXT_PUBLIC_DEBUG:-true}
-    container_name: loctelli_frontend
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    env_file:
-      - ./frontend/.env
-    depends_on:
-      api:
-        condition: service_healthy
-    networks:
-      - loctelli-network
 
 volumes:
   pgdata:

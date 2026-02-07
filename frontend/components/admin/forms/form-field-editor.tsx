@@ -14,18 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { FormField } from "@/lib/forms/types";
-
-const fieldTypes = [
-  { value: "text", label: "Text Input" },
-  { value: "email", label: "Email" },
-  { value: "phone", label: "Phone" },
-  { value: "textarea", label: "Text Area" },
-  { value: "select", label: "Select Dropdown" },
-  { value: "checkbox", label: "Checkbox" },
-  { value: "radio", label: "Radio Buttons" },
-  { value: "file", label: "File Upload" },
-  { value: "image", label: "Image Upload" },
-];
+import { FORM_FIELD_TYPE_OPTIONS } from "@/lib/forms/field-types";
 
 interface FormFieldEditorProps {
   field: FormField;
@@ -88,7 +77,7 @@ export function FormFieldEditor({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {fieldTypes.map((type) => (
+                {FORM_FIELD_TYPE_OPTIONS.map((type) => (
                   <SelectItem key={type.value} value={type.value}>
                     {type.label}
                   </SelectItem>
@@ -124,7 +113,7 @@ export function FormFieldEditor({
           </div>
         </div>
 
-        {(field.type === "select" || field.type === "radio") && (
+        {(field.type === "select" || field.type === "radio" || field.type === "checkbox") && (
           <div>
             <Label>Options</Label>
             <div className="space-y-2">

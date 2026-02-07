@@ -8,3 +8,4 @@ fix tests
 
 ----
 
+@.helper/architecture/08-form-system.md is a good overview but we need deep dives, I created a folder: .helper/architecture/forms, that we can fill with markdown files and sequence diagrams that do a deep dive, they will answer questions in order of relevance and built up knowledge like start from the bottom and go up, problem with the overview is it expects that you already know the system and its a recap, we need to answer questions like: what is the functional difference between simple and card form? what is a form template? what do each one of these systems share? how is the admin panel setup for each one? what is the flow chart system and how does it work? basically these markdown files you write should read top down, giving people baseline information then goes up and EXPLAINS how the system works and how the code works together and where they can go to add/change things.

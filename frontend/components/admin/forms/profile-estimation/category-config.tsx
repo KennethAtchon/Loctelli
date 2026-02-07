@@ -15,8 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 import { LogicBuilder } from "@/components/admin/forms/card-form-builder/logic-builder";
-import { getConditionsFromGroupOrBlock } from "@/lib/forms/conditional-logic";
-import type { FormField, ScoringRule } from "@/lib/forms/types";
+import type { FormField } from "@/lib/forms/types";
 
 import {
   LabelWithTooltip,
@@ -152,28 +151,8 @@ const MatchingLogicBlock = memo(
             </p>
             <LogicBuilder
               fields={fields}
-              value={
-                (field.value ?? []).length > 0
-                  ? {
-                      operator: "AND",
-                      conditions: (field.value ?? []).map((rule) => ({
-                        fieldId: rule.fieldId,
-                        operator: rule.operator,
-                        value: rule.value,
-                      })),
-                    }
-                  : undefined
-              }
-              onChange={(group) => {
-                const conditions = getConditionsFromGroupOrBlock(group);
-                const rules: ScoringRule[] = conditions.map((c) => ({
-                  fieldId: c.fieldId,
-                  operator: c.operator as ScoringRule["operator"],
-                  value: c.value,
-                  weight: 1,
-                }));
-                field.onChange(rules);
-              }}
+              value={field.value}
+              onChange={field.onChange}
               label={`Match conditions for "${categoryName || "Category"}"`}
             />
           </div>

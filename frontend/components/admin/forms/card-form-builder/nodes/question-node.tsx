@@ -6,8 +6,6 @@ import type { FlowchartNodeData } from "@/lib/forms/flowchart-types";
 
 const fieldTypeIcons: Record<string, string> = {
   text: "Aa",
-  email: "@",
-  phone: "📞",
   textarea: "📝",
   select: "▼",
   radio: "○",

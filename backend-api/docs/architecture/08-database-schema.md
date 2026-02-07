@@ -396,8 +396,6 @@ model FormTemplate {
   subtitle     String?  @db.Text
   submitButtonText String @default("Submit")
   successMessage String @default("Thank you for your submission!")
-  requiresWakeUp Boolean @default(true)
-  wakeUpInterval Int     @default(30)
   subAccountId Int?     // Null = available to all
   createdAt    DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -766,7 +764,6 @@ expiresAt       DateTime?
 ```prisma
 isActive        Boolean     @default(true)
 isActive        Boolean     @default(false)
-requiresWakeUp  Boolean     @default(true)
 ```
 
 ### Unique Constraints

@@ -19,6 +19,7 @@ import type {
   ConditionOperator,
   FormField,
 } from "@/lib/forms/types";
+import { fieldTypeHasOptions } from "@/lib/forms/field-types";
 import { getPipingDisplayToken } from "@/lib/forms/conditional-logic";
 
 function isConditionBlock(
@@ -160,11 +161,7 @@ export function LogicBuilder({
       return null;
     }
 
-    if (
-      fieldType &&
-      ["select", "radio", "checkbox"].includes(fieldType) &&
-      options.length > 0
-    ) {
+    if (fieldType && fieldTypeHasOptions(fieldType) && options.length > 0) {
       return (
         <Select
           value={String(condition.value ?? "")}

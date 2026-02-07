@@ -115,7 +115,7 @@ export function ProfileEstimationSetup({
       name: "",
       description: "",
       image: "",
-      matchingLogic: [],
+      matchingLogic: undefined,
     });
   }, [appendCategory]);
 
@@ -157,7 +157,7 @@ export function ProfileEstimationSetup({
       name: "",
       description: "",
       image: "",
-      matchingCriteria: [],
+      matchingCriteria: undefined,
     });
   }, [appendRecommendation]);
 

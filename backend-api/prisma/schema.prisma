@@ -368,10 +368,6 @@ model FormTemplate {
   styling          Json?   // FormStyling: theme, colors, transitions
   analyticsEnabled Boolean @default(true)
 
-  // Wake-up mechanism for public forms
-  requiresWakeUp Boolean @default(true) // Whether to wake up the database
-  wakeUpInterval Int     @default(30) // Wake up every N seconds while user is on page
-
   // Multi-tenant support
   subAccountId Int?     // If null, available to all subaccounts
   subAccount   SubAccount? @relation(fields: [subAccountId], references: [id])

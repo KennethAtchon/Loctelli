@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, AlertCircle } from "lucide-react";
@@ -18,27 +18,19 @@ export default function PublicCardFormPage() {
   const slug = params.slug as string;
   const formsApi = api.forms;
 
-  const wakeUpDatabase = useCallback(async () => {
-    logger.info("Waking up database");
-    try {
-      await formsApi.wakeUpDatabase();
-      logger.debug("Database wake-up successful");
-    } catch (error) {
-      logger.error("Database wake-up failed:", error);
+  // Ping database on mount to keep it warm
+  useEffect(() => {
+    if (slug && slug !== "invalid-form") {
+      formsApi.pingDatabase().catch((error) => {
+        logger.warn("Database ping failed (non-blocking):", error);
+      });
     }
-  }, [formsApi]);
+  }, [slug, formsApi]);
 
   const formQuery = useQuery({
     queryKey: ["form", "public", "card", slug],
-    queryFn: async () => {
-      try {
-        await wakeUpDatabase();
-      } catch (wakeError) {
-        logger.warn("Initial wake-up failed, continuing anyway", wakeError);
-      }
-      return formsApi.getPublicForm(slug);
-    },
-    enabled: !!slug && slug !== "wake-up" && slug !== "invalid-form",
+    queryFn: () => formsApi.getPublicForm(slug),
+    enabled: !!slug && slug !== "invalid-form",
     staleTime: PUBLIC_FORM_STALE_MS,
     retry: 2,
     retryDelay: (attemptIndex) => (attemptIndex + 1) * 500,
@@ -50,7 +42,7 @@ export default function PublicCardFormPage() {
     ? formQuery.error instanceof Error
       ? formQuery.error.message
       : "Failed to load form"
-    : slug === "wake-up" || slug === "invalid-form"
+    : slug === "invalid-form"
       ? "Invalid form URL"
       : null;
 

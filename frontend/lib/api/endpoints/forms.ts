@@ -75,11 +75,11 @@ export class FormsApi {
     return this.api.submitPublicForm({ slug }, data) as Promise<FormSubmission>;
   }
 
-  async wakeUpDatabase(): Promise<{
+  async pingDatabase(): Promise<{
     status: string;
     timestamp: string;
   }> {
-    return this.api.wakeUpDatabase() as Promise<{
+    return this.api.pingDatabase() as Promise<{
       status: string;
       timestamp: string;
     }>;

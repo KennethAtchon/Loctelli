@@ -10,7 +10,8 @@ import type {
   ProfileEstimation,
   AIProfileConfig,
   FieldScoring,
-  ScoringRule,
+  ConditionGroup,
+  ConditionBlock,
 } from "@/lib/forms/types";
 
 export type ProfileEstimationFormValues = {
@@ -36,7 +37,8 @@ export type ProfileEstimationFormValues = {
       name: string;
       description: string;
       image: string;
-      matchingLogic: ScoringRule[];
+      /** Stored as block so LogicBuilder "Add group" works; converted to ScoringRule[] on save */
+      matchingLogic?: ConditionGroup | ConditionBlock;
     }>;
   };
   dimensionConfig: {
@@ -56,7 +58,8 @@ export type ProfileEstimationFormValues = {
       name: string;
       description: string;
       image: string;
-      matchingCriteria: ScoringRule[];
+      /** Stored as block so LogicBuilder "Add group" works; converted to ScoringRule[] on save */
+      matchingCriteria?: ConditionGroup | ConditionBlock;
     }>;
   };
 };

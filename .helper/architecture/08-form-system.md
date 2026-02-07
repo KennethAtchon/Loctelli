@@ -8,6 +8,7 @@
 
 ## Table of Contents
 
+0. **[Deep dives](./forms/README.md)** — Bottom-up guides (types, simple vs card, shared pieces, admin setup, flowchart, public flow). Start here if you're new to the system.
 1. [System Overview](#system-overview)
    - [Architecture Principles](#architecture-principles)
 2. [Simple Forms](#simple-forms)
@@ -461,6 +462,15 @@ sequenceDiagram
 3. **Multi-Dimension**: Calculates scores across multiple dimensions (e.g., Adventure, Social, Planning)
 4. **Recommendation**: Ranks recommendations based on matching criteria
 
+### Admin form data model (profile estimation config)
+
+The profile estimation **admin form** (setup wizard and *-config components) uses the same **LogicBuilder** as question conditional logic. So that "Add group" works correctly:
+
+- **Form state** stores category `matchingLogic` and recommendation `matchingCriteria` as **`ConditionGroup | ConditionBlock`** (same shape as showIf/hideIf/jumpTo).
+- **Load**: When initializing from a saved template, flat `ScoringRule[]` from the API is converted into a single `ConditionGroup` for the form (multiple groups are only created when the user adds groups in the UI).
+- **Save**: When building the template payload, the block is flattened via `getConditionsFromGroupOrBlock` and mapped to `ScoringRule[]` (weight 1); the persisted `ProfileEstimation` type and runtime still use `ScoringRule[]`.
+- **Types**: `ProfileEstimationFormValues` (in `profile-estimation-form-types.ts`) uses `matchingLogic?` / `matchingCriteria?` as `ConditionGroup | ConditionBlock`; conversion lives in `profile-estimation-form-utils.ts` (`getDefaultFormValues`, `formValuesToProfileEstimation`).
+
 ### AI Enhancement
 
 When AI is enabled (per-form setting), the system:
@@ -543,10 +553,22 @@ sequenceDiagram
 - `is_empty`, `is_not_empty`
 - `starts_with`, `ends_with`
 
+### Logic Builder (shared)
+
+**LogicBuilder** (`logic-builder.tsx`) is the shared UI for configuring conditions. It supports:
+
+- **Single group**: `ConditionGroup` (operator AND/OR, list of conditions).
+- **Multiple groups**: `ConditionBlock` (top-level AND/OR between groups; each group has its own AND/OR and conditions). "Add group" adds a second group so users can express "(A and B) OR (C and D)" style logic.
+
+It is used in two places:
+
+1. **Question settings** (CardSettingsPanel): showIf, hideIf, jumpTo conditions, dynamicLabel conditions. The form stores these as `ConditionGroup | ConditionBlock` and passes `value` / `onChange` through to LogicBuilder.
+2. **Profile estimation** (category-config, recommendation-config): category matching logic and recommendation matching criteria. The form now also stores these as `ConditionGroup | ConditionBlock`; on save they are flattened to `ScoringRule[]` for the persisted template and runtime (see [Profile Estimation – Admin form data model](#admin-form-data-model-profile-estimation-config)).
+
 ### Components
 
-- **Logic Engine**: `frontend/lib/forms/conditional-logic.ts` - Condition evaluation functions
-- **Logic Builder**: `frontend/components/admin/forms/card-form-builder/logic-builder.tsx` - UI for configuring conditions
+- **Logic Engine**: `frontend/lib/forms/conditional-logic.ts` - Condition evaluation functions (`evaluateConditionBlock`, `getConditionsFromGroupOrBlock`, etc.)
+- **Logic Builder**: `frontend/components/admin/forms/card-form-builder/logic-builder.tsx` - Shared UI for configuring conditions (single or multiple groups)
 - **Runtime Integration**: Used by `card-form-container.tsx` for dynamic behavior
 
 ---
@@ -764,10 +786,12 @@ sequenceDiagram
 ### Frontend - Profile Estimation Components
 
 - **`frontend/components/admin/forms/profile-estimation/setup-wizard.tsx`** - Profile estimation configuration wizard
+- **`frontend/components/admin/forms/profile-estimation/profile-estimation-form-types.ts`** - Form value types for profile estimation (`ProfileEstimationFormValues`); category/recommendation matching stored as `ConditionGroup | ConditionBlock`
+- **`frontend/components/admin/forms/profile-estimation/profile-estimation-form-utils.ts`** - `getDefaultFormValues` (template → form, including ScoringRule[] → block for matching logic), `formValuesToProfileEstimation` (form → template, block → ScoringRule[])
 - **`frontend/components/admin/forms/profile-estimation/percentage-config.tsx`** - Percentage score configuration UI
-- **`frontend/components/admin/forms/profile-estimation/category-config.tsx`** - Category matching configuration UI
+- **`frontend/components/admin/forms/profile-estimation/category-config.tsx`** - Category matching configuration UI (uses LogicBuilder with block value/onChange)
 - **`frontend/components/admin/forms/profile-estimation/multi-dimension-config.tsx`** - Multi-dimension scoring configuration UI
-- **`frontend/components/admin/forms/profile-estimation/recommendation-config.tsx`** - Recommendation matching configuration UI
+- **`frontend/components/admin/forms/profile-estimation/recommendation-config.tsx`** - Recommendation matching configuration UI (uses LogicBuilder with block value/onChange)
 - **`frontend/components/admin/forms/profile-estimation/ai-config.tsx`** - AI enhancement configuration UI
 
 ### Frontend - Analytics Components
@@ -790,12 +814,13 @@ sequenceDiagram
 - **`frontend/lib/api/endpoints/forms.ts`** - Form API client endpoints and TypeScript interfaces
 - **`frontend/lib/api/config/forms.config.ts`** - API endpoint configuration for forms
 
-### Frontend - Pages
+### Frontend - Pages & Admin Form State
 
 - **`frontend/app/(main)/forms/[slug]/page.tsx`** - Public form page routing to Simple or Card form renderer
 - **`frontend/app/admin/(main)/forms/new/page.tsx`** - Form creation page with type selector
 - **`frontend/app/admin/(main)/forms/[id]/edit/page.tsx`** - Form editing page with type-specific builders
 - **`frontend/app/admin/(main)/forms/page.tsx`** - Forms list page showing Simple/Card form types
+- **`frontend/app/admin/(main)/forms/hooks/use-form-template-form-state.ts`** - Form state hook and `FormTemplateFormValues` type for the form template edit form (used by edit/new pages, card settings panel, and profile estimation config)
 
 ### Backend - Controllers
 
@@ -821,6 +846,7 @@ sequenceDiagram
 
 ---
 
-*Document Version: 2.1*  
-*Last Updated: February 5, 2026*  
-*Updated Flowchart Builder to Option A (graph lifted to parent, controlled builder, schema derived). See [08a-flowchart-schema-parity.md](./08a-flowchart-schema-parity.md).*
+*Document Version: 2.2*  
+*Last Updated: February 7, 2026*  
+*Updated Flowchart Builder to Option A (graph lifted to parent, controlled builder, schema derived). See [08a-flowchart-schema-parity.md](./08a-flowchart-schema-parity.md).*  
+*Profile estimation: admin form now stores category/recommendation matching as ConditionGroup | ConditionBlock so LogicBuilder "Add group" works; conversion to ScoringRule[] only on save. Logic Builder section clarified (shared UI, multiple groups, used in question settings and profile estimation).*

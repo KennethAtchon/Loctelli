@@ -72,8 +72,6 @@ export interface ConditionalLogic {
 
 export type FormFieldType =
   | "text"
-  | "email"
-  | "phone"
   | "textarea"
   | "select"
   | "checkbox"
@@ -222,8 +220,6 @@ export interface FormTemplate {
   profileEstimation?: ProfileEstimation;
   styling?: Record<string, unknown>;
   analyticsEnabled?: boolean;
-  requiresWakeUp: boolean;
-  wakeUpInterval: number;
   subAccountId?: number;
   createdAt: string;
   updatedAt: string;
@@ -295,8 +291,6 @@ export interface CreateFormTemplateDto {
   profileEstimation?: ProfileEstimation;
   styling?: Record<string, unknown>;
   analyticsEnabled?: boolean;
-  requiresWakeUp?: boolean;
-  wakeUpInterval?: number;
   subAccountId?: number;
 }
 
@@ -315,8 +309,6 @@ export interface UpdateFormTemplateDto {
   styling?: Record<string, unknown>;
   analyticsEnabled?: boolean;
   isActive?: boolean;
-  requiresWakeUp?: boolean;
-  wakeUpInterval?: number;
   subAccountId?: number;
 }
 

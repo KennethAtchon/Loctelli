@@ -82,17 +82,17 @@ curl -v http://localhost:8000/status/health
 
 ### Forms Endpoints (API Key Required)
 
-#### Test Wake-up Database Endpoint
+#### Test Database Ping Endpoint
 ```bash
-# Test the database wake-up endpoint
+# Test the database ping endpoint (keeps DB warm)
 curl -v -H "x-api-key: your-secure-api-key-here" \
-  http://localhost:8000/forms/public/wake-up
+  http://localhost:8000/forms/public/ping
 ```
 
 **Expected Response:**
 ```json
 {
-  "status": "awake",
+  "status": "ok",
   "timestamp": "2024-01-01T00:00:00.000Z"
 }
 ```
@@ -149,7 +149,7 @@ curl -v -H "x-api-key: your-secure-api-key-here" \
 
 ### Missing API Key
 ```bash
-curl -v http://localhost:8000/forms/public/wake-up
+curl -v http://localhost:8000/forms/public/ping
 ```
 **Response (401):**
 ```json
@@ -163,7 +163,7 @@ curl -v http://localhost:8000/forms/public/wake-up
 ### Invalid API Key
 ```bash
 curl -v -H "x-api-key: wrong-key" \
-  http://localhost:8000/forms/public/wake-up
+  http://localhost:8000/forms/public/ping
 ```
 **Response (401):**
 ```json
@@ -215,20 +215,19 @@ curl -s http://localhost:8000/status/health | jq .
 ```bash
 # Test with API key (run from /backend-api directory)
 curl -v -H "x-api-key: $(cat .env | grep API_KEY | cut -d= -f2)" \
-  http://localhost:8000/forms/public/wake-up
+  http://localhost:8000/forms/public/ping
 ```
 
 ### 4. Check Backend Logs
 ```bash
 # Watch backend logs for API key validation messages:
-# "🔑 API key validation for route: GET /forms/public/wake-up"
+# "🔑 API key validation for route: GET /forms/public/ping"
 # "✅ API key validation successful"
 ```
 
 ## Frontend vs Backend URLs
 
-- **Frontend Route**: `http://localhost:3000/forms/wake-up` (page)
-- **Backend API**: `http://localhost:8000/forms/public/wake-up` (endpoint)
+- **Backend API (ping)**: `http://localhost:8000/forms/public/ping` (endpoint)
 
 The 404 error likely occurs because:
 1. API_KEY is not set in backend environment

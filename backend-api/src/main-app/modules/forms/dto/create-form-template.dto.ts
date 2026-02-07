@@ -103,15 +103,6 @@ export class CreateFormTemplateDto {
   @IsOptional()
   successMessage?: string = 'Thank you for your submission!';
 
-  @IsBoolean()
-  @IsOptional()
-  requiresWakeUp?: boolean = true;
-
-  @IsInt()
-  @Min(10)
-  @IsOptional()
-  wakeUpInterval?: number = 30;
-
   @IsInt()
   @IsOptional()
   subAccountId?: number;

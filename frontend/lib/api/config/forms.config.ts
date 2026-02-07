@@ -89,9 +89,9 @@ export const formsConfig: EndpointGroup = {
     },
   },
 
-  wakeUpDatabase: {
+  pingDatabase: {
     method: "GET",
-    path: "/forms/public/wake-up",
+    path: "/forms/public/ping",
     responseType: {} as { status: string; timestamp: string },
   },
 

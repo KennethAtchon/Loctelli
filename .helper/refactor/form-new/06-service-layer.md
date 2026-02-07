@@ -502,17 +502,8 @@ import { api } from '@/lib/api';
 export function useFormTemplate(slug: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['forms', 'public', slug],
-    queryFn: async () => {
-      // Optional: Wake up database before fetching
-      try {
-        await api.forms.wakeUpDatabase();
-      } catch (error) {
-        // Non-blocking; continue even if wake-up fails
-        console.warn('Database wake-up failed:', error);
-      }
-      return api.forms.getPublicForm(slug);
-    },
-    enabled: options?.enabled !== false && !!slug && slug !== 'wake-up' && slug !== 'invalid-form',
+    queryFn: () => api.forms.getPublicForm(slug),
+    enabled: options?.enabled !== false && !!slug && slug !== 'invalid-form',
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 2,
     retryDelay: (attemptIndex) => (attemptIndex + 1) * 500,
@@ -643,14 +634,7 @@ export function useFormWithSubmission(slug: string) {
   // Fetch form template
   const formQuery = useQuery({
     queryKey: ['forms', 'public', slug],
-    queryFn: async () => {
-      try {
-        await api.forms.wakeUpDatabase();
-      } catch (error) {
-        console.warn('Wake-up failed:', error);
-      }
-      return api.forms.getPublicForm(slug);
-    },
+    queryFn: () => api.forms.getPublicForm(slug),
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
   });

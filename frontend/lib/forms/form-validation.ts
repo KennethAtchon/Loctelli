@@ -41,21 +41,6 @@ export function validateField(field: FormField, value: unknown): boolean {
 
   // Type-specific validation
   switch (field.type) {
-    case "email":
-      if (value && typeof value === "string") {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(value);
-      }
-      return !field.required || value !== "";
-
-    case "phone":
-      if (value && typeof value === "string") {
-        // Basic phone validation (adjust regex as needed)
-        const phoneRegex = /^[\d\s\-\+\(\)]+$/;
-        return phoneRegex.test(value.replace(/\s/g, ""));
-      }
-      return !field.required || value !== "";
-
     case "select":
     case "radio":
       if (value && field.options) {

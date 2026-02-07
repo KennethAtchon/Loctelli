@@ -456,13 +456,13 @@ export class FormsService {
     });
   }
 
-  // Utility method for database wake-up
-  async wakeUpDatabase() {
+  // Utility method to ping database (keeps it warm)
+  async pingDatabase() {
     try {
       await this.prisma.$queryRaw`SELECT 1`;
-      return { status: 'awake', timestamp: new Date() };
+      return { status: 'ok', timestamp: new Date().toISOString() };
     } catch (error) {
-      throw new BadRequestException('Failed to wake up database');
+      throw new BadRequestException('Database ping failed');
     }
   }
 

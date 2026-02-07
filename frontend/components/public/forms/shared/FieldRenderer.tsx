@@ -289,8 +289,6 @@ export function FieldRenderer({
   const renderFieldContent = () => {
     switch (field.type) {
       case "text":
-      case "email":
-      case "phone":
         return (
           <div className={mode === "card" ? "space-y-6" : "space-y-2"}>
             <QuestionLabel htmlFor={field.id} mode={mode}>
@@ -299,13 +297,7 @@ export function FieldRenderer({
             </QuestionLabel>
             <Input
               id={field.id}
-              type={
-                field.type === "email"
-                  ? "email"
-                  : field.type === "phone"
-                    ? "tel"
-                    : "text"
-              }
+              type="text"
               placeholder={displayPlaceholder}
               value={stringValue}
               onChange={(e) => onChange(e.target.value)}
@@ -480,7 +472,8 @@ export function FieldRenderer({
         );
 
       case "checkbox": {
-        const selectedValues = (value as string[] | undefined) || [];
+        const selectedValues = Array.isArray(value) ? value : [];
+        const options = field.options ?? [];
         return (
           <div className={mode === "card" ? "space-y-6" : "space-y-2"}>
             <Label
@@ -493,42 +486,48 @@ export function FieldRenderer({
               {displayLabel}
               {requiredMark}
             </Label>
-            <div
-              className={
-                mode === "card" ? "flex flex-col gap-3" : "flex flex-col gap-2"
-              }
-            >
-              {field.options?.map((option) => (
-                <div
-                  key={option}
-                  className={
-                    mode === "card"
-                      ? "flex items-center space-x-3 rounded-lg border p-4 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 transition-colors"
-                      : "flex items-center space-x-2"
-                  }
-                >
-                  <Checkbox
-                    id={`${field.id}-${option}`}
-                    checked={selectedValues.includes(option)}
-                    onCheckedChange={(checked) =>
-                      onCheckboxChange?.(option, checked === true)
-                    }
-                    disabled={disabled}
-                    className="flex-shrink-0"
-                  />
-                  <Label
-                    htmlFor={`${field.id}-${option}`}
+            {options.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No options configured for this field.
+              </p>
+            ) : (
+              <div
+                className={
+                  mode === "card" ? "flex flex-col gap-3" : "flex flex-col gap-2"
+                }
+              >
+                {options.map((option) => (
+                  <div
+                    key={option}
                     className={
                       mode === "card"
-                        ? "flex-1 cursor-pointer font-normal text-base"
-                        : "flex-1 cursor-pointer font-normal text-sm"
+                        ? "flex items-center space-x-3 rounded-lg border p-4 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 transition-colors"
+                        : "flex items-center space-x-2"
                     }
                   >
-                    {option}
-                  </Label>
-                </div>
-              ))}
-            </div>
+                    <Checkbox
+                      id={`${field.id}-${option}`}
+                      checked={selectedValues.includes(option)}
+                      onCheckedChange={(checked) =>
+                        onCheckboxChange?.(option, checked === true)
+                      }
+                      disabled={disabled}
+                      className="flex-shrink-0"
+                    />
+                    <Label
+                      htmlFor={`${field.id}-${option}`}
+                      className={
+                        mode === "card"
+                          ? "flex-1 cursor-pointer font-normal text-base"
+                          : "flex-1 cursor-pointer font-normal text-sm"
+                      }
+                    >
+                      {option}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            )}
             {error && (
               <div
                 id={`${field.id}-error`}

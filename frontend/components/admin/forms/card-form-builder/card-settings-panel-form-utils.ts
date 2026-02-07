@@ -3,6 +3,7 @@ import type {
   FlowchartNodeData,
 } from "@/lib/forms/flowchart-types";
 import type { FormField } from "@/lib/forms/types";
+import { fieldTypeHasOptions } from "@/lib/forms/field-types";
 import type {
   NodeSettingsFormValues,
   ConditionalLogicFormValues,
@@ -112,8 +113,8 @@ export function formValuesToUpdates(
       label: values.label,
       required: values.required,
       placeholder: values.placeholder || undefined,
-      options: ["select", "radio", "checkbox"].includes(values.fieldType)
-        ? values.options
+      options: fieldTypeHasOptions(values.fieldType as FormField["type"])
+        ? values.options ?? []
         : undefined,
       pipingKey: values.pipingKey.trim() || undefined,
       enablePiping: values.enablePiping,

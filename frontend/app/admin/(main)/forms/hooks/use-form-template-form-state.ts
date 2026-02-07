@@ -25,8 +25,6 @@ export type FormTemplateFormValues = {
   successMessage?: string;
   cardSettings?: Record<string, unknown>;
   profileEstimation?: ProfileEstimationFormValues;
-  requiresWakeUp?: boolean;
-  wakeUpInterval?: number;
   isActive?: boolean;
   [key: string]: unknown;
 };

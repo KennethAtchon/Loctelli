@@ -17,7 +17,6 @@ import { useTenant } from "@/contexts/tenant-context";
 import { FormFieldsSection } from "@/components/admin/forms/form-sections/form-fields-section";
 import { FormBasicInfoCard } from "@/components/admin/forms/form-sections/form-basic-info-card";
 import { FormDisplaySettingsCard } from "@/components/admin/forms/form-sections/form-display-settings-card";
-import { FormAdvancedSettingsCard } from "@/components/admin/forms/form-sections/form-advanced-settings-card";
 import { FormCardBuilderSection } from "@/components/admin/forms/form-sections/form-card-builder-section";
 import { FormProfileEstimationSection } from "@/components/admin/forms/form-sections/form-profile-estimation-section";
 import { Form } from "@/components/ui/form";
@@ -47,8 +46,6 @@ const defaultValues: FormTemplateFormValues = {
   subtitle: "",
   submitButtonText: "Submit",
   successMessage: "Thank you for your submission!",
-  requiresWakeUp: true,
-  wakeUpInterval: 30,
   profileEstimation: getDefaultFormValues(undefined),
 };
 
@@ -323,17 +320,6 @@ export default function NewFormTemplatePage() {
               onExportSchema={exportSchemaToJSON}
             />
           )}
-
-          <FormAdvancedSettingsCard
-            requiresWakeUp={watch("requiresWakeUp") ?? false}
-            wakeUpInterval={watch("wakeUpInterval") ?? 0}
-            onRequiresWakeUpChange={(enabled) =>
-              setValue("requiresWakeUp", enabled)
-            }
-            onWakeUpIntervalChange={(interval) =>
-              setValue("wakeUpInterval", interval)
-            }
-          />
 
           <div className="flex items-center justify-end gap-4">
             <Button
