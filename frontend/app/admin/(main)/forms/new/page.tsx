@@ -32,6 +32,10 @@ import {
 } from "@/lib/forms/flowchart-serialization";
 import type { FlowchartGraph } from "@/lib/forms/flowchart-types";
 import type { CreateFormTemplateDto, FormType } from "@/lib/forms/types";
+import {
+  getDefaultFormValues,
+  formValuesToProfileEstimation,
+} from "@/components/admin/forms/profile-estimation/profile-estimation-form-utils";
 
 const defaultValues: FormTemplateFormValues = {
   name: "",
@@ -45,6 +49,7 @@ const defaultValues: FormTemplateFormValues = {
   successMessage: "Thank you for your submission!",
   requiresWakeUp: true,
   wakeUpInterval: 30,
+  profileEstimation: getDefaultFormValues(undefined),
 };
 
 export default function NewFormTemplatePage() {
@@ -125,6 +130,9 @@ export default function NewFormTemplatePage() {
       const dataToSubmit: CreateFormTemplateDto = {
         ...values,
         subAccountId: subAccountId ?? undefined,
+        profileEstimation: formValuesToProfileEstimation(
+          values.profileEstimation ?? getDefaultFormValues(undefined)
+        ),
         ...(isCardForm && {
           schema: flowchartToSchema(
             (values.cardSettings?.flowchartGraph as FlowchartGraph) ??
@@ -255,89 +263,91 @@ export default function NewFormTemplatePage() {
       <Form {...form}>
         <form onSubmit={handleSubmit} className="space-y-6">
           <FormBasicInfoCard
-          name={watch("name")}
-          slug={watch("slug")}
-          description={watch("description") || ""}
-          onNameChange={handleNameChange}
-          onSlugChange={(slug) => setValue("slug", slug)}
-          onDescriptionChange={(description) =>
-            setValue("description", description)
-          }
-        />
-
-        <FormDisplaySettingsCard
-          title={watch("title") || ""}
-          subtitle={watch("subtitle") || ""}
-          submitButtonText={watch("submitButtonText")}
-          successMessage={watch("successMessage")}
-          isCardForm={isCardForm}
-          onTitleChange={(title) => setValue("title", title)}
-          onSubtitleChange={(subtitle) => setValue("subtitle", subtitle)}
-          onSubmitButtonTextChange={(text) =>
-            setValue("submitButtonText", text)
-          }
-          onSuccessMessageChange={(message) =>
-            setValue("successMessage", message)
-          }
-        />
-
-        {isCardForm && (
-          <FormCardBuilderSection
-            graph={
-              (watch("cardSettings")?.flowchartGraph as FlowchartGraph) ??
-              defaultFlowchartGraph
+            name={watch("name")}
+            slug={watch("slug")}
+            description={watch("description") || ""}
+            onNameChange={handleNameChange}
+            onSlugChange={(slug) => setValue("slug", slug)}
+            onDescriptionChange={(description) =>
+              setValue("description", description)
             }
-            onGraphChange={(newGraph) =>
-              setValue("cardSettings", {
-                ...(watch("cardSettings") as Record<string, unknown> | undefined),
-                flowchartGraph: newGraph,
-                flowchartViewport: newGraph.viewport,
-              })
+          />
+
+          <FormDisplaySettingsCard
+            title={watch("title") || ""}
+            subtitle={watch("subtitle") || ""}
+            submitButtonText={watch("submitButtonText")}
+            successMessage={watch("successMessage")}
+            isCardForm={isCardForm}
+            onTitleChange={(title) => setValue("title", title)}
+            onSubtitleChange={(subtitle) => setValue("subtitle", subtitle)}
+            onSubmitButtonTextChange={(text) =>
+              setValue("submitButtonText", text)
             }
-            formSlug={watch("slug")}
-            description="Build your interactive card form using the flowchart editor. Preview will be available after you create the form."
+            onSuccessMessageChange={(message) =>
+              setValue("successMessage", message)
+            }
           />
-        )}
 
-        {isCardForm && (
-          <FormProfileEstimationSection
-            value={watch("profileEstimation")}
-            fields={cardFormSchema}
-            onChange={(config) => setValue("profileEstimation", config)}
+          {isCardForm && (
+            <FormCardBuilderSection
+              graph={
+                (watch("cardSettings")?.flowchartGraph as FlowchartGraph) ??
+                defaultFlowchartGraph
+              }
+              onGraphChange={(newGraph) =>
+                setValue("cardSettings", {
+                  ...(watch("cardSettings") as
+                    | Record<string, unknown>
+                    | undefined),
+                  flowchartGraph: newGraph,
+                  flowchartViewport: newGraph.viewport,
+                })
+              }
+              formSlug={watch("slug")}
+              description="Build your interactive card form using the flowchart editor. Preview will be available after you create the form."
+            />
+          )}
+
+          {isCardForm && (
+            <FormProfileEstimationSection fields={cardFormSchema} />
+          )}
+
+          {!isCardForm && (
+            <FormFieldsSection
+              schema={watch("schema")}
+              onAddField={addField}
+              onUpdateField={updateField}
+              onRemoveField={removeField}
+              onImportFields={handleImportFields}
+              onExportSchema={exportSchemaToJSON}
+            />
+          )}
+
+          <FormAdvancedSettingsCard
+            requiresWakeUp={watch("requiresWakeUp") ?? false}
+            wakeUpInterval={watch("wakeUpInterval") ?? 0}
+            onRequiresWakeUpChange={(enabled) =>
+              setValue("requiresWakeUp", enabled)
+            }
+            onWakeUpIntervalChange={(interval) =>
+              setValue("wakeUpInterval", interval)
+            }
           />
-        )}
 
-        {!isCardForm && (
-          <FormFieldsSection
-            schema={watch("schema")}
-            onAddField={addField}
-            onUpdateField={updateField}
-            onRemoveField={removeField}
-            onImportFields={handleImportFields}
-            onExportSchema={exportSchemaToJSON}
-          />
-        )}
-
-        <FormAdvancedSettingsCard
-          requiresWakeUp={watch("requiresWakeUp") ?? false}
-          wakeUpInterval={watch("wakeUpInterval") ?? 0}
-          onRequiresWakeUpChange={(enabled) =>
-            setValue("requiresWakeUp", enabled)
-          }
-          onWakeUpIntervalChange={(interval) =>
-            setValue("wakeUpInterval", interval)
-          }
-        />
-
-        <div className="flex items-center justify-end gap-4">
-          <Button type="button" variant="outline" onClick={() => router.back()}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={loading}>
-            <Save className="h-4 w-4 mr-2" />
-            {loading ? "Creating..." : "Create Form Template"}
-          </Button>
-        </div>
+          <div className="flex items-center justify-end gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.back()}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading}>
+              <Save className="h-4 w-4 mr-2" />
+              {loading ? "Creating..." : "Create Form Template"}
+            </Button>
+          </div>
         </form>
       </Form>
     </div>

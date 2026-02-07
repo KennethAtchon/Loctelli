@@ -73,7 +73,9 @@ export default function LoginPage() {
 
   const handleSubmit = form.handleSubmit(async (data) => {
     const timestamp = new Date().toISOString();
-    logger.debug(`🔐 Login form submitted at ${timestamp}:`, { email: data.email });
+    logger.debug(`🔐 Login form submitted at ${timestamp}:`, {
+      email: data.email,
+    });
     setError("");
     try {
       logger.debug("🧪 Testing login with credentials...");
@@ -85,7 +87,10 @@ export default function LoginPage() {
       const errorMessage =
         err instanceof Error ? err.message : "Login failed. Please try again.";
       setError(errorMessage);
-      setTimeout(() => logger.debug("⏰ Error state should be visible now"), 100);
+      setTimeout(
+        () => logger.debug("⏰ Error state should be visible now"),
+        100
+      );
     }
   });
 
@@ -104,7 +109,9 @@ export default function LoginPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto mb-4"></div>
           <p className="text-gray-600">Checking authentication...</p>
-          <p className="text-sm text-gray-500 mt-2">This may take a few moments</p>
+          <p className="text-sm text-gray-500 mt-2">
+            This may take a few moments
+          </p>
         </div>
       </div>
     );
@@ -199,7 +206,11 @@ export default function LoginPage() {
                   )}
                 />
 
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isSubmitting}
+                >
                   {isSubmitting ? "Signing in..." : "Sign in"}
                 </Button>
               </form>

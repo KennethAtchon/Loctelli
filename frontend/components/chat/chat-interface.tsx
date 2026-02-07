@@ -5,6 +5,7 @@ import { ArrowUp, Image, X, Info, InfoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { generateStableId } from "@/lib/utils/stable-id";
 
 type ActiveButton = "none" | "add" | "deepSearch" | "think";
 type MessageType = "user" | "system";
@@ -68,7 +69,7 @@ interface MessageSection {
 }
 
 interface StreamingWord {
-  id: number;
+  id: string;
   text: string;
 }
 
@@ -161,7 +162,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
             setStreamingWords((prev) => [
               ...prev,
               {
-                id: Date.now() + currentIndex,
+                id: generateStableId("stream-word"),
                 text: newWords.join(" ") + " ",
               },
             ]);
@@ -229,7 +230,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
 
       const sections: MessageSection[] = [];
       let currentSection: MessageSection = {
-        id: `section-${Date.now()}-0`,
+        id: generateStableId("section"),
         messages: [],
         isNewSection: false,
         sectionIndex: 0,
@@ -247,7 +248,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
           }
 
           // Create new active section
-          const newSectionId = `section-${Date.now()}-${sections.length}`;
+          const newSectionId = generateStableId("section");
           currentSection = {
             id: newSectionId,
             messages: [message],

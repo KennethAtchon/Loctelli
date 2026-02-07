@@ -6,7 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAdminAuth } from "@/contexts/unified-auth-context";
-import { adminLoginSchema, type AdminLoginFormValues } from "@/lib/forms/schemas";
+import {
+  adminLoginSchema,
+  type AdminLoginFormValues,
+} from "@/lib/forms/schemas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -199,23 +202,31 @@ export default function AdminLoginPage() {
                 />
 
                 <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-0 shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed group focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-transparent"
-                disabled={isSubmitting}
-                aria-describedby={isSubmitting ? "signing-in-status" : undefined}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
-                    <span id="signing-in-status">Signing in...</span>
-                  </>
-                ) : (
-                  <>
-                    Sign in
-                    <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
-                  </>
-                )}
-              </Button>
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-0 shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed group focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-transparent"
+                  disabled={isSubmitting}
+                  aria-describedby={
+                    isSubmitting ? "signing-in-status" : undefined
+                  }
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2
+                        className="mr-2 h-4 w-4 animate-spin"
+                        aria-hidden="true"
+                      />
+                      <span id="signing-in-status">Signing in...</span>
+                    </>
+                  ) : (
+                    <>
+                      Sign in
+                      <ChevronRight
+                        className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform"
+                        aria-hidden="true"
+                      />
+                    </>
+                  )}
+                </Button>
               </form>
             </Form>
 

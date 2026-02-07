@@ -32,7 +32,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookingsTimeEditor } from "@/components/admin/bookings-time-editor";
 import type { UpdateUserDto } from "@/lib/api";
 import type { UserProfile } from "@/lib/api/endpoints/admin-auth";
-import { editUserFormSchema, type EditUserFormValues } from "@/lib/forms/schemas";
+import {
+  editUserFormSchema,
+  type EditUserFormValues,
+} from "@/lib/forms/schemas";
 
 interface EditUserDialogProps {
   open: boolean;
@@ -42,7 +45,9 @@ interface EditUserDialogProps {
 }
 
 function userToFormValues(
-  user: UserProfile & { bookingsTime?: Array<{ date: string; slots: string[] }> | null }
+  user: UserProfile & {
+    bookingsTime?: Array<{ date: string; slots: string[] }> | null;
+  }
 ): UpdateUserDto {
   return {
     name: user.name,
@@ -76,7 +81,11 @@ export function EditUserDialog({
 
   useEffect(() => {
     if (user) {
-      const values = userToFormValues(user as UserProfile & { bookingsTime?: Array<{ date: string; slots: string[] }> | null });
+      const values = userToFormValues(
+        user as UserProfile & {
+          bookingsTime?: Array<{ date: string; slots: string[] }> | null;
+        }
+      );
       form.reset({
         ...values,
         role: (values.role ?? "user") as EditUserFormValues["role"],
@@ -231,7 +240,9 @@ export function EditUserDialog({
                           <BookingsTimeEditor
                             value={field.value}
                             onChange={(value) =>
-                              field.onChange(value as EditUserFormValues["bookingsTime"])
+                              field.onChange(
+                                value as EditUserFormValues["bookingsTime"]
+                              )
                             }
                           />
                         </FormControl>

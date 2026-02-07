@@ -218,7 +218,9 @@ export default function AdminRegisterPage() {
                           placeholder="John Doe"
                           disabled={isLoading}
                           className="bg-white/10 border-white/20 text-white placeholder:text-purple-200/60 focus:border-purple-400 focus:ring-purple-400/50 backdrop-blur-sm transition-all duration-200"
-                          aria-describedby={error ? "register-error" : undefined}
+                          aria-describedby={
+                            error ? "register-error" : undefined
+                          }
                           aria-invalid={!!error}
                           {...field}
                         />
@@ -243,7 +245,9 @@ export default function AdminRegisterPage() {
                           placeholder="admin@example.com"
                           disabled={isLoading}
                           className="bg-white/10 border-white/20 text-white placeholder:text-purple-200/60 focus:border-purple-400 focus:ring-purple-400/50 backdrop-blur-sm transition-all duration-200"
-                          aria-describedby={error ? "register-error" : undefined}
+                          aria-describedby={
+                            error ? "register-error" : undefined
+                          }
                           aria-invalid={!!error}
                           {...field}
                         />
@@ -271,8 +275,9 @@ export default function AdminRegisterPage() {
                             className="bg-white/10 border-white/20 text-white placeholder:text-purple-200/60 focus:border-purple-400 focus:ring-purple-400/50 backdrop-blur-sm transition-all duration-200 pr-12"
                             aria-describedby="password-requirements"
                             aria-invalid={
-                              !Object.values(passwordValidation).every(Boolean) &&
-                              (field.value?.length ?? 0) > 0
+                              !Object.values(passwordValidation).every(
+                                Boolean
+                              ) && (field.value?.length ?? 0) > 0
                             }
                             {...field}
                           />
@@ -281,7 +286,9 @@ export default function AdminRegisterPage() {
                             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-200/60 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-transparent rounded"
                             onClick={() => setShowPassword(!showPassword)}
                             disabled={isLoading}
-                            aria-label={showPassword ? "Hide password" : "Show password"}
+                            aria-label={
+                              showPassword ? "Hide password" : "Show password"
+                            }
                           >
                             {showPassword ? (
                               <EyeOff className="h-4 w-4" />
@@ -416,7 +423,10 @@ export default function AdminRegisterPage() {
                         />
                       </FormControl>
                       <FormMessage className="text-red-200" />
-                      <p className="text-xs text-purple-200/60" id="auth-code-help">
+                      <p
+                        className="text-xs text-purple-200/60"
+                        id="auth-code-help"
+                      >
                         Contact system administrator for the authorization code
                       </p>
                     </FormItem>
@@ -424,26 +434,33 @@ export default function AdminRegisterPage() {
                 />
 
                 <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white border-0 shadow-lg shadow-purple-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/40 disabled:opacity-50 disabled:cursor-not-allowed group focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-transparent"
-                disabled={isLoading}
-                aria-describedby={isLoading ? "creating-account-status" : undefined}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
-                    <span id="creating-account-status">Creating Account...</span>
-                  </>
-                ) : (
-                  <>
-                    Create Admin Account
-                    <ChevronRight
-                      className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform"
-                      aria-hidden="true"
-                    />
-                  </>
-                )}
-              </Button>
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white border-0 shadow-lg shadow-purple-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/40 disabled:opacity-50 disabled:cursor-not-allowed group focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-transparent"
+                  disabled={isLoading}
+                  aria-describedby={
+                    isLoading ? "creating-account-status" : undefined
+                  }
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2
+                        className="mr-2 h-4 w-4 animate-spin"
+                        aria-hidden="true"
+                      />
+                      <span id="creating-account-status">
+                        Creating Account...
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      Create Admin Account
+                      <ChevronRight
+                        className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform"
+                        aria-hidden="true"
+                      />
+                    </>
+                  )}
+                </Button>
               </form>
             </Form>
 

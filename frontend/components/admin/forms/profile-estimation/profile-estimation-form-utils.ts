@@ -3,14 +3,18 @@ import type {
   ProfileEstimationFormValues,
   AIProfileConfigFormValues,
 } from "./profile-estimation-form-types";
+import { generateStableId } from "@/lib/utils/stable-id";
 
-const DEFAULT_PERCENTAGE_RANGES: ProfileEstimationFormValues["percentageConfig"]["ranges"] = [
-  { min: 0, max: 33, label: "Low", description: "", image: "" },
-  { min: 34, max: 66, label: "Medium", description: "", image: "" },
-  { min: 67, max: 100, label: "High", description: "", image: "" },
-];
+const DEFAULT_PERCENTAGE_RANGES: ProfileEstimationFormValues["percentageConfig"]["ranges"] =
+  [
+    { min: 0, max: 33, label: "Low", description: "", image: "" },
+    { min: 34, max: 66, label: "Medium", description: "", image: "" },
+    { min: 67, max: 100, label: "High", description: "", image: "" },
+  ];
 
-function defaultAiConfig(v?: ProfileEstimation["aiConfig"]): AIProfileConfigFormValues {
+function defaultAiConfig(
+  v?: ProfileEstimation["aiConfig"]
+): AIProfileConfigFormValues {
   return {
     enabled: v?.enabled ?? false,
     model: v?.model ?? "gpt-4",
@@ -61,7 +65,7 @@ export function getDefaultFormValues(
             }))
           : [
               {
-                id: `cat_${Date.now()}`,
+                id: generateStableId("cat"),
                 name: "",
                 description: "",
                 image: "",
@@ -79,7 +83,7 @@ export function getDefaultFormValues(
           ? dims
           : [
               {
-                id: `dim_${Date.now()}`,
+                id: generateStableId("dim"),
                 name: "",
                 maxScore: 100,
                 fields: [],
@@ -101,7 +105,7 @@ export function getDefaultFormValues(
             }))
           : [
               {
-                id: `rec_${Date.now()}`,
+                id: generateStableId("rec"),
                 name: "",
                 description: "",
                 image: "",
@@ -124,16 +128,15 @@ export function formValuesToProfileEstimation(
   const result: ProfileEstimation = {
     enabled: true,
     type: values.type,
-    aiConfig:
-      values.aiConfig.enabled
-        ? {
-            enabled: true,
-            model: values.aiConfig.model,
-            prompt: values.aiConfig.prompt || undefined,
-            analysisType: values.aiConfig.analysisType,
-            outputFormat: values.aiConfig.outputFormat,
-          }
-        : undefined,
+    aiConfig: values.aiConfig.enabled
+      ? {
+          enabled: true,
+          model: values.aiConfig.model,
+          prompt: values.aiConfig.prompt || undefined,
+          analysisType: values.aiConfig.analysisType,
+          outputFormat: values.aiConfig.outputFormat,
+        }
+      : undefined,
   };
 
   if (values.type === "percentage") {
@@ -172,12 +175,10 @@ export function formValuesToProfileEstimation(
   if (values.type === "recommendation") {
     result.recommendationConfig = {
       title: values.recommendationConfig.title,
-      recommendations: values.recommendationConfig.recommendations.map(
-        (r) => ({
-          ...r,
-          image: r.image || undefined,
-        })
-      ),
+      recommendations: values.recommendationConfig.recommendations.map((r) => ({
+        ...r,
+        image: r.image || undefined,
+      })),
     };
   }
 

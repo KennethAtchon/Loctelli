@@ -244,8 +244,8 @@ export default function EditPromptTemplatePage() {
                 <CardHeader>
                   <CardTitle>Base System Prompt *</CardTitle>
                   <CardDescription>
-                    ONE simple sentence that defines the AI's core behavior. Keep
-                    it minimal - strategies will add detailed persona and
+                    ONE simple sentence that defines the AI's core behavior.
+                    Keep it minimal - strategies will add detailed persona and
                     instructions.
                   </CardDescription>
                 </CardHeader>
@@ -265,9 +265,9 @@ export default function EditPromptTemplatePage() {
                         </FormControl>
                         <FormMessage />
                         <p className="text-xs text-gray-500 mt-2">
-                          Keep this short and simple. Detailed instructions, persona,
-                          and conversation style will be defined in individual
-                          strategies.
+                          Keep this short and simple. Detailed instructions,
+                          persona, and conversation style will be defined in
+                          individual strategies.
                         </p>
                       </FormItem>
                     )}
@@ -275,178 +275,186 @@ export default function EditPromptTemplatePage() {
                 </CardContent>
               </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Tags</CardTitle>
-                <CardDescription>
-                  Add tags to categorize and organize templates
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-2">
-                  <Input
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddTag();
-                      }
-                    }}
-                    placeholder="Enter tag and press Add"
-                  />
-                  <Button type="button" variant="outline" onClick={handleAddTag}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add
-                  </Button>
-                </div>
-
-                {tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {tags.map((tag) => (
-                      <Badge
-                        key={tag}
-                        variant="secondary"
-                        className="flex items-center gap-1"
-                      >
-                        {tag}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveTag(tag)}
-                          className="ml-1 hover:text-red-600"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    ))}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tags</CardTitle>
+                  <CardDescription>
+                    Add tags to categorize and organize templates
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddTag();
+                        }
+                      }}
+                      placeholder="Enter tag and press Add"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleAddTag}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add
+                    </Button>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
 
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>AI Parameters</CardTitle>
-                <CardDescription>
-                  Configure the AI's behavior settings
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="temperature"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center justify-between">
-                        Temperature: {field.value ?? 0.7}
-                      </FormLabel>
-                      <p className="text-xs text-gray-500 mb-2">
-                        Controls randomness. Lower = more focused, Higher = more
-                        creative
-                      </p>
-                      <FormControl>
-                        <Slider
-                          value={[field.value ?? 0.7]}
-                          onValueChange={(value) => field.onChange(value[0])}
-                          max={2}
-                          min={0}
-                          step={0.1}
-                          className="mt-2"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                  {tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {tags.map((tag) => (
+                        <Badge
+                          key={tag}
+                          variant="secondary"
+                          className="flex items-center gap-1"
+                        >
+                          {tag}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveTag(tag)}
+                            className="ml-1 hover:text-red-600"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
                   )}
-                />
-                <FormField
-                  control={form.control}
-                  name="maxTokens"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Max Tokens (Optional)</FormLabel>
-                      <p className="text-xs text-gray-500 mb-2">
-                        Maximum length of AI responses
-                      </p>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          value={field.value ?? ""}
-                          onChange={(e) =>
-                            field.onChange(
-                              e.target.value ? parseInt(e.target.value) : undefined
-                            )
-                          }
-                          placeholder="e.g., 1000"
-                          min={1}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Template Settings</CardTitle>
-                <CardDescription>Configure template behavior</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="isActive"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div>
-                        <FormLabel className="text-base">Set as Active</FormLabel>
-                        <p className="text-sm text-gray-500">
-                          This template will be used as the default choice for new
-                          strategies
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>AI Parameters</CardTitle>
+                  <CardDescription>
+                    Configure the AI's behavior settings
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="temperature"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center justify-between">
+                          Temperature: {field.value ?? 0.7}
+                        </FormLabel>
+                        <p className="text-xs text-gray-500 mb-2">
+                          Controls randomness. Lower = more focused, Higher =
+                          more creative
                         </p>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value ?? false}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="space-y-3">
-                  <Button type="submit" className="w-full" disabled={saving}>
-                    {saving ? (
-                      "Saving..."
-                    ) : (
-                      <>
-                        <Save className="h-4 w-4 mr-2" />
-                        Save Changes
-                      </>
+                        <FormControl>
+                          <Slider
+                            value={[field.value ?? 0.7]}
+                            onValueChange={(value) => field.onChange(value[0])}
+                            max={2}
+                            min={0}
+                            step={0.1}
+                            className="mt-2"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                  </Button>
+                  />
+                  <FormField
+                    control={form.control}
+                    name="maxTokens"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Max Tokens (Optional)</FormLabel>
+                        <p className="text-xs text-gray-500 mb-2">
+                          Maximum length of AI responses
+                        </p>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            value={field.value ?? ""}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value
+                                  ? parseInt(e.target.value)
+                                  : undefined
+                              )
+                            }
+                            placeholder="e.g., 1000"
+                            min={1}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => router.back()}
-                    disabled={saving}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Template Settings</CardTitle>
+                  <CardDescription>Configure template behavior</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="isActive"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div>
+                          <FormLabel className="text-base">
+                            Set as Active
+                          </FormLabel>
+                          <p className="text-sm text-gray-500">
+                            This template will be used as the default choice for
+                            new strategies
+                          </p>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value ?? false}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="space-y-3">
+                    <Button type="submit" className="w-full" disabled={saving}>
+                      {saving ? (
+                        "Saving..."
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4 mr-2" />
+                          Save Changes
+                        </>
+                      )}
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => router.back()}
+                      disabled={saving}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </div>
         </form>
       </Form>
     </div>

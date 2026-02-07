@@ -17,7 +17,11 @@ export const createUserSchema = z
 
 export const updateUserSchema = z.object({
   name: z.string().min(1, "Name is required").optional(),
-  email: z.string().min(1, "Email is required").email("Invalid email").optional(),
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Invalid email")
+    .optional(),
   role: z.enum(["user", "manager", "admin"]).optional(),
   company: z.string().optional(),
   isActive: z.boolean().optional(),

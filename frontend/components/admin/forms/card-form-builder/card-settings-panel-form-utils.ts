@@ -1,4 +1,7 @@
-import type { FlowchartNode, FlowchartNodeData } from "@/lib/forms/flowchart-types";
+import type {
+  FlowchartNode,
+  FlowchartNodeData,
+} from "@/lib/forms/flowchart-types";
 import type { FormField } from "@/lib/forms/types";
 import type {
   NodeSettingsFormValues,
@@ -14,7 +17,9 @@ const defaultConditionalLogic: ConditionalLogicFormValues = {
   dynamicLabel: [],
 };
 
-export function getDefaultFormValues(node: FlowchartNode): NodeSettingsFormValues {
+export function getDefaultFormValues(
+  node: FlowchartNode
+): NodeSettingsFormValues {
   const data = node.data ?? {};
   const isStatement = node.type === "statement";
 
@@ -131,13 +136,18 @@ export function formValuesToUpdates(
     updates.fieldId = field.id;
   }
 
-  if (values.media && (values.media.url || (values.media.type === "video" && values.media.videoId))) {
+  if (
+    values.media &&
+    (values.media.url ||
+      (values.media.type === "video" && values.media.videoId))
+  ) {
     updates.media = {
       type: values.media.type,
       position: values.media.position,
       url: values.media.url || undefined,
       altText: values.media.altText || undefined,
-      videoType: values.media.type === "video" ? values.media.videoType : undefined,
+      videoType:
+        values.media.type === "video" ? values.media.videoType : undefined,
       videoId:
         values.media.type === "video" && values.media.videoId
           ? values.media.videoId

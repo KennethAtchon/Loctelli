@@ -3,6 +3,7 @@ import { api } from "@/lib/api";
 import { useTenant } from "@/contexts/tenant-context";
 import { useToast } from "@/hooks/use-toast";
 import logger from "@/lib/logger";
+import { generateStableId } from "@/lib/utils/stable-id";
 import type { Lead } from "@/types";
 import type { DetailedLead } from "@/lib/api/endpoints/admin-auth";
 import type {
@@ -372,7 +373,7 @@ export function useChatState() {
         : "");
 
     const userMessage: ChatMessage = {
-      id: `${Date.now()}-user`,
+      id: generateStableId("msg"),
       role: "user",
       content: messageContent,
       imageUrl: imageBase64Array.length > 0 ? imageBase64Array[0] : undefined,
@@ -402,7 +403,7 @@ export function useChatState() {
       setIsTyping(false);
 
       const aiMessage: ChatMessage = {
-        id: `${Date.now()}-ai`,
+        id: generateStableId("msg"),
         role: "assistant",
         content: response.aiMessage.content,
         timestamp: new Date(),

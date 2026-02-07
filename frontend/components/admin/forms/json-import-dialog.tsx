@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import type { FormField } from "@/lib/forms/types";
+import { generateStableId } from "@/lib/utils/stable-id";
 
 const fieldTypes = [
   { value: "text", label: "Text Input" },
@@ -109,7 +110,7 @@ export function JsonImportDialog({ onImport }: JsonImportDialogProps) {
         (field: FormField, index: number) => {
           let fieldId = field.id;
           if (!fieldId || usedIds.has(fieldId)) {
-            fieldId = `field_${Date.now()}_${index}`;
+            fieldId = generateStableId("field");
           }
           usedIds.add(fieldId);
           return { ...field, id: fieldId };

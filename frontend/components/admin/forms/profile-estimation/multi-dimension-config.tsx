@@ -1,5 +1,6 @@
 "use client";
 
+import type { FieldArrayPath } from "react-hook-form";
 import { Controller, useFormContext, useFieldArray } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -13,53 +14,63 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { ProfileEstimationFormValues } from "./profile-estimation-form-types";
+import {
+  LabelWithTooltip,
+  SectionHeadingWithTooltip,
+} from "./label-with-tooltip";
+import { PROFILE_ESTIMATION_FIELD } from "./profile-estimation-form-types";
+import type { FormTemplateFormValues } from "@/app/admin/(main)/forms/hooks/use-form-template-form-state";
 
 export interface MultiDimensionConfigProps {
   fields: FormField[];
+  dimensions: Array<{ id: string }>;
+  onAddDimension: () => void;
+  onRemoveDimension: (index: number) => void;
 }
 
-export function MultiDimensionConfig({ fields }: MultiDimensionConfigProps) {
-  const { control } = useFormContext<ProfileEstimationFormValues>();
-
-  const { fields: dimensions, append, remove } = useFieldArray({
-    control,
-    name: "dimensionConfig.dimensions",
-  });
-
-  const addDimension = () => {
-    append({
-      id: `dim_${Date.now()}`,
-      name: "",
-      maxScore: 100,
-      fields: [],
-    });
-  };
+export function MultiDimensionConfig({
+  fields,
+  dimensions,
+  onAddDimension,
+  onRemoveDimension,
+}: MultiDimensionConfigProps) {
+  const { control } = useFormContext<FormTemplateFormValues>();
 
   return (
     <div className="space-y-4">
       <Controller
-        name="dimensionConfig.title"
+        name={`${PROFILE_ESTIMATION_FIELD}.dimensionConfig.title`}
         control={control}
         render={({ field }) => (
           <div>
-            <Label htmlFor="dimension-title">Title</Label>
+            <LabelWithTooltip
+              label="Title"
+              htmlFor="dimension-title"
+              tooltip={
+                'Heading on the result screen (e.g. "Your Profile", "Your scores").'
+              }
+            />
             <Input
               id="dimension-title"
               {...field}
               placeholder="Your Profile"
+              className="mt-1.5"
             />
           </div>
         )}
       />
       <Controller
-        name="dimensionConfig.visualization"
+        name={`${PROFILE_ESTIMATION_FIELD}.dimensionConfig.visualization`}
         control={control}
         render={({ field }) => (
           <div>
-            <Label htmlFor="visualization">Visualization Type</Label>
+            <LabelWithTooltip
+              label="Visualization Type"
+              htmlFor="visualization"
+              tooltip="How to display the dimension scores: Bars (horizontal bars), Radar (spider chart), or Pie (pie chart)."
+            />
             <Select value={field.value} onValueChange={field.onChange}>
-              <SelectTrigger id="visualization">
+              <SelectTrigger id="visualization" className="mt-1.5">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -74,8 +85,15 @@ export function MultiDimensionConfig({ fields }: MultiDimensionConfigProps) {
 
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <Label>Dimensions</Label>
-          <Button type="button" variant="outline" size="sm" onClick={addDimension}>
+          <SectionHeadingWithTooltip tooltip="Each dimension is one axis (e.g. Adventure, Relaxation). For each dimension, set a name, max score, and which form fields contribute points to it. Scores are computed per dimension and shown with the visualization you chose.">
+            <Label>Dimensions</Label>
+          </SectionHeadingWithTooltip>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onAddDimension}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Dimension
           </Button>
@@ -85,7 +103,7 @@ export function MultiDimensionConfig({ fields }: MultiDimensionConfigProps) {
             key={dimension.id}
             dimIndex={dimIndex}
             fields={fields}
-            onRemove={() => remove(dimIndex)}
+            onRemove={() => onRemoveDimension(dimIndex)}
           />
         ))}
       </div>
@@ -102,12 +120,21 @@ function DimensionRow({
   fields: FormField[];
   onRemove: () => void;
 }) {
-  const { control, watch } = useFormContext<ProfileEstimationFormValues>();
-  const { fields: fieldScoringList, append, remove } = useFieldArray({
+  const { control, watch } = useFormContext<FormTemplateFormValues>();
+  const dimensionFieldsPath =
+    `${PROFILE_ESTIMATION_FIELD}.dimensionConfig.dimensions.${dimIndex}.fields` as FieldArrayPath<FormTemplateFormValues>;
+  const {
+    fields: fieldScoringList,
+    append,
+    remove,
+  } = useFieldArray({
     control,
-    name: `dimensionConfig.dimensions.${dimIndex}.fields`,
+    name: dimensionFieldsPath,
   });
-  const dimensionId = watch(`dimensionConfig.dimensions.${dimIndex}.id`) ?? "";
+  const dimensionId =
+    watch(
+      `${PROFILE_ESTIMATION_FIELD}.dimensionConfig.dimensions.${dimIndex}.id`
+    ) ?? "";
 
   const addFieldScoring = () => {
     append({
@@ -120,27 +147,38 @@ function DimensionRow({
     <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
       <div className="grid grid-cols-3 gap-2">
         <Controller
-          name={`dimensionConfig.dimensions.${dimIndex}.name`}
+          name={`${PROFILE_ESTIMATION_FIELD}.dimensionConfig.dimensions.${dimIndex}.name`}
           control={control}
           render={({ field }) => (
             <div>
-              <Label>Dimension Name</Label>
-              <Input {...field} placeholder="e.g., Adventure" />
+              <LabelWithTooltip
+                label="Dimension Name"
+                tooltip="Label for this axis (e.g. Adventure, Relaxation). Shown on the chart or bars."
+              />
+              <Input
+                {...field}
+                placeholder="e.g., Adventure"
+                className="mt-1.5"
+              />
             </div>
           )}
         />
         <Controller
-          name={`dimensionConfig.dimensions.${dimIndex}.maxScore`}
+          name={`${PROFILE_ESTIMATION_FIELD}.dimensionConfig.dimensions.${dimIndex}.maxScore`}
           control={control}
           render={({ field }) => (
             <div>
-              <Label>Max Score</Label>
+              <LabelWithTooltip
+                label="Max Score"
+                tooltip="Maximum points for this dimension. User score will be between 0 and this value; the chart scales to it."
+              />
               <Input
                 type="number"
                 value={field.value}
                 onChange={(e) =>
                   field.onChange(parseInt(e.target.value) || 100)
                 }
+                className="mt-1.5"
               />
             </div>
           )}
@@ -153,7 +191,9 @@ function DimensionRow({
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label className="text-sm">Field Scoring</Label>
+          <SectionHeadingWithTooltip tooltip="Pick form fields that contribute to this dimension. For each field, add scoring rules: answer value and points. Points are summed for this dimension only.">
+            <Label className="text-sm">Field Scoring</Label>
+          </SectionHeadingWithTooltip>
           <Button
             type="button"
             variant="outline"
@@ -192,17 +232,23 @@ function DimensionFieldScoringRow({
   fields: FormField[];
   onRemove: () => void;
 }) {
-  const { control, watch } = useFormContext<ProfileEstimationFormValues>();
-  const { fields: scoringRows, append, remove } = useFieldArray({
+  const { control, watch } = useFormContext<FormTemplateFormValues>();
+  const dimensionScoringPath =
+    `${PROFILE_ESTIMATION_FIELD}.dimensionConfig.dimensions.${dimIndex}.fields.${fieldIndex}.scoring` as FieldArrayPath<FormTemplateFormValues>;
+  const {
+    fields: scoringRows,
+    append,
+    remove,
+  } = useFieldArray({
     control,
-    name: `dimensionConfig.dimensions.${dimIndex}.fields.${fieldIndex}.scoring`,
+    name: dimensionScoringPath,
   });
 
   const selectedField = fields.find(
     (f) =>
       f.id ===
       watch(
-        `dimensionConfig.dimensions.${dimIndex}.fields.${fieldIndex}.fieldId`
+        `${PROFILE_ESTIMATION_FIELD}.dimensionConfig.dimensions.${dimIndex}.fields.${fieldIndex}.fieldId`
       )
   );
 
@@ -220,7 +266,7 @@ function DimensionFieldScoringRow({
     <div className="border rounded p-3 space-y-2 bg-background">
       <div className="flex items-center gap-2">
         <Controller
-          name={`dimensionConfig.dimensions.${dimIndex}.fields.${fieldIndex}.fieldId`}
+          name={`${PROFILE_ESTIMATION_FIELD}.dimensionConfig.dimensions.${dimIndex}.fields.${fieldIndex}.fieldId`}
           control={control}
           render={({ field }) => (
             <Select value={field.value} onValueChange={field.onChange}>
@@ -245,7 +291,7 @@ function DimensionFieldScoringRow({
         {scoringRows.map((score, scoreIndex) => (
           <div key={score.id} className="flex items-center gap-2 text-sm">
             <Controller
-              name={`dimensionConfig.dimensions.${dimIndex}.fields.${fieldIndex}.scoring.${scoreIndex}.answer`}
+              name={`${PROFILE_ESTIMATION_FIELD}.dimensionConfig.dimensions.${dimIndex}.fields.${fieldIndex}.scoring.${scoreIndex}.answer`}
               control={control}
               render={({ field }) => (
                 <Input
@@ -257,7 +303,7 @@ function DimensionFieldScoringRow({
               )}
             />
             <Controller
-              name={`dimensionConfig.dimensions.${dimIndex}.fields.${fieldIndex}.scoring.${scoreIndex}.points`}
+              name={`${PROFILE_ESTIMATION_FIELD}.dimensionConfig.dimensions.${dimIndex}.fields.${fieldIndex}.scoring.${scoreIndex}.points`}
               control={control}
               render={({ field }) => (
                 <Input

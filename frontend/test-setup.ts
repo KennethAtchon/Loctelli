@@ -27,7 +27,6 @@ if (typeof global !== "undefined") {
 if (typeof global !== "undefined") {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (global as any).nextImage = (props: any) => {
-    // eslint-disable-next-line @next/next/no-img-element
     return { type: "img", props };
   };
 }

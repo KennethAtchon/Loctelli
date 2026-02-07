@@ -15,7 +15,10 @@ export const updatePromptTemplateSchema = z.object({
   name: z.string().min(1, "Name is required").optional(),
   description: z.string().optional(),
   category: z.string().optional(),
-  baseSystemPrompt: z.string().min(1, "Base system prompt is required").optional(),
+  baseSystemPrompt: z
+    .string()
+    .min(1, "Base system prompt is required")
+    .optional(),
   temperature: z.number().optional(),
   maxTokens: z.number().optional(),
   isActive: z.boolean().optional(),

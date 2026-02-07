@@ -249,7 +249,10 @@ export default function AdminSettingsPage() {
                   )}
                 />
               </div>
-              <Button type="submit" disabled={profileForm.formState.isSubmitting}>
+              <Button
+                type="submit"
+                disabled={profileForm.formState.isSubmitting}
+              >
                 {profileForm.formState.isSubmitting ? (
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
                 ) : (
@@ -293,7 +296,10 @@ export default function AdminSettingsPage() {
                           type="button"
                           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                           onClick={() =>
-                            setShowPasswords((prev) => ({ ...prev, old: !prev.old }))
+                            setShowPasswords((prev) => ({
+                              ...prev,
+                              old: !prev.old,
+                            }))
                           }
                         >
                           {showPasswords.old ? (
@@ -327,7 +333,10 @@ export default function AdminSettingsPage() {
                             type="button"
                             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                             onClick={() =>
-                              setShowPasswords((prev) => ({ ...prev, new: !prev.new }))
+                              setShowPasswords((prev) => ({
+                                ...prev,
+                                new: !prev.new,
+                              }))
                             }
                           >
                             {showPasswords.new ? (
@@ -339,8 +348,8 @@ export default function AdminSettingsPage() {
                         </div>
                       </FormControl>
                       <p className="text-xs text-gray-500">
-                        Must be at least 12 characters with uppercase, lowercase,
-                        number, and special character
+                        Must be at least 12 characters with uppercase,
+                        lowercase, number, and special character
                       </p>
                       <FormMessage />
                     </FormItem>
@@ -384,14 +393,17 @@ export default function AdminSettingsPage() {
                 />
               </div>
 
-              <Button type="submit" disabled={passwordForm.formState.isSubmitting}>
-              {passwordForm.formState.isSubmitting ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
-              ) : (
-                <Lock className="h-4 w-4 mr-2" />
-              )}
-              Change Password
-            </Button>
+              <Button
+                type="submit"
+                disabled={passwordForm.formState.isSubmitting}
+              >
+                {passwordForm.formState.isSubmitting ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                ) : (
+                  <Lock className="h-4 w-4 mr-2" />
+                )}
+                Change Password
+              </Button>
             </form>
           </Form>
         </CardContent>

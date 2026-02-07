@@ -1,5 +1,6 @@
 "use client";
 
+import type { FieldArrayPath } from "react-hook-form";
 import { Controller, useFormContext, useFieldArray } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -14,65 +15,75 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { ProfileEstimationFormValues } from "./profile-estimation-form-types";
+import {
+  LabelWithTooltip,
+  SectionHeadingWithTooltip,
+} from "./label-with-tooltip";
+import { PROFILE_ESTIMATION_FIELD } from "./profile-estimation-form-types";
+import type { FormTemplateFormValues } from "@/app/admin/(main)/forms/hooks/use-form-template-form-state";
 
 export interface PercentageConfigProps {
   fields: FormField[];
+  ranges: Array<{ id: string }>;
+  onAddRange: () => void;
+  onRemoveRange: (index: number) => void;
+  fieldScoring: Array<{ id: string }>;
+  onAddFieldScoring: () => void;
+  onRemoveFieldScoring: (index: number) => void;
 }
 
-export function PercentageConfig({ fields }: PercentageConfigProps) {
-  const { control } = useFormContext<ProfileEstimationFormValues>();
-
-  const { fields: ranges, append, remove } = useFieldArray({
-    control,
-    name: "percentageConfig.ranges",
-  });
-
-  const { fields: fieldScoring, append: appendFieldScoring, remove: removeFieldScoring } =
-    useFieldArray({
-      control,
-      name: "percentageConfig.fieldScoring",
-    });
-
-  const addRange = () => {
-    const last = ranges[ranges.length - 1];
-    const lastMax = last ? (last as { max?: number }).max ?? 0 : 0;
-    append({
-      min: lastMax + 1,
-      max: lastMax + 10,
-      label: "",
-      description: "",
-      image: "",
-    });
-  };
+export function PercentageConfig({
+  fields,
+  ranges,
+  onAddRange,
+  onRemoveRange,
+  fieldScoring,
+  onAddFieldScoring,
+  onRemoveFieldScoring,
+}: PercentageConfigProps) {
+  const { control } = useFormContext<FormTemplateFormValues>();
 
   return (
     <div className="space-y-4">
       <Controller
-        name="percentageConfig.title"
+        name={`${PROFILE_ESTIMATION_FIELD}.percentageConfig.title`}
         control={control}
         render={({ field }) => (
           <div>
-            <Label htmlFor="percentage-title">Title</Label>
+            <LabelWithTooltip
+              label="Title"
+              htmlFor="percentage-title"
+              tooltip={
+                'Heading shown above the score on the result screen (e.g. "Your Score", "Compatibility").'
+              }
+            />
             <Input
               id="percentage-title"
               {...field}
               placeholder="Your Score"
+              className="mt-1.5"
             />
           </div>
         )}
       />
       <Controller
-        name="percentageConfig.description"
+        name={`${PROFILE_ESTIMATION_FIELD}.percentageConfig.description`}
         control={control}
         render={({ field }) => (
           <div>
-            <Label htmlFor="percentage-description">Description</Label>
+            <LabelWithTooltip
+              label="Description"
+              htmlFor="percentage-description"
+              tooltip={
+                'Short text shown below the score to explain what it means (e.g. "Based on your answers...").'
+              }
+            />
             <Textarea
               id="percentage-description"
               {...field}
               placeholder="Based on your answers..."
               rows={3}
+              className="mt-1.5"
             />
           </div>
         )}
@@ -80,8 +91,15 @@ export function PercentageConfig({ fields }: PercentageConfigProps) {
 
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <Label>Score Ranges</Label>
-          <Button type="button" variant="outline" size="sm" onClick={addRange}>
+          <SectionHeadingWithTooltip tooltip="Define bands for the total score (e.g. 0-30 Low, 31-70 Medium, 71-100 High). Each range can have a label, description, and optional image. Ranges should not overlap and typically cover 0-100.">
+            <Label>Score Ranges</Label>
+          </SectionHeadingWithTooltip>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onAddRange}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Range
           </Button>
@@ -93,11 +111,16 @@ export function PercentageConfig({ fields }: PercentageConfigProps) {
           >
             <div className="grid grid-cols-3 gap-2">
               <Controller
-                name={`percentageConfig.ranges.${index}.min`}
+                name={`${PROFILE_ESTIMATION_FIELD}.percentageConfig.ranges.${index}.min`}
                 control={control}
                 render={({ field }) => (
                   <div>
-                    <Label>Min %</Label>
+                    <LabelWithTooltip
+                      label="Min %"
+                      tooltip={
+                        'Lowest percentage (0-100) that falls into this range. E.g. 0 for "0-30" or 31 for "31-70".'
+                      }
+                    />
                     <Input
                       type="number"
                       min={0}
@@ -106,16 +129,22 @@ export function PercentageConfig({ fields }: PercentageConfigProps) {
                       onChange={(e) =>
                         field.onChange(parseInt(e.target.value) || 0)
                       }
+                      className="mt-1.5"
                     />
                   </div>
                 )}
               />
               <Controller
-                name={`percentageConfig.ranges.${index}.max`}
+                name={`${PROFILE_ESTIMATION_FIELD}.percentageConfig.ranges.${index}.max`}
                 control={control}
                 render={({ field }) => (
                   <div>
-                    <Label>Max %</Label>
+                    <LabelWithTooltip
+                      label="Max %"
+                      tooltip={
+                        'Highest percentage (0-100) for this range. E.g. 30 for "0-30" or 70 for "31-70".'
+                      }
+                    />
                     <Input
                       type="number"
                       min={0}
@@ -124,6 +153,7 @@ export function PercentageConfig({ fields }: PercentageConfigProps) {
                       onChange={(e) =>
                         field.onChange(parseInt(e.target.value) || 100)
                       }
+                      className="mt-1.5"
                     />
                   </div>
                 )}
@@ -133,46 +163,61 @@ export function PercentageConfig({ fields }: PercentageConfigProps) {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  onClick={() => remove(index)}
+                  onClick={() => onRemoveRange(index)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             </div>
             <Controller
-              name={`percentageConfig.ranges.${index}.label`}
+              name={`${PROFILE_ESTIMATION_FIELD}.percentageConfig.ranges.${index}.label`}
               control={control}
               render={({ field }) => (
                 <div>
-                  <Label>Label</Label>
-                  <Input {...field} placeholder="e.g., Low, Medium, High" />
-                </div>
-              )}
-            />
-            <Controller
-              name={`percentageConfig.ranges.${index}.description`}
-              control={control}
-              render={({ field }) => (
-                <div>
-                  <Label>Description</Label>
-                  <Textarea
+                  <LabelWithTooltip
+                    label="Label"
+                    tooltip="Short name for this range shown to the user (e.g. Low, Medium, High)."
+                  />
+                  <Input
                     {...field}
-                    placeholder="Description for this score range"
-                    rows={2}
+                    placeholder="e.g., Low, Medium, High"
+                    className="mt-1.5"
                   />
                 </div>
               )}
             />
             <Controller
-              name={`percentageConfig.ranges.${index}.image`}
+              name={`${PROFILE_ESTIMATION_FIELD}.percentageConfig.ranges.${index}.description`}
               control={control}
               render={({ field }) => (
                 <div>
-                  <Label>Image URL (optional)</Label>
+                  <LabelWithTooltip
+                    label="Description"
+                    tooltip="Explanation shown for this score range on the result screen."
+                  />
+                  <Textarea
+                    {...field}
+                    placeholder="Description for this score range"
+                    rows={2}
+                    className="mt-1.5"
+                  />
+                </div>
+              )}
+            />
+            <Controller
+              name={`${PROFILE_ESTIMATION_FIELD}.percentageConfig.ranges.${index}.image`}
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <LabelWithTooltip
+                    label="Image URL (optional)"
+                    tooltip="URL of an image to show for this range (e.g. illustration or badge)."
+                  />
                   <Input
                     {...field}
                     value={field.value ?? ""}
                     placeholder="https://example.com/image.jpg"
+                    className="mt-1.5"
                   />
                 </div>
               )}
@@ -182,28 +227,23 @@ export function PercentageConfig({ fields }: PercentageConfigProps) {
       </div>
 
       <div className="space-y-3 pt-4 border-t">
-        <Label>Field Scoring Configuration</Label>
+        <SectionHeadingWithTooltip tooltip="For each form field, define how each answer option adds points. The percentage is: (sum of points for the user's chosen answers) ÷ (sum of each field's best possible points) × 100. So per field we use the highest point value as that field's maximum—e.g. if one question has 3 options worth 30, 40, 40, that field's max is 40, not 110. The result is always 0–100% and is then matched to your score ranges. Add one block per field, then add scoring rules: answer value and points.">
+          <Label>Field Scoring Configuration</Label>
+        </SectionHeadingWithTooltip>
         <p className="text-xs text-muted-foreground">
-          Configure how answers contribute to the percentage score
+          Configure how answers contribute to the percentage score. Per field,
+          the &quot;max&quot; is the highest point value among its options, not
+          the sum of all options.
         </p>
         {fieldScoring.map((fieldScore, index) => (
           <PercentageFieldScoringRow
             key={fieldScore.id}
             index={index}
             fields={fields}
-            onRemove={() => removeFieldScoring(index)}
+            onRemove={() => onRemoveFieldScoring(index)}
           />
         ))}
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() =>
-            appendFieldScoring({
-              fieldId: fields[0]?.id ?? "",
-              scoring: [],
-            })
-          }
-        >
+        <Button type="button" variant="outline" onClick={onAddFieldScoring}>
           <Plus className="h-4 w-4 mr-2" />
           Add Field Scoring
         </Button>
@@ -221,14 +261,24 @@ function PercentageFieldScoringRow({
   fields: FormField[];
   onRemove: () => void;
 }) {
-  const { control, watch } = useFormContext<ProfileEstimationFormValues>();
-  const { fields: scoringRows, append, remove } = useFieldArray({
+  const { control, watch } = useFormContext<FormTemplateFormValues>();
+  const scoringPath =
+    `${PROFILE_ESTIMATION_FIELD}.percentageConfig.fieldScoring.${index}.scoring` as FieldArrayPath<FormTemplateFormValues>;
+  const {
+    fields: scoringRows,
+    append,
+    remove,
+  } = useFieldArray({
     control,
-    name: `percentageConfig.fieldScoring.${index}.scoring`,
+    name: scoringPath,
   });
 
   const selectedField = fields.find(
-    (f) => f.id === watch(`percentageConfig.fieldScoring.${index}.fieldId`)
+    (f) =>
+      f.id ===
+      watch(
+        `${PROFILE_ESTIMATION_FIELD}.percentageConfig.fieldScoring.${index}.fieldId`
+      )
   );
 
   const addScoringRule = () => {
@@ -245,7 +295,7 @@ function PercentageFieldScoringRow({
     <div className="border rounded-lg p-3 space-y-2 bg-muted/30">
       <div className="flex items-center gap-2">
         <Controller
-          name={`percentageConfig.fieldScoring.${index}.fieldId`}
+          name={`${PROFILE_ESTIMATION_FIELD}.percentageConfig.fieldScoring.${index}.fieldId`}
           control={control}
           render={({ field }) => (
             <Select value={field.value} onValueChange={field.onChange}>
@@ -268,13 +318,10 @@ function PercentageFieldScoringRow({
       </div>
       <div className="space-y-2">
         {scoringRows.map((score, scoreIndex) => (
-          <div
-            key={score.id}
-            className="flex items-center gap-2 text-sm"
-          >
-        <Controller
-          name={`percentageConfig.fieldScoring.${index}.scoring.${scoreIndex}.answer`}
-          control={control}
+          <div key={score.id} className="flex items-center gap-2 text-sm">
+            <Controller
+              name={`${PROFILE_ESTIMATION_FIELD}.percentageConfig.fieldScoring.${index}.scoring.${scoreIndex}.answer`}
+              control={control}
               render={({ field }) => (
                 <Input
                   value={
@@ -293,7 +340,7 @@ function PercentageFieldScoringRow({
               )}
             />
             <Controller
-              name={`percentageConfig.fieldScoring.${index}.scoring.${scoreIndex}.points`}
+              name={`${PROFILE_ESTIMATION_FIELD}.percentageConfig.fieldScoring.${index}.scoring.${scoreIndex}.points`}
               control={control}
               render={({ field }) => (
                 <Input

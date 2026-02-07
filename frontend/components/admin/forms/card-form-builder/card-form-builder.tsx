@@ -26,12 +26,12 @@ export function CardFormBuilder({
     setViewMode,
     selectedNodeId,
     selectedNode,
+    selectedNodeIndex,
     handleNodeClick,
     clearSelection,
     orderedContentNodes,
     schemaFromGraph,
     handleGraphChange,
-    handleNodeUpdate,
     handleNodeDelete,
     handleAddNode,
     handleReorder,
@@ -145,11 +145,11 @@ export function CardFormBuilder({
 
       <CardSettingsPanel
         node={selectedNode ?? null}
+        nodeIndex={selectedNodeIndex ?? -1}
         open={!!selectedNode}
         onOpenChange={(open) => {
           if (!open) clearSelection();
         }}
-        onUpdate={handleNodeUpdate}
         onDelete={handleNodeDelete}
         formSlug={formSlug}
         allFields={schemaFromGraph}

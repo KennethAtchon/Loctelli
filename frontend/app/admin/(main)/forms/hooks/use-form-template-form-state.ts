@@ -8,13 +8,11 @@ import {
   schemaToFlowchart,
 } from "@/lib/forms/flowchart-serialization";
 import type { FlowchartGraph } from "@/lib/forms/flowchart-types";
-import type {
-  FormField,
-  ProfileEstimation,
-  FormType,
-} from "@/lib/forms/types";
+import type { FormField, FormType, ProfileEstimation } from "@/lib/forms/types";
+import type { ProfileEstimationFormValues } from "@/components/admin/forms/profile-estimation/profile-estimation-form-types";
+import { generateStableId } from "@/lib/utils/stable-id";
 
-/** Form values shape shared by Create and Edit (for RHF). */
+/** Form values shape shared by Create and Edit (for RHF). Parent owns profile estimation as expanded form shape. */
 export type FormTemplateFormValues = {
   name: string;
   slug: string;
@@ -26,7 +24,7 @@ export type FormTemplateFormValues = {
   submitButtonText?: string;
   successMessage?: string;
   cardSettings?: Record<string, unknown>;
-  profileEstimation?: ProfileEstimation;
+  profileEstimation?: ProfileEstimationFormValues;
   requiresWakeUp?: boolean;
   wakeUpInterval?: number;
   isActive?: boolean;
@@ -43,7 +41,10 @@ export interface UseFormTemplateFormStateRHFOptions {
 export function useFormTemplateFormStateRHF(
   form: UseFormReturn<FormTemplateFormValues>,
   options: UseFormTemplateFormStateRHFOptions = {}
-): Omit<UseFormTemplateFormStateReturn<FormTemplateFormValues>, "handleInputChange"> {
+): Omit<
+  UseFormTemplateFormStateReturn<FormTemplateFormValues>,
+  "handleInputChange"
+> {
   const { toast } = useToast();
   const { exportFileName } = options;
 
@@ -65,7 +66,7 @@ export function useFormTemplateFormStateRHF(
   const addField = useCallback(() => {
     const schema = form.getValues("schema") ?? [];
     const newField: FormField = {
-      id: `field_${Date.now()}`,
+      id: generateStableId("field"),
       type: "text",
       label: "",
       required: false,
@@ -78,7 +79,9 @@ export function useFormTemplateFormStateRHF(
       const schema = form.getValues("schema") ?? [];
       form.setValue(
         "schema",
-        schema.map((field, i) => (i === index ? { ...field, ...updates } : field))
+        schema.map((field, i) =>
+          i === index ? { ...field, ...updates } : field
+        )
       );
     },
     [form]
@@ -156,7 +159,8 @@ export interface UseFormTemplateFormStateReturn<T> {
       | boolean
       | FormField[]
       | Record<string, unknown>
-      | ProfileEstimation
+      | ProfileEstimationFormValues
+      | import("@/lib/forms/types").ProfileEstimation
       | undefined
   ) => void;
   addField: () => void;
@@ -219,7 +223,7 @@ export function useFormTemplateFormState<
 
   const addField = useCallback(() => {
     const newField: FormField = {
-      id: `field_${Date.now()}`,
+      id: generateStableId("field"),
       type: "text",
       label: "",
       required: false,

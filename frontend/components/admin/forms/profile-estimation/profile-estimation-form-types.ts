@@ -2,6 +2,10 @@
  * React Hook Form values type for Profile Estimation.
  * Mirrors ProfileEstimation with arrays always present (for useFieldArray).
  */
+
+/** Field name under the parent form template (parent owns this slice). */
+export const PROFILE_ESTIMATION_FIELD = "profileEstimation" as const;
+
 import type {
   ProfileEstimation,
   AIProfileConfig,

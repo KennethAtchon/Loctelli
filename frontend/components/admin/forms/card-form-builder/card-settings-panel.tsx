@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import type { Path } from "react-hook-form";
+import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +10,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,7 +27,11 @@ import type {
   FlowchartNode,
   FlowchartNodeData,
 } from "@/lib/forms/flowchart-types";
-import type { FormField, ConditionGroup, ConditionBlock } from "@/lib/forms/types";
+import type {
+  FormField,
+  ConditionGroup,
+  ConditionBlock,
+} from "@/lib/forms/types";
 import { getPipingDisplayToken } from "@/lib/forms/conditional-logic";
 import { labelToPipingKey } from "@/lib/forms/form-utils";
 import { api } from "@/lib/api";
@@ -40,10 +44,8 @@ import {
 import { LogicBuilder } from "./logic-builder";
 import type { NodeSettingsFormValues } from "./card-settings-panel-form-types";
 import { defaultMediaFormValues } from "./card-settings-panel-form-types";
-import {
-  getDefaultFormValues,
-  formValuesToUpdates,
-} from "./card-settings-panel-form-utils";
+import { generateStableId } from "@/lib/utils/stable-id";
+import type { FormTemplateFormValues } from "@/app/admin/(main)/forms/hooks/use-form-template-form-state";
 
 function hasAnyConditions(
   logic: ConditionGroup | ConditionBlock | undefined
@@ -76,9 +78,10 @@ const dummyNode = {
 
 export interface CardSettingsPanelProps {
   node: FlowchartNode | null;
+  /** Index of the node in the parent form's cardSettings.flowchartGraph.nodes array. */
+  nodeIndex: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUpdate: (nodeId: string, updates: Partial<FlowchartNodeData>) => void;
   onDelete?: (nodeId: string) => void;
   formSlug?: string;
   allFields?: FormField[];
@@ -86,17 +89,22 @@ export interface CardSettingsPanelProps {
 
 export function CardSettingsPanel({
   node,
+  nodeIndex,
   open,
   onOpenChange,
-  onUpdate,
   onDelete,
   formSlug,
   allFields = [],
 }: CardSettingsPanelProps) {
-  const form = useForm<NodeSettingsFormValues>({
-    defaultValues: getDefaultFormValues(node ?? dummyNode),
-    values: node ? getDefaultFormValues(node) : undefined,
-  });
+  const { control, setValue, getValues, watch } =
+    useFormContext<FormTemplateFormValues>();
+  const pathPrefix = useMemo(
+    () =>
+      nodeIndex >= 0
+        ? `cardSettings.flowchartGraph.nodes.${nodeIndex}.data`
+        : "",
+    [nodeIndex]
+  );
 
   const { toast } = useToast();
   const [uploadingMedia, setUploadingMedia] = useState(false);
@@ -116,15 +124,27 @@ export function CardSettingsPanel({
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("fieldId", `media_${node?.id ?? Date.now()}`);
+      formData.append(
+        "fieldId",
+        `media_${node?.id ?? generateStableId("media")}`
+      );
       const result = await api.forms.uploadAdminFile(formSlug, formData);
-      const current = form.getValues("media");
-      form.setValue("media", current ? { ...current, url: result.url } : { ...defaultMediaFormValues, url: result.url });
+      const current = getValues(
+        `${pathPrefix}.media` as Path<FormTemplateFormValues>
+      ) as typeof defaultMediaFormValues | undefined;
+      setValue(
+        `${pathPrefix}.media` as Path<FormTemplateFormValues>,
+        current
+          ? { ...current, url: result.url }
+          : { ...defaultMediaFormValues, url: result.url },
+        { shouldDirty: true }
+      );
       toast({ title: "Success", description: "Media uploaded successfully" });
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to upload media",
+        description:
+          error instanceof Error ? error.message : "Failed to upload media",
         variant: "destructive",
       });
     } finally {
@@ -132,12 +152,7 @@ export function CardSettingsPanel({
     }
   };
 
-  const onSubmit = (values: NodeSettingsFormValues) => {
-    if (!node) return;
-    onUpdate(node.id, formValuesToUpdates(values, node));
-  };
-
-  if (!node) return null;
+  if (!node || nodeIndex < 0) return null;
 
   const isQuestion = node.type === "question";
   const isStatement = node.type === "statement";
@@ -154,22 +169,27 @@ export function CardSettingsPanel({
           </DialogDescription>
         </DialogHeader>
 
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-6 mt-6 p-6 pt-4"
-          >
-            {isStatement ? (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            onOpenChange(false);
+          }}
+          className="space-y-6 mt-6 p-6 pt-4"
+        >
+          {isStatement ? (
             <>
               <Controller
-                name="statementText"
-                control={form.control}
+                name={
+                  `${pathPrefix}.statementText` as Path<FormTemplateFormValues>
+                }
+                control={control}
                 render={({ field }) => (
                   <div>
                     <Label htmlFor="statement-text">Statement Text</Label>
                     <Textarea
                       id="statement-text"
                       {...field}
+                      value={String(field.value ?? "")}
                       placeholder="Enter the statement text..."
                       rows={4}
                     />
@@ -177,13 +197,15 @@ export function CardSettingsPanel({
                 )}
               />
               <Controller
-                name="isSuccessCard"
-                control={form.control}
+                name={
+                  `${pathPrefix}.isSuccessCard` as Path<FormTemplateFormValues>
+                }
+                control={control}
                 render={({ field }) => (
                   <div className="flex items-center space-x-2">
                     <Switch
                       id="is-success-card"
-                      checked={field.value}
+                      checked={Boolean(field.value)}
                       onCheckedChange={field.onChange}
                     />
                     <Label htmlFor="is-success-card">
@@ -196,12 +218,15 @@ export function CardSettingsPanel({
           ) : (
             <>
               <Controller
-                name="fieldType"
-                control={form.control}
+                name={`${pathPrefix}.fieldType` as Path<FormTemplateFormValues>}
+                control={control}
                 render={({ field }) => (
                   <div>
                     <Label htmlFor="field-type">Field Type</Label>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select
+                      value={String(field.value ?? "")}
+                      onValueChange={field.onChange}
+                    >
                       <SelectTrigger id="field-type">
                         <SelectValue />
                       </SelectTrigger>
@@ -217,29 +242,37 @@ export function CardSettingsPanel({
                 )}
               />
               <Controller
-                name="label"
-                control={form.control}
+                name={`${pathPrefix}.label` as Path<FormTemplateFormValues>}
+                control={control}
                 render={({ field }) => (
                   <div>
                     <Label htmlFor="label">Question Label *</Label>
-                    <Input id="label" {...field} placeholder="What is your name?" />
+                    <Input
+                      id="label"
+                      {...field}
+                      value={String(field.value ?? "")}
+                      placeholder="What is your name?"
+                    />
                   </div>
                 )}
               />
               <Controller
-                name="fieldType"
-                control={form.control}
+                name={`${pathPrefix}.fieldType` as Path<FormTemplateFormValues>}
+                control={control}
                 render={({ field: { value: fieldType } }) =>
                   fieldType !== "checkbox" ? (
                     <Controller
-                      name="placeholder"
-                      control={form.control}
+                      name={
+                        `${pathPrefix}.placeholder` as Path<FormTemplateFormValues>
+                      }
+                      control={control}
                       render={({ field }) => (
                         <div>
                           <Label htmlFor="placeholder">Placeholder</Label>
                           <Input
                             id="placeholder"
                             {...field}
+                            value={String(field.value ?? "")}
                             placeholder="Enter placeholder text..."
                           />
                         </div>
@@ -251,17 +284,22 @@ export function CardSettingsPanel({
                 }
               />
               <Controller
-                name="pipingKey"
-                control={form.control}
+                name={`${pathPrefix}.pipingKey` as Path<FormTemplateFormValues>}
+                control={control}
                 render={({ field }) => (
                   <div>
-                    <Label htmlFor="piping-key">Variable name (for piping)</Label>
+                    <Label htmlFor="piping-key">
+                      Variable name (for piping)
+                    </Label>
                     <div className="flex gap-2 mt-1">
                       <Input
                         id="piping-key"
                         {...field}
+                        value={String(field.value ?? "")}
                         onChange={(e) =>
-                          field.onChange(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))
+                          field.onChange(
+                            e.target.value.replace(/[^a-zA-Z0-9_]/g, "")
+                          )
                         }
                         placeholder="e.g. name"
                         className="font-mono"
@@ -271,7 +309,16 @@ export function CardSettingsPanel({
                         variant="outline"
                         size="sm"
                         onClick={() =>
-                          form.setValue("pipingKey", labelToPipingKey(form.getValues("label")))
+                          setValue(
+                            `${pathPrefix}.pipingKey` as Path<FormTemplateFormValues>,
+                            labelToPipingKey(
+                              String(
+                                getValues(
+                                  `${pathPrefix}.label` as Path<FormTemplateFormValues>
+                                ) ?? ""
+                              )
+                            )
+                          )
                         }
                       >
                         Suggest from label
@@ -279,20 +326,24 @@ export function CardSettingsPanel({
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
                       Use {"{{"}
-                      {form.watch("pipingKey") || "name"}
+                      {String(
+                        watch(
+                          `${pathPrefix}.pipingKey` as Path<FormTemplateFormValues>
+                        ) ?? "name"
+                      )}
                       {"}}"} in later questions to insert this answer.
                     </p>
                   </div>
                 )}
               />
               <Controller
-                name="required"
-                control={form.control}
+                name={`${pathPrefix}.required` as Path<FormTemplateFormValues>}
+                control={control}
                 render={({ field }) => (
                   <div className="flex items-center space-x-2">
                     <Switch
                       id="required"
-                      checked={field.value}
+                      checked={Boolean(field.value)}
                       onCheckedChange={field.onChange}
                     />
                     <Label htmlFor="required">Required field</Label>
@@ -300,20 +351,29 @@ export function CardSettingsPanel({
                 )}
               />
               <Controller
-                name="fieldType"
-                control={form.control}
+                name={`${pathPrefix}.fieldType` as Path<FormTemplateFormValues>}
+                control={control}
                 render={({ field: { value: fieldType } }) => {
-                  const needsOptions = ["select", "radio", "checkbox"].includes(fieldType);
+                  const needsOptions = ["select", "radio", "checkbox"].includes(
+                    String(fieldType ?? "")
+                  );
                   if (!needsOptions) return <></>;
                   return (
                     <OptionsFieldArray
-                      form={form}
+                      pathPrefix={pathPrefix}
                       newOption={newOption}
                       setNewOption={setNewOption}
                       onAddOption={(opt) => {
-                        const opts = form.getValues("options");
+                        const opts =
+                          (getValues(
+                            `${pathPrefix}.field.options` as Path<FormTemplateFormValues>
+                          ) as string[] | undefined) ?? [];
                         if (opt.trim() && !opts.includes(opt.trim())) {
-                          form.setValue("options", [...opts, opt.trim()]);
+                          setValue(
+                            `${pathPrefix}.field.options` as Path<FormTemplateFormValues>,
+                            [...opts, opt.trim()],
+                            { shouldDirty: true }
+                          );
                           setNewOption("");
                         }
                       }}
@@ -325,11 +385,15 @@ export function CardSettingsPanel({
           )}
 
           {isQuestion && (
-            <QuestionConditionalLogicSection form={form} node={node} allFields={allFields} />
+            <QuestionConditionalLogicSection
+              pathPrefix={pathPrefix}
+              node={node}
+              allFields={allFields}
+            />
           )}
 
           <MediaSection
-            form={form}
+            pathPrefix={pathPrefix}
             formSlug={formSlug}
             uploadingMedia={uploadingMedia}
             onMediaUpload={handleMediaUpload}
@@ -352,29 +416,34 @@ export function CardSettingsPanel({
               </Button>
             )}
           </div>
-          </form>
-        </Form>
+        </form>
       </DialogContent>
     </Dialog>
   );
 }
 
 function OptionsFieldArray({
-  form,
+  pathPrefix,
   newOption,
   setNewOption,
   onAddOption,
 }: {
-  form: import("react-hook-form").UseFormReturn<NodeSettingsFormValues>;
+  pathPrefix: string;
   newOption: string;
   setNewOption: (v: string) => void;
   onAddOption: (opt: string) => void;
 }) {
-  const options = form.watch("options") ?? [];
+  const { watch, setValue } = useFormContext<FormTemplateFormValues>();
+  const optionsPath = `${pathPrefix}.field.options`;
+  const options =
+    (watch(optionsPath as Path<FormTemplateFormValues>) as
+      | string[]
+      | undefined) ?? [];
   const remove = (index: number) => {
-    form.setValue(
-      "options",
-      options.filter((_, i) => i !== index)
+    setValue(
+      optionsPath as Path<FormTemplateFormValues>,
+      options.filter((_, i) => i !== index),
+      { shouldDirty: true }
     );
   };
   return (
@@ -384,7 +453,12 @@ function OptionsFieldArray({
         {options.map((opt, idx) => (
           <div key={idx} className="flex items-center gap-2">
             <Input value={opt} readOnly />
-            <Button type="button" variant="ghost" size="icon" onClick={() => remove(idx)}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => remove(idx)}
+            >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
@@ -411,14 +485,15 @@ function OptionsFieldArray({
 }
 
 function QuestionConditionalLogicSection({
-  form,
+  pathPrefix,
   node,
   allFields,
 }: {
-  form: import("react-hook-form").UseFormReturn<NodeSettingsFormValues>;
+  pathPrefix: string;
   node: FlowchartNode;
   allFields: FormField[];
 }) {
+  const { control } = useFormContext<FormTemplateFormValues>();
   const currentId = node.data?.fieldId ?? node.id;
   const logicFields = allFields.filter((f) => f.id !== currentId);
   const jumpTargetFields = allFields.filter((f) => f.id !== currentId);
@@ -429,18 +504,26 @@ function QuestionConditionalLogicSection({
     <div className="pt-4 border-t space-y-4">
       <div className="space-y-2">
         <Controller
-          name="enablePiping"
-          control={form.control}
+          name={
+            `${pathPrefix}.field.enablePiping` as Path<FormTemplateFormValues>
+          }
+          control={control}
           render={({ field }) => (
             <div className="flex items-center space-x-2">
-              <Switch id="enable-piping" checked={field.value} onCheckedChange={field.onChange} />
+              <Switch
+                id="enable-piping"
+                checked={Boolean(field.value)}
+                onCheckedChange={field.onChange}
+              />
               <Label htmlFor="enable-piping">Enable piping</Label>
             </div>
           )}
         />
         <Controller
-          name="enablePiping"
-          control={form.control}
+          name={
+            `${pathPrefix}.field.enablePiping` as Path<FormTemplateFormValues>
+          }
+          control={control}
           render={({ field: { value: enablePiping } }) =>
             enablePiping ? (
               <div className="rounded-md border bg-muted/40 p-3 text-sm space-y-2">
@@ -449,24 +532,28 @@ function QuestionConditionalLogicSection({
                   How to use piping
                 </p>
                 <p>
-                  In the <strong>Question</strong> or <strong>Placeholder</strong> above, use the
-                  variable name in double braces to insert an earlier answer, e.g. {"{{name}}"}.
-                  Only questions that appear <strong>before</strong> this one can be used.
+                  In the <strong>Question</strong> or{" "}
+                  <strong>Placeholder</strong> above, use the variable name in
+                  double braces to insert an earlier answer, e.g. {"{{name}}"}.
+                  Only questions that appear <strong>before</strong> this one
+                  can be used.
                 </p>
                 <ul className="list-disc list-inside space-y-0.5 text-muted-foreground">
                   <li>
-                    <code className="rounded bg-muted px-1">{"{{name}}"}</code> — replaced by that
-                    question&apos;s answer
+                    <code className="rounded bg-muted px-1">{"{{name}}"}</code>{" "}
+                    — replaced by that question&apos;s answer
                   </li>
                   <li>
-                    <code className="rounded bg-muted px-1">{"{{name:fallback}}"}</code> — if empty,
-                    shows &quot;fallback&quot; instead
+                    <code className="rounded bg-muted px-1">
+                      {"{{name:fallback}}"}
+                    </code>{" "}
+                    — if empty, shows &quot;fallback&quot; instead
                   </li>
                 </ul>
                 {previousFields.length === 0 ? (
                   <p className="text-muted-foreground text-xs pt-1">
-                    No earlier questions in this form yet. Add questions above this one and set
-                    their variable names to pipe answers.
+                    No earlier questions in this form yet. Add questions above
+                    this one and set their variable names to pipe answers.
                   </p>
                 ) : (
                   <div className="pt-1">
@@ -503,11 +590,15 @@ function QuestionConditionalLogicSection({
           Control visibility, jumps, and label text based on previous answers.
         </p>
         <Controller
-          name="conditionalLogic.showIf"
-          control={form.control}
+          name={
+            `${pathPrefix}.field.conditionalLogic.showIf` as Path<FormTemplateFormValues>
+          }
+          control={control}
           render={({ field }) => (
             <Collapsible
-              defaultOpen={hasAnyConditions(field.value)}
+              defaultOpen={hasAnyConditions(
+                field.value as ConditionGroup | ConditionBlock | undefined
+              )}
               className="rounded-md border"
             >
               <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium hover:bg-muted/50">
@@ -518,7 +609,9 @@ function QuestionConditionalLogicSection({
                 <div className="border-t px-4 pb-4 pt-2">
                   <LogicBuilder
                     fields={logicFields}
-                    value={field.value}
+                    value={
+                      field.value as ConditionGroup | ConditionBlock | undefined
+                    }
                     onChange={field.onChange}
                     label=""
                   />
@@ -528,11 +621,15 @@ function QuestionConditionalLogicSection({
           )}
         />
         <Controller
-          name="conditionalLogic.hideIf"
-          control={form.control}
+          name={
+            `${pathPrefix}.field.conditionalLogic.hideIf` as Path<FormTemplateFormValues>
+          }
+          control={control}
           render={({ field }) => (
             <Collapsible
-              defaultOpen={hasAnyConditions(field.value)}
+              defaultOpen={hasAnyConditions(
+                field.value as ConditionGroup | ConditionBlock | undefined
+              )}
               className="rounded-md border"
             >
               <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium hover:bg-muted/50">
@@ -543,7 +640,9 @@ function QuestionConditionalLogicSection({
                 <div className="border-t px-4 pb-4 pt-2">
                   <LogicBuilder
                     fields={logicFields}
-                    value={field.value}
+                    value={
+                      field.value as ConditionGroup | ConditionBlock | undefined
+                    }
                     onChange={field.onChange}
                     label=""
                   />
@@ -552,33 +651,40 @@ function QuestionConditionalLogicSection({
             </Collapsible>
           )}
         />
-        <JumpToFieldArray form={form} logicFields={logicFields} jumpTargetFields={jumpTargetFields} />
-        <DynamicLabelFieldArray form={form} logicFields={logicFields} />
+        <JumpToFieldArray
+          pathPrefix={pathPrefix}
+          logicFields={logicFields}
+          jumpTargetFields={jumpTargetFields}
+        />
+        <DynamicLabelFieldArray
+          pathPrefix={pathPrefix}
+          logicFields={logicFields}
+        />
       </div>
     </div>
   );
 }
 
 function JumpToFieldArray({
-  form,
+  pathPrefix,
   logicFields,
   jumpTargetFields,
 }: {
-  form: import("react-hook-form").UseFormReturn<NodeSettingsFormValues>;
+  pathPrefix: string;
   logicFields: FormField[];
   jumpTargetFields: FormField[];
 }) {
+  const { control } = useFormContext<FormTemplateFormValues>();
+  const jumpToPath =
+    `${pathPrefix}.field.conditionalLogic.jumpTo` as Path<FormTemplateFormValues>;
   const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "conditionalLogic.jumpTo",
+    control,
+    name: jumpToPath as import("react-hook-form").FieldArrayPath<FormTemplateFormValues>,
   });
   const fallback = { operator: "AND" as const, conditions: [] };
 
   return (
-    <Collapsible
-      defaultOpen={fields.length > 0}
-      className="rounded-md border"
-    >
+    <Collapsible defaultOpen={fields.length > 0} className="rounded-md border">
       <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium hover:bg-muted/50">
         Jump to another card when…
         <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
@@ -589,40 +695,63 @@ function JumpToFieldArray({
             After this card, jump to the first matching rule. Order matters.
           </p>
           {fields.map((_, idx) => (
-            <div key={idx} className="rounded-lg border bg-muted/20 p-3 space-y-3">
+            <div
+              key={idx}
+              className="rounded-lg border bg-muted/20 p-3 space-y-3"
+            >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium">Rule {idx + 1}</span>
-                <Button type="button" variant="ghost" size="icon" onClick={() => remove(idx)}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => remove(idx)}
+                >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
               <Controller
-                name={`conditionalLogic.jumpTo.${idx}.conditions`}
-                control={form.control}
+                name={
+                  `${pathPrefix}.field.conditionalLogic.jumpTo.${idx}.conditions` as Path<FormTemplateFormValues>
+                }
+                control={control}
                 render={({ field }) => (
                   <LogicBuilder
                     fields={logicFields}
-                    value={field.value}
+                    value={
+                      field.value as ConditionGroup | ConditionBlock | undefined
+                    }
                     onChange={(v) => field.onChange(v ?? fallback)}
                     label="When"
                   />
                 )}
               />
               <Controller
-                name={`conditionalLogic.jumpTo.${idx}.targetFieldId`}
-                control={form.control}
+                name={
+                  `${pathPrefix}.field.conditionalLogic.jumpTo.${idx}.targetFieldId` as Path<FormTemplateFormValues>
+                }
+                control={control}
                 render={({ field }) => (
                   <div>
                     <Label className="text-xs">Jump to card</Label>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select
+                      value={String(field.value ?? "")}
+                      onValueChange={field.onChange}
+                    >
                       <SelectTrigger className="mt-1 min-w-0 max-w-[220px]">
                         <SelectValue placeholder="Select card" />
                       </SelectTrigger>
                       <SelectContent>
                         {jumpTargetFields.map((f) => (
-                          <SelectItem key={f.id} value={f.id} title={f.label || "(No label)"}>
+                          <SelectItem
+                            key={f.id}
+                            value={f.id}
+                            title={f.label || "(No label)"}
+                          >
                             <div className="flex flex-col items-start gap-0.5 min-w-0 max-w-[260px] overflow-hidden">
-                              <span className="truncate block text-left">{f.label || "(No label)"}</span>
+                              <span className="truncate block text-left">
+                                {f.label || "(No label)"}
+                              </span>
                               <span className="text-xs text-muted-foreground font-mono truncate block text-left">
                                 {"{{"}
                                 {getPipingDisplayToken(f)}
@@ -660,23 +789,23 @@ function JumpToFieldArray({
 }
 
 function DynamicLabelFieldArray({
-  form,
+  pathPrefix,
   logicFields,
 }: {
-  form: import("react-hook-form").UseFormReturn<NodeSettingsFormValues>;
+  pathPrefix: string;
   logicFields: FormField[];
 }) {
+  const { control } = useFormContext<FormTemplateFormValues>();
+  const dynamicLabelPath =
+    `${pathPrefix}.field.conditionalLogic.dynamicLabel` as import("react-hook-form").FieldArrayPath<FormTemplateFormValues>;
   const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "conditionalLogic.dynamicLabel",
+    control,
+    name: dynamicLabelPath,
   });
   const fallback = { operator: "AND" as const, conditions: [] };
 
   return (
-    <Collapsible
-      defaultOpen={fields.length > 0}
-      className="rounded-md border"
-    >
+    <Collapsible defaultOpen={fields.length > 0} className="rounded-md border">
       <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium hover:bg-muted/50">
         Dynamic label (change question text when…)
         <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
@@ -684,36 +813,52 @@ function DynamicLabelFieldArray({
       <CollapsibleContent>
         <div className="border-t px-4 pb-4 pt-2 space-y-4">
           <p className="text-xs text-muted-foreground">
-            First matching rule sets the question text. You can use {"{{variable}}"} for piping.
+            First matching rule sets the question text. You can use{" "}
+            {"{{variable}}"} for piping.
           </p>
           {fields.map((_, idx) => (
-            <div key={idx} className="rounded-lg border bg-muted/20 p-3 space-y-3">
+            <div
+              key={idx}
+              className="rounded-lg border bg-muted/20 p-3 space-y-3"
+            >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium">Rule {idx + 1}</span>
-                <Button type="button" variant="ghost" size="icon" onClick={() => remove(idx)}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => remove(idx)}
+                >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
               <Controller
-                name={`conditionalLogic.dynamicLabel.${idx}.conditions`}
-                control={form.control}
+                name={
+                  `${pathPrefix}.field.conditionalLogic.dynamicLabel.${idx}.conditions` as Path<FormTemplateFormValues>
+                }
+                control={control}
                 render={({ field }) => (
                   <LogicBuilder
                     fields={logicFields}
-                    value={field.value}
+                    value={
+                      field.value as ConditionGroup | ConditionBlock | undefined
+                    }
                     onChange={(v) => field.onChange(v ?? fallback)}
                     label="When"
                   />
                 )}
               />
               <Controller
-                name={`conditionalLogic.dynamicLabel.${idx}.label`}
-                control={form.control}
+                name={
+                  `${pathPrefix}.field.conditionalLogic.dynamicLabel.${idx}.label` as Path<FormTemplateFormValues>
+                }
+                control={control}
                 render={({ field }) => (
                   <div>
                     <Label className="text-xs">Show label</Label>
                     <Textarea
                       {...field}
+                      value={String(field.value ?? "")}
                       placeholder="Question text (use {{variable}} for piping)"
                       rows={2}
                       className="mt-1"
@@ -739,17 +884,22 @@ function DynamicLabelFieldArray({
 }
 
 function MediaSection({
-  form,
+  pathPrefix,
   formSlug,
   uploadingMedia,
   onMediaUpload,
 }: {
-  form: import("react-hook-form").UseFormReturn<NodeSettingsFormValues>;
+  pathPrefix: string;
   formSlug?: string;
   uploadingMedia: boolean;
   onMediaUpload: (file: File) => void;
 }) {
-  const media = form.watch("media");
+  const { watch, setValue, getValues, control } =
+    useFormContext<FormTemplateFormValues>();
+  const mediaPath = `${pathPrefix}.media`;
+  const media = watch(mediaPath as Path<FormTemplateFormValues>) as
+    | typeof defaultMediaFormValues
+    | undefined;
   const mediaUrl = media?.url ?? "";
   const mediaType = media?.type ?? "image";
   const mediaPosition = media?.position ?? "above";
@@ -758,12 +908,20 @@ function MediaSection({
   const videoId = media?.videoId ?? "";
 
   const clearMedia = () => {
-    form.setValue("media", null);
+    setValue(mediaPath as Path<FormTemplateFormValues>, null, {
+      shouldDirty: true,
+    });
   };
 
   const setMediaUrl = (url: string) => {
-    const m = form.getValues("media");
-    form.setValue("media", m ? { ...m, url } : { ...defaultMediaFormValues, url });
+    const m = getValues(mediaPath as Path<FormTemplateFormValues>) as
+      | typeof defaultMediaFormValues
+      | undefined;
+    setValue(
+      mediaPath as Path<FormTemplateFormValues>,
+      m ? { ...m, url } : { ...defaultMediaFormValues, url },
+      { shouldDirty: true }
+    );
   };
 
   return (
@@ -777,17 +935,29 @@ function MediaSection({
         )}
       </div>
       <Controller
-        name="media.position"
-        control={form.control}
+        name={`${pathPrefix}.media.position` as Path<FormTemplateFormValues>}
+        control={control}
         render={({ field }) => (
           <div>
             <Label htmlFor="media-position">Position</Label>
             <Select
-              value={media ? field.value : "above"}
+              value={media ? String(field.value ?? "above") : "above"}
               onValueChange={(v) => {
-                const m = form.getValues("media");
-                if (m) form.setValue("media", { ...m, position: v as typeof m.position });
-                else form.setValue("media", { ...defaultMediaFormValues, position: v as "above" });
+                const m = getValues(
+                  mediaPath as Path<FormTemplateFormValues>
+                ) as typeof defaultMediaFormValues | undefined;
+                if (m)
+                  setValue(
+                    mediaPath as Path<FormTemplateFormValues>,
+                    { ...m, position: v as typeof m.position },
+                    { shouldDirty: true }
+                  );
+                else
+                  setValue(
+                    mediaPath as Path<FormTemplateFormValues>,
+                    { ...defaultMediaFormValues, position: v as "above" },
+                    { shouldDirty: true }
+                  );
               }}
             >
               <SelectTrigger id="media-position">
@@ -807,17 +977,29 @@ function MediaSection({
       {!mediaUrl ? (
         <>
           <Controller
-            name="media.type"
-            control={form.control}
+            name={`${pathPrefix}.media.type` as Path<FormTemplateFormValues>}
+            control={control}
             render={({ field }) => (
               <div>
                 <Label htmlFor="media-type">Media Type</Label>
                 <Select
-                  value={media ? field.value : "image"}
+                  value={media ? String(field.value ?? "image") : "image"}
                   onValueChange={(v) => {
-                    const m = form.getValues("media");
-                    if (m) form.setValue("media", { ...m, type: v as typeof m.type });
-                    else form.setValue("media", { ...defaultMediaFormValues, type: v as "image" });
+                    const m = getValues(
+                      mediaPath as Path<FormTemplateFormValues>
+                    ) as typeof defaultMediaFormValues | undefined;
+                    if (m)
+                      setValue(
+                        mediaPath as Path<FormTemplateFormValues>,
+                        { ...m, type: v as typeof m.type },
+                        { shouldDirty: true }
+                      );
+                    else
+                      setValue(
+                        mediaPath as Path<FormTemplateFormValues>,
+                        { ...defaultMediaFormValues, type: v as "image" },
+                        { shouldDirty: true }
+                      );
                   }}
                 >
                   <SelectTrigger id="media-type">
@@ -835,11 +1017,13 @@ function MediaSection({
           />
           {(mediaType === "image" || mediaType === "gif") && (
             <div>
-              <Label htmlFor="media-upload">Upload {mediaType === "gif" ? "GIF" : "Image"}</Label>
+              <Label htmlFor="media-upload">
+                Upload {mediaType === "gif" ? "GIF" : "Image"}
+              </Label>
               {!formSlug && (
                 <p className="text-sm text-muted-foreground mt-1 mb-2">
-                  Please save the form first to enable file uploads. You can also enter a URL below
-                  instead.
+                  Please save the form first to enable file uploads. You can
+                  also enter a URL below instead.
                 </p>
               )}
               <div className="mt-2">
@@ -880,16 +1064,27 @@ function MediaSection({
           {mediaType === "video" && (
             <>
               <Controller
-                name="media.videoType"
-                control={form.control}
+                name={
+                  `${pathPrefix}.media.videoType` as Path<FormTemplateFormValues>
+                }
+                control={control}
                 render={({ field }) => (
                   <div>
                     <Label htmlFor="video-type">Video Source</Label>
                     <Select
-                      value={media ? field.value : "youtube"}
+                      value={
+                        media ? String(field.value ?? "youtube") : "youtube"
+                      }
                       onValueChange={(v) => {
-                        const m = form.getValues("media");
-                        if (m) form.setValue("media", { ...m, videoType: v as typeof m.videoType });
+                        const m = getValues(
+                          mediaPath as Path<FormTemplateFormValues>
+                        ) as typeof defaultMediaFormValues | undefined;
+                        if (m)
+                          setValue(
+                            mediaPath as Path<FormTemplateFormValues>,
+                            { ...m, videoType: v as typeof m.videoType },
+                            { shouldDirty: true }
+                          );
                       }}
                     >
                       <SelectTrigger id="video-type">
@@ -930,19 +1125,30 @@ function MediaSection({
                 </div>
               ) : (
                 <Controller
-                  name="media.videoId"
-                  control={form.control}
+                  name={
+                    `${pathPrefix}.media.videoId` as Path<FormTemplateFormValues>
+                  }
+                  control={control}
                   render={({ field }) => (
                     <div>
                       <Label htmlFor="video-id">
-                        {videoType === "youtube" ? "YouTube Video ID" : "Vimeo Video ID"}
+                        {videoType === "youtube"
+                          ? "YouTube Video ID"
+                          : "Vimeo Video ID"}
                       </Label>
                       <Input
                         id="video-id"
-                        value={media ? field.value : ""}
+                        value={media ? String(field.value ?? "") : ""}
                         onChange={(e) => {
-                          const m = form.getValues("media");
-                          if (m) form.setValue("media", { ...m, videoId: e.target.value });
+                          const m = getValues(
+                            mediaPath as Path<FormTemplateFormValues>
+                          ) as typeof defaultMediaFormValues | undefined;
+                          if (m)
+                            setValue(
+                              mediaPath as Path<FormTemplateFormValues>,
+                              { ...m, videoId: e.target.value },
+                              { shouldDirty: true }
+                            );
                         }}
                         placeholder={
                           videoType === "youtube" ? "dQw4w9WgXcQ" : "123456789"
@@ -973,17 +1179,26 @@ function MediaSection({
           )}
           {mediaUrl && (mediaType === "image" || mediaType === "gif") && (
             <Controller
-              name="media.altText"
-              control={form.control}
+              name={
+                `${pathPrefix}.media.altText` as Path<FormTemplateFormValues>
+              }
+              control={control}
               render={({ field }) => (
                 <div>
                   <Label htmlFor="media-alt">Alt Text</Label>
                   <Input
                     id="media-alt"
-                    value={media ? field.value : ""}
+                    value={media ? String(field.value ?? "") : ""}
                     onChange={(e) => {
-                      const m = form.getValues("media");
-                      if (m) form.setValue("media", { ...m, altText: e.target.value });
+                      const m = getValues(
+                        mediaPath as Path<FormTemplateFormValues>
+                      ) as typeof defaultMediaFormValues | undefined;
+                      if (m)
+                        setValue(
+                          mediaPath as Path<FormTemplateFormValues>,
+                          { ...m, altText: e.target.value },
+                          { shouldDirty: true }
+                        );
                     }}
                     placeholder="Describe the image for accessibility"
                   />
@@ -1026,7 +1241,9 @@ function MediaSection({
               <video src={mediaUrl} controls className="w-full h-full" />
             </div>
           )}
-          <p className="text-sm text-muted-foreground">Position: {mediaPosition}</p>
+          <p className="text-sm text-muted-foreground">
+            Position: {mediaPosition}
+          </p>
         </div>
       )}
     </div>

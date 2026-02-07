@@ -10,6 +10,7 @@ import { flowchartToSchema } from "@/lib/forms/flowchart-serialization";
 import { START_NODE_ID, END_NODE_ID } from "@/lib/forms/flowchart-types";
 import { getPipingDisplayToken } from "@/lib/forms/conditional-logic";
 import type { FormField } from "@/lib/forms/types";
+import { generateStableId } from "@/lib/utils/stable-id";
 
 export interface UseCardFormBuilderProps {
   graph: FlowchartGraph;
@@ -33,10 +34,7 @@ export interface UseCardFormBuilderReturn {
   schemaFromGraph: ReturnType<typeof flowchartToSchema>;
   // Graph actions
   handleGraphChange: (newGraph: FlowchartGraph) => void;
-  handleNodeUpdate: (
-    nodeId: string,
-    updates: Partial<FlowchartNode["data"]>
-  ) => void;
+  selectedNodeIndex: number;
   handleNodeDelete: (nodeId: string) => void;
   handleAddNode: (type: "question" | "statement") => void;
   handleReorder: (orderedIds: string[]) => void;
@@ -58,6 +56,13 @@ export function useCardFormBuilder({
 
   const selectedNode = useMemo(
     () => graph.nodes.find((n) => n.id === selectedNodeId),
+    [graph.nodes, selectedNodeId]
+  );
+  const selectedNodeIndex = useMemo(
+    () =>
+      selectedNodeId
+        ? graph.nodes.findIndex((n) => n.id === selectedNodeId)
+        : -1,
     [graph.nodes, selectedNodeId]
   );
 
@@ -86,17 +91,6 @@ export function useCardFormBuilder({
     setSelectedNodeId(undefined);
   }, []);
 
-  const handleNodeUpdate = useCallback(
-    (nodeId: string, updates: Partial<FlowchartNode["data"]>) => {
-      const updatedNodes = graph.nodes.map((n) =>
-        n.id === nodeId ? { ...n, data: { ...n.data, ...updates } } : n
-      );
-      handleGraphChange({ ...graph, nodes: updatedNodes });
-      setSelectedNodeId(undefined);
-    },
-    [graph, handleGraphChange]
-  );
-
   const handleNodeDelete = useCallback(
     (nodeId: string) => {
       if (nodeId === START_NODE_ID || nodeId === END_NODE_ID) return;
@@ -112,7 +106,7 @@ export function useCardFormBuilder({
 
   const handleAddNode = useCallback(
     (type: "question" | "statement") => {
-      const newNodeId = `node_${Date.now()}`;
+      const newNodeId = generateStableId("node");
       const hasStart = graph.nodes.some((n) => n.id === START_NODE_ID);
       const hasEnd = graph.nodes.some((n) => n.id === END_NODE_ID);
 
@@ -248,7 +242,7 @@ export function useCardFormBuilder({
     orderedContentNodes,
     schemaFromGraph,
     handleGraphChange,
-    handleNodeUpdate,
+    selectedNodeIndex,
     handleNodeDelete,
     handleAddNode,
     handleReorder,

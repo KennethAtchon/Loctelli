@@ -207,63 +207,63 @@ export default function RegisterPage() {
                       </FormControl>
                       <FormMessage />
                       {password && (
-                  <div className="mt-2 space-y-1">
-                    <p className="text-xs font-medium text-gray-700 mb-2">
-                      Password Requirements:
-                    </p>
-                    <div className="space-y-1">
-                      <div
-                        className={`flex items-center text-xs ${passwordValidation.hasMinLength ? "text-green-600" : "text-gray-500"}`}
-                      >
-                        {passwordValidation.hasMinLength ? (
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                        ) : (
-                          <XCircle className="h-3 w-3 mr-1" />
-                        )}
-                        At least 8 characters
-                      </div>
-                      <div
-                        className={`flex items-center text-xs ${passwordValidation.hasUppercase ? "text-green-600" : "text-gray-500"}`}
-                      >
-                        {passwordValidation.hasUppercase ? (
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                        ) : (
-                          <XCircle className="h-3 w-3 mr-1" />
-                        )}
-                        At least one uppercase letter
-                      </div>
-                      <div
-                        className={`flex items-center text-xs ${passwordValidation.hasLowercase ? "text-green-600" : "text-gray-500"}`}
-                      >
-                        {passwordValidation.hasLowercase ? (
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                        ) : (
-                          <XCircle className="h-3 w-3 mr-1" />
-                        )}
-                        At least one lowercase letter
-                      </div>
-                      <div
-                        className={`flex items-center text-xs ${passwordValidation.hasNumber ? "text-green-600" : "text-gray-500"}`}
-                      >
-                        {passwordValidation.hasNumber ? (
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                        ) : (
-                          <XCircle className="h-3 w-3 mr-1" />
-                        )}
-                        At least one number
-                      </div>
-                      <div
-                        className={`flex items-center text-xs ${passwordValidation.hasSpecialChar ? "text-green-600" : "text-gray-500"}`}
-                      >
-                        {passwordValidation.hasSpecialChar ? (
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                        ) : (
-                          <XCircle className="h-3 w-3 mr-1" />
-                        )}
-                        At least one special character
-                      </div>
-                    </div>
-                  </div>
+                        <div className="mt-2 space-y-1">
+                          <p className="text-xs font-medium text-gray-700 mb-2">
+                            Password Requirements:
+                          </p>
+                          <div className="space-y-1">
+                            <div
+                              className={`flex items-center text-xs ${passwordValidation.hasMinLength ? "text-green-600" : "text-gray-500"}`}
+                            >
+                              {passwordValidation.hasMinLength ? (
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                              ) : (
+                                <XCircle className="h-3 w-3 mr-1" />
+                              )}
+                              At least 8 characters
+                            </div>
+                            <div
+                              className={`flex items-center text-xs ${passwordValidation.hasUppercase ? "text-green-600" : "text-gray-500"}`}
+                            >
+                              {passwordValidation.hasUppercase ? (
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                              ) : (
+                                <XCircle className="h-3 w-3 mr-1" />
+                              )}
+                              At least one uppercase letter
+                            </div>
+                            <div
+                              className={`flex items-center text-xs ${passwordValidation.hasLowercase ? "text-green-600" : "text-gray-500"}`}
+                            >
+                              {passwordValidation.hasLowercase ? (
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                              ) : (
+                                <XCircle className="h-3 w-3 mr-1" />
+                              )}
+                              At least one lowercase letter
+                            </div>
+                            <div
+                              className={`flex items-center text-xs ${passwordValidation.hasNumber ? "text-green-600" : "text-gray-500"}`}
+                            >
+                              {passwordValidation.hasNumber ? (
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                              ) : (
+                                <XCircle className="h-3 w-3 mr-1" />
+                              )}
+                              At least one number
+                            </div>
+                            <div
+                              className={`flex items-center text-xs ${passwordValidation.hasSpecialChar ? "text-green-600" : "text-gray-500"}`}
+                            >
+                              {passwordValidation.hasSpecialChar ? (
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                              ) : (
+                                <XCircle className="h-3 w-3 mr-1" />
+                              )}
+                              At least one special character
+                            </div>
+                          </div>
+                        </div>
                       )}
                     </FormItem>
                   )}
