@@ -6,6 +6,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2, AlertCircle } from "lucide-react";
 import { api } from "@/lib/api";
 import logger from "@/lib/logger";
+import {
+  formStylingToCssVars,
+  getGoogleFontsStylesheetUrl,
+} from "@/lib/forms/form-styling-utils";
+import type { FormStyling } from "@/lib/forms/types";
 import { Navigation } from "@/components/version2/navigation";
 import { Footer } from "@/components/version2/footer";
 import { CardFormContainer } from "@/components/public/forms/card-form";
@@ -45,6 +50,33 @@ export default function PublicCardFormPage() {
     : slug === "invalid-form"
       ? "Invalid form URL"
       : null;
+
+  // Load Google Fonts when form styling specifies heading/body fonts (must run unconditionally to keep hook order stable)
+  const styling = template?.styling as FormStyling | null | undefined;
+  useEffect(() => {
+    const fontNames = [
+      styling?.fontFamily?.heading,
+      styling?.fontFamily?.body,
+    ].filter(Boolean);
+    const url = getGoogleFontsStylesheetUrl(fontNames);
+    if (!url) return;
+    const linkId = "card-form-google-fonts";
+    let link = document.getElementById(linkId) as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement("link");
+      link.id = linkId;
+      link.rel = "stylesheet";
+      link.setAttribute("data-card-form-fonts", "true");
+      document.head.appendChild(link);
+    }
+    link.href = url;
+    return () => {
+      const el = document.getElementById(linkId);
+      if (el?.getAttribute("data-card-form-fonts") === "true") {
+        el.remove();
+      }
+    };
+  }, [styling?.fontFamily?.heading, styling?.fontFamily?.body]);
 
   if (isLoading) {
     return (
@@ -98,11 +130,26 @@ export default function PublicCardFormPage() {
   const cardSettings = template.cardSettings as
     | { progressStyle?: "bar" | "dots" | "numbers"; saveProgress?: boolean }
     | undefined;
+  const stylingVars = formStylingToCssVars(styling);
+
+  const hasFormBackground = Boolean(styling?.colors?.background);
+  const contentWrapperStyle =
+    Object.keys(stylingVars).length > 0
+      ? {
+          ...stylingVars,
+          ...(hasFormBackground && {
+            backgroundColor: "var(--form-background)",
+          }),
+        }
+      : undefined;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-background">
       <Navigation />
-      <div className="flex-1 py-8 flex items-center justify-center px-4">
+      <div
+        className="flex-1 py-8 flex items-center justify-center px-4"
+        style={contentWrapperStyle}
+      >
         <div className="w-full max-w-3xl">
           <CardFormContainer
             slug={slug}

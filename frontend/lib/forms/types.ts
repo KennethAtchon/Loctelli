@@ -190,6 +190,45 @@ export interface ProfileEstimation {
 
 export type FormType = "SIMPLE" | "CARD";
 
+/** Card form theme / UI builder settings. All optional; missing = use app default. */
+export interface FormStyling {
+  fontFamily?: {
+    heading?: string;
+    body?: string;
+  };
+  baseFontSize?: number;
+  colors?: {
+    primary?: string;
+    primaryForeground?: string;
+    accent?: string;
+    background?: string;
+    foreground?: string;
+    card?: string;
+    cardForeground?: string;
+    border?: string;
+    muted?: string;
+    mutedForeground?: string;
+  };
+  card?: {
+    borderRadius?: number | string;
+    shadow?: "none" | "sm" | "md" | "lg";
+    padding?: number | string;
+  };
+  buttons?: {
+    borderRadius?: number | string;
+    style?: "solid" | "outline" | "ghost";
+  };
+  progress?: {
+    style?: "bar" | "dots" | "numbers";
+    barHeight?: number;
+    color?: string;
+  };
+  resultScreen?: {
+    layout?: "centered" | "full";
+    titleFontSize?: number | string;
+  };
+}
+
 /**
  * schema vs flowchartGraph (CARD forms only):
  *
@@ -218,7 +257,7 @@ export interface FormTemplate {
   successMessage: string;
   cardSettings?: Record<string, unknown>;
   profileEstimation?: ProfileEstimation;
-  styling?: Record<string, unknown>;
+  styling?: FormStyling | null;
   analyticsEnabled?: boolean;
   subAccountId?: number;
   createdAt: string;
@@ -289,7 +328,7 @@ export interface CreateFormTemplateDto {
   successMessage?: string;
   cardSettings?: Record<string, unknown>;
   profileEstimation?: ProfileEstimation;
-  styling?: Record<string, unknown>;
+  styling?: FormStyling | null;
   analyticsEnabled?: boolean;
   subAccountId?: number;
 }
@@ -306,7 +345,7 @@ export interface UpdateFormTemplateDto {
   successMessage?: string;
   cardSettings?: Record<string, unknown>;
   profileEstimation?: ProfileEstimation;
-  styling?: Record<string, unknown>;
+  styling?: FormStyling | null;
   analyticsEnabled?: boolean;
   isActive?: boolean;
   subAccountId?: number;

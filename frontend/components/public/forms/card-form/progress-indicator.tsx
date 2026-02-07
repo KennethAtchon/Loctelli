@@ -38,6 +38,11 @@ export function ProgressIndicator({
     );
   }
 
+  const progressBarStyle = {
+    "--primary": "var(--form-progress-color, hsl(var(--primary)))",
+    height: "var(--form-progress-bar-height, 0.5rem)",
+  } as React.CSSProperties;
+
   if (style === "dots") {
     return (
       <div
@@ -47,6 +52,7 @@ export function ProgressIndicator({
         aria-valuemin={1}
         aria-valuemax={total}
         aria-label={`Question ${current + 1} of ${total}`}
+        style={progressBarStyle}
       >
         {Array.from({ length: total }).map((_, i) => (
           <div
@@ -61,8 +67,8 @@ export function ProgressIndicator({
   }
 
   return (
-    <div className={className}>
-      <Progress value={value} className="h-2" />
+    <div className={className} style={progressBarStyle}>
+      <Progress value={value} className="h-full min-h-2" />
       <span className="sr-only">
         Question {current + 1} of {total}
       </span>

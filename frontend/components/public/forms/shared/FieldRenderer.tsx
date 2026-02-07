@@ -368,7 +368,13 @@ export function FieldRenderer({
           </div>
         );
 
-      case "select":
+      case "select": {
+        // Radix Select disallows SelectItem value="". Use sentinel only when empty is a real option.
+        const SELECT_EMPTY_SENTINEL = "__empty__";
+        const selectOptions = field.options ?? [];
+        const hasEmptyOption = selectOptions.includes("");
+        const selectValue =
+          stringValue === "" && hasEmptyOption ? SELECT_EMPTY_SENTINEL : stringValue;
         return (
           <div className={mode === "card" ? "space-y-6" : "space-y-2"}>
             <QuestionLabel
@@ -380,8 +386,8 @@ export function FieldRenderer({
               {requiredMark}
             </QuestionLabel>
             <Select
-              value={stringValue}
-              onValueChange={(val) => onChange(val)}
+              value={selectValue}
+              onValueChange={(val) => onChange(val === SELECT_EMPTY_SENTINEL ? "" : val)}
               disabled={disabled}
             >
               <SelectTrigger
@@ -394,11 +400,14 @@ export function FieldRenderer({
                 />
               </SelectTrigger>
               <SelectContent>
-                {field.options?.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
+                {selectOptions.map((option) => {
+                  const itemValue = option === "" ? SELECT_EMPTY_SENTINEL : option;
+                  return (
+                    <SelectItem key={itemValue} value={itemValue}>
+                      {option === "" ? "—" : option}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
             {error && (
@@ -412,6 +421,7 @@ export function FieldRenderer({
             )}
           </div>
         );
+      }
 
       case "radio":
         return (

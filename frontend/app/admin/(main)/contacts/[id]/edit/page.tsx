@@ -445,16 +445,19 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
               <div>
                 <Label htmlFor="assigned">Assign To</Label>
                 <Select
-                  value={formData.assignedToId}
+                  value={formData.assignedToId || "__unassigned__"}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, assignedToId: value })
+                    setFormData({
+                      ...formData,
+                      assignedToId: value === "__unassigned__" ? "" : value,
+                    })
                   }
                 >
                   <SelectTrigger id="assigned">
                     <SelectValue placeholder="Select user" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Unassigned</SelectItem>
+                    <SelectItem value="__unassigned__">Unassigned</SelectItem>
                     {users.map((user) => (
                       <SelectItem key={user.id} value={user.id.toString()}>
                         {user.name}

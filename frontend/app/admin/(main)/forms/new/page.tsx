@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { flushSync } from "react-dom";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, FileText, LayoutGrid } from "lucide-react";
@@ -19,6 +20,7 @@ import { FormBasicInfoCard } from "@/components/admin/forms/form-sections/form-b
 import { FormDisplaySettingsCard } from "@/components/admin/forms/form-sections/form-display-settings-card";
 import { FormCardBuilderSection } from "@/components/admin/forms/form-sections/form-card-builder-section";
 import { FormProfileEstimationSection } from "@/components/admin/forms/form-sections/form-profile-estimation-section";
+import { FormAppearanceSection } from "@/components/admin/forms/form-sections/form-appearance-section";
 import { Form } from "@/components/ui/form";
 import {
   useFormTemplateFormStateRHF,
@@ -31,6 +33,10 @@ import {
 } from "@/lib/forms/flowchart-serialization";
 import type { FlowchartGraph } from "@/lib/forms/flowchart-types";
 import type { CreateFormTemplateDto, FormType } from "@/lib/forms/types";
+import {
+  CARD_FORM_TEMPLATE_JSON_VERSION,
+  type CardFormTemplateJson,
+} from "@/lib/forms/card-form-template-json";
 import {
   getDefaultFormValues,
   formValuesToProfileEstimation,
@@ -47,6 +53,7 @@ const defaultValues: FormTemplateFormValues = {
   submitButtonText: "Submit",
   successMessage: "Thank you for your submission!",
   profileEstimation: getDefaultFormValues(undefined),
+  styling: undefined,
 };
 
 export default function NewFormTemplatePage() {
@@ -76,15 +83,24 @@ export default function NewFormTemplatePage() {
   const watch = form.watch;
 
   const handleNameChange = (name: string) => {
-    setValue("name", name);
+    const previousName = watch("name");
+    const previousTitle = watch("title");
+    flushSync(() => {
+      setValue("name", name);
+    });
     const slug = watch("slug");
-    if (!slug || slug === generateSlug(watch("name"))) {
+    if (!slug || slug === generateSlug(previousName)) {
       setValue("slug", generateSlug(name));
     }
-    const title = watch("title");
-    if (!title || title === watch("name")) {
+    if (!previousTitle || previousTitle === previousName) {
       setValue("title", name);
     }
+  };
+
+  const handleTitleChange = (title: string) => {
+    flushSync(() => {
+      setValue("title", title);
+    });
   };
 
   const handleSubmit = form.handleSubmit(async (values) => {
@@ -136,6 +152,7 @@ export default function NewFormTemplatePage() {
               schemaToFlowchart([])
           ),
           cardSettings: values.cardSettings,
+          styling: values.styling ?? undefined,
         }),
       };
 
@@ -276,7 +293,7 @@ export default function NewFormTemplatePage() {
             submitButtonText={watch("submitButtonText")}
             successMessage={watch("successMessage")}
             isCardForm={isCardForm}
-            onTitleChange={(title) => setValue("title", title)}
+            onTitleChange={handleTitleChange}
             onSubtitleChange={(subtitle) => setValue("subtitle", subtitle)}
             onSubmitButtonTextChange={(text) =>
               setValue("submitButtonText", text)
@@ -285,6 +302,8 @@ export default function NewFormTemplatePage() {
               setValue("successMessage", message)
             }
           />
+
+          {isCardForm && <FormAppearanceSection />}
 
           {isCardForm && (
             <FormCardBuilderSection
@@ -301,8 +320,42 @@ export default function NewFormTemplatePage() {
                   flowchartViewport: newGraph.viewport,
                 })
               }
+              getFullCardFormPayload={() => {
+                const values = form.getValues();
+                const graph = (values.cardSettings?.flowchartGraph as FlowchartGraph) ?? defaultFlowchartGraph;
+                return {
+                  version: CARD_FORM_TEMPLATE_JSON_VERSION,
+                  title: values.title,
+                  subtitle: values.subtitle,
+                  submitButtonText: values.submitButtonText,
+                  successMessage: values.successMessage,
+                  flowchartGraph: graph,
+                  cardSettings: values.cardSettings,
+                  styling: values.styling ?? undefined,
+                  profileEstimation: formValuesToProfileEstimation(
+                    values.profileEstimation ?? getDefaultFormValues(undefined)
+                  ) ?? undefined,
+                };
+              }}
+              onImportFullCardForm={(payload: CardFormTemplateJson) => {
+                setValue("title", payload.title ?? watch("title"));
+                setValue("subtitle", payload.subtitle ?? watch("subtitle"));
+                setValue("submitButtonText", payload.submitButtonText ?? watch("submitButtonText"));
+                setValue("successMessage", payload.successMessage ?? watch("successMessage"));
+                setValue("cardSettings", {
+                  ...(watch("cardSettings") as Record<string, unknown> | undefined),
+                  ...payload.cardSettings,
+                  flowchartGraph: payload.flowchartGraph,
+                  flowchartViewport: payload.flowchartGraph.viewport,
+                });
+                setValue("styling", payload.styling ?? watch("styling"));
+                setValue(
+                  "profileEstimation",
+                  getDefaultFormValues(payload.profileEstimation ?? undefined)
+                );
+              }}
               formSlug={watch("slug")}
-              description="Build your interactive card form using the flowchart editor. Preview will be available after you create the form."
+              description="Build your interactive card form using the flowchart editor. Use schema JSON for the flow only, or full card form JSON for flow + styling + profile estimation. Preview after you create the form."
             />
           )}
 

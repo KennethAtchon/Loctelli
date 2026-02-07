@@ -57,7 +57,16 @@ The builder shows different sections based on form type:
 
 **Card forms add:**
 - Card Builder Section (flowchart)
+- Appearance Section (theme: fonts, colors, card/button style)
 - Profile Estimation Section (optional results)
+
+---
+
+## Appearance Section (Card forms only)
+
+**Component:** `FormAppearanceSection`
+
+Admins can customize how the card form looks on the public page: theme presets (Minimal, Dark, Light, Brand), heading/body fonts, base font size (with 16–18 recommended), primary and page colors, card border radius and shadow, and button radius/style. Contrast checks (primary vs primary text, primary vs background) show WCAG AA pass or a warning when below 4.5:1. All fields are optional; empty means use app defaults. The section is rendered inside the form and uses `useFormContext` to read/write `styling` on the template form values. See [03-data-structures.md](./03-data-structures.md) for the `FormStyling` shape. Presets live in `frontend/lib/forms/form-styling-presets.ts`; contrast helpers in `frontend/lib/forms/contrast-utils.ts`.
 
 ---
 
@@ -361,6 +370,7 @@ The API receives both `schema` and `cardSettings` for Card forms. The schema is 
 | `frontend/components/admin/forms/form-sections/form-fields-section.tsx` | Simple form field list |
 | `frontend/components/admin/forms/form-sections/form-field-editor.tsx` | Field editor modal |
 | `frontend/components/admin/forms/form-sections/form-card-builder-section.tsx` | Card builder wrapper |
+| `frontend/components/admin/forms/form-sections/form-appearance-section.tsx` | Appearance/theme (card forms only) |
 | `frontend/components/admin/forms/card-form-builder/CardFormBuilder.tsx` | Flowchart builder |
 | `frontend/components/admin/forms/card-form-builder/CardSettingsPanel.tsx` | Node settings panel |
 | `frontend/components/admin/forms/form-sections/form-profile-estimation-section.tsx` | Profile estimation config |

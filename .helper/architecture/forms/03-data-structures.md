@@ -179,6 +179,48 @@ This is the source of truth for Card forms. The `schema` is derived from this wh
 
 ---
 
+## FormStyling: Card Form Appearance (Theme)
+
+Card forms can store optional theme/styling so the public form uses custom fonts, colors, and card/button style. All properties are optional; missing values fall back to app defaults.
+
+```json
+{
+  "styling": {
+    "fontFamily": {
+      "heading": "Playfair Display",
+      "body": "Inter"
+    },
+    "colors": {
+      "primary": "#0d9488",
+      "primaryForeground": "#ffffff",
+      "background": "#f9fafb",
+      "foreground": "#111827",
+      "card": "#ffffff",
+      "border": "#e5e7eb"
+    },
+    "card": {
+      "borderRadius": 12,
+      "shadow": "md"
+    },
+    "buttons": {
+      "borderRadius": 8,
+      "style": "solid"
+    }
+  }
+}
+```
+
+| Area | Properties | Notes |
+|------|------------|--------|
+| `fontFamily` | `heading`, `body` | Font names (e.g. Inter, Open Sans) |
+| `colors` | `primary`, `primaryForeground`, `background`, `foreground`, `card`, `cardForeground`, `border` | Hex or CSS color strings |
+| `card` | `borderRadius` (number or string), `shadow` (`"none"` \| `"sm"` \| `"md"` \| `"lg"`) | Card container look |
+| `buttons` | `borderRadius`, `style` (`"solid"` \| `"outline"` \| `"ghost"`) | Next/Back/Submit buttons |
+
+The public card form page injects these as CSS variables (e.g. `--form-primary`, `--form-card-radius`) on a wrapper; components use them with fallbacks.
+
+---
+
 ## FlowchartGraph: Nodes and Edges
 
 Here's a real flowchartGraph for a 3-question form:

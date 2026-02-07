@@ -24,10 +24,21 @@ export function CategoryResult({
 }: CategoryResultProps) {
   if (!config) return null;
 
+  const resultStyle: React.CSSProperties = {
+    maxWidth: "var(--form-result-max-width, 48rem)",
+    marginLeft: "auto",
+    marginRight: "auto",
+  };
+  const titleStyle: React.CSSProperties = {
+    fontSize: "var(--form-result-title-font-size, 1.5rem)",
+  };
+
   return (
-    <Card className="w-full">
+    <Card className="w-full" style={resultStyle}>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">{config.title}</CardTitle>
+        <CardTitle className="text-2xl" style={titleStyle}>
+          {config.title}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-4 text-center">

@@ -8,7 +8,12 @@ import {
   schemaToFlowchart,
 } from "@/lib/forms/flowchart-serialization";
 import type { FlowchartGraph } from "@/lib/forms/flowchart-types";
-import type { FormField, FormType, ProfileEstimation } from "@/lib/forms/types";
+import type {
+  FormField,
+  FormStyling,
+  FormType,
+  ProfileEstimation,
+} from "@/lib/forms/types";
 import type { ProfileEstimationFormValues } from "@/components/admin/forms/profile-estimation/profile-estimation-form-types";
 import { generateStableId } from "@/lib/utils/stable-id";
 
@@ -25,6 +30,7 @@ export type FormTemplateFormValues = {
   successMessage?: string;
   cardSettings?: Record<string, unknown>;
   profileEstimation?: ProfileEstimationFormValues;
+  styling?: FormStyling | null;
   isActive?: boolean;
   [key: string]: unknown;
 };

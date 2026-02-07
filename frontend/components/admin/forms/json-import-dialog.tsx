@@ -18,9 +18,12 @@ import type { FormField } from "@/lib/forms/types";
 import { FORM_FIELD_TYPE_OPTIONS } from "@/lib/forms/field-types";
 import { generateStableId } from "@/lib/utils/stable-id";
 
+/** Schema-only import for simple forms (FormField[]). Card forms use Import card form / card-form-full-import-dialog. */
 interface JsonImportDialogProps {
   onImport: (fields: FormField[]) => void;
 }
+
+const VALID_TYPES = FORM_FIELD_TYPE_OPTIONS.map((o) => o.value);
 
 export function JsonImportDialog({ onImport }: JsonImportDialogProps) {
   const [jsonInput, setJsonInput] = useState("");
@@ -72,10 +75,9 @@ export function JsonImportDialog({ onImport }: JsonImportDialogProps) {
           );
         }
 
-        const validTypes = FORM_FIELD_TYPE_OPTIONS.map((t) => t.value);
-        if (!validTypes.includes(field.type)) {
+        if (!VALID_TYPES.includes(field.type)) {
           throw new Error(
-            `Invalid field type: ${field.type}. Valid types are: ${validTypes.join(", ")}`
+            `Invalid field type: ${field.type}. Valid types are: ${VALID_TYPES.join(", ")}`
           );
         }
       }
@@ -172,14 +174,17 @@ export function JsonImportDialog({ onImport }: JsonImportDialogProps) {
               {`[
   {
     "id": "field_id",
-    "type": "text|email|phone|textarea|select|checkbox|radio|file|image",
+    "type": "text|textarea|select|checkbox|radio|file|image",
     "label": "Field Label",
     "placeholder": "Optional placeholder",
     "required": true|false,
-    "options": ["Option 1", "Option 2"] // For select/radio only
+    "options": ["Option 1", "Option 2"]  // For select/radio/checkbox
   }
 ]`}
             </pre>
+            <p className="text-xs text-muted-foreground mt-1">
+              Simple form schema only. For card forms use &quot;Import card form&quot; in the Card Builder.
+            </p>
           </div>
         </div>
       </DialogContent>

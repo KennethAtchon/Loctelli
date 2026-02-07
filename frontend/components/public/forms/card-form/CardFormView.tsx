@@ -107,10 +107,18 @@ export function CardFormView({
 
   const variants = cardVariants(reducedMotion);
 
+  const formCardStyleBase: React.CSSProperties = {
+    backgroundColor: "var(--form-card, hsl(var(--card)))",
+    color: "var(--form-card-foreground, hsl(var(--card-foreground)))",
+    borderColor: "var(--form-border, hsl(var(--border)))",
+    borderRadius: "var(--form-card-radius, 0.5rem)",
+    boxShadow: "var(--form-card-shadow)",
+  };
+
   // Loading state
   if (!sessionRestored && saveProgress) {
     return (
-      <Card>
+      <Card style={formCardStyleBase}>
         <CardContent className="pt-6 flex items-center justify-center min-h-[200px]">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </CardContent>
@@ -121,7 +129,7 @@ export function CardFormView({
   // Empty form
   if (totalCards === 0) {
     return (
-      <Card>
+      <Card style={formCardStyleBase}>
         <CardContent className="pt-6">
           <p className="text-muted-foreground text-center py-6">
             This form has no questions yet.
@@ -252,8 +260,15 @@ export function CardFormView({
         required: false,
         media: successCard.data?.media,
       };
+      const formCardStyleSuccess: React.CSSProperties = {
+        backgroundColor: "var(--form-card, hsl(var(--card)))",
+        color: "var(--form-card-foreground, hsl(var(--card-foreground)))",
+        borderColor: "var(--form-border, hsl(var(--border)))",
+        borderRadius: "var(--form-card-radius, 0.5rem)",
+        boxShadow: "var(--form-card-shadow)",
+      };
       return (
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden" style={formCardStyleSuccess}>
           <CardContent className="pt-6">
             <FieldRenderer
               field={successField}
@@ -270,8 +285,15 @@ export function CardFormView({
     }
 
     // Default success message
+    const formCardStyleDefault: React.CSSProperties = {
+      backgroundColor: "var(--form-card, hsl(var(--card)))",
+      color: "var(--form-card-foreground, hsl(var(--card-foreground)))",
+      borderColor: "var(--form-border, hsl(var(--border)))",
+      borderRadius: "var(--form-card-radius, 0.5rem)",
+      boxShadow: "var(--form-card-shadow)",
+    };
     return (
-      <Card>
+      <Card style={formCardStyleDefault}>
         <CardContent className="pt-6 text-center">
           <p className="text-lg text-foreground">
             Thank you for your submission!
@@ -281,17 +303,42 @@ export function CardFormView({
     );
   }
 
+  // Theme CSS vars (from template.styling) are set on a parent wrapper; use with fallbacks
+  const formCardStyle = formCardStyleBase;
+  const formHeadingStyle: React.CSSProperties = {
+    fontFamily: "var(--form-font-heading, inherit)",
+    color: "var(--form-foreground, hsl(var(--foreground)))",
+  };
+  const formBodyStyle: React.CSSProperties = {
+    fontFamily: "var(--form-font-body, inherit)",
+    fontSize: "var(--form-base-font-size, 1rem)",
+    color: "var(--form-foreground, hsl(var(--foreground)))",
+  };
+  const formButtonRadiusStyle: React.CSSProperties = {
+    borderRadius: "var(--form-button-radius, 0.375rem)",
+  };
+  const formOutlineButtonStyle: React.CSSProperties = {
+    borderColor: "var(--form-border, hsl(var(--border)))",
+    color: "var(--form-foreground, hsl(var(--foreground)))",
+    ...formButtonRadiusStyle,
+  };
+
   // Main form view
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" style={formBodyStyle}>
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-semibold">{template.title}</h1>
+        <h1 className="text-2xl font-semibold" style={formHeadingStyle}>
+          {template.title}
+        </h1>
         {template.subtitle && (
-          <p className="text-muted-foreground">{template.subtitle}</p>
+          <p className="text-muted-foreground" style={formBodyStyle}>
+            {template.subtitle}
+          </p>
         )}
       </div>
       <Card
         className="overflow-hidden"
+        style={formCardStyle}
         onKeyDown={handleKeyDown}
         tabIndex={0}
         ref={cardRef}
@@ -374,7 +421,7 @@ export function CardFormView({
               )}
             </AnimatePresence>
           </div>
-          <div className="flex-shrink-0 pt-4 border-t mt-auto">
+          <div className="flex-shrink-0 pt-4 border-t mt-auto" style={{ borderColor: "var(--form-border, hsl(var(--border)))" }}>
             <div className="flex items-center justify-between gap-4 mb-4">
               <Button
                 type="button"
@@ -382,6 +429,7 @@ export function CardFormView({
                 onClick={goBack}
                 disabled={isFirst || isSubmitting}
                 className="gap-2"
+                style={formOutlineButtonStyle}
               >
                 <ChevronLeft className="h-4 w-4" />
                 Back
@@ -392,6 +440,7 @@ export function CardFormView({
                   onClick={handleSubmit}
                   disabled={isSubmitting}
                   className="min-w-[120px]"
+                  style={formButtonRadiusStyle}
                 >
                   {isSubmitting ? (
                     <>
@@ -403,7 +452,12 @@ export function CardFormView({
                   )}
                 </Button>
               ) : (
-                <Button type="button" onClick={goNext} disabled={isSubmitting}>
+                <Button
+                  type="button"
+                  onClick={goNext}
+                  disabled={isSubmitting}
+                  style={formButtonRadiusStyle}
+                >
                   Continue
                 </Button>
               )}

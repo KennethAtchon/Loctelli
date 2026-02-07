@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { flushSync } from "react-dom";
 import { useForm } from "react-hook-form";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Save } from "lucide-react";
@@ -22,6 +23,7 @@ import { FormBasicInfoCard } from "@/components/admin/forms/form-sections/form-b
 import { FormDisplaySettingsCard } from "@/components/admin/forms/form-sections/form-display-settings-card";
 import { FormCardBuilderSection } from "@/components/admin/forms/form-sections/form-card-builder-section";
 import { FormProfileEstimationSection } from "@/components/admin/forms/form-sections/form-profile-estimation-section";
+import { FormAppearanceSection } from "@/components/admin/forms/form-sections/form-appearance-section";
 import { AnalyticsDashboard } from "@/components/admin/forms/analytics-dashboard";
 import { Form } from "@/components/ui/form";
 import {
@@ -34,6 +36,10 @@ import {
   schemaToFlowchart,
 } from "@/lib/forms/flowchart-serialization";
 import type { FlowchartGraph } from "@/lib/forms/flowchart-types";
+import {
+  CARD_FORM_TEMPLATE_JSON_VERSION,
+  type CardFormTemplateJson,
+} from "@/lib/forms/card-form-template-json";
 import {
   getDefaultFormValues,
   formValuesToProfileEstimation,
@@ -116,10 +122,22 @@ export default function EditFormTemplatePage() {
   const watch = form.watch;
 
   const handleNameChange = (name: string) => {
-    setValue("name", name);
-    if (template && watch("slug") === generateSlug(template.name)) {
+    const previousName = watch("name");
+    flushSync(() => {
+      setValue("name", name);
+    });
+    const slug = watch("slug");
+    const slugWasFromPreviousName =
+      !previousName || slug === generateSlug(previousName);
+    if (template && (slug === generateSlug(template.name) || slugWasFromPreviousName)) {
       setValue("slug", generateSlug(name));
     }
+  };
+
+  const handleTitleChange = (title: string) => {
+    flushSync(() => {
+      setValue("title", title);
+    });
   };
 
   const handleSubmit = form.handleSubmit(async (values) => {
@@ -268,6 +286,40 @@ export default function EditFormTemplatePage() {
                 flowchartViewport: newGraph.viewport,
               })
             }
+            getFullCardFormPayload={() => {
+              const values = form.getValues();
+              const graph = (values.cardSettings?.flowchartGraph as FlowchartGraph) ?? defaultFlowchartGraph;
+              return {
+                version: CARD_FORM_TEMPLATE_JSON_VERSION,
+                title: values.title,
+                subtitle: values.subtitle,
+                submitButtonText: values.submitButtonText,
+                successMessage: values.successMessage,
+                flowchartGraph: graph,
+                cardSettings: values.cardSettings,
+                styling: values.styling ?? undefined,
+                profileEstimation: formValuesToProfileEstimation(
+                  values.profileEstimation ?? getDefaultFormValues(undefined)
+                ) ?? undefined,
+              };
+            }}
+            onImportFullCardForm={(payload: CardFormTemplateJson) => {
+              setValue("title", payload.title ?? watch("title"));
+              setValue("subtitle", payload.subtitle ?? watch("subtitle"));
+              setValue("submitButtonText", payload.submitButtonText ?? watch("submitButtonText"));
+              setValue("successMessage", payload.successMessage ?? watch("successMessage"));
+              setValue("cardSettings", {
+                ...(watch("cardSettings") as Record<string, unknown> | undefined),
+                ...payload.cardSettings,
+                flowchartGraph: payload.flowchartGraph,
+                flowchartViewport: payload.flowchartGraph.viewport,
+              });
+              setValue("styling", payload.styling ?? watch("styling"));
+              setValue(
+                "profileEstimation",
+                getDefaultFormValues(payload.profileEstimation ?? undefined)
+              );
+            }}
             formSlug={watch("slug") || template?.slug}
           />
         )}
@@ -306,7 +358,7 @@ export default function EditFormTemplatePage() {
             submitButtonText={watch("submitButtonText")}
             successMessage={watch("successMessage")}
             isCardForm={isCardForm}
-            onTitleChange={(title) => setValue("title", title)}
+            onTitleChange={handleTitleChange}
             onSubtitleChange={(subtitle) => setValue("subtitle", subtitle)}
             onSubmitButtonTextChange={(text) =>
               setValue("submitButtonText", text)
@@ -315,6 +367,8 @@ export default function EditFormTemplatePage() {
               setValue("successMessage", message)
             }
           />
+
+          {isCardForm && <FormAppearanceSection formSlug={watch("slug") ?? template?.slug} />}
 
           {!isCardForm && (
             <FormFieldsSection

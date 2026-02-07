@@ -98,17 +98,33 @@ export function schemaToFlowchart(
   for (let i = 0; i < schema.length; i++) {
     const field = schema[i];
     const nodeId = field.id;
-    nodes.push({
-      id: nodeId,
-      type: "question",
-      position: { x: 400, y },
-      data: {
-        fieldId: field.id,
-        label: field.label,
-        fieldType: field.type,
-        field: { ...field },
-      },
-    });
+    if (field.type === "statement") {
+      nodes.push({
+        id: nodeId,
+        type: "statement",
+        position: { x: 400, y },
+        data: {
+          fieldId: field.id,
+          label: field.label,
+          statementText: field.label,
+          isSuccessCard: false,
+          media: field.media,
+        },
+      });
+    } else {
+      nodes.push({
+        id: nodeId,
+        type: "question",
+        position: { x: 400, y },
+        data: {
+          fieldId: field.id,
+          label: field.label,
+          fieldType: field.type,
+          field: { ...field },
+          media: field.media,
+        },
+      });
+    }
     edges.push({
       id: `e-${prevId}-${nodeId}`,
       source: prevId,

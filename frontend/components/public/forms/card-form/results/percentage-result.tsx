@@ -17,10 +17,21 @@ export function PercentageResult({ config, score }: PercentageResultProps) {
     config.ranges.find((r) => score >= r.min && score <= r.max) ||
     config.ranges[0];
 
+  const resultStyle: React.CSSProperties = {
+    maxWidth: "var(--form-result-max-width, 48rem)",
+    marginLeft: "auto",
+    marginRight: "auto",
+  };
+  const titleStyle: React.CSSProperties = {
+    fontSize: "var(--form-result-title-font-size, 1.5rem)",
+  };
+
   return (
-    <Card className="w-full">
+    <Card className="w-full" style={resultStyle}>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">{config.title}</CardTitle>
+        <CardTitle className="text-2xl" style={titleStyle}>
+          {config.title}
+        </CardTitle>
         {config.description && (
           <p className="text-muted-foreground mt-2">{config.description}</p>
         )}
