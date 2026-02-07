@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "@/lib/api";
+import {
+  profileSchema,
+  passwordSchema,
+  type ProfileFormValues,
+  type PasswordFormValues,
+} from "@/lib/forms/schemas";
 import { useAdminAuth } from "@/contexts/unified-auth-context";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,8 +21,15 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { User, Lock, Save, Shield, Trash2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -50,25 +65,24 @@ interface AdminAccount {
 export default function AdminSettingsPage() {
   const { admin, refreshAdmin } = useAdminAuth();
 
-  // Profile management state
-  const [profileData, setProfileData] = useState({
-    name: "",
-    email: "",
+  const profileForm = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: { name: "", email: "" },
   });
-  const [isProfileLoading, setIsProfileLoading] = useState(false);
+  const passwordForm = useForm<PasswordFormValues>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: {
+      oldPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
 
-  // Password change state
-  const [passwordData, setPasswordData] = useState({
-    oldPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
   const [showPasswords, setShowPasswords] = useState({
     old: false,
     new: false,
     confirm: false,
   });
-  const [isPasswordLoading, setIsPasswordLoading] = useState(false);
 
   // Admin accounts management state
   const [adminAccounts, setAdminAccounts] = useState<AdminAccount[]>([]);
@@ -77,7 +91,7 @@ export default function AdminSettingsPage() {
 
   useEffect(() => {
     if (admin) {
-      setProfileData({
+      profileForm.reset({
         name: admin.name || "",
         email: admin.email || "",
       });
@@ -86,7 +100,7 @@ export default function AdminSettingsPage() {
     if (admin?.role === "super_admin") {
       loadAdminAccounts();
     }
-  }, [admin]);
+  }, [admin, profileForm]);
 
   const loadAdminAccounts = async () => {
     try {
@@ -100,60 +114,36 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const handleProfileUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsProfileLoading(true);
-
+  const onProfileSubmit = profileForm.handleSubmit(async (data) => {
     try {
-      await api.adminAuth.updateAdminProfile(profileData);
-      await refreshAdmin(); // Refresh the admin context
+      await api.adminAuth.updateAdminProfile(data);
+      await refreshAdmin();
       toast.success("Profile updated successfully");
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to update profile"
       );
-    } finally {
-      setIsProfileLoading(false);
     }
-  };
+  });
 
-  const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error("New passwords do not match");
-      return;
-    }
-
-    if (passwordData.newPassword.length < 12) {
-      toast.error("New password must be at least 12 characters long");
-      return;
-    }
-
-    setIsPasswordLoading(true);
-
+  const onPasswordSubmit = passwordForm.handleSubmit(async (data) => {
     try {
       await api.adminAuth.changeAdminPassword({
-        oldPassword: passwordData.oldPassword,
-        newPassword: passwordData.newPassword,
+        oldPassword: data.oldPassword,
+        newPassword: data.newPassword,
       });
-
-      // Clear password fields
-      setPasswordData({
+      passwordForm.reset({
         oldPassword: "",
         newPassword: "",
         confirmPassword: "",
       });
-
       toast.success("Password changed successfully");
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to change password"
       );
-    } finally {
-      setIsPasswordLoading(false);
     }
-  };
+  });
 
   const handleDeleteAdmin = async (adminId: number) => {
     if (adminId === admin?.id) {
@@ -225,49 +215,50 @@ export default function AdminSettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <form onSubmit={handleProfileUpdate} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={profileData.name}
-                  onChange={(e) =>
-                    setProfileData((prev) => ({
-                      ...prev,
-                      name: e.target.value,
-                    }))
-                  }
-                  placeholder="Enter your name"
-                  required
+          <Form {...profileForm}>
+            <form onSubmit={onProfileSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={profileForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter your name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={profileForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="Enter your email"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={profileData.email}
-                  onChange={(e) =>
-                    setProfileData((prev) => ({
-                      ...prev,
-                      email: e.target.value,
-                    }))
-                  }
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
-            </div>
-            <Button type="submit" disabled={isProfileLoading}>
-              {isProfileLoading ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
-              Update Profile
-            </Button>
-          </form>
+              <Button type="submit" disabled={profileForm.formState.isSubmitting}>
+                {profileForm.formState.isSubmitting ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                Update Profile
+              </Button>
+            </form>
+          </Form>
         </CardContent>
       </Card>
 
@@ -283,127 +274,126 @@ export default function AdminSettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handlePasswordChange} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="oldPassword">Current Password</Label>
-              <div className="relative">
-                <Input
-                  id="oldPassword"
-                  type={showPasswords.old ? "text" : "password"}
-                  value={passwordData.oldPassword}
-                  onChange={(e) =>
-                    setPasswordData((prev) => ({
-                      ...prev,
-                      oldPassword: e.target.value,
-                    }))
-                  }
-                  placeholder="Enter current password"
-                  required
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  onClick={() =>
-                    setShowPasswords((prev) => ({
-                      ...prev,
-                      old: !prev.old,
-                    }))
-                  }
-                >
-                  {showPasswords.old ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
+          <Form {...passwordForm}>
+            <form onSubmit={onPasswordSubmit} className="space-y-4">
+              <FormField
+                control={passwordForm.control}
+                name="oldPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Current Password</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showPasswords.old ? "text" : "password"}
+                          placeholder="Enter current password"
+                          {...field}
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          onClick={() =>
+                            setShowPasswords((prev) => ({ ...prev, old: !prev.old }))
+                          }
+                        >
+                          {showPasswords.old ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={passwordForm.control}
+                  name="newPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>New Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showPasswords.new ? "text" : "password"}
+                            placeholder="Enter new password"
+                            {...field}
+                          />
+                          <button
+                            type="button"
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            onClick={() =>
+                              setShowPasswords((prev) => ({ ...prev, new: !prev.new }))
+                            }
+                          >
+                            {showPasswords.new ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <p className="text-xs text-gray-500">
+                        Must be at least 12 characters with uppercase, lowercase,
+                        number, and special character
+                      </p>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </button>
-              </div>
-            </div>
+                />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="newPassword">New Password</Label>
-                <div className="relative">
-                  <Input
-                    id="newPassword"
-                    type={showPasswords.new ? "text" : "password"}
-                    value={passwordData.newPassword}
-                    onChange={(e) =>
-                      setPasswordData((prev) => ({
-                        ...prev,
-                        newPassword: e.target.value,
-                      }))
-                    }
-                    placeholder="Enter new password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    onClick={() =>
-                      setShowPasswords((prev) => ({
-                        ...prev,
-                        new: !prev.new,
-                      }))
-                    }
-                  >
-                    {showPasswords.new ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-                <p className="text-xs text-gray-500">
-                  Must be at least 12 characters with uppercase, lowercase,
-                  number, and special character
-                </p>
+                <FormField
+                  control={passwordForm.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm New Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showPasswords.confirm ? "text" : "password"}
+                            placeholder="Confirm new password"
+                            {...field}
+                          />
+                          <button
+                            type="button"
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            onClick={() =>
+                              setShowPasswords((prev) => ({
+                                ...prev,
+                                confirm: !prev.confirm,
+                              }))
+                            }
+                          >
+                            {showPasswords.confirm ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                <div className="relative">
-                  <Input
-                    id="confirmPassword"
-                    type={showPasswords.confirm ? "text" : "password"}
-                    value={passwordData.confirmPassword}
-                    onChange={(e) =>
-                      setPasswordData((prev) => ({
-                        ...prev,
-                        confirmPassword: e.target.value,
-                      }))
-                    }
-                    placeholder="Confirm new password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    onClick={() =>
-                      setShowPasswords((prev) => ({
-                        ...prev,
-                        confirm: !prev.confirm,
-                      }))
-                    }
-                  >
-                    {showPasswords.confirm ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <Button type="submit" disabled={isPasswordLoading}>
-              {isPasswordLoading ? (
+              <Button type="submit" disabled={passwordForm.formState.isSubmitting}>
+              {passwordForm.formState.isSubmitting ? (
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
               ) : (
                 <Lock className="h-4 w-4 mr-2" />
               )}
               Change Password
             </Button>
-          </form>
+            </form>
+          </Form>
         </CardContent>
       </Card>
 

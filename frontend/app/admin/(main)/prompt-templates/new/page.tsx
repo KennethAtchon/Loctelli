@@ -1,12 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Card,
   CardContent,
@@ -20,96 +29,77 @@ import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 import type { CreatePromptTemplateDto } from "@/lib/api/endpoints/prompt-templates";
 import { Badge } from "@/components/ui/badge";
+import {
+  createPromptTemplateSchema,
+  type CreatePromptTemplateFormValues,
+} from "@/lib/forms/schemas";
+
+const defaultValues: CreatePromptTemplateFormValues = {
+  name: "",
+  description: "",
+  category: "",
+  baseSystemPrompt: "",
+  temperature: 0.7,
+  maxTokens: undefined,
+  isActive: false,
+  tags: [],
+};
 
 export default function NewPromptTemplatePage() {
-  const [formData, setFormData] = useState<CreatePromptTemplateDto>({
-    name: "",
-    description: "",
-    category: "",
-    baseSystemPrompt: "",
-    temperature: 0.7,
-    maxTokens: undefined,
-    isActive: false,
-    tags: [],
-  });
   const [tagInput, setTagInput] = useState("");
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleInputChange = (
-    field: keyof CreatePromptTemplateDto,
-    value: string | number | boolean | undefined | string[]
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+  const form = useForm<CreatePromptTemplateFormValues>({
+    resolver: zodResolver(createPromptTemplateSchema),
+    defaultValues,
+  });
 
+  const tags = form.watch("tags") ?? [];
   const handleAddTag = () => {
-    if (tagInput.trim() && !formData.tags?.includes(tagInput.trim())) {
-      const newTags = [...(formData.tags || []), tagInput.trim()];
-      handleInputChange("tags", newTags);
+    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
+      form.setValue("tags", [...tags, tagInput.trim()]);
       setTagInput("");
     }
   };
-
   const handleRemoveTag = (tagToRemove: string) => {
-    const newTags = (formData.tags || []).filter((tag) => tag !== tagToRemove);
-    handleInputChange("tags", newTags);
+    form.setValue(
+      "tags",
+      tags.filter((tag) => tag !== tagToRemove)
+    );
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.name.trim() || !formData.baseSystemPrompt.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Name and Base System Prompt are required",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleSubmit = form.handleSubmit(async (data) => {
     try {
-      setLoading(true);
-
-      // Ensure all required fields are present and properly formatted
-      const submitData = {
-        name: formData.name.trim(),
-        description: formData.description?.trim() || undefined,
-        category: formData.category?.trim() || undefined,
-        baseSystemPrompt: formData.baseSystemPrompt.trim(),
-        temperature: formData.temperature || 0.7,
-        maxTokens: formData.maxTokens || undefined,
-        isActive: formData.isActive || false,
-        tags: formData.tags || [],
+      const submitData: CreatePromptTemplateDto = {
+        name: data.name.trim(),
+        description: data.description?.trim() || undefined,
+        category: data.category?.trim() || undefined,
+        baseSystemPrompt: data.baseSystemPrompt.trim(),
+        temperature: data.temperature ?? 0.7,
+        maxTokens: data.maxTokens ?? undefined,
+        isActive: data.isActive ?? false,
+        tags: data.tags ?? [],
       };
-
-      console.log("Creating prompt template with data:", submitData);
-      const result = await api.promptTemplates.create(submitData);
-      console.log("Template created successfully:", result);
+      await api.promptTemplates.create(submitData);
       toast({
         title: "Success",
         description: "Template created successfully",
       });
       router.push("/admin/prompt-templates");
     } catch (error) {
-      console.error("Failed to create template:", error);
       toast({
         title: "Error",
         description: `Failed to create template: ${error instanceof Error ? error.message : "Unknown error"}`,
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
-  };
+  });
+
+  const loading = form.formState.isSubmitting;
 
   return (
     <div className="container mx-auto py-6">
-      {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <Button variant="outline" size="sm" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -125,87 +115,105 @@ export default function NewPromptTemplatePage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Form */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Basic Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Basic Information</CardTitle>
-                <CardDescription>
-                  Define the basic details of your prompt template
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Template Name *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    placeholder="e.g., Sales Agent, Support Bot, Scheduler"
-                    required
+      <Form {...form}>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Basic Information</CardTitle>
+                  <CardDescription>
+                    Define the basic details of your prompt template
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Template Name *</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="e.g., Sales Agent, Support Bot, Scheduler"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) =>
-                      handleInputChange("description", e.target.value)
-                    }
-                    placeholder="Describe the purpose and style of this template"
-                    rows={3}
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Describe the purpose and style of this template"
+                            rows={3}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-
-                <div>
-                  <Label htmlFor="category">Category</Label>
-                  <Input
-                    id="category"
-                    value={formData.category}
-                    onChange={(e) =>
-                      handleInputChange("category", e.target.value)
-                    }
-                    placeholder="e.g., sales, support, scheduling"
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="e.g., sales, support, scheduling"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            {/* Base System Prompt */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Base System Prompt *</CardTitle>
-                <CardDescription>
-                  ONE simple sentence that defines the AI's core behavior. Keep
-                  it minimal - strategies will add detailed persona and
-                  instructions.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  value={formData.baseSystemPrompt}
-                  onChange={(e) =>
-                    handleInputChange("baseSystemPrompt", e.target.value)
-                  }
-                  placeholder="You are a helpful AI assistant that guides conversations professionally."
-                  rows={4}
-                  className="font-mono text-sm"
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-2">
-                  Keep this short and simple. Detailed instructions, persona,
-                  and conversation style will be defined in individual
-                  strategies.
-                </p>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Base System Prompt *</CardTitle>
+                  <CardDescription>
+                    ONE simple sentence that defines the AI's core behavior. Keep
+                    it minimal - strategies will add detailed persona and
+                    instructions.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <FormField
+                    control={form.control}
+                    name="baseSystemPrompt"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Textarea
+                            placeholder="You are a helpful AI assistant that guides conversations professionally."
+                            rows={4}
+                            className="font-mono text-sm"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                        <p className="text-xs text-gray-500 mt-2">
+                          Keep this short and simple. Detailed instructions, persona,
+                          and conversation style will be defined in individual
+                          strategies.
+                        </p>
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
 
-            {/* Tags */}
             <Card>
               <CardHeader>
                 <CardTitle>Tags</CardTitle>
@@ -226,19 +234,15 @@ export default function NewPromptTemplatePage() {
                     }}
                     placeholder="Enter tag and press Add"
                   />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleAddTag}
-                  >
+                  <Button type="button" variant="outline" onClick={handleAddTag}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add
                   </Button>
                 </div>
 
-                {formData.tags && formData.tags.length > 0 && (
+                {tags.length > 0 && (
                   <div className="flex flex-wrap gap-2">
-                    {formData.tags.map((tag) => (
+                    {tags.map((tag) => (
                       <Badge
                         key={tag}
                         variant="secondary"
@@ -260,9 +264,7 @@ export default function NewPromptTemplatePage() {
             </Card>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
-            {/* AI Parameters */}
             <Card>
               <CardHeader>
                 <CardTitle>AI Parameters</CardTitle>
@@ -271,75 +273,91 @@ export default function NewPromptTemplatePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div>
-                  <Label className="flex items-center justify-between">
-                    Temperature: {formData.temperature}
-                  </Label>
-                  <p className="text-xs text-gray-500 mb-2">
-                    Controls randomness. Lower = more focused, Higher = more
-                    creative
-                  </p>
-                  <Slider
-                    value={[formData.temperature || 0.7]}
-                    onValueChange={(value) =>
-                      handleInputChange("temperature", value[0])
-                    }
-                    max={2}
-                    min={0}
-                    step={0.1}
-                    className="mt-2"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="maxTokens">Max Tokens (Optional)</Label>
-                  <p className="text-xs text-gray-500 mb-2">
-                    Maximum length of AI responses
-                  </p>
-                  <Input
-                    id="maxTokens"
-                    type="number"
-                    value={formData.maxTokens || ""}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "maxTokens",
-                        e.target.value ? parseInt(e.target.value) : undefined
-                      )
-                    }
-                    placeholder="e.g., 1000"
-                    min={1}
-                  />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="temperature"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center justify-between">
+                        Temperature: {field.value}
+                      </FormLabel>
+                      <p className="text-xs text-gray-500 mb-2">
+                        Controls randomness. Lower = more focused, Higher = more
+                        creative
+                      </p>
+                      <FormControl>
+                        <Slider
+                          value={[field.value ?? 0.7]}
+                          onValueChange={(value) => field.onChange(value[0])}
+                          max={2}
+                          min={0}
+                          step={0.1}
+                          className="mt-2"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="maxTokens"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Max Tokens (Optional)</FormLabel>
+                      <p className="text-xs text-gray-500 mb-2">
+                        Maximum length of AI responses
+                      </p>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value ? parseInt(e.target.value) : undefined
+                            )
+                          }
+                          placeholder="e.g., 1000"
+                          min={1}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
 
-            {/* Template Settings */}
             <Card>
               <CardHeader>
                 <CardTitle>Template Settings</CardTitle>
                 <CardDescription>Configure template behavior</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="isActive">Set as Active</Label>
-                    <p className="text-sm text-gray-500">
-                      This template will be used as the default choice for new
-                      strategies
-                    </p>
-                  </div>
-                  <Switch
-                    id="isActive"
-                    checked={formData.isActive}
-                    onCheckedChange={(checked) =>
-                      handleInputChange("isActive", checked)
-                    }
-                  />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div>
+                        <FormLabel className="text-base">Set as Active</FormLabel>
+                        <p className="text-sm text-gray-500">
+                          This template will be used as the default choice for new
+                          strategies
+                        </p>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value ?? false}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
 
-            {/* Actions */}
             <Card>
               <CardContent className="pt-6">
                 <div className="space-y-3">
@@ -368,7 +386,8 @@ export default function NewPromptTemplatePage() {
             </Card>
           </div>
         </div>
-      </form>
+        </form>
+      </Form>
     </div>
   );
 }

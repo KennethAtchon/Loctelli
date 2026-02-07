@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -153,11 +154,12 @@ export function CardSettingsPanel({
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-6 mt-6 p-6 pt-4"
-        >
-          {isStatement ? (
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-6 mt-6 p-6 pt-4"
+          >
+            {isStatement ? (
             <>
               <Controller
                 name="statementText"
@@ -350,7 +352,8 @@ export function CardSettingsPanel({
               </Button>
             )}
           </div>
-        </form>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

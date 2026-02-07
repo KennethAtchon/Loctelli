@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Dialog,
   DialogContent,
@@ -10,10 +11,20 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import type { CreateSubAccountDto } from "@/lib/api";
+import {
+  createSubAccountSchema,
+  type CreateSubAccountFormValues,
+} from "@/lib/forms/schemas";
 
 interface CreateSubAccountDialogProps {
   open: boolean;
@@ -21,46 +32,32 @@ interface CreateSubAccountDialogProps {
   onSubmit: (data: CreateSubAccountDto) => Promise<void>;
 }
 
+const defaultValues: CreateSubAccountFormValues = {
+  name: "",
+  description: "",
+  settings: {},
+};
+
 export function CreateSubAccountDialog({
   open,
   onOpenChange,
   onSubmit,
 }: CreateSubAccountDialogProps) {
-  const [formData, setFormData] = useState<CreateSubAccountDto>({
-    name: "",
-    description: "",
-    settings: {},
+  const form = useForm<CreateSubAccountFormValues>({
+    resolver: zodResolver(createSubAccountSchema),
+    defaultValues,
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.name.trim()) {
-      toast.error("SubAccount name is required");
-      return;
-    }
-
-    setIsSubmitting(true);
+  const handleSubmit = form.handleSubmit(async (data) => {
     try {
-      await onSubmit(formData);
-      setFormData({ name: "", description: "", settings: {} });
+      await onSubmit(data as CreateSubAccountDto);
+      form.reset(defaultValues);
     } catch {
       // Error is handled by the parent component
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+  });
 
-  const handleInputChange = (
-    field: keyof CreateSubAccountDto,
-    value: string
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+  const isSubmitting = form.formState.isSubmitting;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -71,28 +68,39 @@ export function CreateSubAccountDialog({
             Create a new SubAccount to organize users and their data.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              placeholder="Enter SubAccount name"
-              required
+        <Form {...form}>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter SubAccount name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description || ""}
-              onChange={(e) => handleInputChange("description", e.target.value)}
-              placeholder="Enter description (optional)"
-              rows={3}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter description (optional)"
+                      rows={3}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="flex justify-end space-x-2 pt-4">
+            <div className="flex justify-end space-x-2 pt-4">
             <Button
               type="button"
               variant="outline"
@@ -104,8 +112,9 @@ export function CreateSubAccountDialog({
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Creating..." : "Create SubAccount"}
             </Button>
-          </div>
-        </form>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

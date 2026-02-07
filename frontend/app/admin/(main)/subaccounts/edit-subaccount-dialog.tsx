@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Dialog,
   DialogContent,
@@ -10,11 +12,21 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import type { SubAccount, UpdateSubAccountDto } from "@/lib/api";
+import {
+  editSubAccountFormSchema,
+  type EditSubAccountFormValues,
+} from "@/lib/forms/schemas";
 
 interface EditSubAccountDialogProps {
   open: boolean;
@@ -29,55 +41,37 @@ export function EditSubAccountDialog({
   subAccount,
   onSubmit,
 }: EditSubAccountDialogProps) {
-  const [formData, setFormData] = useState<UpdateSubAccountDto>({
-    name: "",
-    description: "",
-    isActive: true,
-    settings: {},
+  const form = useForm<EditSubAccountFormValues>({
+    resolver: zodResolver(editSubAccountFormSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      isActive: true,
+      settings: {},
+    },
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (subAccount) {
-      setFormData({
+      form.reset({
         name: subAccount.name,
         description: subAccount.description || "",
         isActive: subAccount.isActive,
         settings: subAccount.settings || {},
       });
     }
-  }, [subAccount]);
+  }, [subAccount, form]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleSubmit = form.handleSubmit(async (data) => {
     if (!subAccount) return;
-
-    if (!formData.name?.trim()) {
-      toast.error("SubAccount name is required");
-      return;
-    }
-
-    setIsSubmitting(true);
     try {
-      await onSubmit(subAccount.id, formData);
+      await onSubmit(subAccount.id, data as UpdateSubAccountDto);
     } catch {
       // Error is handled by the parent component
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+  });
 
-  const handleInputChange = (
-    field: keyof UpdateSubAccountDto,
-    value: string | boolean
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
+  const isSubmitting = form.formState.isSubmitting;
   if (!subAccount) return null;
 
   return (
@@ -89,38 +83,54 @@ export function EditSubAccountDialog({
             Update SubAccount information and settings.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
-            <Input
-              id="name"
-              value={formData.name || ""}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              placeholder="Enter SubAccount name"
-              required
+        <Form {...form}>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter SubAccount name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description || ""}
-              onChange={(e) => handleInputChange("description", e.target.value)}
-              placeholder="Enter description (optional)"
-              rows={3}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter description (optional)"
+                      rows={3}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="isActive"
-              checked={formData.isActive || false}
-              onCheckedChange={(checked) =>
-                handleInputChange("isActive", checked)
-              }
+            <FormField
+              control={form.control}
+              name="isActive"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <FormLabel className="text-base">Active</FormLabel>
+                  <FormControl>
+                    <Switch
+                      checked={field.value ?? false}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
             />
-            <Label htmlFor="isActive">Active</Label>
-          </div>
-          <div className="flex justify-end space-x-2 pt-4">
+            <div className="flex justify-end space-x-2 pt-4">
             <Button
               type="button"
               variant="outline"
@@ -132,8 +142,9 @@ export function EditSubAccountDialog({
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Updating..." : "Update SubAccount"}
             </Button>
-          </div>
-        </form>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

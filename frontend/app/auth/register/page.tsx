@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/unified-auth-context";
-import type { RegisterDto } from "@/lib/api";
+import { registerSchema, type RegisterFormValues } from "@/lib/forms/schemas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -16,95 +17,81 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
 import logger from "@/lib/logger";
 
-export default function RegisterPage() {
-  const router = useRouter();
-  const { register } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [passwordValidation, setPasswordValidation] = useState({
-    hasMinLength: false,
-    hasUppercase: false,
-    hasLowercase: false,
-    hasNumber: false,
-    hasSpecialChar: false,
-  });
-  const [formData, setFormData] = useState<RegisterDto>({
-    name: "",
-    email: "",
-    password: "",
-    company: "",
-    budget: "",
-  });
+const defaultValues: RegisterFormValues = {
+  name: "",
+  email: "",
+  password: "",
+  company: "",
+  budget: "",
+};
 
-  // Real-time password validation
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const password = e.target.value;
-    setFormData({ ...formData, password });
-
-    setPasswordValidation({
+function usePasswordValidation(password: string) {
+  return useMemo(
+    () => ({
       hasMinLength: password.length >= 8,
       hasUppercase: /[A-Z]/.test(password),
       hasLowercase: /[a-z]/.test(password),
       hasNumber: /\d/.test(password),
       hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
-    });
-  };
+    }),
+    [password]
+  );
+}
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+export default function RegisterPage() {
+  const router = useRouter();
+  const { register } = useAuth();
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-    logger.debug("🔐 Register form submitted:", {
-      email: formData.email,
-    });
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues,
+  });
+  const password = form.watch("password");
+  const passwordValidation = usePasswordValidation(password ?? "");
 
-    // Prevent multiple submissions
-    if (isLoading) {
-      logger.debug("🚫 Form already submitting, ignoring");
-      return;
-    }
-
-    setIsLoading(true);
+  const handleSubmit = form.handleSubmit(async (data) => {
+    logger.debug("🔐 Register form submitted:", { email: data.email });
     setError("");
     setSuccess("");
-
     try {
-      await register(formData);
+      await register({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        company: data.company,
+        budget: data.budget,
+      });
       logger.debug("✅ Registration successful");
       setSuccess(
         "Registration successful! You have been automatically logged in."
       );
-
-      // Clear form
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-        company: "",
-        budget: "",
-      });
-
-      // Redirect to account page after 2 seconds
-      setTimeout(() => {
-        router.push("/account");
-      }, 2000);
-    } catch (error) {
-      logger.error("❌ Registration failed:", error);
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Registration failed. Please try again.";
-      setError(errorMessage);
-      logger.debug("📝 Set error message:", errorMessage);
-    } finally {
-      setIsLoading(false);
+      form.reset(defaultValues);
+      setTimeout(() => router.push("/account"), 2000);
+    } catch (err) {
+      logger.error("❌ Registration failed:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Registration failed. Please try again."
+      );
     }
-  };
+  });
+
+  const isLoading = form.formState.isSubmitting;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -132,86 +119,94 @@ export default function RegisterPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>
-                    {error}
-                    <br />
-                    <small className="text-xs opacity-75">
-                      Debug: Error state is active
-                    </small>
-                  </AlertDescription>
-                </Alert>
-              )}
+            <Form {...form}>
+              <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>
+                      {error}
+                      <br />
+                      <small className="text-xs opacity-75">
+                        Debug: Error state is active
+                      </small>
+                    </AlertDescription>
+                  </Alert>
+                )}
 
-              {success && (
-                <Alert>
-                  <AlertDescription>{success}</AlertDescription>
-                </Alert>
-              )}
+                {success && (
+                  <Alert>
+                    <AlertDescription>{success}</AlertDescription>
+                  </Alert>
+                )}
 
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  required
-                  placeholder="Enter your full name"
-                  disabled={isLoading}
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          placeholder="Enter your full name"
+                          disabled={isLoading}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      email: e.target.value,
-                    })
-                  }
-                  required
-                  placeholder="Enter your email"
-                  disabled={isLoading}
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="Enter your email"
+                          disabled={isLoading}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={handlePasswordChange}
-                    required
-                    placeholder="Enter your password"
-                    disabled={isLoading}
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    onClick={() => setShowPassword(!showPassword)}
-                    disabled={isLoading}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-
-                {/* Real-time Password Validation */}
-                {formData.password && (
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Enter your password"
+                            disabled={isLoading}
+                            {...field}
+                          />
+                          <button
+                            type="button"
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            onClick={() => setShowPassword(!showPassword)}
+                            disabled={isLoading}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                      {password && (
                   <div className="mt-2 space-y-1">
                     <p className="text-xs font-medium text-gray-700 mb-2">
                       Password Requirements:
@@ -269,47 +264,54 @@ export default function RegisterPage() {
                       </div>
                     </div>
                   </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="company">Company (Optional)</Label>
-                <Input
-                  id="company"
-                  type="text"
-                  value={formData.company || ""}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      company: e.target.value,
-                    })
-                  }
-                  placeholder="Enter your company name"
-                  disabled={isLoading}
+                      )}
+                    </FormItem>
+                  )}
                 />
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="budget">Budget (Optional)</Label>
-                <Input
-                  id="budget"
-                  type="text"
-                  value={formData.budget || ""}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      budget: e.target.value,
-                    })
-                  }
-                  placeholder="Enter your budget range"
-                  disabled={isLoading}
+                <FormField
+                  control={form.control}
+                  name="company"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company (Optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          placeholder="Enter your company name"
+                          disabled={isLoading}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating account..." : "Create account"}
-              </Button>
-            </form>
+                <FormField
+                  control={form.control}
+                  name="budget"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Budget (Optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          placeholder="Enter your budget range"
+                          disabled={isLoading}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Creating account..." : "Create account"}
+                </Button>
+              </form>
+            </Form>
           </CardContent>
         </Card>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +11,14 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
@@ -19,9 +27,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
 import type { CreateUserDto } from "@/lib/api";
 import type { SubAccount } from "@/lib/api/endpoints/admin-subaccounts";
+import {
+  createUserSchema,
+  type CreateUserFormValues,
+} from "@/lib/forms/schemas";
 
 interface CreateUserDialogProps {
   open: boolean;
@@ -30,74 +41,37 @@ interface CreateUserDialogProps {
   availableSubaccounts: SubAccount[];
 }
 
+const defaultValues: CreateUserFormValues = {
+  name: "",
+  email: "",
+  password: "",
+  company: "",
+  role: "user",
+  bookingEnabled: 1,
+  subAccountId: 0,
+};
+
 export function CreateUserDialog({
   open,
   onOpenChange,
   onSubmit,
   availableSubaccounts,
 }: CreateUserDialogProps) {
-  const [formData, setFormData] = useState<CreateUserDto>({
-    name: "",
-    email: "",
-    password: "",
-    company: "",
-    role: "user",
-    bookingEnabled: 1,
-    subAccountId: 0,
+  const form = useForm<CreateUserFormValues>({
+    resolver: zodResolver(createUserSchema),
+    defaultValues,
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.name.trim()) {
-      toast.error("Name is required");
-      return;
-    }
-
-    if (!formData.email.trim()) {
-      toast.error("Email is required");
-      return;
-    }
-
-    if (!formData.password.trim()) {
-      toast.error("Password is required");
-      return;
-    }
-
-    if (!formData.subAccountId || formData.subAccountId === 0) {
-      toast.error("Please select a SubAccount");
-      return;
-    }
-
-    setIsSubmitting(true);
+  const handleSubmit = form.handleSubmit(async (data) => {
     try {
-      await onSubmit(formData);
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-        company: "",
-        role: "user",
-        bookingEnabled: 1,
-        subAccountId: 0,
-      });
+      await onSubmit(data as CreateUserDto);
+      form.reset(defaultValues);
     } catch {
       // Error is handled by the parent component
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+  });
 
-  const handleInputChange = (
-    field: keyof CreateUserDto,
-    value: string | number
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+  const isSubmitting = form.formState.isSubmitting;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -106,101 +80,145 @@ export function CreateUserDialog({
           <DialogTitle>Create New User</DialogTitle>
           <DialogDescription>Add a new user to the system</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              placeholder="Enter user name"
-              required
+        <Form {...form}>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter user name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email *</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleInputChange("email", e.target.value)}
-              placeholder="Enter user email"
-              required
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email *</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="Enter user email"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password *</Label>
-            <Input
-              id="password"
-              type="password"
-              value={formData.password}
-              onChange={(e) => handleInputChange("password", e.target.value)}
-              placeholder="Enter password"
-              required
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password *</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Enter password"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="company">Company</Label>
-            <Input
-              id="company"
-              value={formData.company}
-              onChange={(e) => handleInputChange("company", e.target.value)}
-              placeholder="Enter company name"
+            <FormField
+              control={form.control}
+              name="company"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Company</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter company name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="role">Role</Label>
-            <Select
-              value={formData.role}
-              onValueChange={(value) => handleInputChange("role", value)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="user">User</SelectItem>
-                <SelectItem value="manager">Manager</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="subaccount">SubAccount *</Label>
-            <Select
-              value={formData.subAccountId?.toString() || ""}
-              onValueChange={(value) =>
-                handleInputChange("subAccountId", parseInt(value) || 0)
-              }
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a SubAccount" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableSubaccounts.map((subaccount) => (
-                  <SelectItem
-                    key={subaccount.id}
-                    value={subaccount.id.toString()}
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role</FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
                   >
-                    {subaccount.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="booking-enabled"
-              checked={formData.bookingEnabled === 1}
-              onCheckedChange={(checked) =>
-                handleInputChange("bookingEnabled", checked ? 1 : 0)
-              }
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="user">User</SelectItem>
+                      <SelectItem value="manager">Manager</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            <Label htmlFor="booking-enabled">
-              Enable Booking Functionality
-            </Label>
-          </div>
-          <div className="flex justify-end space-x-2 pt-4">
+            <FormField
+              control={form.control}
+              name="subAccountId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>SubAccount *</FormLabel>
+                  <Select
+                    value={field.value ? String(field.value) : ""}
+                    onValueChange={(value) =>
+                      field.onChange(parseInt(value) || 0)
+                    }
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a SubAccount" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {availableSubaccounts.map((subaccount) => (
+                        <SelectItem
+                          key={subaccount.id}
+                          value={subaccount.id.toString()}
+                        >
+                          {subaccount.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="bookingEnabled"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <FormLabel className="text-base">
+                    Enable Booking Functionality
+                  </FormLabel>
+                  <FormControl>
+                    <Switch
+                      checked={field.value === 1}
+                      onCheckedChange={(checked) =>
+                        field.onChange(checked ? 1 : 0)
+                      }
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <div className="flex justify-end space-x-2 pt-4">
             <Button
               type="button"
               variant="outline"
@@ -212,8 +230,9 @@ export function CreateUserDialog({
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? "Creating..." : "Create User"}
             </Button>
-          </div>
-        </form>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

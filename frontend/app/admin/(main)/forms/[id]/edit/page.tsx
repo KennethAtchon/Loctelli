@@ -24,6 +24,7 @@ import { FormAdvancedSettingsCard } from "@/components/admin/forms/form-sections
 import { FormCardBuilderSection } from "@/components/admin/forms/form-sections/form-card-builder-section";
 import { FormProfileEstimationSection } from "@/components/admin/forms/form-sections/form-profile-estimation-section";
 import { AnalyticsDashboard } from "@/components/admin/forms/analytics-dashboard";
+import { Form } from "@/components/ui/form";
 import {
   useFormTemplateFormStateRHF,
   type FormTemplateFormValues,
@@ -280,8 +281,9 @@ export default function EditFormTemplatePage() {
         </Card>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <FormBasicInfoCard
+      <Form {...form}>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <FormBasicInfoCard
           name={watch("name") || ""}
           slug={watch("slug") || ""}
           description={watch("description") || ""}
@@ -339,7 +341,8 @@ export default function EditFormTemplatePage() {
             {loading ? "Saving..." : "Save Changes"}
           </Button>
         </div>
-      </form>
+        </form>
+      </Form>
     </div>
   );
 }
