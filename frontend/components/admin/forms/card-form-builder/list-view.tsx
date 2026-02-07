@@ -39,11 +39,7 @@ export function ListView({
       newOrder[swapIndex],
       newOrder[index],
     ];
-    onReorder([
-      START_NODE_ID,
-      ...newOrder.map((n) => n.id),
-      END_NODE_ID,
-    ]);
+    onReorder([START_NODE_ID, ...newOrder.map((n) => n.id), END_NODE_ID]);
   };
 
   const applyReorder = useCallback(
@@ -52,11 +48,7 @@ export function ListView({
       const newOrder = [...questionNodes];
       const [item] = newOrder.splice(fromIndex, 1);
       newOrder.splice(toIndex, 0, item);
-      onReorder([
-        START_NODE_ID,
-        ...newOrder.map((n) => n.id),
-        END_NODE_ID,
-      ]);
+      onReorder([START_NODE_ID, ...newOrder.map((n) => n.id), END_NODE_ID]);
     },
     [questionNodes, onReorder]
   );
@@ -155,7 +147,9 @@ export function ListView({
                       <span className="text-sm font-medium text-muted-foreground shrink-0">
                         {index + 1}.
                       </span>
-                      <span className="text-sm font-medium truncate">{label}</span>
+                      <span className="text-sm font-medium truncate">
+                        {label}
+                      </span>
                       {fieldType && (
                         <span className="text-xs text-muted-foreground shrink-0">
                           ({fieldType})

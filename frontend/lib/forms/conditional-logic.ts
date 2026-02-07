@@ -1,4 +1,9 @@
-import type { Condition, ConditionGroup, FormField } from "./types";
+import type {
+  Condition,
+  ConditionBlock,
+  ConditionGroup,
+  FormField,
+} from "./types";
 
 /**
  * Evaluate a single condition against form data
@@ -75,6 +80,46 @@ export function evaluateConditionGroup(
   }
 }
 
+function isConditionBlock(
+  block: ConditionGroup | ConditionBlock
+): block is ConditionBlock {
+  return "groups" in block && Array.isArray((block as ConditionBlock).groups);
+}
+
+/**
+ * Get a flat list of conditions from a ConditionGroup or ConditionBlock.
+ * For a block, flattens all groups' conditions (order preserved).
+ */
+export function getConditionsFromGroupOrBlock(
+  block: ConditionGroup | ConditionBlock | undefined
+): Condition[] {
+  if (!block) return [];
+  if (isConditionBlock(block)) {
+    return block.groups.flatMap((g) => g.conditions);
+  }
+  return block.conditions;
+}
+
+/**
+ * Evaluate a condition block: either a single ConditionGroup or a ConditionBlock (group of groups).
+ * Enables "(A and B) OR (C and D)" style logic.
+ */
+export function evaluateConditionBlock(
+  block: ConditionGroup | ConditionBlock,
+  formData: Record<string, unknown>
+): boolean {
+  if (isConditionBlock(block)) {
+    if (block.groups.length === 0) return true;
+    const results = block.groups.map((g) =>
+      evaluateConditionGroup(g, formData)
+    );
+    return block.operator === "AND"
+      ? results.every(Boolean)
+      : results.some(Boolean);
+  }
+  return evaluateConditionGroup(block, formData);
+}
+
 /**
  * Check if a field should be shown based on conditional logic
  */
@@ -87,12 +132,12 @@ export function shouldShowField(
   const { showIf, hideIf } = field.conditionalLogic;
 
   // If hideIf is true, don't show
-  if (hideIf && evaluateConditionGroup(hideIf, formData)) {
+  if (hideIf && evaluateConditionBlock(hideIf, formData)) {
     return false;
   }
 
   // If showIf exists and is false, don't show
-  if (showIf && !evaluateConditionGroup(showIf, formData)) {
+  if (showIf && !evaluateConditionBlock(showIf, formData)) {
     return false;
   }
 
@@ -110,7 +155,7 @@ export function getJumpTarget(
   if (!field.conditionalLogic?.jumpTo) return null;
 
   for (const jumpRule of field.conditionalLogic.jumpTo) {
-    if (evaluateConditionGroup(jumpRule.conditions, formData)) {
+    if (evaluateConditionBlock(jumpRule.conditions, formData)) {
       return jumpRule.targetFieldId;
     }
   }
@@ -129,7 +174,7 @@ export function getDynamicLabel(
   if (!field.conditionalLogic?.dynamicLabel) return field.label;
 
   for (const dynamicLabelRule of field.conditionalLogic.dynamicLabel) {
-    if (evaluateConditionGroup(dynamicLabelRule.conditions, formData)) {
+    if (evaluateConditionBlock(dynamicLabelRule.conditions, formData)) {
       return dynamicLabelRule.label;
     }
   }
@@ -138,18 +183,108 @@ export function getDynamicLabel(
 }
 
 /**
- * Replace piping syntax {{fieldId}} with actual values from form data
+ * Resolve a piping token ({{token}}) to a field: match by pipingKey or id.
+ * formData is keyed by field.id, so we need the field to look up the value.
+ */
+export function resolveFieldByPipingToken(
+  token: string,
+  fields: FormField[]
+): FormField | undefined {
+  const byPipingKey = fields.find((f) => f.pipingKey && f.pipingKey === token);
+  if (byPipingKey) return byPipingKey;
+  return fields.find((f) => f.id === token);
+}
+
+/**
+ * Display name for piping: use pipingKey if set, else id (for "Use {{name}}" in UI).
+ */
+export function getPipingDisplayToken(field: FormField): string {
+  return field.pipingKey && field.pipingKey.trim() !== ""
+    ? field.pipingKey.trim()
+    : field.id;
+}
+
+/**
+ * Information about a piping reference
+ */
+export interface PipingInfo {
+  fieldId: string;
+  /** Token used in text (may be pipingKey or id) */
+  token: string;
+  fallback?: string;
+  exists: boolean;
+  value: unknown;
+  resolved: string;
+  fieldLabel?: string;
+}
+
+/**
+ * Extract all piping references from text
+ */
+export function extractPipingReferences(
+  text: string,
+  formData: Record<string, unknown>,
+  fields: FormField[]
+): PipingInfo[] {
+  const pipePattern = /\{\{([^}:]+)(?::([^}]+))?\}\}/g;
+  const references: PipingInfo[] = [];
+  const seen = new Set<string>();
+
+  let match;
+  while ((match = pipePattern.exec(text)) !== null) {
+    const [, token, fallback] = match;
+    const key = `${token}:${fallback || ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const field = resolveFieldByPipingToken(token, fields);
+    const value = field ? formData[field.id] : undefined;
+    let resolved: string;
+
+    if (Array.isArray(value)) {
+      resolved = value.length > 0 ? value.join(", ") : fallback || "";
+    } else if (value === undefined || value === null || value === "") {
+      resolved = fallback || "";
+    } else {
+      resolved = String(value);
+    }
+
+    references.push({
+      fieldId: field?.id ?? token,
+      token,
+      fallback,
+      exists: field !== undefined,
+      value,
+      resolved,
+      fieldLabel: field?.label,
+    });
+  }
+
+  return references;
+}
+
+/**
+ * Replace piping syntax {{token}} with actual values from form data.
+ * Token is resolved by pipingKey first, then by field id.
  */
 export function applyPiping(
   text: string,
   formData: Record<string, unknown>,
-  fields: FormField[]
+  fields: FormField[],
+  options?: { debug?: boolean }
 ): string {
-  // Match {{fieldId}} or {{fieldId:fallback}} patterns
+  // Match {{token}} or {{token:fallback}} patterns
   const pipePattern = /\{\{([^}:]+)(?::([^}]+))?\}\}/g;
 
-  return text.replace(pipePattern, (match, fieldId, fallback) => {
-    const value = formData[fieldId];
+  return text.replace(pipePattern, (match, token, fallback) => {
+    const field = resolveFieldByPipingToken(token, fields);
+    const value = field ? formData[field.id] : undefined;
+
+    // Warn in dev mode if no field found
+    if (options?.debug && !field) {
+      const available = fields.map((f) => getPipingDisplayToken(f));
+      console.warn(`[Piping] "${token}" not found. Available:`, available);
+    }
 
     // Handle array values (e.g., checkbox selections)
     if (Array.isArray(value)) {

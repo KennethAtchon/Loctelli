@@ -1,138 +1,54 @@
 "use client";
 
-import { useState } from "react";
+import { Controller, useFormContext, useFieldArray } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Trash2, Plus } from "lucide-react";
-import type {
-  ProfileEstimation,
-  FormField,
-  ScoringRule,
-} from "@/lib/forms/types";
+import type { FormField, ScoringRule } from "@/lib/forms/types";
 import { LogicBuilder } from "@/components/admin/forms/card-form-builder/logic-builder";
+import { getConditionsFromGroupOrBlock } from "@/lib/forms/conditional-logic";
+import type { ProfileEstimationFormValues } from "./profile-estimation-form-types";
 
 export interface RecommendationConfigProps {
-  value?: ProfileEstimation["recommendationConfig"];
   fields: FormField[];
-  onChange: (config: ProfileEstimation["recommendationConfig"]) => void;
 }
 
-export function RecommendationConfig({
-  value,
-  fields,
-  onChange,
-}: RecommendationConfigProps) {
-  const [title, setTitle] = useState(value?.title || "");
-  const [recommendations, setRecommendations] = useState(
-    value?.recommendations || [
-      {
-        id: `rec_${Date.now()}`,
-        name: "",
-        description: "",
-        image: "",
-        matchingCriteria: [],
-      },
-    ]
-  );
+export function RecommendationConfig({ fields }: RecommendationConfigProps) {
+  const { control, watch } = useFormContext<ProfileEstimationFormValues>();
 
-  const updateConfig = () => {
-    onChange({
-      title,
-      recommendations: recommendations.map((rec) => ({
-        ...rec,
-        image: rec.image || undefined,
-      })),
-    });
-  };
+  const { fields: recommendations, append, remove } = useFieldArray({
+    control,
+    name: "recommendationConfig.recommendations",
+  });
 
   const addRecommendation = () => {
-    const newRecommendations = [
-      ...recommendations,
-      {
-        id: `rec_${Date.now()}`,
-        name: "",
-        description: "",
-        image: "",
-        matchingCriteria: [],
-      },
-    ];
-    setRecommendations(newRecommendations);
-    onChange({
-      title,
-      recommendations: newRecommendations.map((rec) => ({
-        ...rec,
-        image: rec.image || undefined,
-      })),
-    });
-  };
-
-  const updateRecommendation = (
-    index: number,
-    updates: Partial<(typeof recommendations)[0]>
-  ) => {
-    const updated = recommendations.map((rec, i) =>
-      i === index ? { ...rec, ...updates } : rec
-    );
-    setRecommendations(updated);
-    onChange({
-      title,
-      recommendations: updated.map((rec) => ({
-        ...rec,
-        image: rec.image || undefined,
-      })),
-    });
-  };
-
-  const removeRecommendation = (index: number) => {
-    const updated = recommendations.filter((_, i) => i !== index);
-    setRecommendations(updated);
-    onChange({
-      title,
-      recommendations: updated.map((rec) => ({
-        ...rec,
-        image: rec.image || undefined,
-      })),
-    });
-  };
-
-  const updateMatchingCriteria = (
-    index: number,
-    criteria: ScoringRule[] | undefined
-  ) => {
-    const updated = recommendations.map((rec, i) =>
-      i === index
-        ? {
-            ...rec,
-            matchingCriteria: criteria || [],
-          }
-        : rec
-    );
-    setRecommendations(updated);
-    onChange({
-      title,
-      recommendations: updated.map((rec) => ({
-        ...rec,
-        image: rec.image || undefined,
-      })),
+    append({
+      id: `rec_${Date.now()}`,
+      name: "",
+      description: "",
+      image: "",
+      matchingCriteria: [],
     });
   };
 
   return (
     <div className="space-y-4">
-      <div>
-        <Label htmlFor="recommendation-title">Title</Label>
-        <Input
-          id="recommendation-title"
-          value={title}
-          onChange={(e) => {
-            setTitle(e.target.value);
-            updateConfig();
-          }}
-          placeholder="Perfect For You"
-        />
-      </div>
+      <Controller
+        name="recommendationConfig.title"
+        control={control}
+        render={({ field }) => (
+          <div>
+            <Label htmlFor="recommendation-title">Title</Label>
+            <Input
+              id="recommendation-title"
+              {...field}
+              placeholder="Perfect For You"
+            />
+          </div>
+        )}
+      />
 
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -147,93 +63,99 @@ export function RecommendationConfig({
             Add Recommendation
           </Button>
         </div>
-
         {recommendations.map((recommendation, index) => (
           <div
             key={recommendation.id}
             className="border rounded-lg p-4 space-y-3 bg-muted/30"
           >
             <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label>Recommendation Name</Label>
-                <Input
-                  value={recommendation.name}
-                  onChange={(e) =>
-                    updateRecommendation(index, { name: e.target.value })
-                  }
-                  placeholder="e.g., Mountain Hiking Package"
-                />
-              </div>
+              <Controller
+                name={`recommendationConfig.recommendations.${index}.name`}
+                control={control}
+                render={({ field }) => (
+                  <div>
+                    <Label>Recommendation Name</Label>
+                    <Input {...field} placeholder="e.g., Mountain Hiking Package" />
+                  </div>
+                )}
+              />
               <div className="flex items-end">
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  onClick={() => removeRecommendation(index)}
+                  onClick={() => remove(index)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             </div>
-
-            <div>
-              <Label>Description</Label>
-              <Textarea
-                value={recommendation.description}
-                onChange={(e) =>
-                  updateRecommendation(index, { description: e.target.value })
-                }
-                placeholder="Description of this recommendation..."
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <Label>Image URL (optional)</Label>
-              <Input
-                value={recommendation.image || ""}
-                onChange={(e) =>
-                  updateRecommendation(index, { image: e.target.value })
-                }
-                placeholder="https://example.com/image.jpg"
-              />
-            </div>
-
-            <div>
-              <Label>Matching Criteria</Label>
-              <p className="text-xs text-muted-foreground mb-2">
-                Define conditions that match this recommendation
-              </p>
-              <LogicBuilder
-                fields={fields}
-                value={
-                  recommendation.matchingCriteria.length > 0
-                    ? {
-                        operator: "AND",
-                        conditions: recommendation.matchingCriteria.map(
-                          (rule) => ({
-                            fieldId: rule.fieldId,
-                            operator: rule.operator,
-                            value: rule.value,
-                          })
-                        ),
-                      }
-                    : undefined
-                }
-                onChange={(group) => {
-                  const rules: ScoringRule[] = group
-                    ? group.conditions.map((c) => ({
+            <Controller
+              name={`recommendationConfig.recommendations.${index}.description`}
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <Label>Description</Label>
+                  <Textarea
+                    {...field}
+                    placeholder="Description of this recommendation..."
+                    rows={3}
+                  />
+                </div>
+              )}
+            />
+            <Controller
+              name={`recommendationConfig.recommendations.${index}.image`}
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <Label>Image URL (optional)</Label>
+                  <Input
+                    {...field}
+                    value={field.value ?? ""}
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </div>
+              )}
+            />
+            <Controller
+              name={`recommendationConfig.recommendations.${index}.matchingCriteria`}
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <Label>Matching Criteria</Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Define conditions that match this recommendation
+                  </p>
+                  <LogicBuilder
+                    fields={fields}
+                    value={
+                      field.value.length > 0
+                        ? {
+                            operator: "AND",
+                            conditions: field.value.map((rule) => ({
+                              fieldId: rule.fieldId,
+                              operator: rule.operator,
+                              value: rule.value,
+                            })),
+                          }
+                        : undefined
+                    }
+                    onChange={(group) => {
+                      const conditions = getConditionsFromGroupOrBlock(group);
+                      const rules: ScoringRule[] = conditions.map((c) => ({
                         fieldId: c.fieldId,
                         operator: c.operator as ScoringRule["operator"],
                         value: c.value,
                         weight: 1,
-                      }))
-                    : [];
-                  updateMatchingCriteria(index, rules);
-                }}
-                label={`Match criteria for "${recommendation.name || "Recommendation"}"`}
-              />
-            </div>
+                      }));
+                      field.onChange(rules);
+                    }}
+                    label={`Match criteria for "${watch(`recommendationConfig.recommendations.${index}.name`) || "Recommendation"}"`}
+                  />
+                </div>
+              )}
+            />
           </div>
         ))}
       </div>

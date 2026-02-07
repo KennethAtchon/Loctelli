@@ -1,13 +1,135 @@
 "use client";
 
 import { useMemo, useCallback } from "react";
+import type { UseFormReturn } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
 import {
   flowchartToSchema,
   schemaToFlowchart,
 } from "@/lib/forms/flowchart-serialization";
 import type { FlowchartGraph } from "@/lib/forms/flowchart-types";
-import type { FormField, ProfileEstimation } from "@/lib/forms/types";
+import type {
+  FormField,
+  ProfileEstimation,
+  FormType,
+} from "@/lib/forms/types";
+
+/** Form values shape shared by Create and Edit (for RHF). */
+export type FormTemplateFormValues = {
+  name: string;
+  slug: string;
+  description?: string;
+  formType?: FormType;
+  schema: FormField[];
+  title: string;
+  subtitle?: string;
+  submitButtonText?: string;
+  successMessage?: string;
+  cardSettings?: Record<string, unknown>;
+  profileEstimation?: ProfileEstimation;
+  requiresWakeUp?: boolean;
+  wakeUpInterval?: number;
+  isActive?: boolean;
+  [key: string]: unknown;
+};
+
+export interface UseFormTemplateFormStateRHFOptions {
+  exportFileName?: string;
+}
+
+/**
+ * Form template state driven by React Hook Form. Use with useForm<FormTemplateFormValues>.
+ */
+export function useFormTemplateFormStateRHF(
+  form: UseFormReturn<FormTemplateFormValues>,
+  options: UseFormTemplateFormStateRHFOptions = {}
+): Omit<UseFormTemplateFormStateReturn<FormTemplateFormValues>, "handleInputChange"> {
+  const { toast } = useToast();
+  const { exportFileName } = options;
+
+  const defaultFlowchartGraph = useMemo(
+    () => schemaToFlowchart([]) as FlowchartGraph,
+    []
+  );
+
+  const cardSettings = form.watch("cardSettings");
+  const cardFormSchema = useMemo(
+    () =>
+      flowchartToSchema(
+        (cardSettings?.flowchartGraph as FlowchartGraph | undefined) ??
+          defaultFlowchartGraph
+      ),
+    [cardSettings?.flowchartGraph, defaultFlowchartGraph]
+  );
+
+  const addField = useCallback(() => {
+    const schema = form.getValues("schema") ?? [];
+    const newField: FormField = {
+      id: `field_${Date.now()}`,
+      type: "text",
+      label: "",
+      required: false,
+    };
+    form.setValue("schema", [...schema, newField]);
+  }, [form]);
+
+  const updateField = useCallback(
+    (index: number, updates: Partial<FormField>) => {
+      const schema = form.getValues("schema") ?? [];
+      form.setValue(
+        "schema",
+        schema.map((field, i) => (i === index ? { ...field, ...updates } : field))
+      );
+    },
+    [form]
+  );
+
+  const removeField = useCallback(
+    (index: number) => {
+      const schema = form.getValues("schema") ?? [];
+      form.setValue(
+        "schema",
+        schema.filter((_, i) => i !== index)
+      );
+    },
+    [form]
+  );
+
+  const exportSchemaToJSON = useCallback(() => {
+    const schema = form.getValues("schema") ?? [];
+    const jsonString = JSON.stringify(schema, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${exportFileName ?? form.getValues("slug") ?? "form-schema"}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast({
+      title: "Success",
+      description: "Form schema exported successfully",
+    });
+  }, [form, exportFileName, toast]);
+
+  const handleImportFields = useCallback(
+    (fields: FormField[]) => {
+      form.setValue("schema", fields);
+    },
+    [form]
+  );
+
+  return {
+    defaultFlowchartGraph,
+    cardFormSchema,
+    addField,
+    updateField,
+    removeField,
+    exportSchemaToJSON,
+    handleImportFields,
+  };
+}
 
 /** Minimal shape needed for card/schema form state (shared by Create and Update DTOs). */
 export interface FormTemplateFormState {
@@ -53,7 +175,7 @@ export function useFormTemplateFormState<
     schema?: FormField[];
     cardSettings?: Record<string, unknown>;
     slug?: string;
-  }
+  },
 >(
   formData: T,
   setFormData: React.Dispatch<React.SetStateAction<T>>,

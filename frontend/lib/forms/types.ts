@@ -43,20 +43,29 @@ export interface ConditionGroup {
   conditions: Condition[];
 }
 
+/**
+ * Top-level "group of groups": (group1) AND/OR (group2).
+ * Enables "(A and B) OR (C and D)" style logic.
+ */
+export interface ConditionBlock {
+  operator: "AND" | "OR";
+  groups: ConditionGroup[];
+}
+
 /** Conditional logic for a field */
 export interface ConditionalLogic {
   /** Show this field if conditions match */
-  showIf?: ConditionGroup;
+  showIf?: ConditionGroup | ConditionBlock;
   /** Hide this field if conditions match */
-  hideIf?: ConditionGroup;
+  hideIf?: ConditionGroup | ConditionBlock;
   /** Jump to specific card based on conditions */
   jumpTo?: {
-    conditions: ConditionGroup;
+    conditions: ConditionGroup | ConditionBlock;
     targetFieldId: string;
   }[];
   /** Dynamic label based on conditions */
   dynamicLabel?: {
-    conditions: ConditionGroup;
+    conditions: ConditionGroup | ConditionBlock;
     label: string;
   }[];
 }
@@ -87,6 +96,11 @@ export interface FormField {
   conditionalLogic?: ConditionalLogic;
   /** Enable piping (insert previous answers into labels using {{fieldId}}) */
   enablePiping?: boolean;
+  /**
+   * Human-readable variable name for piping, e.g. "name" → use {{name}} in later questions.
+   * If not set, {{id}} is used (id is the internal node id).
+   */
+  pipingKey?: string;
 }
 
 /** Scoring rule for profile estimation */

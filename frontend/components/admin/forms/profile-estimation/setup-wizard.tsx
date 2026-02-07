@@ -1,11 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { FormProvider, useForm } from "react-hook-form";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -20,13 +18,15 @@ import { CategoryConfig } from "./category-config";
 import { MultiDimensionConfig } from "./multi-dimension-config";
 import { RecommendationConfig } from "./recommendation-config";
 import { AIConfig } from "./ai-config";
+import type { ProfileEstimationFormValues } from "./profile-estimation-form-types";
+import {
+  getDefaultFormValues,
+  formValuesToProfileEstimation,
+} from "./profile-estimation-form-utils";
 
 export interface ProfileEstimationSetupProps {
-  /** Current profile estimation configuration */
   value?: ProfileEstimation;
-  /** All form fields (for scoring configuration) */
   fields: FormField[];
-  /** Callback when configuration changes */
   onChange: (config: ProfileEstimation | undefined) => void;
 }
 
@@ -35,62 +35,54 @@ export function ProfileEstimationSetup({
   fields,
   onChange,
 }: ProfileEstimationSetupProps) {
-  const [enabled, setEnabled] = useState(value?.enabled || false);
-  const [type, setType] = useState<ProfileEstimation["type"]>(
-    value?.type || "percentage"
-  );
-  const [aiEnabled, setAiEnabled] = useState(value?.aiConfig?.enabled || false);
+  const lastEmittedRef = useRef<ProfileEstimation | undefined>(undefined);
 
+  const form = useForm<ProfileEstimationFormValues>({
+    defaultValues: getDefaultFormValues(value),
+    mode: "onChange",
+  });
+
+  const { reset, watch, getValues, formState } = form;
+  const isDirty = formState.isDirty;
+
+  // Sync from parent: reset when value changes from outside (e.g. load from API)
   useEffect(() => {
-    if (value) {
-      setEnabled(value.enabled);
-      setType(value.type);
-      setAiEnabled(value.aiConfig?.enabled || false);
+    if (value === undefined) {
+      reset(getDefaultFormValues(undefined));
+      lastEmittedRef.current = undefined;
+      return;
     }
-  }, [value]);
+    if (value === lastEmittedRef.current) return;
+    lastEmittedRef.current = value;
+    reset(getDefaultFormValues(value));
+  }, [value, reset]);
 
-  const handleTypeChange = (newType: ProfileEstimation["type"]) => {
-    setType(newType);
-    // Reset config when type changes
-    const baseConfig: ProfileEstimation = {
-      enabled,
-      type: newType,
-      aiConfig: aiEnabled ? { enabled: true } : undefined,
-    };
-    onChange(baseConfig);
-  };
+  // Notify parent on every form change while dirty (subscription avoids stale closures)
+  useEffect(() => {
+    const subscription = watch((data) => {
+      if (!form.formState.isDirty) return;
+      const config = formValuesToProfileEstimation(
+        data as ProfileEstimationFormValues
+      );
+      lastEmittedRef.current = config ?? undefined;
+      onChange(config ?? undefined);
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, onChange]);
 
-  const handleConfigChange = (config: Partial<ProfileEstimation>) => {
-    const updated: ProfileEstimation = {
-      enabled,
-      type,
-      ...config,
-      aiConfig: aiEnabled ? { enabled: true } : undefined,
-    };
-    onChange(updated);
-  };
+  const currentType = watch("type");
+  const enabled = watch("enabled");
 
-  const handleEnabledChange = (newEnabled: boolean) => {
-    setEnabled(newEnabled);
-    if (newEnabled) {
-      const baseConfig: ProfileEstimation = {
-        enabled: true,
-        type,
-        aiConfig: aiEnabled ? { enabled: true } : undefined,
-      };
-      onChange(baseConfig);
-    } else {
+  const handleEnabledChange = (checked: boolean) => {
+    form.setValue("enabled", checked, { shouldDirty: true });
+    if (!checked) {
+      lastEmittedRef.current = undefined;
       onChange(undefined);
     }
   };
 
-  const handleAiEnabledChange = (newAiEnabled: boolean) => {
-    setAiEnabled(newAiEnabled);
-    if (value) {
-      handleConfigChange({
-        aiConfig: newAiEnabled ? { enabled: true } : undefined,
-      });
-    }
+  const handleTypeChange = (newType: ProfileEstimation["type"]) => {
+    form.setValue("type", newType, { shouldDirty: true });
   };
 
   if (!enabled) {
@@ -103,99 +95,71 @@ export function ProfileEstimationSetup({
               Calculate personalized results based on user answers
             </p>
           </div>
-          <Switch checked={enabled} onCheckedChange={handleEnabledChange} />
+          <Switch checked={false} onCheckedChange={handleEnabledChange} />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 border rounded-lg p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <Label className="text-base font-medium">Profile Estimation</Label>
-          <p className="text-sm text-muted-foreground mt-1">
-            Calculate personalized results based on user answers
-          </p>
+    <FormProvider {...form}>
+      <div className="space-y-6 border rounded-lg p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <Label className="text-base font-medium">Profile Estimation</Label>
+            <p className="text-sm text-muted-foreground mt-1">
+              Calculate personalized results based on user answers
+            </p>
+          </div>
+          <Switch checked={enabled} onCheckedChange={handleEnabledChange} />
         </div>
-        <Switch checked={enabled} onCheckedChange={handleEnabledChange} />
+
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="result-type">Result Type</Label>
+            <Select value={currentType} onValueChange={handleTypeChange}>
+              <SelectTrigger id="result-type">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="percentage">Percentage Score</SelectItem>
+                <SelectItem value="category">Category/Personality</SelectItem>
+                <SelectItem value="multi_dimension">Multi-Dimension</SelectItem>
+                <SelectItem value="recommendation">Recommendation</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="pt-4 border-t">
+            <AIConfig fields={fields} />
+          </div>
+
+          <Tabs value={currentType} className="mt-4">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="percentage">Percentage</TabsTrigger>
+              <TabsTrigger value="category">Category</TabsTrigger>
+              <TabsTrigger value="multi_dimension">Multi-Dimension</TabsTrigger>
+              <TabsTrigger value="recommendation">Recommendation</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="percentage" className="mt-4">
+              <PercentageConfig fields={fields} />
+            </TabsContent>
+
+            <TabsContent value="category" className="mt-4">
+              <CategoryConfig fields={fields} />
+            </TabsContent>
+
+            <TabsContent value="multi_dimension" className="mt-4">
+              <MultiDimensionConfig fields={fields} />
+            </TabsContent>
+
+            <TabsContent value="recommendation" className="mt-4">
+              <RecommendationConfig fields={fields} />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
-
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor="result-type">Result Type</Label>
-          <Select value={type} onValueChange={handleTypeChange}>
-            <SelectTrigger id="result-type">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="percentage">Percentage Score</SelectItem>
-              <SelectItem value="category">Category/Personality</SelectItem>
-              <SelectItem value="multi_dimension">Multi-Dimension</SelectItem>
-              <SelectItem value="recommendation">Recommendation</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="pt-4 border-t">
-          <AIConfig
-            value={value?.aiConfig}
-            onChange={(config) => {
-              handleConfigChange({ aiConfig: config });
-              setAiEnabled(!!config?.enabled);
-            }}
-          />
-        </div>
-
-        <Tabs value={type} className="mt-4">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="percentage">Percentage</TabsTrigger>
-            <TabsTrigger value="category">Category</TabsTrigger>
-            <TabsTrigger value="multi_dimension">Multi-Dimension</TabsTrigger>
-            <TabsTrigger value="recommendation">Recommendation</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="percentage" className="mt-4">
-            <PercentageConfig
-              value={value?.percentageConfig}
-              fields={fields}
-              onChange={(config) =>
-                handleConfigChange({ percentageConfig: config })
-              }
-            />
-          </TabsContent>
-
-          <TabsContent value="category" className="mt-4">
-            <CategoryConfig
-              value={value?.categoryConfig}
-              fields={fields}
-              onChange={(config) =>
-                handleConfigChange({ categoryConfig: config })
-              }
-            />
-          </TabsContent>
-
-          <TabsContent value="multi_dimension" className="mt-4">
-            <MultiDimensionConfig
-              value={value?.dimensionConfig}
-              fields={fields}
-              onChange={(config) =>
-                handleConfigChange({ dimensionConfig: config })
-              }
-            />
-          </TabsContent>
-
-          <TabsContent value="recommendation" className="mt-4">
-            <RecommendationConfig
-              value={value?.recommendationConfig}
-              fields={fields}
-              onChange={(config) =>
-                handleConfigChange({ recommendationConfig: config })
-              }
-            />
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
+    </FormProvider>
   );
 }

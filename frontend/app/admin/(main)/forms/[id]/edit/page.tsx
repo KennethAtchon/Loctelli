@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,11 +16,7 @@ import {
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
-import type {
-  FormTemplate,
-  UpdateFormTemplateDto,
-  ProfileEstimation,
-} from "@/lib/forms/types";
+import type { FormTemplate, UpdateFormTemplateDto } from "@/lib/forms/types";
 import { FormFieldsSection } from "@/components/admin/forms/form-sections/form-fields-section";
 import { FormBasicInfoCard } from "@/components/admin/forms/form-sections/form-basic-info-card";
 import { FormDisplaySettingsCard } from "@/components/admin/forms/form-sections/form-display-settings-card";
@@ -27,7 +24,10 @@ import { FormAdvancedSettingsCard } from "@/components/admin/forms/form-sections
 import { FormCardBuilderSection } from "@/components/admin/forms/form-sections/form-card-builder-section";
 import { FormProfileEstimationSection } from "@/components/admin/forms/form-sections/form-profile-estimation-section";
 import { AnalyticsDashboard } from "@/components/admin/forms/analytics-dashboard";
-import { useFormTemplateFormState } from "../../hooks/use-form-template-form-state";
+import {
+  useFormTemplateFormStateRHF,
+  type FormTemplateFormValues,
+} from "../../hooks/use-form-template-form-state";
 import { generateSlug, validateFormTemplate } from "@/lib/forms/form-utils";
 import {
   flowchartToSchema,
@@ -35,27 +35,55 @@ import {
 } from "@/lib/forms/flowchart-serialization";
 import type { FlowchartGraph } from "@/lib/forms/flowchart-types";
 
+function templateToFormValues(t: FormTemplate): FormTemplateFormValues {
+  return {
+    name: t.name,
+    slug: t.slug,
+    description: t.description,
+    formType: t.formType,
+    schema: t.schema ?? [],
+    title: t.title,
+    subtitle: t.subtitle,
+    submitButtonText: t.submitButtonText,
+    successMessage: t.successMessage,
+    isActive: t.isActive,
+    requiresWakeUp: t.requiresWakeUp,
+    wakeUpInterval: t.wakeUpInterval ?? 30,
+    cardSettings: t.cardSettings,
+    profileEstimation: t.profileEstimation,
+    styling: t.styling,
+    analyticsEnabled: t.analyticsEnabled,
+  };
+}
+
 export default function EditFormTemplatePage() {
   const params = useParams();
   const formId = params.id as string;
   const [template, setTemplate] = useState<FormTemplate | null>(null);
-  const [formData, setFormData] = useState<UpdateFormTemplateDto>({});
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
 
+  const form = useForm<FormTemplateFormValues>({
+    defaultValues: {
+      name: "",
+      slug: "",
+      schema: [],
+      title: "",
+    },
+  });
+
   const {
     defaultFlowchartGraph,
     cardFormSchema,
-    handleInputChange,
     addField,
     updateField,
     removeField,
     exportSchemaToJSON,
     handleImportFields,
-  } = useFormTemplateFormState(formData, setFormData, {
-    exportFileName: template?.slug ?? formData.slug,
+  } = useFormTemplateFormStateRHF(form, {
+    exportFileName: template?.slug ?? form.watch("slug"),
   });
 
   useEffect(() => {
@@ -67,24 +95,7 @@ export default function EditFormTemplatePage() {
     try {
       const templateData = await api.forms.getFormTemplate(formId);
       setTemplate(templateData);
-      setFormData({
-        name: templateData.name,
-        slug: templateData.slug,
-        description: templateData.description,
-        formType: templateData.formType,
-        schema: templateData.schema,
-        title: templateData.title,
-        subtitle: templateData.subtitle,
-        submitButtonText: templateData.submitButtonText,
-        successMessage: templateData.successMessage,
-        isActive: templateData.isActive,
-        requiresWakeUp: templateData.requiresWakeUp,
-        wakeUpInterval: templateData.wakeUpInterval,
-        cardSettings: templateData.cardSettings,
-        profileEstimation: templateData.profileEstimation,
-        styling: templateData.styling,
-        analyticsEnabled: templateData.analyticsEnabled,
-      });
+      form.reset(templateToFormValues(templateData));
     } catch (error: unknown) {
       console.error("Failed to load template:", error);
       toast({
@@ -98,27 +109,28 @@ export default function EditFormTemplatePage() {
     }
   };
 
+  const setValue = form.setValue;
+  const watch = form.watch;
+
   const handleNameChange = (name: string) => {
-    handleInputChange("name", name);
-    if (template && formData.slug === generateSlug(template.name)) {
-      handleInputChange("slug", generateSlug(name));
+    setValue("name", name);
+    if (template && watch("slug") === generateSlug(template.name)) {
+      setValue("slug", generateSlug(name));
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const isCardForm = formData.formType === "CARD";
+  const handleSubmit = form.handleSubmit(async (values) => {
+    const isCardForm = values.formType === "CARD";
     const schemaForValidation =
-      isCardForm && formData.cardSettings?.flowchartGraph
+      isCardForm && values.cardSettings?.flowchartGraph
         ? flowchartToSchema(
-            formData.cardSettings.flowchartGraph as FlowchartGraph
+            values.cardSettings.flowchartGraph as FlowchartGraph
           )
-        : formData.schema || [];
+        : values.schema || [];
     const validation = validateFormTemplate(
-      formData.name || "",
-      formData.slug || "",
-      formData.title || "",
+      values.name || "",
+      values.slug || "",
+      values.title || "",
       schemaForValidation,
       isCardForm
     );
@@ -132,8 +144,7 @@ export default function EditFormTemplatePage() {
       return;
     }
 
-    // Validate all fields have labels (Simple Form only)
-    const currentSchema = formData.schema || [];
+    const currentSchema = values.schema || [];
     const invalidFields = currentSchema.filter((field) => !field.label?.trim());
     if (!isCardForm && invalidFields.length > 0) {
       toast({
@@ -148,13 +159,13 @@ export default function EditFormTemplatePage() {
     try {
       const payload: UpdateFormTemplateDto = isCardForm
         ? {
-            ...formData,
+            ...values,
             schema: flowchartToSchema(
-              (formData.cardSettings?.flowchartGraph as FlowchartGraph) ??
+              (values.cardSettings?.flowchartGraph as FlowchartGraph) ??
                 schemaToFlowchart([])
             ),
           }
-        : formData;
+        : { ...values };
       await api.forms.updateFormTemplate(formId, payload);
 
       toast({
@@ -176,7 +187,7 @@ export default function EditFormTemplatePage() {
     } finally {
       setLoading(false);
     }
-  };
+  });
 
   if (initialLoading) {
     return (
@@ -223,10 +234,8 @@ export default function EditFormTemplatePage() {
         </h1>
         <div className="ml-auto">
           <Switch
-            checked={formData.isActive}
-            onCheckedChange={(checked) =>
-              handleInputChange("isActive", checked)
-            }
+            checked={watch("isActive")}
+            onCheckedChange={(checked) => setValue("isActive", checked)}
           />
           <Label className="ml-2">Active</Label>
         </div>
@@ -235,35 +244,29 @@ export default function EditFormTemplatePage() {
       {isCardForm && (
         <FormCardBuilderSection
           graph={
-            (formData.cardSettings?.flowchartGraph as FlowchartGraph) ??
+            (watch("cardSettings")?.flowchartGraph as FlowchartGraph) ??
             defaultFlowchartGraph
           }
           onGraphChange={(newGraph) =>
-            handleInputChange("cardSettings", {
-              ...(formData.cardSettings as Record<string, unknown> | undefined),
+            setValue("cardSettings", {
+              ...(watch("cardSettings") as Record<string, unknown> | undefined),
               flowchartGraph: newGraph,
               flowchartViewport: newGraph.viewport,
             })
           }
-          formSlug={formData.slug || template?.slug}
+          formSlug={watch("slug") || template?.slug}
         />
       )}
 
       {isCardForm && (
         <FormProfileEstimationSection
-          value={formData.profileEstimation as ProfileEstimation | undefined}
+          value={watch("profileEstimation")}
           fields={cardFormSchema}
-          onChange={(config) =>
-            handleInputChange(
-              "profileEstimation",
-              config as ProfileEstimation | undefined
-            )
-          }
+          onChange={(config) => setValue("profileEstimation", config)}
         />
       )}
 
-      {/* Analytics Dashboard */}
-      {formData.analyticsEnabled && (
+      {!!watch("analyticsEnabled") && (
         <Card>
           <CardHeader>
             <CardTitle>Analytics</CardTitle>
@@ -278,41 +281,36 @@ export default function EditFormTemplatePage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Information */}
         <FormBasicInfoCard
-          name={formData.name || ""}
-          slug={formData.slug || ""}
-          description={formData.description || ""}
+          name={watch("name") || ""}
+          slug={watch("slug") || ""}
+          description={watch("description") || ""}
           onNameChange={handleNameChange}
-          onSlugChange={(slug) => handleInputChange("slug", slug)}
+          onSlugChange={(slug) => setValue("slug", slug)}
           onDescriptionChange={(description) =>
-            handleInputChange("description", description)
+            setValue("description", description)
           }
         />
 
-        {/* Form Display Settings */}
         <FormDisplaySettingsCard
-          title={formData.title || ""}
-          subtitle={formData.subtitle || ""}
-          submitButtonText={formData.submitButtonText}
-          successMessage={formData.successMessage}
+          title={watch("title") || ""}
+          subtitle={watch("subtitle") || ""}
+          submitButtonText={watch("submitButtonText")}
+          successMessage={watch("successMessage")}
           isCardForm={isCardForm}
-          onTitleChange={(title) => handleInputChange("title", title)}
-          onSubtitleChange={(subtitle) =>
-            handleInputChange("subtitle", subtitle)
-          }
+          onTitleChange={(title) => setValue("title", title)}
+          onSubtitleChange={(subtitle) => setValue("subtitle", subtitle)}
           onSubmitButtonTextChange={(text) =>
-            handleInputChange("submitButtonText", text)
+            setValue("submitButtonText", text)
           }
           onSuccessMessageChange={(message) =>
-            handleInputChange("successMessage", message)
+            setValue("successMessage", message)
           }
         />
 
-        {/* Form Fields (Simple Form only; Card Forms use the flowchart builder above) */}
         {!isCardForm && (
           <FormFieldsSection
-            schema={formData.schema || []}
+            schema={watch("schema") || []}
             onAddField={addField}
             onUpdateField={updateField}
             onRemoveField={removeField}
@@ -321,19 +319,17 @@ export default function EditFormTemplatePage() {
           />
         )}
 
-        {/* Advanced Settings */}
         <FormAdvancedSettingsCard
-          requiresWakeUp={formData.requiresWakeUp || false}
-          wakeUpInterval={formData.wakeUpInterval || 30}
+          requiresWakeUp={watch("requiresWakeUp") ?? false}
+          wakeUpInterval={watch("wakeUpInterval") ?? 30}
           onRequiresWakeUpChange={(enabled) =>
-            handleInputChange("requiresWakeUp", enabled)
+            setValue("requiresWakeUp", enabled)
           }
           onWakeUpIntervalChange={(interval) =>
-            handleInputChange("wakeUpInterval", interval)
+            setValue("wakeUpInterval", interval)
           }
         />
 
-        {/* Submit Button */}
         <div className="flex items-center justify-end gap-4">
           <Button type="button" variant="outline" onClick={() => router.back()}>
             Cancel

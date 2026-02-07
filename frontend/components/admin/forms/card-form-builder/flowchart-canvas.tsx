@@ -60,10 +60,7 @@ export function FlowchartCanvas({
 
   const onNodesChangeHandler: OnNodesChange = useCallback(
     (changes) => {
-      const nextNodes = applyNodeChanges(
-        changes,
-        nodes
-      ) as FlowchartNode[];
+      const nextNodes = applyNodeChanges(changes, nodes) as FlowchartNode[];
       onGraphChange({
         ...graph,
         nodes: nextNodes,
@@ -74,10 +71,7 @@ export function FlowchartCanvas({
 
   const onEdgesChangeHandler: OnEdgesChange = useCallback(
     (changes) => {
-      const nextEdges = applyEdgeChanges(
-        changes,
-        edges
-      ) as FlowchartEdge[];
+      const nextEdges = applyEdgeChanges(changes, edges) as FlowchartEdge[];
       onGraphChange({
         ...graph,
         edges: nextEdges,

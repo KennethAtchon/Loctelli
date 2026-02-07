@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
@@ -23,9 +24,8 @@ const FORMS_STALE_MS = 3 * 60 * 1000; // 3 min
 
 export default function FormsPage() {
   const router = useRouter();
-  const [filteredTemplates, setFilteredTemplates] = useState<FormTemplate[]>(
-    []
-  );
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterState, setFilterState] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<FormTemplate | null>(
     null
@@ -51,9 +51,31 @@ export default function FormsPage() {
   const templates = templatesQuery.data ?? [];
   const submissions = submissionsQuery.data ?? [];
 
-  useEffect(() => {
-    setFilteredTemplates(templates);
-  }, [templates]);
+  const filteredTemplates = useMemo(() => {
+    let list = templates;
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      list = list.filter(
+        (template) =>
+          template.name.toLowerCase().includes(term) ||
+          template.title.toLowerCase().includes(term) ||
+          template.slug.toLowerCase().includes(term) ||
+          (template.description &&
+            template.description.toLowerCase().includes(term))
+      );
+    }
+    if (filterState.status && filterState.status !== "all") {
+      list = list.filter((t) =>
+        filterState.status === "active" ? t.isActive : !t.isActive
+      );
+    }
+    if (filterState.wakeUp && filterState.wakeUp !== "all") {
+      list = list.filter((t) =>
+        filterState.wakeUp === "enabled" ? t.requiresWakeUp : !t.requiresWakeUp
+      );
+    }
+    return list;
+  }, [templates, searchTerm, filterState]);
 
   const stats = useMemo(() => {
     const activeTemplates = templates.filter((t) => t.isActive).length;
@@ -114,24 +136,24 @@ export default function FormsPage() {
     {
       key: "name",
       header: "Form Name",
-      render: (template) => (
-        <div>
-          <div className="font-medium">{template.name}</div>
-          <div
-            className="text-xs text-gray-500 cursor-pointer hover:text-blue-600"
-            onClick={() =>
-              router.push(
-                template.formType === "CARD"
-                  ? `/forms/card/${template.slug}`
-                  : `/forms/${template.slug}`
-              )
-            }
-          >
-            /{template.formType === "CARD" ? "forms/card/" : "forms/"}
-            {template.slug}
+      render: (template) => {
+        const formHref =
+          template.formType === "CARD"
+            ? `/forms/card/${template.slug}`
+            : `/forms/${template.slug}`;
+        return (
+          <div>
+            <div className="font-medium">{template.name}</div>
+            <Link
+              href={formHref}
+              className="text-xs text-gray-500 cursor-pointer hover:text-blue-600 block truncate max-w-[200px]"
+            >
+              /{template.formType === "CARD" ? "forms/card/" : "forms/"}
+              {template.slug}
+            </Link>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       key: "formType",
@@ -211,39 +233,13 @@ export default function FormsPage() {
     submissionsQuery.refetch();
   };
 
-  // Handle search for templates
   const handleTemplateSearch = (term: string) => {
-    const filtered = templates.filter(
-      (template) =>
-        template.name.toLowerCase().includes(term.toLowerCase()) ||
-        template.title.toLowerCase().includes(term.toLowerCase()) ||
-        template.slug.toLowerCase().includes(term.toLowerCase()) ||
-        (template.description &&
-          template.description.toLowerCase().includes(term.toLowerCase()))
-    );
-    setFilteredTemplates(filtered);
-    setTotalTemplates(filtered.length);
+    setSearchTerm(term);
     setTemplatePage(1);
   };
 
-  // Handle filters for templates
   const handleTemplateFilter = (key: string, value: string) => {
-    let filtered = templates;
-
-    if (key === "status" && value !== "all") {
-      filtered = filtered.filter((template) =>
-        value === "active" ? template.isActive : !template.isActive
-      );
-    }
-
-    if (key === "wakeUp" && value !== "all") {
-      filtered = filtered.filter((template) =>
-        value === "enabled" ? template.requiresWakeUp : !template.requiresWakeUp
-      );
-    }
-
-    setFilteredTemplates(filtered);
-    setTotalTemplates(filtered.length);
+    setFilterState((prev) => ({ ...prev, [key]: value }));
     setTemplatePage(1);
   };
 

@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
 import type {
   FormField,
@@ -34,14 +35,25 @@ export function useSimpleFormState(
   handleSubmit: () => Promise<void>;
   resetForm: () => void;
 } {
-  // Initialize form data
-  const [formData, setFormData] = useState<Record<string, unknown>>(() => {
-    const initial = getInitialFormData(schema);
-    if (options.initialData) {
-      return { ...initial, ...options.initialData };
-    }
-    return initial;
+  const defaultValues = useMemo(
+    () =>
+      options.initialData
+        ? { ...getInitialFormData(schema), ...options.initialData }
+        : getInitialFormData(schema),
+    [schema, options.initialData]
+  );
+
+  const form = useForm<Record<string, unknown>>({
+    defaultValues,
   });
+
+  useEffect(() => {
+    form.reset(
+      options.initialData
+        ? { ...getInitialFormData(schema), ...options.initialData }
+        : getInitialFormData(schema)
+    );
+  }, [schema, options.initialData, form]);
 
   const [uploadedFiles, setUploadedFiles] = useState<
     Record<string, UploadedFile>
@@ -51,7 +63,6 @@ export function useSimpleFormState(
   );
   const [formError, setFormError] = useState<string | null>(null);
 
-  // TanStack Query: File upload mutation
   const fileUploadMutation = useMutation({
     mutationFn: async ({ fieldId, file }: { fieldId: string; file: File }) => {
       const formDataUpload = new FormData();
@@ -61,7 +72,6 @@ export function useSimpleFormState(
     },
   });
 
-  // TanStack Query: Form submission mutation
   const submitMutation = useMutation({
     mutationFn: async (data: CreateFormSubmissionDto) => {
       return api.forms.submitPublicForm(slug, data);
@@ -83,25 +93,24 @@ export function useSimpleFormState(
     },
   });
 
-  const handleInputChange = useCallback((fieldId: string, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [fieldId]: value }));
-    // Clear error when user starts typing
-    setFormError(null);
-  }, []);
+  const handleInputChange = useCallback(
+    (fieldId: string, value: unknown) => {
+      form.setValue(fieldId, value);
+      setFormError(null);
+    },
+    [form]
+  );
 
   const handleCheckboxChange = useCallback(
     (fieldId: string, value: string, checked: boolean) => {
-      setFormData((prev) => {
-        const current = (prev[fieldId] as string[]) || [];
-        if (checked) {
-          return { ...prev, [fieldId]: [...current, value] };
-        } else {
-          return { ...prev, [fieldId]: current.filter((v) => v !== value) };
-        }
-      });
+      const current = (form.getValues(fieldId) as string[]) || [];
+      form.setValue(
+        fieldId,
+        checked ? [...current, value] : current.filter((v) => v !== value)
+      );
       setFormError(null);
     },
-    []
+    [form]
   );
 
   const handleFileUpload = useCallback(
@@ -118,11 +127,7 @@ export function useSimpleFormState(
           ...prev,
           [fieldId]: result,
         }));
-        // Update form data with file URL
-        setFormData((prev) => ({
-          ...prev,
-          [fieldId]: result.url,
-        }));
+        form.setValue(fieldId, result.url);
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : "File upload failed";
@@ -132,35 +137,37 @@ export function useSimpleFormState(
         setUploadingFiles((prev) => ({ ...prev, [fieldId]: false }));
       }
     },
-    [fileUploadMutation]
+    [fileUploadMutation, form]
   );
 
   const handleSubmit = useCallback(async () => {
-    // Validate form
-    if (!validateForm(schema, formData)) {
+    const data = form.getValues();
+    if (!validateForm(schema, data)) {
       setFormError("Please fill in all required fields");
       return;
     }
 
     setFormError(null);
 
-    // Submit using TanStack Query mutation
-    // Note: formTemplateId should be passed from template, but for now we'll let the API handle it
     await submitMutation.mutateAsync({
-      data: formData,
+      data,
       files: uploadedFiles,
       source: "simple-form",
     });
-  }, [schema, formData, uploadedFiles, submitMutation]);
+  }, [schema, form, uploadedFiles, submitMutation]);
 
   const resetForm = useCallback(() => {
-    setFormData(getInitialFormData(schema));
+    form.reset(
+      options.initialData
+        ? { ...getInitialFormData(schema), ...options.initialData }
+        : getInitialFormData(schema)
+    );
     setUploadedFiles({});
     setFormError(null);
-  }, [schema]);
+  }, [schema, form, options.initialData]);
 
   return {
-    formData,
+    formData: form.watch(),
     uploadedFiles,
     uploadingFiles,
     isSubmitting: submitMutation.isPending,

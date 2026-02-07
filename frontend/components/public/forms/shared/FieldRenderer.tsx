@@ -12,10 +12,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, CheckCircle } from "lucide-react";
+import { Loader2, CheckCircle, Info } from "lucide-react";
 import Image from "next/image";
 import type { FormField, CardMedia } from "@/lib/forms/types";
-import { applyPiping, getDynamicLabel } from "@/lib/forms/conditional-logic";
+import {
+  applyPiping,
+  getDynamicLabel,
+  extractPipingReferences,
+} from "@/lib/forms/conditional-logic";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export interface FieldRendererProps {
   field: FormField;
@@ -105,14 +115,71 @@ function MediaRenderer({ media }: { media: CardMedia }) {
   return mediaContent;
 }
 
+function PipingIndicator({
+  info,
+}: {
+  info: Array<{
+    token: string;
+    resolved: string;
+    exists: boolean;
+    fieldLabel?: string;
+  }>;
+}) {
+  if (info.length === 0) return null;
+
+  const uniqueInfo = Array.from(
+    new Map(info.map((item) => [item.token, item])).values()
+  );
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-flex items-center gap-1 ml-2 text-xs text-muted-foreground">
+            <Info className="h-3 w-3" />
+            <span className="hidden sm:inline">Piped</span>
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs">
+          <div className="space-y-1 text-xs">
+            <p className="font-medium">Piping active:</p>
+            {uniqueInfo.map((item, idx) => (
+              <div key={idx} className="flex items-start gap-2">
+                <code className="text-[10px] bg-muted px-1 rounded">
+                  {"{{"}
+                  {item.token}
+                  {"}}"}
+                </code>
+                <span className="text-muted-foreground">→</span>
+                <span className={item.exists ? "" : "text-destructive"}>
+                  {item.exists
+                    ? `"${item.resolved || "(empty)"}"`
+                    : "Field not found"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
 function QuestionLabel({
   htmlFor,
   children,
   mode,
+  pipingInfo,
 }: {
   htmlFor?: string;
   children: React.ReactNode;
   mode: "simple" | "card";
+  pipingInfo?: Array<{
+    token: string;
+    resolved: string;
+    exists: boolean;
+    fieldLabel?: string;
+  }>;
 }) {
   if (mode === "card") {
     return (
@@ -120,13 +187,23 @@ function QuestionLabel({
         htmlFor={htmlFor}
         className="text-2xl font-medium text-center block"
       >
-        {children}
+        <span className="flex items-center justify-center gap-2 flex-wrap">
+          {children}
+          {pipingInfo && pipingInfo.length > 0 && (
+            <PipingIndicator info={pipingInfo} />
+          )}
+        </span>
       </Label>
     );
   }
   return (
     <Label htmlFor={htmlFor} className="text-sm font-medium">
-      {children}
+      <span className="flex items-center gap-2">
+        {children}
+        {pipingInfo && pipingInfo.length > 0 && (
+          <PipingIndicator info={pipingInfo} />
+        )}
+      </span>
     </Label>
   );
 }
@@ -156,10 +233,40 @@ export function FieldRenderer({
       ? getDynamicLabel(field, formData)
       : field.label;
 
+  // Extract piping info for visual feedback
+  const pipingInfo =
+    mode === "card" &&
+    field.enablePiping &&
+    formData &&
+    allFields.length > 0 &&
+    (baseLabel.includes("{{") ||
+      (field.placeholder && field.placeholder.includes("{{")))
+      ? (() => {
+          const labelRefs = extractPipingReferences(
+            baseLabel,
+            formData,
+            allFields
+          );
+          const placeholderRefs = field.placeholder
+            ? extractPipingReferences(field.placeholder, formData, allFields)
+            : [];
+          // Deduplicate by token (variable name used in {{token}})
+          const seen = new Map<string, (typeof labelRefs)[0]>();
+          [...labelRefs, ...placeholderRefs].forEach((ref) => {
+            if (!seen.has(ref.token)) {
+              seen.set(ref.token, ref);
+            }
+          });
+          return Array.from(seen.values());
+        })()
+      : [];
+
   // Apply piping if enabled (card mode only)
   const displayLabel =
     mode === "card" && field.enablePiping && formData && allFields.length > 0
-      ? applyPiping(baseLabel, formData, allFields)
+      ? applyPiping(baseLabel, formData, allFields, {
+          debug: process.env.NODE_ENV === "development",
+        })
       : baseLabel;
   const displayPlaceholder =
     mode === "card" &&
@@ -167,7 +274,9 @@ export function FieldRenderer({
     field.placeholder &&
     formData &&
     allFields.length > 0
-      ? applyPiping(field.placeholder, formData, allFields)
+      ? applyPiping(field.placeholder, formData, allFields, {
+          debug: process.env.NODE_ENV === "development",
+        })
       : field.placeholder;
 
   const media = field.media;
@@ -228,7 +337,11 @@ export function FieldRenderer({
       case "textarea":
         return (
           <div className={mode === "card" ? "space-y-6" : "space-y-2"}>
-            <QuestionLabel htmlFor={field.id} mode={mode}>
+            <QuestionLabel
+              htmlFor={field.id}
+              mode={mode}
+              pipingInfo={pipingInfo}
+            >
               {displayLabel}
               {requiredMark}
             </QuestionLabel>
@@ -266,7 +379,11 @@ export function FieldRenderer({
       case "select":
         return (
           <div className={mode === "card" ? "space-y-6" : "space-y-2"}>
-            <QuestionLabel htmlFor={field.id} mode={mode}>
+            <QuestionLabel
+              htmlFor={field.id}
+              mode={mode}
+              pipingInfo={pipingInfo}
+            >
               {displayLabel}
               {requiredMark}
             </QuestionLabel>
@@ -429,7 +546,11 @@ export function FieldRenderer({
       case "image":
         return (
           <div className={mode === "card" ? "space-y-6" : "space-y-2"}>
-            <QuestionLabel htmlFor={field.id} mode={mode}>
+            <QuestionLabel
+              htmlFor={field.id}
+              mode={mode}
+              pipingInfo={pipingInfo}
+            >
               {displayLabel}
               {requiredMark}
             </QuestionLabel>

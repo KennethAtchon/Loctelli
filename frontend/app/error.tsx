@@ -18,10 +18,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6">
       <div className="flex flex-col items-center max-w-md rounded-lg border border-destructive/30 bg-destructive/5 p-8 text-center">
-        <AlertCircle
-          className="h-12 w-12 text-destructive mb-4"
-          aria-hidden
-        />
+        <AlertCircle className="h-12 w-12 text-destructive mb-4" aria-hidden />
         <h1 className="text-2xl font-semibold text-foreground mb-2">
           Something went wrong
         </h1>

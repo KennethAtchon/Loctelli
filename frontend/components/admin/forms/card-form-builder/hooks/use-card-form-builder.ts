@@ -8,6 +8,8 @@ import type {
 } from "@/lib/forms/flowchart-types";
 import { flowchartToSchema } from "@/lib/forms/flowchart-serialization";
 import { START_NODE_ID, END_NODE_ID } from "@/lib/forms/flowchart-types";
+import { getPipingDisplayToken } from "@/lib/forms/conditional-logic";
+import type { FormField } from "@/lib/forms/types";
 
 export interface UseCardFormBuilderProps {
   graph: FlowchartGraph;
@@ -18,7 +20,9 @@ export interface UseCardFormBuilderProps {
 export interface UseCardFormBuilderReturn {
   // View state
   viewMode: "canvas" | "list";
-  setViewMode: (mode: "canvas" | "list" | ((prev: "canvas" | "list") => "canvas" | "list")) => void;
+  setViewMode: (
+    mode: "canvas" | "list" | ((prev: "canvas" | "list") => "canvas" | "list")
+  ) => void;
   // Selection
   selectedNodeId: string | undefined;
   selectedNode: FlowchartNode | undefined;
@@ -29,7 +33,10 @@ export interface UseCardFormBuilderReturn {
   schemaFromGraph: ReturnType<typeof flowchartToSchema>;
   // Graph actions
   handleGraphChange: (newGraph: FlowchartGraph) => void;
-  handleNodeUpdate: (nodeId: string, updates: Partial<FlowchartNode["data"]>) => void;
+  handleNodeUpdate: (
+    nodeId: string,
+    updates: Partial<FlowchartNode["data"]>
+  ) => void;
   handleNodeDelete: (nodeId: string) => void;
   handleAddNode: (type: "question" | "statement") => void;
   handleReorder: (orderedIds: string[]) => void;
@@ -46,7 +53,7 @@ export function useCardFormBuilder({
   onGraphChange,
   formSlug,
 }: UseCardFormBuilderProps): UseCardFormBuilderReturn {
-  const [viewMode, setViewMode] = useState<"canvas" | "list">("canvas");
+  const [viewMode, setViewMode] = useState<"canvas" | "list">("list");
   const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>();
 
   const selectedNode = useMemo(
@@ -132,6 +139,17 @@ export function useCardFormBuilder({
         .slice(-1)[0];
       const yPos = lastContentNode ? lastContentNode.position.y + 120 : 100;
 
+      const existingSchema = flowchartToSchema(graph);
+      const usedTokens = new Set(
+        existingSchema.map((f: FormField) => getPipingDisplayToken(f))
+      );
+      let defaultPipingKey = "question";
+      let n = 1;
+      while (usedTokens.has(defaultPipingKey)) {
+        defaultPipingKey = `question_${n}`;
+        n += 1;
+      }
+
       const newNode: FlowchartNode = {
         id: newNodeId,
         type,
@@ -142,12 +160,14 @@ export function useCardFormBuilder({
             : {
                 fieldId: newNodeId,
                 label: "New question",
-                fieldType: "text",
+                fieldType: "radio",
                 field: {
                   id: newNodeId,
-                  type: "text",
+                  type: "radio",
                   label: "New question",
                   required: false,
+                  options: ["Option 1", "Option 2"],
+                  pipingKey: defaultPipingKey,
                 },
               },
       };
@@ -170,11 +190,11 @@ export function useCardFormBuilder({
         newEdge as FlowchartEdge,
         edgeBeforeEnd
           ? { ...edgeBeforeEnd, source: newNodeId }
-          : {
+          : ({
               id: `e-${newNodeId}-${END_NODE_ID}`,
               source: newNodeId,
               target: END_NODE_ID,
-            } as FlowchartEdge,
+            } as FlowchartEdge),
       ];
 
       handleGraphChange({

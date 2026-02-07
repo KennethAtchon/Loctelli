@@ -9,6 +9,20 @@ export function generateSlug(name: string): string {
 }
 
 /**
+ * Generate a variable-style key for piping (e.g. "What's your name?" → "whats_your_name").
+ * Safe for {{pipingKey}} use: lowercase letters, numbers, underscores only; no leading number.
+ */
+export function labelToPipingKey(label: string): string {
+  const raw = label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/(^_|_$)/g, "");
+  if (!raw) return "field";
+  if (/^\d/.test(raw)) return `q_${raw}`;
+  return raw;
+}
+
+/**
  * Validate form template data
  */
 export interface FormValidationResult {
