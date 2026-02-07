@@ -24,14 +24,13 @@ export class FormFieldDto {
   @IsNotEmpty()
   type:
     | 'text'
-    | 'email'
-    | 'phone'
     | 'textarea'
     | 'select'
     | 'checkbox'
     | 'radio'
     | 'file'
-    | 'image';
+    | 'image'
+    | 'statement';
 
   @IsString()
   @IsNotEmpty()

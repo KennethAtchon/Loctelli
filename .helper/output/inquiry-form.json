@@ -15,14 +15,14 @@
   },
   {
     "id": "business_email",
-    "type": "email",
+    "type": "text",
     "label": "Business Email",
     "required": true,
     "placeholder": "example@yourbusiness.com"
   },
   {
     "id": "business_phone",
-    "type": "phone",
+    "type": "text",
     "label": "Business Phone Number",
     "required": true,
     "placeholder": "+1 (555) 555-5555"
@@ -125,14 +125,14 @@
   },
   {
     "id": "ghl_contact_email",
-    "type": "email",
+    "type": "text",
     "label": "Preferred Email for GHL Login",
     "required": true,
     "placeholder": "Enter email for CRM access"
   },
   {
     "id": "ghl_contact_phone",
-    "type": "phone",
+    "type": "text",
     "label": "Preferred Phone for App Notifications",
     "required": true,
     "placeholder": "+1 (555) 555-5555"

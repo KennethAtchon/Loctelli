@@ -157,24 +157,6 @@ export default function FormSubmissionDetailPage() {
     if (!value && value !== false && value !== 0) return "N/A";
 
     switch (field?.type) {
-      case "email":
-        return (
-          <a
-            href={`mailto:${String(value)}`}
-            className="text-blue-600 hover:text-blue-800"
-          >
-            {String(value)}
-          </a>
-        );
-      case "phone":
-        return (
-          <a
-            href={`tel:${String(value)}`}
-            className="text-blue-600 hover:text-blue-800"
-          >
-            {String(value)}
-          </a>
-        );
       case "checkbox":
         return value ? "Yes" : "No";
       case "file":

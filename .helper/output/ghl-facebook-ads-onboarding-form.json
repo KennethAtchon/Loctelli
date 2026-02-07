@@ -23,14 +23,14 @@
     },
     {
       "id": "email",
-      "type": "email",
+      "type": "text",
       "label": "Business Email",
       "placeholder": "your@business.com",
       "required": true
     },
     {
       "id": "phone",
-      "type": "phone",
+      "type": "text",
       "label": "Business Phone Number",
       "placeholder": "+1 (555) 123-4567",
       "required": true
