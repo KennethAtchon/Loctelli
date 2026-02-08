@@ -3,8 +3,8 @@ FROM oven/bun:1-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies for native modules
-RUN apk add --no-cache python3 build-base g++ make
+# Install dependencies for native modules + Node (Next.js build workers need Node, not Bun, on Alpine)
+RUN apk add --no-cache python3 build-base g++ make nodejs npm
 
 # Copy package files and install dependencies
 COPY package.json bun.lockb* ./
@@ -19,8 +19,9 @@ ARG NEXT_PUBLIC_DEBUG
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_DEBUG=$NEXT_PUBLIC_DEBUG
 
-# Build the Next.js app
-RUN bun run build
+# Build with Node to avoid Bun segfault in Next.js worker (see bun.report)
+ENV NODE_ENV=production
+RUN node ./node_modules/next/dist/bin/next build
 
 # Stage 2: Production
 FROM oven/bun:1-alpine
