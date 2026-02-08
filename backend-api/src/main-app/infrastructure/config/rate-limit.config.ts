@@ -203,8 +203,7 @@ export const rateLimitRules: RateLimitRule[] = [
     name: 'admin-auth-login',
     matcher: {
       method: 'POST',
-      path: (p) =>
-        typeof p === 'string' && p.includes('admin/auth/login'),
+      path: (p) => typeof p === 'string' && p.includes('admin/auth/login'),
       priority: 90,
     },
     config: {
@@ -222,8 +221,7 @@ export const rateLimitRules: RateLimitRule[] = [
     name: 'admin-auth-register',
     matcher: {
       method: 'POST',
-      path: (p) =>
-        typeof p === 'string' && p.includes('admin/auth/register'),
+      path: (p) => typeof p === 'string' && p.includes('admin/auth/register'),
       priority: 90,
     },
     config: {

@@ -1,7 +1,14 @@
 import type { FormFieldOption } from "./types";
 
-export function isImageOption(option: FormFieldOption): option is { value: string; imageUrl: string; altText?: string } {
-  return typeof option === "object" && option !== null && "value" in option && "imageUrl" in option;
+export function isImageOption(
+  option: FormFieldOption
+): option is { value: string; imageUrl: string; altText?: string } {
+  return (
+    typeof option === "object" &&
+    option !== null &&
+    "value" in option &&
+    "imageUrl" in option
+  );
 }
 
 export function getOptionValue(option: FormFieldOption): string {
@@ -24,7 +31,9 @@ export function getOptionImageUrl(option: FormFieldOption): string | undefined {
 }
 
 /** Returns option values for validation / logic (e.g. field.options -> string[]). */
-export function getOptionValues(options: FormFieldOption[] | undefined): string[] {
+export function getOptionValues(
+  options: FormFieldOption[] | undefined
+): string[] {
   if (!options?.length) return [];
   return options.map(getOptionValue);
 }

@@ -416,13 +416,15 @@ function OptionsFieldArray({
   const { watch, setValue } = useFormContext<FormTemplateFormValues>();
   const optionsPath = `${pathPrefix}.field.options`;
   const optionDisplayPath = `${pathPrefix}.field.optionDisplay`;
-  const options = (watch(optionsPath as Path<FormTemplateFormValues>) as
-    | FormFieldOption[]
-    | undefined) ?? [];
-  const optionDisplay = (watch(optionDisplayPath as Path<FormTemplateFormValues>) as
-    | "text"
-    | "image"
-    | undefined) ?? "text";
+  const options =
+    (watch(optionsPath as Path<FormTemplateFormValues>) as
+      | FormFieldOption[]
+      | undefined) ?? [];
+  const optionDisplay =
+    (watch(optionDisplayPath as Path<FormTemplateFormValues>) as
+      | "text"
+      | "image"
+      | undefined) ?? "text";
 
   const isImageMode = optionDisplay === "image";
   const textOptions = isImageMode
@@ -430,7 +432,11 @@ function OptionsFieldArray({
     : (options as string[]);
   const imageOptions = isImageMode
     ? (options as ImageOption[])
-    : (options as string[]).map((s) => ({ value: s || "", imageUrl: "", altText: s || "" }));
+    : (options as string[]).map((s) => ({
+        value: s || "",
+        imageUrl: "",
+        altText: s || "",
+      }));
 
   const setDisplayMode = (mode: "text" | "image") => {
     setValue(optionDisplayPath as Path<FormTemplateFormValues>, mode, {
@@ -466,17 +472,25 @@ function OptionsFieldArray({
     if (!newOption.trim()) return;
     const opts = options as string[];
     if (opts.includes(newOption.trim())) return;
-    setValue(optionsPath as Path<FormTemplateFormValues>, [...opts, newOption.trim()], {
-      shouldDirty: true,
-    });
+    setValue(
+      optionsPath as Path<FormTemplateFormValues>,
+      [...opts, newOption.trim()],
+      {
+        shouldDirty: true,
+      }
+    );
     setNewOption("");
   };
 
   const addImageOption = () => {
     const opts = options as ImageOption[];
-    setValue(optionsPath as Path<FormTemplateFormValues>, [...opts, { value: "", imageUrl: "", altText: "" }], {
-      shouldDirty: true,
-    });
+    setValue(
+      optionsPath as Path<FormTemplateFormValues>,
+      [...opts, { value: "", imageUrl: "", altText: "" }],
+      {
+        shouldDirty: true,
+      }
+    );
   };
 
   const updateImageOption = (index: number, patch: Partial<ImageOption>) => {
@@ -523,7 +537,10 @@ function OptionsFieldArray({
             ))}
           {isImageMode &&
             imageOptions.map((opt, idx) => (
-              <div key={idx} className="flex flex-col gap-2 p-3 border rounded-md">
+              <div
+                key={idx}
+                className="flex flex-col gap-2 p-3 border rounded-md"
+              >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-medium text-muted-foreground">
                     Option {idx + 1}
@@ -582,7 +599,12 @@ function OptionsFieldArray({
             </div>
           )}
           {isImageMode && (
-            <Button type="button" variant="outline" size="sm" onClick={addImageOption}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addImageOption}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Add option
             </Button>

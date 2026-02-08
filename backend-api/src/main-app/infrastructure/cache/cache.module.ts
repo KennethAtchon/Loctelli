@@ -17,7 +17,9 @@ export { REDIS_STORE } from './redis-store.module';
       inject: [ConfigService, REDIS_STORE],
       useFactory: async (
         _configService: ConfigService,
-        redisStorePromise: Promise<Awaited<ReturnType<typeof redisStore>> | null>,
+        redisStorePromise: Promise<Awaited<
+          ReturnType<typeof redisStore>
+        > | null>,
       ) => {
         const store = await redisStorePromise;
         if (!store) {

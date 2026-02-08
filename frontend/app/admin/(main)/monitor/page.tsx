@@ -406,7 +406,6 @@ export default function AdminMonitorPage() {
                   )}
                 </DialogContent>
               </Dialog>
-              )}
             </CardContent>
           </Card>
         </TabsContent>

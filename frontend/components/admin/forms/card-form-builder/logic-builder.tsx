@@ -178,7 +178,12 @@ export function LogicBuilder({
               const val = getOptionValue(opt);
               const label = getOptionLabel(opt);
               return (
-                <SelectItem key={val} value={val} title={label} className="min-w-0">
+                <SelectItem
+                  key={val}
+                  value={val}
+                  title={label}
+                  className="min-w-0"
+                >
                   <span className="truncate block max-w-[160px] text-left">
                     {label}
                   </span>

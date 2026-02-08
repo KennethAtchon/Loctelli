@@ -40,7 +40,11 @@ export function FormFieldEditor({
     : (options as string[]);
   const imageOptions = isImageMode
     ? (options as ImageOption[])
-    : (options as string[]).map((s) => ({ value: s || "", imageUrl: "", altText: s || "" }));
+    : (options as string[]).map((s) => ({
+        value: s || "",
+        imageUrl: "",
+        altText: s || "",
+      }));
 
   const setDisplayMode = (mode: "text" | "image") => {
     if (mode === "image") {
@@ -59,7 +63,10 @@ export function FormFieldEditor({
   const addOption = () => {
     if (isImageMode) {
       onUpdate({
-        options: [...(options as ImageOption[]), { value: "", imageUrl: "", altText: "" }],
+        options: [
+          ...(options as ImageOption[]),
+          { value: "", imageUrl: "", altText: "" },
+        ],
       });
     } else {
       onUpdate({ options: [...(options as string[]), ""] });
@@ -72,16 +79,19 @@ export function FormFieldEditor({
     onUpdate({ options: updated });
   };
 
-  const updateImageOption = (optionIndex: number, patch: Partial<ImageOption>) => {
+  const updateImageOption = (
+    optionIndex: number,
+    patch: Partial<ImageOption>
+  ) => {
     const opts = [...(options as ImageOption[])];
     opts[optionIndex] = { ...opts[optionIndex], ...patch };
     onUpdate({ options: opts });
   };
 
   const removeOption = (optionIndex: number) => {
-    const updated = (isImageMode ? options as ImageOption[] : options as string[]).filter(
-      (_, i) => i !== optionIndex
-    );
+    const updated = (
+      isImageMode ? (options as ImageOption[]) : (options as string[])
+    ).filter((_, i) => i !== optionIndex);
     onUpdate({ options: updated });
   };
 

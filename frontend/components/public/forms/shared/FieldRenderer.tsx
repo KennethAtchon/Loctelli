@@ -377,7 +377,8 @@ export function FieldRenderer({
 
       case "select": {
         const selectOptions = field.options ?? [];
-        const isImage = field.optionDisplay === "image" && selectOptions.some(isImageOption);
+        const isImage =
+          field.optionDisplay === "image" && selectOptions.some(isImageOption);
         const SELECT_EMPTY_SENTINEL = "__empty__";
         const optionValues = selectOptions.map(getOptionValue);
         const hasEmptyOption = optionValues.includes("");
@@ -415,8 +416,7 @@ export function FieldRenderer({
                 <SelectContent>
                   {selectOptions.map((option) => {
                     const val = getOptionValue(option);
-                    const itemValue =
-                      val === "" ? SELECT_EMPTY_SENTINEL : val;
+                    const itemValue = val === "" ? SELECT_EMPTY_SENTINEL : val;
                     const imgUrl = getOptionImageUrl(option);
                     const alt = getOptionAlt(option);
                     return (
@@ -435,8 +435,10 @@ export function FieldRenderer({
                             </span>
                             <span className="truncate">{val || "—"}</span>
                           </span>
+                        ) : val === "" ? (
+                          "—"
                         ) : (
-                          val === "" ? "—" : getOptionLabel(option)
+                          getOptionLabel(option)
                         )}
                       </SelectItem>
                     );
@@ -484,8 +486,7 @@ export function FieldRenderer({
               <SelectContent>
                 {selectOptions.map((option) => {
                   const val = getOptionValue(option);
-                  const itemValue =
-                    val === "" ? SELECT_EMPTY_SENTINEL : val;
+                  const itemValue = val === "" ? SELECT_EMPTY_SENTINEL : val;
                   return (
                     <SelectItem key={itemValue} value={itemValue}>
                       {val === "" ? "—" : getOptionLabel(option)}
@@ -573,7 +574,9 @@ export function FieldRenderer({
                             id={`${field.id}-${val}`}
                             className="flex-shrink-0"
                           />
-                          <span className="ml-2 truncate text-sm">{val || "—"}</span>
+                          <span className="ml-2 truncate text-sm">
+                            {val || "—"}
+                          </span>
                         </div>
                       </>
                     ) : (
@@ -689,7 +692,9 @@ export function FieldRenderer({
                               disabled={disabled}
                               className="flex-shrink-0"
                             />
-                            <span className="ml-2 truncate text-sm">{val || "—"}</span>
+                            <span className="ml-2 truncate text-sm">
+                              {val || "—"}
+                            </span>
                           </div>
                         </>
                       ) : (

@@ -277,7 +277,10 @@ export class GeneralService {
           const suffix = key.slice(prefix.length);
           const lastColon = suffix.lastIndexOf(':');
           const lastSegment = lastColon >= 0 ? suffix.slice(lastColon + 1) : '';
-          type = prefix === 'auth_rate_limit:' && lastSegment ? lastSegment : typeLabel;
+          type =
+            prefix === 'auth_rate_limit:' && lastSegment
+              ? lastSegment
+              : typeLabel;
           ipOrId = lastColon >= 0 ? suffix.slice(0, lastColon) : suffix;
           break;
         }
