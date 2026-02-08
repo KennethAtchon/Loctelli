@@ -41,12 +41,17 @@ export function CardFormAIBuilderModal({
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [applyError, setApplyError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const lastAssistantMessage = messages.filter((m) => m.role === "assistant").pop();
+  const lastAssistantMessage = messages
+    .filter((m) => m.role === "assistant")
+    .pop();
   const extractedJson = lastAssistantMessage
     ? extractCardFormJsonFromText(lastAssistantMessage.content)
     : null;
+  const lastMessageHasNoValidJson =
+    !!lastAssistantMessage?.content && extractedJson === null;
 
   const handleSend = useCallback(async () => {
     const trimmed = inputValue.trim();
@@ -71,7 +76,10 @@ export function CardFormAIBuilderModal({
       const currentPayload = getFullCardFormPayload();
       const res = await api.forms.cardFormAiChat({
         message: trimmed,
-        currentCardFormPayload: currentPayload as unknown as Record<string, unknown>,
+        currentCardFormPayload: currentPayload as unknown as Record<
+          string,
+          unknown
+        >,
         conversationHistory,
       });
 
@@ -96,14 +104,27 @@ export function CardFormAIBuilderModal({
 
   const handleApply = useCallback(() => {
     if (!extractedJson) return;
-    onImportFullCardForm(extractedJson);
-    onOpenChange(false);
-    setMessages([]);
-    setError(null);
-    toast({
-      title: "Form applied",
-      description: "The generated form has been loaded. You can customize it further.",
-    });
+    setApplyError(null);
+    try {
+      onImportFullCardForm(extractedJson);
+      onOpenChange(false);
+      setMessages([]);
+      setError(null);
+      toast({
+        title: "Form applied",
+        description:
+          "The generated form has been loaded. You can customize it further.",
+      });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to apply form";
+      setApplyError(message);
+      toast({
+        title: "Apply failed",
+        description: message,
+        variant: "destructive",
+      });
+    }
   }, [extractedJson, onImportFullCardForm, onOpenChange, toast]);
 
   const handleOpenChange = useCallback(
@@ -112,6 +133,7 @@ export function CardFormAIBuilderModal({
         setMessages([]);
         setInputValue("");
         setError(null);
+        setApplyError(null);
       }
       onOpenChange(next);
     },
@@ -120,7 +142,7 @@ export function CardFormAIBuilderModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+      <DialogContent className="max-w-4xl w-[90vw] min-h-[70vh] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5" />
@@ -133,9 +155,9 @@ export function CardFormAIBuilderModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col flex-1 min-h-0 gap-3">
+        <div className="flex flex-col flex-1 min-h-[400px] gap-4">
           {/* Messages */}
-          <div className="flex-1 min-h-0 overflow-y-auto rounded-md border bg-muted/30 p-3 space-y-3">
+          <div className="flex-1 min-h-[320px] overflow-y-auto rounded-md border bg-muted/30 p-4 space-y-3">
             {messages.length === 0 && (
               <p className="text-sm text-muted-foreground">
                 Example: &quot;I want a short product-fit quiz with 3 questions
@@ -146,13 +168,15 @@ export function CardFormAIBuilderModal({
               <div
                 key={msg.id}
                 className={cn(
-                  "rounded-lg px-3 py-2 text-sm max-w-[95%]",
+                  "rounded-lg px-4 py-3 text-sm max-w-[95%]",
                   msg.role === "user"
                     ? "ml-auto bg-primary text-primary-foreground"
                     : "mr-auto bg-muted"
                 )}
               >
-                <div className="whitespace-pre-wrap break-words">{msg.content}</div>
+                <div className="whitespace-pre-wrap break-words">
+                  {msg.content}
+                </div>
               </div>
             ))}
             {loading && (
@@ -163,8 +187,35 @@ export function CardFormAIBuilderModal({
             )}
           </div>
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          {applyError && (
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-destructive">
+                Apply failed: {applyError}
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-fit"
+                onClick={() => {
+                  setInputValue(
+                    () =>
+                      `The previous JSON failed to apply: ${applyError}. Please output valid form JSON again (flowchartGraph with nodes and edges in the same shape as the manual builder).`
+                  );
+                  setApplyError(null);
+                }}
+              >
+                Send this error to the AI
+              </Button>
+            </div>
+          )}
+          {lastMessageHasNoValidJson && !loading && (
+            <p className="text-sm text-muted-foreground">
+              No valid form JSON found in the last message. Ask the AI to output
+              a complete form (flowchartGraph, same shape as manual builder) in
+              a code block or as raw JSON.
+            </p>
           )}
 
           {/* Apply button when we have valid JSON */}
@@ -191,21 +242,21 @@ export function CardFormAIBuilderModal({
                 }
               }}
               placeholder="Describe your form or ask for changes..."
-              className="min-h-[80px] resize-y"
+              className="min-h-[96px] resize-y text-base"
               disabled={loading}
-              rows={2}
+              rows={3}
             />
             <Button
               type="button"
               onClick={handleSend}
               disabled={!inputValue.trim() || loading}
-              size="icon"
-              className="h-auto self-end"
+              size="lg"
+              className="h-12 w-12 shrink-0 self-end"
             >
               {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                <Send className="h-4 w-4" />
+                <Send className="h-5 w-5" />
               )}
             </Button>
           </div>

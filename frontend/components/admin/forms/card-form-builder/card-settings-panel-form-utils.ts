@@ -7,7 +7,6 @@ import { fieldTypeHasOptions } from "@/lib/forms/field-types";
 import type {
   NodeSettingsFormValues,
   ConditionalLogicFormValues,
-  MediaFormValues,
   JumpToRuleFormValues,
   DynamicLabelRuleFormValues,
 } from "./card-settings-panel-form-types";

@@ -2,10 +2,7 @@
 
 import React, { createContext, useContext, useMemo } from "react";
 import { useUnifiedAuth } from "./unified-auth-context";
-import {
-  useSubaccountFilter,
-  useSubaccountFilterSafe,
-} from "./subaccount-filter-context";
+import { useSubaccountFilterSafe } from "./subaccount-filter-context";
 import logger from "@/lib/logger";
 
 /**
@@ -138,15 +135,16 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
             : {};
         },
 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- signature must match interface
         canAccessSubAccount: (subAccountId: number) => {
           // Admins can access any subaccount
           return true;
         },
 
-        validateTenantAccess: (subAccountId?: number) => {
+        validateTenantAccess: (subAccountIdParam?: number) => {
           // Admins can access anything
           logger.debug(
-            `Admin accessing ${subAccountId ? `subAccount ${subAccountId}` : "global view"}`
+            `Admin accessing ${subAccountIdParam !== undefined ? `subAccount ${subAccountIdParam}` : "global view"}`
           );
         },
       };

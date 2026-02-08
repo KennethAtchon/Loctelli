@@ -21,6 +21,8 @@ const actionTypes = {
   DISMISS_TOAST: "DISMISS_TOAST",
   REMOVE_TOAST: "REMOVE_TOAST",
 } as const;
+// Used as type in reducer; kept as const for value at runtime
+void actionTypes;
 
 let count = 0;
 

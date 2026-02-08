@@ -8,7 +8,6 @@ export const PROFILE_ESTIMATION_FIELD = "profileEstimation" as const;
 
 import type {
   ProfileEstimation,
-  AIProfileConfig,
   FieldScoring,
   ConditionGroup,
   ConditionBlock,

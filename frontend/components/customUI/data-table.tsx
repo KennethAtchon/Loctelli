@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, ReactNode } from "react";
+import { useState, useEffect, useRef, ReactNode } from "react";
 import {
   Card,
   CardContent,
@@ -19,7 +19,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import {
   Pagination,
   PaginationContent,

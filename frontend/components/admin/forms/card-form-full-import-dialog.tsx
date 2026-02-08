@@ -26,7 +26,7 @@ interface CardFormFullImportDialogProps {
   onImport: (payload: CardFormTemplateJson) => void;
 }
 
-/** Build a full card form example (flowchart, styling, profile estimation). */
+/** Same shape as manual builder: flowchartGraph (canonical nodes + edges). */
 function getFullCardFormExample(): CardFormTemplateJson {
   const schema: FormField[] = [
     {
@@ -57,7 +57,6 @@ function getFullCardFormExample(): CardFormTemplateJson {
     },
   ];
   const flowchartGraph = schemaToFlowchart(schema);
-
   return {
     version: CARD_FORM_TEMPLATE_JSON_VERSION,
     title: "Quick Assessment",
@@ -106,21 +105,18 @@ function getFullCardFormExample(): CardFormTemplateJson {
             max: 33,
             label: "Getting started",
             description: "Keep exploring.",
-            image: undefined,
           },
           {
             min: 34,
             max: 66,
             label: "On track",
             description: "You're doing well.",
-            image: undefined,
           },
           {
             min: 67,
             max: 100,
             label: "Expert",
             description: "You've got this.",
-            image: undefined,
           },
         ],
       },
@@ -144,7 +140,7 @@ export function CardFormFullImportDialog({
       const parsed = JSON.parse(jsonInput) as unknown;
       if (!isCardFormTemplateJson(parsed)) {
         throw new Error(
-          "Invalid card form JSON: must include flowchartGraph with nodes and edges."
+          "Invalid card form JSON: must include flowchartGraph (nodes + edges in same shape as manual builder / Export)."
         );
       }
       onImport(parsed);
@@ -222,11 +218,14 @@ export function CardFormFullImportDialog({
             </div>
           </div>
           <div className="bg-muted/50 p-3 rounded-md text-xs text-muted-foreground flex-shrink-0">
-            <strong>Format:</strong> One JSON object with{" "}
-            <code>flowchartGraph</code> (required), plus optional{" "}
-            <code>title</code>, <code>subtitle</code>, <code>cardSettings</code>
-            , <code>styling</code>, and <code>profileEstimation</code>. Use
-            &quot;Export card form&quot; to download a valid file.
+            <strong>Format:</strong> Same as manual builder and Export:{" "}
+            <code>flowchartGraph</code> with <code>nodes</code> (id, type,
+            position, data) and <code>edges</code> (source, target). Question
+            nodes: <code>data.field</code>; statement: <code>data.fieldId</code>
+            , <code>data.statementText</code>, <code>data.label</code>.
+            Optional: <code>title</code>, <code>cardSettings</code>,{" "}
+            <code>styling</code>, <code>profileEstimation</code>. Use &quot;Load
+            example&quot; or &quot;Export card form&quot;.
           </div>
         </div>
       </DialogContent>

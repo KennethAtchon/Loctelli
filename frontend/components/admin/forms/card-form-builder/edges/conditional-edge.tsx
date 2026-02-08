@@ -14,7 +14,7 @@ export function ConditionalEdge({
   label,
   markerEnd,
 }: EdgeProps) {
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const [edgePath] = getBezierPath({
     sourceX,
     sourceY,
     sourcePosition,

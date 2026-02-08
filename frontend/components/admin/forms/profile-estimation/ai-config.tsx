@@ -37,6 +37,7 @@ export interface AIConfigProps {
   fields?: unknown;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- props reserved for future use
 export function AIConfig(_props: AIConfigProps) {
   const { control } = useFormContext<FormTemplateFormValues>();
 

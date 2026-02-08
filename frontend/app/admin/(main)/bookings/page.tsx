@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { api } from "@/lib/api";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
 import { usePagination } from "@/components/customUI";
@@ -15,13 +15,13 @@ import {
 } from "@/components/ui/dialog";
 import { Calendar, Clock, User, Building, Edit } from "lucide-react";
 import { Booking } from "@/types";
-import logger from "@/lib/logger";
 import { useTenantQuery } from "@/hooks/useTenantQuery";
 
 const BOOKINGS_STALE_MS = 2 * 60 * 1000; // 2 min
 
 export default function BookingsPage() {
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- setSuccess reserved for future use
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
@@ -33,7 +33,10 @@ export default function BookingsPage() {
     staleTime: BOOKINGS_STALE_MS,
   });
 
-  const bookings = bookingsQuery.data ?? [];
+  const bookings = useMemo(
+    () => bookingsQuery.data ?? [],
+    [bookingsQuery.data]
+  );
 
   useEffect(() => {
     setFilteredBookings(bookings);

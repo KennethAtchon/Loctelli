@@ -2,17 +2,6 @@ import { ApiClient } from "../client";
 import { EndpointApiBuilder, EndpointApi } from "../config/endpoint-builder";
 import { formsConfig } from "../config/forms.config";
 import type {
-  CardMedia,
-  ConditionOperator,
-  Condition,
-  ConditionGroup,
-  ConditionalLogic,
-  FormField,
-  ScoringRule,
-  FieldScoring,
-  AIProfileConfig,
-  ProfileEstimation,
-  FormType,
   FormTemplate,
   FormSubmission,
   CreateFormTemplateDto,

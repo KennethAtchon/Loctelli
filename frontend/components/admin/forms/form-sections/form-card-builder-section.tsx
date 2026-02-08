@@ -64,10 +64,10 @@ export function FormCardBuilderSection({
                 <Button
                   type="button"
                   variant="default"
-                  size="sm"
+                  size="default"
                   onClick={() => setAiModalOpen(true)}
                 >
-                  <Sparkles className="h-4 w-4 mr-2" />
+                  <Sparkles className="h-5 w-5 mr-2" />
                   Build with AI
                 </Button>
               )}

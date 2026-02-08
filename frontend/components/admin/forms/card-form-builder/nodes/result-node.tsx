@@ -1,6 +1,6 @@
 "use client";
 
-import { Handle, Position, NodeProps, Node } from "@xyflow/react";
+import { Handle, Position, NodeProps } from "@xyflow/react";
 import { Trophy } from "lucide-react";
 import type { FlowchartNodeData } from "@/lib/forms/flowchart-types";
 

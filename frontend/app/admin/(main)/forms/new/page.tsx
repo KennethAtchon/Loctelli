@@ -30,6 +30,8 @@ import { generateSlug, validateFormTemplate } from "@/lib/forms/form-utils";
 import {
   flowchartToSchema,
   schemaToFlowchart,
+  validateFlowchartGraph,
+  buildFlowchartFromSchemaAndEdges,
 } from "@/lib/forms/flowchart-serialization";
 import type { FlowchartGraph } from "@/lib/forms/flowchart-types";
 import type { CreateFormTemplateDto, FormType } from "@/lib/forms/types";
@@ -352,14 +354,34 @@ export default function NewFormTemplatePage() {
                   "successMessage",
                   payload.successMessage ?? watch("successMessage")
                 );
-                setValue("cardSettings", {
-                  ...(watch("cardSettings") as
-                    | Record<string, unknown>
-                    | undefined),
-                  ...payload.cardSettings,
-                  flowchartGraph: payload.flowchartGraph,
-                  flowchartViewport: payload.flowchartGraph.viewport,
-                });
+                let graph: FlowchartGraph | undefined;
+                if (payload.schema?.length && payload.flowchartEdges?.length) {
+                  graph = buildFlowchartFromSchemaAndEdges(
+                    payload.schema,
+                    payload.flowchartEdges
+                  );
+                } else if (payload.schema?.length) {
+                  graph = schemaToFlowchart(payload.schema);
+                } else if (payload.flowchartGraph) {
+                  const errs = validateFlowchartGraph(payload.flowchartGraph);
+                  if (errs.length > 0)
+                    throw new Error(
+                      "Invalid flowchartGraph: " +
+                        errs.slice(0, 3).join("; ") +
+                        (errs.length > 3 ? ` (+${errs.length - 3} more)` : "")
+                    );
+                  graph = payload.flowchartGraph;
+                }
+                if (graph) {
+                  setValue("cardSettings", {
+                    ...(watch("cardSettings") as
+                      | Record<string, unknown>
+                      | undefined),
+                    ...payload.cardSettings,
+                    flowchartGraph: graph,
+                    flowchartViewport: graph.viewport,
+                  });
+                }
                 setValue("styling", payload.styling ?? watch("styling"));
                 setValue(
                   "profileEstimation",

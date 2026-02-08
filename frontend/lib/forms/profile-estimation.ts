@@ -4,8 +4,6 @@ import type {
   FieldScoring,
   FormField,
 } from "./types";
-import { evaluateCondition } from "./conditional-logic";
-
 /**
  * Calculate percentage score based on field scoring
  */

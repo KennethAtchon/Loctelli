@@ -22,10 +22,8 @@ export interface CardFormContainerProps {
 export function CardFormContainer({
   slug,
   template,
-  formsApi,
   saveProgress = true,
   progressStyle = "bar",
-  onSuccess,
 }: CardFormContainerProps) {
   const formState = useCardFormState(slug, template, {
     saveProgress,

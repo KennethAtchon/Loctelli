@@ -5,11 +5,7 @@ import { api } from "@/lib/api";
 import type { UserProfile } from "@/lib/api/endpoints/admin-auth";
 import { DataTable, Column, Filter, StatCard } from "./data-table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
-  Eye,
-  Edit,
-  Trash2,
   Users,
   UserCheck,
   UserX,
@@ -25,6 +21,7 @@ export function UsersTableExample() {
   const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- setSuccess reserved for future use
   const [success, setSuccess] = useState<string>("");
   const [error, setError] = useState<string>("");
 

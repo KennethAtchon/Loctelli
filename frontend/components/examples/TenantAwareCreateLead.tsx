@@ -56,7 +56,7 @@ export function TenantAwareCreateLead() {
 
     try {
       await createLeadMutation.mutate({ name, email });
-    } catch (err) {
+    } catch {
       // Error handled by onError callback
     }
   };

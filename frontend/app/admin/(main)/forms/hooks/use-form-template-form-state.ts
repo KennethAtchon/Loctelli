@@ -223,7 +223,10 @@ export function useFormTemplateFormState<
     [setFormData]
   );
 
-  const currentSchema = formData.schema ?? [];
+  const currentSchema = useMemo(
+    () => formData.schema ?? [],
+    [formData.schema]
+  );
 
   const addField = useCallback(() => {
     const newField: FormField = {

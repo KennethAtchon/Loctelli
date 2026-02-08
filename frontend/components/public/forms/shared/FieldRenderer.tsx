@@ -58,6 +58,7 @@ function MediaRenderer({ media }: { media: CardMedia }) {
     if (media.type === "image" || media.type === "gif") {
       return (
         <div className="w-full aspect-video rounded-lg overflow-hidden mb-4 flex items-center justify-center">
+          {/* eslint-disable-next-line @next/next/no-img-element -- dynamic form media URL */}
           <img
             src={media.url!}
             alt={media.altText || ""}
@@ -100,6 +101,7 @@ function MediaRenderer({ media }: { media: CardMedia }) {
     if (media.type === "icon" && media.url) {
       return (
         <div className="w-full flex justify-center mb-4">
+          {/* eslint-disable-next-line @next/next/no-img-element -- dynamic form media URL */}
           <img
             src={media.url}
             alt={media.altText || ""}
@@ -424,6 +426,7 @@ export function FieldRenderer({
                         {imgUrl ? (
                           <span className="flex items-center gap-2">
                             <span className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded bg-muted">
+                              {/* eslint-disable-next-line @next/next/no-img-element -- dynamic option image */}
                               <img
                                 src={imgUrl}
                                 alt={alt}
@@ -554,6 +557,7 @@ export function FieldRenderer({
                           className="cursor-pointer block"
                         >
                           <span className="relative flex aspect-square w-full overflow-hidden rounded-t-md bg-muted">
+                            {/* eslint-disable-next-line @next/next/no-img-element -- dynamic option image */}
                             <img
                               src={imgUrl}
                               alt={alt}
@@ -668,6 +672,7 @@ export function FieldRenderer({
                             className="cursor-pointer block"
                           >
                             <span className="relative flex aspect-square w-full overflow-hidden rounded-t-md bg-muted">
+                              {/* eslint-disable-next-line @next/next/no-img-element -- dynamic option image */}
                               <img
                                 src={imgUrl}
                                 alt={alt}

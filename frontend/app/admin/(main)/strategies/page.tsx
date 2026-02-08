@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { api } from "@/lib/api";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
 import { usePagination } from "@/components/customUI";
@@ -33,7 +33,10 @@ export default function StrategiesPage() {
     invalidateQueries: [["strategies"]],
   });
 
-  const strategies = strategiesQuery.data ?? [];
+  const strategies = useMemo(
+    () => strategiesQuery.data ?? [],
+    [strategiesQuery.data]
+  );
 
   useEffect(() => {
     setFilteredStrategies(strategies);

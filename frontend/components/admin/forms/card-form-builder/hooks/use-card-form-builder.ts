@@ -150,7 +150,12 @@ export function useCardFormBuilder({
         position: { x: 400, y: yPos },
         data:
           type === "statement"
-            ? { statementText: "New statement", label: "New statement" }
+            ? {
+                fieldId: newNodeId,
+                statementText: "New statement",
+                label: "New statement",
+                isSuccessCard: false,
+              }
             : {
                 fieldId: newNodeId,
                 label: "New question",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { api } from "@/lib/api";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
 import { usePagination } from "@/components/customUI";
@@ -10,7 +10,6 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Lead } from "@/types";
 import { DetailedLead } from "@/lib/api/endpoints/admin-auth";
 import logger from "@/lib/logger";
-import { useTenant } from "@/contexts/tenant-context";
 import { useTenantQuery, useTenantMutation } from "@/hooks/useTenantQuery";
 import { LeadDetailsContent } from "@/components/admin/lead-details-content";
 
@@ -34,7 +33,10 @@ export default function LeadsPage() {
     invalidateQueries: [["leads"]],
   });
 
-  const leads = leadsQuery.data ?? [];
+  const leads = useMemo(
+    () => leadsQuery.data ?? [],
+    [leadsQuery.data]
+  );
 
   // Sync filtered list when leads data changes
   useEffect(() => {

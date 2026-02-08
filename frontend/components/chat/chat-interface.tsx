@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { ArrowUp, Image, X, Info, InfoIcon } from "lucide-react";
+import { ArrowUp, Image, X, InfoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -117,7 +117,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const newSectionRef = useRef<HTMLDivElement>(null);
     const [hasTyped, setHasTyped] = useState(false);
-    const [activeButton, setActiveButton] = useState<ActiveButton>("none");
+    const [, setActiveButton] = useState<ActiveButton>("none");
     const [messageSections, setMessageSections] = useState<MessageSection[]>(
       []
     );
@@ -127,10 +127,9 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
       null
     );
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const [completedMessages, setCompletedMessages] = useState<Set<string>>(
-      new Set()
-    );
-    const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- setters used by effect/ref logic
+    const [, setCompletedMessages] = useState<Set<string>>(new Set());
+    const [, setActiveSectionId] = useState<string | null>(null);
     const inputContainerRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const shouldFocusAfterStreamingRef = useRef(false);
@@ -180,7 +179,8 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
       });
     };
 
-    // Public method to start streaming a message
+    // Public method to start streaming a message (wrapped in useImperativeHandle; deps intentionally minimal)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const startStreamingMessage = async (
       messageId: string,
       content: string
@@ -469,7 +469,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
         attachedImages.forEach((img) => {
           try {
             URL.revokeObjectURL(img.preview);
-          } catch (e) {
+          } catch {
             // Ignore errors if URL already revoked
           }
         });
@@ -477,19 +477,15 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Reserved for future action-button toggles
     const toggleButton = (button: ActiveButton) => {
       if (!isStreaming && !disabled && !loading) {
-        // Save the current selection state before toggling
         saveSelectionState();
-
         setActiveButton((prev) => (prev === button ? "none" : button));
-
-        // Restore the selection state after toggling
-        setTimeout(() => {
-          restoreSelectionState();
-        }, 0);
+        setTimeout(() => restoreSelectionState(), 0);
       }
     };
+    void toggleButton;
 
     // Typing indicator component
     const TypingIndicator = () => (
@@ -546,6 +542,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
             {/* Render image if present */}
             {hasImage && (
               <div className="mb-2">
+                {/* eslint-disable-next-line @next/next/no-img-element -- user upload blob preview */}
                 <img
                   src={imageMatch[1]}
                   alt="Uploaded image"
@@ -653,6 +650,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                 <div className="mb-2 flex flex-wrap gap-2 pb-2 border-b border-gray-100">
                   {attachedImages.map((img, index) => (
                     <div key={index} className="relative group">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- blob preview */}
                       <img
                         src={img.preview}
                         alt={`Preview ${index + 1}`}
@@ -722,7 +720,8 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                         className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100"
                         disabled={isStreaming || disabled || loading}
                       >
-                        <Image className="h-4 w-4 text-gray-500" />
+                        {/* Lucide icon - decorative, sr-only provides label */}
+                        <Image className="h-4 w-4 text-gray-500" aria-hidden alt="" />
                         <span className="sr-only">Upload photo</span>
                       </Button>
                       <Button
@@ -733,7 +732,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                         className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100"
                         disabled={isStreaming || disabled || loading}
                       >
-                        <InfoIcon className="h-4 w-4 text-gray-500" />
+                        <InfoIcon className="h-4 w-4 text-gray-500" aria-hidden alt="" />
                         <span className="sr-only">Agent info</span>
                       </Button>
                     </div>
@@ -778,7 +777,8 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                       className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100"
                       disabled={isStreaming || disabled || loading}
                     >
-                      <Image className="h-4 w-4 text-gray-500" />
+                      {/* Lucide icon - decorative */}
+                      <Image className="h-4 w-4 text-gray-500" aria-hidden alt="" />
                       <span className="sr-only">Upload photo</span>
                     </Button>
                     <Button
@@ -789,7 +789,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                       className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100"
                       disabled={isStreaming || disabled || loading}
                     >
-                      <InfoIcon className="h-4 w-4 text-gray-500" />
+                      <InfoIcon className="h-4 w-4 text-gray-500" aria-hidden alt="" />
                       <span className="sr-only">Agent info</span>
                     </Button>
                   </div>

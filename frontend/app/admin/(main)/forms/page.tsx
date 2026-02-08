@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
 import { usePagination } from "@/components/customUI";
@@ -15,18 +14,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { FormTemplate, FormSubmission } from "@/lib/forms/types";
+import type { FormTemplate } from "@/lib/forms/types";
 import { getOptionLabel } from "@/lib/forms/option-utils";
 import { FileText, Users, Calendar, CheckCircle } from "lucide-react";
-import logger from "@/lib/logger";
 import { useTenantQuery } from "@/hooks/useTenantQuery";
 
 const FORMS_STALE_MS = 3 * 60 * 1000; // 3 min
 
 export default function FormsPage() {
-  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterState, setFilterState] = useState<Record<string, string>>({});
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- setSuccess reserved for future use
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<FormTemplate | null>(
     null
@@ -49,8 +47,14 @@ export default function FormsPage() {
     staleTime: FORMS_STALE_MS,
   });
 
-  const templates = templatesQuery.data ?? [];
-  const submissions = submissionsQuery.data ?? [];
+  const templates = useMemo(
+    () => templatesQuery.data ?? [],
+    [templatesQuery.data]
+  );
+  const submissions = useMemo(
+    () => submissionsQuery.data ?? [],
+    [submissionsQuery.data]
+  );
 
   const filteredTemplates = useMemo(() => {
     let list = templates;
@@ -96,6 +100,7 @@ export default function FormsPage() {
     pagination: templatePagination,
     paginatedData: paginatedTemplates,
     setCurrentPage: setTemplatePage,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- setTotalTemplates reserved for pagination UI
     setTotalItems: setTotalTemplates,
   } = usePagination(filteredTemplates, { pageSize: 10 });
 
@@ -390,7 +395,7 @@ export default function FormsPage() {
                   Form Fields ({selectedTemplate.schema.length})
                 </h3>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {selectedTemplate.schema.map((field, index) => (
+                  {selectedTemplate.schema.map((field) => (
                     <div key={field.id} className="p-3 border rounded">
                       <div className="flex justify-between items-start">
                         <div>

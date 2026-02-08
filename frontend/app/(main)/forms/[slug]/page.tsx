@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { api } from "@/lib/api";
 import logger from "@/lib/logger";
 import { Navigation } from "@/components/version2/navigation";

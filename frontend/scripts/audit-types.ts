@@ -409,7 +409,7 @@ class FrontendTypesAuditor {
     const tsFields = new Map(tsType.fields.map((f) => [f.name, f]));
 
     // Check for fields in TypeScript type that don't exist in Prisma
-    for (const [tsFieldName, tsField] of tsFields) {
+    for (const [tsFieldName] of tsFields) {
       // Check for common field name mismatches
       if (tsFieldName === "userId" && prismaFields.has("regularUserId")) {
         this.mismatches.push({

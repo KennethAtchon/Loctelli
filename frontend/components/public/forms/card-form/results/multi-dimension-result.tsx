@@ -1,7 +1,10 @@
 "use client";
 
+import { useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { toast } from "sonner";
 import type { ProfileEstimation } from "@/lib/forms/types";
 
 export interface MultiDimensionResultProps {
@@ -13,6 +16,31 @@ export function MultiDimensionResult({
   config,
   scores,
 }: MultiDimensionResultProps) {
+  const handleShareResult = useCallback(async () => {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        toast.success("Link copied to clipboard");
+      } else if (navigator.share) {
+        await navigator.share({
+          title: config?.title ?? "My result",
+          text: "View my full profile report",
+          url,
+        });
+        toast.success("Shared");
+      } else {
+        toast.error("Sharing not supported in this browser");
+      }
+    } catch {
+      toast.error("Could not copy link");
+    }
+  }, [config?.title]);
+
+  const handleViewFullReport = useCallback(() => {
+    window.print();
+  }, []);
+
   if (!config) return null;
 
   const resultStyle: React.CSSProperties = {
@@ -60,6 +88,15 @@ export function MultiDimensionResult({
             Pie chart visualization coming soon
           </div>
         )}
+
+        <div className="flex gap-2 justify-center pt-4 print:hidden">
+          <Button variant="outline" onClick={handleShareResult}>
+            Share Result
+          </Button>
+          <Button variant="outline" onClick={handleViewFullReport}>
+            View Full Report
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

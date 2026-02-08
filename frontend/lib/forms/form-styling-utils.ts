@@ -55,6 +55,7 @@ export const FORM_STYLING_VARS = {
   mutedForeground: "--form-muted-foreground",
   cardRadius: "--form-card-radius",
   cardShadow: "--form-card-shadow",
+  cardMaxWidth: "--form-card-max-width",
   buttonRadius: "--form-button-radius",
   buttonVariant: "--form-button-variant",
   progressColor: "--form-progress-color",
@@ -152,6 +153,11 @@ export function formStylingToCssVars(
   if (s.card?.borderRadius !== undefined && s.card.borderRadius !== "") {
     const v = s.card.borderRadius;
     vars[FORM_STYLING_VARS.cardRadius] =
+      typeof v === "number" ? `${v}px` : String(v);
+  }
+  if (s.card?.maxWidth !== undefined && s.card.maxWidth !== "") {
+    const v = s.card.maxWidth;
+    vars[FORM_STYLING_VARS.cardMaxWidth] =
       typeof v === "number" ? `${v}px` : String(v);
   }
   if (s.card?.shadow) {

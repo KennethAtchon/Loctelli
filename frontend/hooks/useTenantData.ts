@@ -48,6 +48,7 @@ export function useTenantData<T>(options: UseTenantDataOptions<T>) {
     } finally {
       setIsLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- options and validateTenantAccess intentionally omitted to avoid ref churn
   }, [subAccountId, mode, options.queryKey, options.enabled]);
 
   useEffect(() => {
@@ -121,6 +122,7 @@ export function useTenantMutation<
         setIsLoading(false);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- validateTenantAccess stable from context
     [subAccountId, mode, options]
   );
 

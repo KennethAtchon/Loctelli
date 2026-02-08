@@ -15,7 +15,6 @@ import type {
 } from "@/lib/api";
 import logger from "@/lib/logger";
 import { AuthManager } from "@/lib/api/auth-manager";
-import { useRouter } from "next/navigation";
 
 type AccountType = "user" | "admin";
 
@@ -74,7 +73,6 @@ export function UnifiedAuthProvider({
   const [isLoading, setIsLoading] = useState(true);
   const authManager = new AuthManager();
   const isAuthenticated = !!account && !!accountType;
-  const router = useRouter();
   // Check for existing tokens and auto-login on mount
   useEffect(() => {
     let isMounted = true; // Track if component is still mounted
@@ -231,6 +229,7 @@ export function UnifiedAuthProvider({
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount; authManager is stable
   }, []);
 
   const loginUser = async (credentials: LoginDto) => {

@@ -290,7 +290,7 @@ export class ApiClient {
             message: message || response.statusText,
             retryAfter: data.retryAfter,
           };
-        } catch (parseError) {
+        } catch {
           // If JSON parsing fails, return the text as the message
           logger.debug(
             "Failed to parse error response as JSON, using raw text:",

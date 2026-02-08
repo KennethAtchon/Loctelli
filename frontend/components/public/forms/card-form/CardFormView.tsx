@@ -113,6 +113,9 @@ export function CardFormView({
     borderColor: "var(--form-border, hsl(var(--border)))",
     borderRadius: "var(--form-card-radius, 0.5rem)",
     boxShadow: "var(--form-card-shadow)",
+    maxWidth: "var(--form-card-max-width, 100%)",
+    marginLeft: "auto",
+    marginRight: "auto",
   };
 
   // Loading state
@@ -261,6 +264,7 @@ export function CardFormView({
         media: successCard.data?.media,
       };
       const formCardStyleSuccess: React.CSSProperties = {
+        ...formCardStyleBase,
         backgroundColor: "var(--form-card, hsl(var(--card)))",
         color: "var(--form-card-foreground, hsl(var(--card-foreground)))",
         borderColor: "var(--form-border, hsl(var(--border)))",
@@ -286,6 +290,7 @@ export function CardFormView({
 
     // Default success message
     const formCardStyleDefault: React.CSSProperties = {
+      ...formCardStyleBase,
       backgroundColor: "var(--form-card, hsl(var(--card)))",
       color: "var(--form-card-foreground, hsl(var(--card-foreground)))",
       borderColor: "var(--form-border, hsl(var(--border)))",

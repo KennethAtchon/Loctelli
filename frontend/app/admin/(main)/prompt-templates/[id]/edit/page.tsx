@@ -77,7 +77,7 @@ export default function EditPromptTemplatePage() {
           isActive: data.isActive ?? false,
           tags: data.tags ?? [],
         });
-      } catch (error) {
+      } catch {
         toast({
           title: "Error",
           description: "Failed to load template",
@@ -89,6 +89,7 @@ export default function EditPromptTemplatePage() {
       }
     };
     loadTemplate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only run when templateId changes
   }, [templateId]);
 
   const tags = form.watch("tags") ?? [];

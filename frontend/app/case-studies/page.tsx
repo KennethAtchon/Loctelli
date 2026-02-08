@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { BRANDING } from "@/lib/config/branding";
 import { Navigation } from "@/components/version2/navigation";
 import { Footer } from "@/components/version2/footer";
 

@@ -3,7 +3,7 @@
 import { Handle, Position, NodeProps } from "@xyflow/react";
 import { Play } from "lucide-react";
 
-export function StartNode({ data, selected }: NodeProps) {
+export function StartNode({ selected }: NodeProps) {
   return (
     <div
       className={`px-4 py-3 rounded-lg border-2 bg-background shadow-sm ${

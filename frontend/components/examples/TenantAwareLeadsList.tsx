@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export function TenantAwareLeadsList() {
-  const { mode, isGlobalView, subAccountId } = useTenant();
+  const { isGlobalView, subAccountId } = useTenant();
 
   const {
     data: leads,

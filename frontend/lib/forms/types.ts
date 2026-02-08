@@ -227,6 +227,8 @@ export interface FormStyling {
     borderRadius?: number | string;
     shadow?: "none" | "sm" | "md" | "lg";
     padding?: number | string;
+    /** Max width of the card container (e.g. 480, "28rem", "36rem", "100%"). */
+    maxWidth?: number | string;
   };
   buttons?: {
     borderRadius?: number | string;

@@ -5,7 +5,9 @@ import { isCardFormTemplateJson } from "./card-form-template-json";
  * Extract Card Form Template JSON from assistant text (e.g. markdown ```json block or raw JSON).
  * Returns the first valid CardFormTemplateJson found, or null.
  */
-export function extractCardFormJsonFromText(text: string): CardFormTemplateJson | null {
+export function extractCardFormJsonFromText(
+  text: string
+): CardFormTemplateJson | null {
   if (!text || typeof text !== "string") return null;
 
   // Try markdown code block first (```json ... ```)
@@ -19,8 +21,10 @@ export function extractCardFormJsonFromText(text: string): CardFormTemplateJson 
     }
   }
 
-  // Try to find a raw JSON object (starts with { and has flowchartGraph)
-  const objectMatch = text.match(/\{[\s\S]*"flowchartGraph"[\s\S]*\}/);
+  // Try to find a raw JSON object (has flowchartGraph or schema)
+  const objectMatch = text.match(
+    /\{[\s\S]*?(?:"flowchartGraph"|"schema")[\s\S]*\}/
+  );
   if (objectMatch) {
     try {
       const parsed = JSON.parse(objectMatch[0]) as unknown;

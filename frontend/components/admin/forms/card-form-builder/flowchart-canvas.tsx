@@ -53,8 +53,7 @@ export function FlowchartCanvas({
   graph,
   onGraphChange,
   onNodeClick,
-  selectedNodeId: _selectedNodeId,
-}: FlowchartCanvasProps) {
+}: Omit<FlowchartCanvasProps, "selectedNodeId">) {
   const nodes = graph.nodes as Node[];
   const edges = graph.edges as Edge[];
 

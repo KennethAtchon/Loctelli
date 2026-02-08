@@ -23,7 +23,6 @@ export default function ChatPage() {
     chatInterfaceMessages,
     selectedLeadId,
     isLoading,
-    isTyping,
     error,
     leadProfile,
     isLoadinglead,

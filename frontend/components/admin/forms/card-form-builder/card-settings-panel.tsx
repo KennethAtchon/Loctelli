@@ -23,10 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Trash2, X, Loader2, Info, ChevronDown, Plus } from "lucide-react";
-import type {
-  FlowchartNode,
-  FlowchartNodeData,
-} from "@/lib/forms/flowchart-types";
+import type { FlowchartNode } from "@/lib/forms/flowchart-types";
 import type {
   FormField,
   FormFieldOption,
@@ -48,7 +45,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { LogicBuilder } from "./logic-builder";
-import type { NodeSettingsFormValues } from "./card-settings-panel-form-types";
 import { defaultMediaFormValues } from "./card-settings-panel-form-types";
 import { generateStableId } from "@/lib/utils/stable-id";
 import type { FormTemplateFormValues } from "@/app/admin/(main)/forms/hooks/use-form-template-form-state";
@@ -62,13 +58,6 @@ function hasAnyConditions(
   }
   return logic.conditions.length > 0;
 }
-
-const dummyNode = {
-  id: "",
-  type: "question" as const,
-  data: {},
-  position: { x: 0, y: 0 },
-} as FlowchartNode;
 
 export interface CardSettingsPanelProps {
   node: FlowchartNode | null;
@@ -1342,6 +1331,7 @@ function MediaSection({
         <div className="space-y-2">
           {(mediaType === "image" || mediaType === "gif") && (
             <div className="w-full h-48 border rounded-lg overflow-hidden flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+              {/* eslint-disable-next-line @next/next/no-img-element -- dynamic form media URL */}
               <img
                 src={mediaUrl}
                 alt={mediaAltText || "Card media"}

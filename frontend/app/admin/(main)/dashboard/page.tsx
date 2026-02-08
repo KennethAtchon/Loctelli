@@ -35,11 +35,7 @@ import {
   Activity,
   Zap,
 } from "lucide-react";
-import {
-  DashboardStats,
-  SystemStatus,
-  DetailedLead,
-} from "@/lib/api/endpoints/admin-auth";
+import { DetailedLead } from "@/lib/api/endpoints/admin-auth";
 import Link from "next/link";
 import logger from "@/lib/logger";
 import { useTenant } from "@/contexts/tenant-context";

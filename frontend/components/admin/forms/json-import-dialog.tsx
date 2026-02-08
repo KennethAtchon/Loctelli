@@ -84,7 +84,7 @@ export function JsonImportDialog({ onImport }: JsonImportDialogProps) {
 
       const usedIds = new Set();
       const schemaWithUniqueIds = parsedSchema.map(
-        (field: FormField, index: number) => {
+        (field: FormField) => {
           let fieldId = field.id;
           if (!fieldId || usedIds.has(fieldId)) {
             fieldId = generateStableId("field");

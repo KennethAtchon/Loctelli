@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { api } from "@/lib/api";
 import { DataTable, Column, Filter, StatCard } from "@/components/customUI";
 import { usePagination } from "@/components/customUI";
@@ -54,7 +54,10 @@ export default function ContactsPage() {
     invalidateQueries: [["contacts"]],
   });
 
-  const contacts = contactsQuery.data ?? [];
+  const contacts = useMemo(
+    () => contactsQuery.data ?? [],
+    [contactsQuery.data]
+  );
   const stats = statsQuery.data ?? {
     total: 0,
     newCount: 0,
