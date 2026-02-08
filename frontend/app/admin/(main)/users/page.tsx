@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { CreateUserDto, UpdateUserDto } from "@/lib/api";
 import type { UserProfile, DetailedUser } from "@/lib/api/endpoints/admin-auth";
@@ -18,22 +19,35 @@ import {
 } from "@/components/ui/dialog";
 import logger from "@/lib/logger";
 import { useTenant } from "@/contexts/tenant-context";
+import { useTenantQuery, useTenantQueryKey } from "@/hooks/useTenantQuery";
 import { CreateUserDialog } from "./create-user-dialog";
 import { EditUserDialog } from "./edit-user-dialog";
 
+const USERS_STALE_MS = 2 * 60 * 1000; // 2 min
+
 export default function UsersPage() {
-  const { adminFilter, availableSubaccounts } = useTenant();
-  const [users, setUsers] = useState<UserProfile[]>([]);
+  const { availableSubaccounts } = useTenant();
+  const queryClient = useQueryClient();
+  const { getTenantQueryKey } = useTenantQueryKey();
+
   const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [success, setSuccess] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
   const [selectedUser, setSelectedUser] = useState<DetailedUser | null>(null);
-  const isLoadingRef = useRef(false);
+
+  const usersQuery = useTenantQuery({
+    queryKey: ["users"],
+    queryFn: async ({ subAccountId }) =>
+      api.adminAuth.getAllUsers(
+        subAccountId != null ? String(subAccountId) : undefined
+      ),
+    staleTime: USERS_STALE_MS,
+  });
+
+  const users = useMemo(() => usersQuery.data ?? [], [usersQuery.data]);
 
   // Use the pagination hook
   const { pagination, paginatedData, setCurrentPage, setTotalItems } =
@@ -144,34 +158,59 @@ export default function UsersPage() {
     },
   ];
 
-  const loadUsers = useCallback(async () => {
-    // Prevent multiple simultaneous calls
-    if (isLoadingRef.current) {
-      logger.debug("⏸️ loadUsers already in progress, skipping");
-      return;
-    }
+  useEffect(() => {
+    setFilteredUsers(users);
+  }, [users]);
 
-    try {
-      isLoadingRef.current = true;
-      setIsRefreshing(true);
+  const invalidateUsers = () => {
+    queryClient.invalidateQueries({ queryKey: getTenantQueryKey(["users"]) });
+  };
+
+  const createUserMutation = useMutation({
+    mutationFn: (formData: CreateUserDto) => api.adminAuth.createUser(formData),
+    onSuccess: () => {
       setError("");
+      setSuccess("User created successfully");
+      setIsCreateDialogOpen(false);
+      setTimeout(() => setSuccess(""), 3000);
+      invalidateUsers();
+    },
+    onError: (err) => {
+      logger.error("Failed to create user", err);
+      setError("Failed to create user. Please try again.");
+    },
+  });
 
-      // Use tenant context - adminFilter is compatible with the API
-      const usersData = await api.adminAuth.getAllUsers(
-        adminFilter ?? undefined
-      );
-      setUsers(usersData);
-      setFilteredUsers(usersData);
-      setTotalItems(usersData.length);
-    } catch (error) {
-      logger.error("Failed to load users:", error);
-      setError("Failed to load users");
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-      isLoadingRef.current = false;
-    }
-  }, [adminFilter, setTotalItems]);
+  const updateUserMutation = useMutation({
+    mutationFn: ({ id, formData }: { id: number; formData: UpdateUserDto }) =>
+      api.adminAuth.updateUser(id, formData),
+    onSuccess: () => {
+      setError("");
+      setSuccess("User updated successfully");
+      setIsEditDialogOpen(false);
+      setEditingUser(null);
+      setTimeout(() => setSuccess(""), 3000);
+      invalidateUsers();
+    },
+    onError: (err) => {
+      logger.error("Failed to update user", err);
+      setError("Failed to update user. Please try again.");
+    },
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: (userId: number) => api.adminAuth.deleteUser(userId),
+    onSuccess: () => {
+      setError("");
+      setSuccess("User deleted successfully");
+      setTimeout(() => setSuccess(""), 3000);
+      invalidateUsers();
+    },
+    onError: (err) => {
+      logger.error("Failed to delete user", err);
+      setError("Failed to delete user. Please try again.");
+    },
+  });
 
   // Handle search
   const handleSearch = (term: string) => {
@@ -221,17 +260,8 @@ export default function UsersPage() {
 
   const handleDelete = async (user: UserProfile) => {
     if (!confirm("Are you sure you want to delete this user?")) return;
-
-    try {
-      setError("");
-      await api.adminAuth.deleteUser(user.id);
-      setSuccess("User deleted successfully");
-      loadUsers();
-      setTimeout(() => setSuccess(""), 3000);
-    } catch (error) {
-      logger.error("Failed to delete user", error);
-      setError("Failed to delete user. Please try again.");
-    }
+    setError("");
+    deleteUserMutation.mutate(user.id);
   };
 
   const handleCreate = () => {
@@ -239,39 +269,14 @@ export default function UsersPage() {
   };
 
   const handleCreateUser = async (formData: CreateUserDto) => {
-    try {
-      setError("");
-      await api.adminAuth.createUser(formData);
-      setSuccess("User created successfully");
-      setIsCreateDialogOpen(false);
-      loadUsers();
-      setTimeout(() => setSuccess(""), 3000);
-    } catch (error) {
-      logger.error("Failed to create user", error);
-      setError("Failed to create user. Please try again.");
-    }
+    setError("");
+    createUserMutation.mutate(formData);
   };
 
   const handleUpdateUser = async (id: number, formData: UpdateUserDto) => {
-    try {
-      setError("");
-      await api.adminAuth.updateUser(id, formData);
-      setSuccess("User updated successfully");
-      setIsEditDialogOpen(false);
-      setEditingUser(null);
-      loadUsers();
-      setTimeout(() => setSuccess(""), 3000);
-    } catch (error) {
-      logger.error("Failed to update user", error);
-      setError("Failed to update user. Please try again.");
-    }
+    setError("");
+    updateUserMutation.mutate({ id, formData });
   };
-
-  // Load users on mount and when adminFilter changes
-  useEffect(() => {
-    loadUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [adminFilter]);
 
   // Helper functions
   const getRoleBadgeVariant = (role: string) => {
@@ -307,8 +312,8 @@ export default function UsersPage() {
     <>
       <DataTable
         data={paginatedData}
-        isLoading={isLoading}
-        isRefreshing={isRefreshing}
+        isLoading={usersQuery.isLoading}
+        isRefreshing={usersQuery.isFetching}
         columns={columns}
         title="User Management"
         description="Manage all users in the system"
@@ -324,12 +329,12 @@ export default function UsersPage() {
           onPageChange: setCurrentPage,
         }}
         onCreateClick={handleCreate}
-        onRefresh={loadUsers}
+        onRefresh={() => usersQuery.refetch()}
         onView={handleView}
         onEdit={handleEdit}
         onDelete={handleDelete}
         stats={stats}
-        error={error}
+        error={error || (usersQuery.error ? "Failed to load users" : null)}
         success={success}
       />
 

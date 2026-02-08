@@ -146,7 +146,9 @@ export default function DevPage() {
 
       {/* SDK Tables */}
       <div className="space-y-4">
-        <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">SDK Tables</h2>
+        <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+          SDK Tables
+        </h2>
         <SDKTables />
       </div>
 

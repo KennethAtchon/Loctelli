@@ -161,7 +161,11 @@ export default function ChatPage() {
                   </SelectTrigger>
                   <SelectContent className="max-h-80 dark:bg-slate-800 dark:border-slate-600 dark:text-gray-100">
                     {leads.map((lead) => (
-                      <SelectItem key={lead.id} value={lead.id.toString()} className="dark:focus:bg-slate-700 dark:data-[highlighted]:bg-slate-700">
+                      <SelectItem
+                        key={lead.id}
+                        value={lead.id.toString()}
+                        className="dark:focus:bg-slate-700 dark:data-[highlighted]:bg-slate-700"
+                      >
                         <div className="flex items-center space-x-3 py-1">
                           <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
                             <span className="text-sm font-medium text-blue-700 dark:text-blue-200">
@@ -210,7 +214,9 @@ export default function ChatPage() {
                     </h3>
                     <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                       <span className="font-medium">{leadProfile.email}</span>
-                      <span className="text-gray-400 dark:text-gray-500">•</span>
+                      <span className="text-gray-400 dark:text-gray-500">
+                        •
+                      </span>
                       <span>{leadProfile.company || "No company"}</span>
                     </div>
                     {leadProfile.phone && (
@@ -229,12 +235,12 @@ export default function ChatPage() {
                     {leadProfile.status}
                   </Badge>
                   {leadProfile.strategy && (
-<Badge
-                    variant="outline"
-                    className="px-3 py-1 border-blue-200 text-blue-700 bg-blue-50 dark:border-blue-700 dark:text-blue-200 dark:bg-blue-900/30 text-sm font-medium"
-                  >
-                    {leadProfile.strategy.name}
-                  </Badge>
+                    <Badge
+                      variant="outline"
+                      className="px-3 py-1 border-blue-200 text-blue-700 bg-blue-50 dark:border-blue-700 dark:text-blue-200 dark:bg-blue-900/30 text-sm font-medium"
+                    >
+                      {leadProfile.strategy.name}
+                    </Badge>
                   )}
                 </div>
               </div>
