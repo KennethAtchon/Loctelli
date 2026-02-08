@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     siteName: "Loctelli",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Loctelli AI Marketing Platform",
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Loctelli - AI-Powered Lead Generation",
     description: "Triple your revenue with AI marketing automation",
-    images: ["/twitter-image.jpg"],
+    images: ["/twitter-image.png"],
   },
   icons: {
     icon: "/favicon.ico",
