@@ -89,8 +89,8 @@ export function SubaccountFilter({
           <DropdownMenuItem
             onClick={() => handleFilterChange(null)}
             className={cn(
-              "flex items-center gap-2 hover:bg-blue-50 transition-colors duration-200",
-              isGlobalView && "bg-blue-50 text-blue-700"
+              "flex items-center gap-2 hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors duration-200",
+              isGlobalView && "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200"
             )}
           >
             <Globe className="h-4 w-4" />
@@ -107,8 +107,8 @@ export function SubaccountFilter({
               key={subaccount.id}
               onClick={() => handleFilterChange(subaccount.id)}
               className={cn(
-                "flex items-center gap-2 hover:bg-blue-50 transition-colors duration-200",
-                subAccountId === subaccount.id && "bg-blue-50 text-blue-700"
+                "flex items-center gap-2 hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors duration-200",
+                subAccountId === subaccount.id && "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200"
               )}
             >
               <Building2 className="h-4 w-4" />
@@ -172,7 +172,7 @@ export function SubaccountFilter({
           onClick={() => handleFilterChange(null)}
           className={cn(
             "flex items-center gap-3 py-3",
-            isGlobalView && "bg-blue-50 text-blue-700"
+            isGlobalView && "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200"
           )}
         >
           <Globe className="h-5 w-5" />
@@ -195,7 +195,7 @@ export function SubaccountFilter({
             onClick={() => handleFilterChange(subaccount.id)}
             className={cn(
               "flex items-center gap-3 py-3",
-              subAccountId === subaccount.id && "bg-blue-50 text-blue-700"
+              subAccountId === subaccount.id && "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200"
             )}
           >
             <Building2 className="h-5 w-5" />

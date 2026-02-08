@@ -127,10 +127,10 @@ export default function DevPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
             Development Tools
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Database schema and development utilities.
           </p>
         </div>
@@ -138,7 +138,7 @@ export default function DevPage() {
 
       {/* Database Schema */}
       <div className="space-y-4">
-        <h2 className="text-2xl font-semibold text-gray-800">
+        <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
           Database Schema
         </h2>
         <DatabaseSchema />
@@ -146,13 +146,13 @@ export default function DevPage() {
 
       {/* SDK Tables */}
       <div className="space-y-4">
-        <h2 className="text-2xl font-semibold text-gray-800">SDK Tables</h2>
+        <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">SDK Tables</h2>
         <SDKTables />
       </div>
 
       {/* API Debug Console */}
       <div className="space-y-4">
-        <h2 className="text-2xl font-semibold text-gray-800">
+        <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
           API Debug Console
         </h2>
         <Card>
@@ -254,7 +254,7 @@ export default function DevPage() {
                       </Badge>
                     )}
                     {debugTime !== null && (
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
                         Time: {debugTime}ms
                       </span>
                     )}
@@ -293,7 +293,7 @@ export default function DevPage() {
                     }
                     readOnly
                     rows={12}
-                    className="font-mono text-sm bg-gray-50"
+                    className="font-mono text-sm bg-gray-50 dark:bg-slate-800 dark:text-gray-200 dark:border-slate-600"
                   />
                 </div>
               </TabsContent>

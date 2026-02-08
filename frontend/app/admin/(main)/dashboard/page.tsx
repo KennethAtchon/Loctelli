@@ -431,7 +431,7 @@ export default function AdminDashboardPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors"
+                className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/30 dark:border-blue-700 dark:text-blue-200 dark:hover:bg-blue-800/40 transition-colors"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add User
@@ -444,7 +444,7 @@ export default function AdminDashboardPage() {
                 stats.recentUsers.map((user) => (
                   <div
                     key={user.id}
-                    className="flex items-center space-x-4 p-3 rounded-xl hover:bg-blue-50/50 transition-all duration-200 border border-transparent hover:border-blue-100"
+                    className="flex items-center space-x-4 p-3 rounded-xl hover:bg-blue-50/50 dark:hover:bg-slate-700/50 transition-all duration-200 border border-transparent hover:border-blue-100 dark:hover:border-slate-600"
                   >
                     <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
                       <span className="text-sm font-bold text-white">

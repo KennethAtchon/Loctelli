@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { use, useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -31,9 +31,7 @@ interface ContactEditPageProps {
 
 export default function ContactEditPage({ params }: ContactEditPageProps) {
   const router = useRouter();
-  const [resolvedParams, setResolvedParams] = useState<{
-    id: string;
-  } | null>(null);
+  const resolvedParams = use(params);
   const [contact, setContact] = useState<ContactSubmission | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,10 +47,6 @@ export default function ContactEditPage({ params }: ContactEditPageProps) {
     priority: undefined,
     assignedToId: undefined,
   });
-
-  useEffect(() => {
-    params.then((p) => setResolvedParams(p));
-  }, [params]);
 
   const loadContact = useCallback(async () => {
     if (!resolvedParams) return;

@@ -268,7 +268,7 @@ export default function SubAccountsPage() {
                   variant="ghost"
                   size="sm"
                   onClick={() => handleViewDetails(subAccount)}
-                  className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/60"
+                  className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/60 dark:bg-blue-900/30 dark:hover:bg-blue-800/40 dark:text-blue-200 dark:border-blue-700/60"
                 >
                   <Eye className="h-4 w-4 mr-1" />
                   View Details
@@ -277,7 +277,7 @@ export default function SubAccountsPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => openEditDialog(subAccount)}
-                  className="bg-white/80 hover:bg-gray-50 border-gray-200/60"
+                  className="bg-white/80 hover:bg-gray-50 border-gray-200/60 dark:bg-slate-700/60 dark:hover:bg-slate-600/80 dark:border-slate-600 dark:text-gray-200"
                 >
                   <Edit className="h-4 w-4 mr-1" />
                   Edit
@@ -286,7 +286,7 @@ export default function SubAccountsPage() {
                   variant="destructive"
                   size="sm"
                   onClick={() => handleDeleteSubAccount(subAccount.id)}
-                  className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200/60"
+                  className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200/60 dark:bg-red-900/30 dark:hover:bg-red-800/40 dark:text-red-200 dark:border-red-800/60"
                 >
                   <Trash2 className="h-4 w-4 mr-1" />
                   Delete

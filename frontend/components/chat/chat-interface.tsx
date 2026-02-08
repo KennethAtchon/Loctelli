@@ -483,20 +483,20 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
     // Typing indicator component
     const TypingIndicator = () => (
       <div className="flex flex-col items-start">
-        <div className="max-w-[80%] px-4 py-2 rounded-2xl text-gray-900">
+        <div className="max-w-[80%] px-4 py-2 rounded-2xl rounded-bl-none bg-gray-100 text-gray-900 dark:bg-slate-700/90 dark:text-gray-100">
           <div className="flex items-center space-x-1">
             <div className="flex space-x-1">
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-gray-400 dark:bg-slate-400 rounded-full animate-bounce"></div>
               <div
-                className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                className="w-2 h-2 bg-gray-400 dark:bg-slate-400 rounded-full animate-bounce"
                 style={{ animationDelay: "0.1s" }}
               ></div>
               <div
-                className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                className="w-2 h-2 bg-gray-400 dark:bg-slate-400 rounded-full animate-bounce"
                 style={{ animationDelay: "0.2s" }}
               ></div>
             </div>
-            <span className="text-sm text-gray-500 ml-2">
+            <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
               AI is thinking...
             </span>
           </div>
@@ -526,8 +526,8 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
             className={cn(
               "max-w-[80%] px-4 py-2 rounded-2xl",
               message.type === "user"
-                ? "bg-white border border-gray-200 rounded-br-none"
-                : "text-gray-900"
+                ? "bg-white border border-gray-200 rounded-br-none dark:bg-slate-700 dark:border-slate-600 dark:text-gray-100"
+                : "bg-gray-100 text-gray-900 rounded-bl-none dark:bg-slate-700/90 dark:text-gray-100"
             )}
           >
             {/* Render image if present */}
@@ -589,7 +589,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
           </div>
         )}
 
-        <div ref={chatContainerRef} className="flex-1 p-4 overflow-y-auto ">
+        <div ref={chatContainerRef} className="flex-1 p-4 overflow-y-auto dark:bg-slate-900/20">
           <div className="space-y-4 pb-2">
             {messageSections.map((section, sectionIndex) => (
               <div
@@ -622,26 +622,26 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
           </div>
         </div>
 
-        <div className="p-4 border-t bg-gray-50">
+        <div className="p-4 border-t bg-gray-50 dark:bg-slate-800/80 dark:border-slate-700">
           <form onSubmit={handleSubmit}>
             <div
               ref={inputContainerRef}
               className={cn(
-                "relative w-full rounded-3xl border border-gray-200 bg-white p-3 cursor-text",
+                "relative w-full rounded-3xl border border-gray-200 bg-white dark:border-slate-600 dark:bg-slate-700/80 p-3 cursor-text",
                 (isStreaming || disabled || loading) && "opacity-80"
               )}
               onClick={handleInputContainerClick}
             >
               {/* Image previews */}
               {attachedImages.length > 0 && (
-                <div className="mb-2 flex flex-wrap gap-2 pb-2 border-b border-gray-100">
+                <div className="mb-2 flex flex-wrap gap-2 pb-2 border-b border-gray-100 dark:border-slate-600">
                   {attachedImages.map((img, index) => (
                     <div key={index} className="relative group">
                       {/* eslint-disable-next-line @next/next/no-img-element -- blob preview */}
                       <img
                         src={img.preview}
                         alt={`Preview ${index + 1}`}
-                        className="h-16 w-16 object-cover rounded-lg border border-gray-200"
+                        className="h-16 w-16 object-cover rounded-lg border border-gray-200 dark:border-slate-600"
                       />
                       <button
                         type="button"
@@ -668,7 +668,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                       ? finalConfig.disabledPlaceholder
                       : finalConfig.placeholder
                   }
-                  className="min-h-[24px] max-h-[160px] w-full rounded-3xl border-0 bg-transparent text-gray-900 focus-visible:ring-0 focus-visible:ring-offset-0 p4 resize-none overflow-y-auto leading-tight align-center"
+                  className="min-h-[24px] max-h-[160px] w-full rounded-3xl border-0 bg-transparent text-gray-900 dark:text-gray-100 focus-visible:ring-0 focus-visible:ring-offset-0 p4 resize-none overflow-y-auto leading-tight align-center placeholder:text-gray-500 dark:placeholder:text-gray-400"
                   value={inputValue}
                   onChange={handleInputChange}
                   onKeyDown={handleKeyDown}
@@ -704,11 +704,11 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                         variant="outline"
                         size="icon"
                         onClick={handlePhotoButtonClick}
-                        className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100"
+                        className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100 dark:hover:bg-slate-600"
                         disabled={isStreaming || disabled || loading}
                       >
                         {/* Lucide icon - decorative, sr-only provides label */}
-                        <Image className="h-4 w-4 text-gray-500" aria-hidden />
+                        <Image className="h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden />
                         <span className="sr-only">Upload photo</span>
                       </Button>
                       <Button
@@ -716,11 +716,11 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                         variant="outline"
                         size="icon"
                         onClick={onAgentInfoClick}
-                        className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100"
+                        className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100 dark:hover:bg-slate-600"
                         disabled={isStreaming || disabled || loading}
                       >
                         <InfoIcon
-                          className="h-4 w-4 text-gray-500"
+                          className="h-4 w-4 text-gray-500 dark:text-gray-400"
                           aria-hidden
                         />
                         <span className="sr-only">Agent info</span>
@@ -733,8 +733,8 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                       className={cn(
                         "rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200",
                         hasTyped || attachedImages.length > 0
-                          ? "bg-black scale-110"
-                          : "bg-gray-200"
+                          ? "bg-black dark:bg-white scale-110"
+                          : "bg-gray-200 dark:bg-slate-600"
                       )}
                       disabled={
                         (!inputValue.trim() && attachedImages.length === 0) ||
@@ -746,7 +746,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                       <ArrowUp
                         className={cn(
                           "h-4 w-4 transition-colors",
-                          hasTyped ? "text-white" : "text-gray-500"
+                          hasTyped ? "text-white dark:text-black" : "text-gray-500 dark:text-gray-400"
                         )}
                       />
                       <span className="sr-only">Submit</span>
@@ -764,11 +764,11 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                       variant="outline"
                       size="icon"
                       onClick={handlePhotoButtonClick}
-                      className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100"
+                      className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100 dark:hover:bg-slate-600"
                       disabled={isStreaming || disabled || loading}
                     >
                       {/* Lucide icon - decorative */}
-                      <Image className="h-4 w-4 text-gray-500" aria-hidden />
+                      <Image className="h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden />
                       <span className="sr-only">Upload photo</span>
                     </Button>
                     <Button
@@ -776,10 +776,10 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                       variant="outline"
                       size="icon"
                       onClick={onAgentInfoClick}
-                      className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100"
+                      className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100 dark:hover:bg-slate-600"
                       disabled={isStreaming || disabled || loading}
                     >
-                      <InfoIcon className="h-4 w-4 text-gray-500" aria-hidden />
+                      <InfoIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden />
                       <span className="sr-only">Agent info</span>
                     </Button>
                   </div>
@@ -790,8 +790,8 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                     className={cn(
                       "rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200",
                       hasTyped || attachedImages.length > 0
-                        ? "bg-black scale-110"
-                        : "bg-gray-200"
+                        ? "bg-black dark:bg-white scale-110"
+                        : "bg-gray-200 dark:bg-slate-600"
                     )}
                     disabled={
                       (!inputValue.trim() && attachedImages.length === 0) ||
@@ -803,7 +803,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                     <ArrowUp
                       className={cn(
                         "h-4 w-4 transition-colors",
-                        hasTyped ? "text-white" : "text-gray-500"
+                        hasTyped ? "text-white dark:text-black" : "text-gray-500 dark:text-gray-400"
                       )}
                     />
                     <span className="sr-only">Submit</span>
