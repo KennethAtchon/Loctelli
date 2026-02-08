@@ -13,8 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { FormField } from "@/lib/forms/types";
+import type { FormField, FormFieldOption } from "@/lib/forms/types";
+import { getOptionValue } from "@/lib/forms/option-utils";
 import { FORM_FIELD_TYPE_OPTIONS } from "@/lib/forms/field-types";
+
+type ImageOption = { value: string; imageUrl: string; altText?: string };
 
 interface FormFieldEditorProps {
   field: FormField;
@@ -29,23 +32,57 @@ export function FormFieldEditor({
   onUpdate,
   onRemove,
 }: FormFieldEditorProps) {
-  const addOption = () => {
-    const options = field.options || [];
-    onUpdate({ options: [...options, ""] });
+  const options = field.options ?? [];
+  const optionDisplay = field.optionDisplay ?? "text";
+  const isImageMode = optionDisplay === "image";
+  const textOptions = isImageMode
+    ? (options as ImageOption[]).map((o) => o.value)
+    : (options as string[]);
+  const imageOptions = isImageMode
+    ? (options as ImageOption[])
+    : (options as string[]).map((s) => ({ value: s || "", imageUrl: "", altText: s || "" }));
+
+  const setDisplayMode = (mode: "text" | "image") => {
+    if (mode === "image") {
+      const converted = (options as FormFieldOption[]).map((o) =>
+        typeof o === "string"
+          ? { value: o || "Option", imageUrl: "", altText: o || "" }
+          : o
+      );
+      onUpdate({ options: converted, optionDisplay: mode });
+    } else {
+      const converted = (options as FormFieldOption[]).map(getOptionValue);
+      onUpdate({ options: converted, optionDisplay: mode });
+    }
   };
 
-  const updateOption = (optionIndex: number, value: string) => {
-    const options = field.options || [];
-    const updatedOptions = options.map((opt, i) =>
-      i === optionIndex ? value : opt
-    );
-    onUpdate({ options: updatedOptions });
+  const addOption = () => {
+    if (isImageMode) {
+      onUpdate({
+        options: [...(options as ImageOption[]), { value: "", imageUrl: "", altText: "" }],
+      });
+    } else {
+      onUpdate({ options: [...(options as string[]), ""] });
+    }
+  };
+
+  const updateTextOption = (optionIndex: number, value: string) => {
+    const opts = options as string[];
+    const updated = opts.map((v, i) => (i === optionIndex ? value : v));
+    onUpdate({ options: updated });
+  };
+
+  const updateImageOption = (optionIndex: number, patch: Partial<ImageOption>) => {
+    const opts = [...(options as ImageOption[])];
+    opts[optionIndex] = { ...opts[optionIndex], ...patch };
+    onUpdate({ options: opts });
   };
 
   const removeOption = (optionIndex: number) => {
-    const options = field.options || [];
-    const updatedOptions = options.filter((_, i) => i !== optionIndex);
-    onUpdate({ options: updatedOptions });
+    const updated = (isImageMode ? options as ImageOption[] : options as string[]).filter(
+      (_, i) => i !== optionIndex
+    );
+    onUpdate({ options: updated });
   };
 
   return (
@@ -116,35 +153,103 @@ export function FormFieldEditor({
         {(field.type === "select" ||
           field.type === "radio" ||
           field.type === "checkbox") && (
-          <div>
-            <Label>Options</Label>
-            <div className="space-y-2">
-              {(field.options || []).map((option, optionIndex) => (
-                <div key={optionIndex} className="flex items-center gap-2">
-                  <Input
-                    value={option}
-                    onChange={(e) => updateOption(optionIndex, e.target.value)}
-                    placeholder="Enter option"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeOption(optionIndex)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addOption}
+          <div className="space-y-3">
+            <div>
+              <Label>Options display</Label>
+              <Select
+                value={optionDisplay}
+                onValueChange={(v) => setDisplayMode(v as "text" | "image")}
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Option
-              </Button>
+                <SelectTrigger className="mt-1 max-w-[200px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="text">Text</SelectItem>
+                  <SelectItem value="image">Images</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Options</Label>
+              <div className="space-y-2 mt-2">
+                {!isImageMode &&
+                  textOptions.map((opt, optionIndex) => (
+                    <div key={optionIndex} className="flex items-center gap-2">
+                      <Input
+                        value={opt}
+                        onChange={(e) =>
+                          updateTextOption(optionIndex, e.target.value)
+                        }
+                        placeholder="Enter option"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeOption(optionIndex)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                {isImageMode &&
+                  imageOptions.map((opt, optionIndex) => (
+                    <div
+                      key={optionIndex}
+                      className="flex flex-col gap-2 p-3 border rounded-md"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">
+                          Option {optionIndex + 1}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeOption(optionIndex)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <Input
+                        placeholder="Value"
+                        value={opt.value}
+                        onChange={(e) =>
+                          updateImageOption(optionIndex, {
+                            value: e.target.value,
+                          })
+                        }
+                      />
+                      <Input
+                        placeholder="Image URL"
+                        value={opt.imageUrl}
+                        onChange={(e) =>
+                          updateImageOption(optionIndex, {
+                            imageUrl: e.target.value,
+                          })
+                        }
+                      />
+                      <Input
+                        placeholder="Alt text (optional)"
+                        value={opt.altText ?? ""}
+                        onChange={(e) =>
+                          updateImageOption(optionIndex, {
+                            altText: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addOption}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Option
+                </Button>
+              </div>
             </div>
           </div>
         )}

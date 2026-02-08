@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { FormTemplate, FormSubmission } from "@/lib/forms/types";
+import { getOptionLabel } from "@/lib/forms/option-utils";
 import { FileText, Users, Calendar, CheckCircle } from "lucide-react";
 import logger from "@/lib/logger";
 import { useTenantQuery } from "@/hooks/useTenantQuery";
@@ -405,7 +406,8 @@ export default function FormsPage() {
                           )}
                           {field.options && field.options.length > 0 && (
                             <div className="text-xs text-gray-500">
-                              Options: {field.options.join(", ")}
+                              Options:{" "}
+                              {field.options.map(getOptionLabel).join(", ")}
                             </div>
                           )}
                         </div>

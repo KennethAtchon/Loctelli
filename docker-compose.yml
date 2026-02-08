@@ -48,6 +48,7 @@ services:
       - loctelli-network
 
   # Main Frontend (CRM)
+  # Starts before/without waiting for API so the UI is up sooner; API calls will succeed once api is healthy.
   frontend:
     build:
       context: ./frontend
@@ -61,9 +62,6 @@ services:
       - "3000:3000"
     env_file:
       - ./frontend/.env
-    depends_on:
-      api:
-        condition: service_healthy
     networks:
       - loctelli-network
 

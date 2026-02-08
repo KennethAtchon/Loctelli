@@ -46,6 +46,7 @@ export class GeneralController {
     return this.generalService.getSystemStatus();
   }
 
+  /** Monitor: available in all environments for admins (not gated by DEBUG/dev). */
   @Get('monitor-stats')
   @UseGuards(RolesGuard)
   @Roles('admin', 'super_admin')

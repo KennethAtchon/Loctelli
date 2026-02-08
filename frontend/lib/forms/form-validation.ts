@@ -1,4 +1,5 @@
 import type { FormField } from "./types";
+import { getOptionValues } from "./option-utils";
 import { shouldShowField } from "./conditional-logic";
 
 /**
@@ -40,17 +41,18 @@ export function validateField(field: FormField, value: unknown): boolean {
   }
 
   // Type-specific validation
+  const optionValues = getOptionValues(field.options);
   switch (field.type) {
     case "select":
     case "radio":
-      if (value && field.options) {
-        return field.options.includes(String(value));
+      if (value && optionValues.length) {
+        return optionValues.includes(String(value));
       }
       return !field.required || value !== "";
 
     case "checkbox":
-      if (Array.isArray(value) && field.options) {
-        return value.every((v) => field.options!.includes(String(v)));
+      if (Array.isArray(value) && optionValues.length) {
+        return value.every((v) => optionValues.includes(String(v)));
       }
       return Array.isArray(value);
 

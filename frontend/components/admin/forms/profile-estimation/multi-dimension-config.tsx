@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2, Plus } from "lucide-react";
 import type { FormField } from "@/lib/forms/types";
+import { getOptionValue } from "@/lib/forms/option-utils";
 import {
   Select,
   SelectContent,
@@ -255,7 +256,11 @@ function DimensionFieldScoringRow({
   const addScoringRule = () => {
     if (selectedField?.options?.length) {
       selectedField.options.forEach((opt) => {
-        append({ answer: opt, points: 0, dimension: dimensionId });
+        append({
+          answer: getOptionValue(opt),
+          points: 0,
+          dimension: dimensionId,
+        });
       });
     } else {
       append({ answer: "", points: 0, dimension: dimensionId });

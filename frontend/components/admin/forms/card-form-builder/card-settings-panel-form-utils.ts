@@ -62,6 +62,7 @@ export function getDefaultFormValues(
     required: field?.required ?? false,
     placeholder: field?.placeholder ?? "",
     options: field?.options ?? [],
+    optionDisplay: field?.optionDisplay,
     pipingKey: field?.pipingKey ?? "",
     enablePiping: field?.enablePiping ?? false,
     conditionalLogic: {
@@ -116,6 +117,7 @@ export function formValuesToUpdates(
       options: fieldTypeHasOptions(values.fieldType as FormField["type"])
         ? (values.options ?? [])
         : undefined,
+      optionDisplay: values.optionDisplay,
       pipingKey: values.pipingKey.trim() || undefined,
       enablePiping: values.enablePiping,
       conditionalLogic: {

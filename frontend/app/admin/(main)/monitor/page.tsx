@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import type { MonitorRateLimitEntry } from "@/lib/api/endpoints/admin-auth";
 import {
   Card,
   CardContent,
@@ -20,6 +22,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Activity,
@@ -29,6 +38,7 @@ import {
   Server,
   Key,
   Clock,
+  Eye,
 } from "lucide-react";
 
 const MONITOR_STALE_MS = 30 * 1000; // 30s
@@ -47,6 +57,8 @@ function formatTimeAgo(ms: number) {
 }
 
 export default function AdminMonitorPage() {
+  const [detailsEntry, setDetailsEntry] =
+    useState<MonitorRateLimitEntry | null>(null);
   const {
     data: stats,
     isLoading,
@@ -279,6 +291,7 @@ export default function AdminMonitorPage() {
                         <TableHead className="max-w-[200px] truncate">
                           Full key
                         </TableHead>
+                        <TableHead className="w-[100px]">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -302,11 +315,97 @@ export default function AdminMonitorPage() {
                           <TableCell className="max-w-[200px] truncate font-mono text-xs">
                             {r.key}
                           </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 gap-1.5"
+                              onClick={() => setDetailsEntry(r)}
+                            >
+                              <Eye className="h-4 w-4" />
+                              View
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                 </div>
+              )}
+
+              <Dialog
+                open={!!detailsEntry}
+                onOpenChange={(open) => !open && setDetailsEntry(null)}
+              >
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Rate limit key details</DialogTitle>
+                    <DialogDescription>
+                      Full key and metadata for this rate limit entry
+                    </DialogDescription>
+                  </DialogHeader>
+                  {detailsEntry && (
+                    <div className="grid gap-3 text-sm">
+                      <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
+                        <span className="text-muted-foreground">Type</span>
+                        <Badge variant="outline">{detailsEntry.type}</Badge>
+                        <span className="text-muted-foreground">IP / Key</span>
+                        <span className="font-mono break-all">
+                          {detailsEntry.ipOrId}
+                        </span>
+                        <span className="text-muted-foreground">Count</span>
+                        <span className="font-mono">{detailsEntry.count}</span>
+                        <span className="text-muted-foreground">
+                          Window (min)
+                        </span>
+                        <span className="font-mono">
+                          {detailsEntry.windowMinutes}
+                        </span>
+                        <span className="text-muted-foreground">
+                          Window start
+                        </span>
+                        <span className="font-mono text-xs">
+                          {formatTime(detailsEntry.windowStart)}
+                        </span>
+                        <span className="text-muted-foreground">
+                          Window end
+                        </span>
+                        <span className="font-mono text-xs">
+                          {formatTime(detailsEntry.windowEnd)}
+                        </span>
+                      </div>
+                      <div className="space-y-1.5 pt-2 border-t">
+                        <span className="text-muted-foreground text-xs block">
+                          Full key
+                        </span>
+                        <pre className="p-3 rounded-md bg-muted font-mono text-xs break-all overflow-x-auto">
+                          {detailsEntry.key}
+                        </pre>
+                      </div>
+                      <div className="space-y-1.5 pt-2 border-t">
+                        <span className="text-muted-foreground text-xs block">
+                          Raw metadata
+                        </span>
+                        <pre className="p-3 rounded-md bg-muted font-mono text-xs overflow-x-auto">
+                          {JSON.stringify(
+                            {
+                              key: detailsEntry.key,
+                              type: detailsEntry.type,
+                              ipOrId: detailsEntry.ipOrId,
+                              count: detailsEntry.count,
+                              windowStart: detailsEntry.windowStart,
+                              windowEnd: detailsEntry.windowEnd,
+                              windowMinutes: detailsEntry.windowMinutes,
+                            },
+                            null,
+                            2
+                          )}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
               )}
             </CardContent>
           </Card>

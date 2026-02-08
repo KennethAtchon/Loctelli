@@ -1,7 +1,7 @@
 import { Injectable, Inject, Logger, Optional } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { REDIS_STORE } from './cache.module';
+import { REDIS_STORE } from './redis-store.module';
 
 type RedisStoreLike = {
   keys?: (pattern: string) => Promise<string[]>;

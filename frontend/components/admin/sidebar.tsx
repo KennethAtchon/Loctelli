@@ -49,6 +49,7 @@ const navigation = [
     icon: FileText,
   },
   { name: "Integrations", href: "/admin/integrations", icon: Link2 },
+  // Monitor: always visible (not gated by isDev/DEBUG)
   { name: "Monitor", href: "/admin/monitor", icon: Activity },
   { name: "Dev", href: "/admin/dev", icon: Database },
   { name: "Settings", href: "/admin/settings", icon: Settings },

@@ -80,13 +80,27 @@ export type FormFieldType =
   | "image"
   | "statement";
 
+/**
+ * Option for select/radio/checkbox. Text mode: string (label = value).
+ * Image mode: { value, imageUrl, altText? }. No mixing within one field.
+ */
+export type FormFieldOption =
+  | string
+  | { value: string; imageUrl: string; altText?: string };
+
+/** How options are displayed: text labels or images. Omitted = 'text'. */
+export type OptionDisplay = "text" | "image";
+
 /** Form field used in both SIMPLE and CARD forms. Card-specific: media, conditionalLogic, enablePiping. */
 export interface FormField {
   id: string;
   type: FormFieldType;
   label: string;
   placeholder?: string;
-  options?: string[];
+  /** Text mode: string[]. Image mode: { value, imageUrl, altText? }[]. No mix. */
+  options?: FormFieldOption[];
+  /** When 'image', options must be image-option objects. Omitted or 'text' = text options. */
+  optionDisplay?: OptionDisplay;
   required?: boolean;
   /** Media for card forms */
   media?: CardMedia;

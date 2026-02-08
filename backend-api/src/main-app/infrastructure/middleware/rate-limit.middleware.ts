@@ -29,6 +29,13 @@ export class RateLimitMiddleware implements NestMiddleware {
     const rule = findRateLimitRule(req);
     const config = getRateLimitConfig(req);
 
+    // Verification logging (visible at default log level)
+    const pathInfo = `path=${JSON.stringify(req.path)} originalUrl=${JSON.stringify(req.originalUrl?.split('?')[0])}`;
+    const ruleName = rule?.name ?? 'default';
+    this.logger.log(
+      `[rate-limit] ${req.method} ${pathInfo} → rule=${ruleName}`,
+    );
+
     if (rule) {
       this.logger.debug(
         `🎯 Matched rate limit rule: "${rule.name}" - ${config.description || rule.name}`,
@@ -63,6 +70,7 @@ export class RateLimitMiddleware implements NestMiddleware {
 
     try {
       const key = this.generateKey(req, config);
+      this.logger.log(`[rate-limit] key=${key}`);
       this.logger.debug(`🔑 Generated rate limit key: ${key}`);
 
       const current = await this.getCurrentRequests(key);

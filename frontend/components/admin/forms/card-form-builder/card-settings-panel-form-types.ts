@@ -7,6 +7,8 @@ import type {
   ConditionBlock,
   ConditionalLogic,
   CardMedia,
+  FormFieldOption,
+  OptionDisplay,
 } from "@/lib/forms/types";
 
 export interface NodeSettingsFormValues {
@@ -18,7 +20,8 @@ export interface NodeSettingsFormValues {
   fieldType: string;
   required: boolean;
   placeholder: string;
-  options: string[];
+  options: FormFieldOption[];
+  optionDisplay?: OptionDisplay;
   pipingKey: string;
   enablePiping: boolean;
   conditionalLogic: ConditionalLogicFormValues;

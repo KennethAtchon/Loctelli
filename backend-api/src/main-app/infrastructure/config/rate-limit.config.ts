@@ -33,12 +33,23 @@ export const defaultRateLimitConfig: RateLimitConfig = {
 };
 
 /**
+ * Normalize request path for matching.
+ * When req.path is "/" (common behind proxy/Nest), use originalUrl so we get the real path (e.g. /auth/login).
+ */
+function getRequestPath(req: Request): string {
+  const fromPath = req.path ?? '';
+  const fromOriginal = req.originalUrl ? req.originalUrl.split('?')[0] : '';
+  if (!fromPath || fromPath === '/') return fromOriginal || fromPath;
+  return fromPath || fromOriginal || '';
+}
+
+/**
  * Helper function to create a route matcher
  */
 export function matchRoute(matcher: RouteMatcher, req: Request): boolean {
   const { method, path } = matcher;
   const reqMethod = req.method;
-  const reqPath = req.path;
+  const reqPath = getRequestPath(req);
 
   // Check method match
   if (method) {
@@ -80,6 +91,20 @@ export const RATE_LIMIT_MONITOR_PATTERNS: string[] = [
   'status_rate_limit:*',
   'api_rate_limit:*',
   'rate_limit:*', // default when no rule keyGenerator
+];
+
+/**
+ * [prefix, display type] for monitor table. Order matters (first match wins).
+ * For auth_rate_limit, the last segment of the key (login, register, etc.) is used as type when present.
+ */
+export const RATE_LIMIT_MONITOR_PREFIX_TYPES: [string, string][] = [
+  ['auth_rate_limit:', 'auth'],
+  ['track_time_rate_limit:', 'track-time'],
+  ['form_submit_rate_limit:', 'form-submit'],
+  ['form_upload_rate_limit:', 'form-upload'],
+  ['api_rate_limit:', 'api'],
+  ['status_rate_limit:', 'status'],
+  ['rate_limit:', 'default'],
 ];
 
 /**
@@ -137,11 +162,12 @@ export const rateLimitRules: RateLimitRule[] = [
   },
 
   // Auth endpoints - strict limits
+  // Match any path containing auth segment (handles /auth/login, auth/login, /api/auth/login, etc.)
   {
     name: 'auth-login',
     matcher: {
       method: 'POST',
-      path: '/auth/login',
+      path: (p) => typeof p === 'string' && p.includes('auth/login'),
       priority: 90,
     },
     config: {
@@ -159,12 +185,12 @@ export const rateLimitRules: RateLimitRule[] = [
     name: 'auth-register',
     matcher: {
       method: 'POST',
-      path: '/auth/register',
+      path: (p) => typeof p === 'string' && p.includes('auth/register'),
       priority: 90,
     },
     config: {
       windowMs: 15 * 60 * 1000, // 15 minutes
-      maxRequests: 5, // 5 registration attempts per 15 minutes
+      maxRequests: 15, // 15 registration attempts per 15 minutes
       keyGenerator: (req) => {
         const ip = req.ip || req.connection?.remoteAddress || 'unknown';
         return `auth_rate_limit:${ip}:register`;
@@ -177,12 +203,13 @@ export const rateLimitRules: RateLimitRule[] = [
     name: 'admin-auth-login',
     matcher: {
       method: 'POST',
-      path: '/admin/auth/login',
+      path: (p) =>
+        typeof p === 'string' && p.includes('admin/auth/login'),
       priority: 90,
     },
     config: {
       windowMs: 15 * 60 * 1000, // 15 minutes
-      maxRequests: 5, // 5 login attempts per 15 minutes
+      maxRequests: 15, // 5 login attempts per 15 minutes
       keyGenerator: (req) => {
         const ip = req.ip || req.connection?.remoteAddress || 'unknown';
         return `auth_rate_limit:${ip}:admin-login`;
@@ -195,7 +222,8 @@ export const rateLimitRules: RateLimitRule[] = [
     name: 'admin-auth-register',
     matcher: {
       method: 'POST',
-      path: '/admin/auth/register',
+      path: (p) =>
+        typeof p === 'string' && p.includes('admin/auth/register'),
       priority: 90,
     },
     config: {
@@ -264,10 +292,19 @@ export const rateLimitRules: RateLimitRule[] = [
     },
   },
 
-  // General API endpoints - default high limit
+  // General API endpoints - default high limit (exclude auth so auth rules always win)
   {
     name: 'api-endpoints',
     matcher: {
+      path: (p) => {
+        if (typeof p !== 'string') return true;
+        const lower = p.toLowerCase();
+        return (
+          !lower.includes('auth/register') &&
+          !lower.includes('auth/login') &&
+          !lower.includes('admin/auth')
+        );
+      },
       priority: 1,
     },
     config: {

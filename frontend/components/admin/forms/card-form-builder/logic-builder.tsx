@@ -20,6 +20,7 @@ import type {
   FormField,
 } from "@/lib/forms/types";
 import { fieldTypeHasOptions } from "@/lib/forms/field-types";
+import { getOptionValue, getOptionLabel } from "@/lib/forms/option-utils";
 import { getPipingDisplayToken } from "@/lib/forms/conditional-logic";
 
 function isConditionBlock(
@@ -139,9 +140,9 @@ export function LogicBuilder({
     updateGroupAt(groupIndex, { conditions: updated });
   };
 
-  const getFieldOptions = (fieldId: string): string[] => {
+  const getFieldOptions = (fieldId: string) => {
     const field = fields.find((f) => f.id === fieldId);
-    return field?.options || [];
+    return field?.options ?? [];
   };
 
   const needsValue = (operator: ConditionOperator): boolean => {
@@ -173,13 +174,17 @@ export function LogicBuilder({
             <SelectValue placeholder="Select value" />
           </SelectTrigger>
           <SelectContent>
-            {options.map((opt) => (
-              <SelectItem key={opt} value={opt} title={opt} className="min-w-0">
-                <span className="truncate block max-w-[160px] text-left">
-                  {opt}
-                </span>
-              </SelectItem>
-            ))}
+            {options.map((opt) => {
+              const val = getOptionValue(opt);
+              const label = getOptionLabel(opt);
+              return (
+                <SelectItem key={val} value={val} title={label} className="min-w-0">
+                  <span className="truncate block max-w-[160px] text-left">
+                    {label}
+                  </span>
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       );

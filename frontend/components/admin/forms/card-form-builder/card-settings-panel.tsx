@@ -29,9 +29,11 @@ import type {
 } from "@/lib/forms/flowchart-types";
 import type {
   FormField,
+  FormFieldOption,
   ConditionGroup,
   ConditionBlock,
 } from "@/lib/forms/types";
+import { getOptionValue } from "@/lib/forms/option-utils";
 import { getPipingDisplayToken } from "@/lib/forms/conditional-logic";
 import {
   FORM_FIELD_TYPE_OPTIONS,
@@ -355,20 +357,6 @@ export function CardSettingsPanel({
                       pathPrefix={pathPrefix}
                       newOption={newOption}
                       setNewOption={setNewOption}
-                      onAddOption={(opt) => {
-                        const opts =
-                          (getValues(
-                            `${pathPrefix}.field.options` as Path<FormTemplateFormValues>
-                          ) as string[] | undefined) ?? [];
-                        if (opt.trim() && !opts.includes(opt.trim())) {
-                          setValue(
-                            `${pathPrefix}.field.options` as Path<FormTemplateFormValues>,
-                            [...opts, opt.trim()],
-                            { shouldDirty: true }
-                          );
-                          setNewOption("");
-                        }
-                      }}
                     />
                   );
                 }}
@@ -414,62 +402,191 @@ export function CardSettingsPanel({
   );
 }
 
+type ImageOption = { value: string; imageUrl: string; altText?: string };
+
 function OptionsFieldArray({
   pathPrefix,
   newOption,
   setNewOption,
-  onAddOption,
 }: {
   pathPrefix: string;
   newOption: string;
   setNewOption: (v: string) => void;
-  onAddOption: (opt: string) => void;
 }) {
   const { watch, setValue } = useFormContext<FormTemplateFormValues>();
   const optionsPath = `${pathPrefix}.field.options`;
-  const options =
-    (watch(optionsPath as Path<FormTemplateFormValues>) as
-      | string[]
-      | undefined) ?? [];
-  const remove = (index: number) => {
-    setValue(
-      optionsPath as Path<FormTemplateFormValues>,
-      options.filter((_, i) => i !== index),
-      { shouldDirty: true }
-    );
+  const optionDisplayPath = `${pathPrefix}.field.optionDisplay`;
+  const options = (watch(optionsPath as Path<FormTemplateFormValues>) as
+    | FormFieldOption[]
+    | undefined) ?? [];
+  const optionDisplay = (watch(optionDisplayPath as Path<FormTemplateFormValues>) as
+    | "text"
+    | "image"
+    | undefined) ?? "text";
+
+  const isImageMode = optionDisplay === "image";
+  const textOptions = isImageMode
+    ? (options as ImageOption[]).map((o) => o.value)
+    : (options as string[]);
+  const imageOptions = isImageMode
+    ? (options as ImageOption[])
+    : (options as string[]).map((s) => ({ value: s || "", imageUrl: "", altText: s || "" }));
+
+  const setDisplayMode = (mode: "text" | "image") => {
+    setValue(optionDisplayPath as Path<FormTemplateFormValues>, mode, {
+      shouldDirty: true,
+    });
+    if (mode === "image") {
+      const converted = (options as FormFieldOption[]).map((o) =>
+        typeof o === "string"
+          ? { value: o || "Option", imageUrl: "", altText: o || "" }
+          : o
+      );
+      setValue(optionsPath as Path<FormTemplateFormValues>, converted, {
+        shouldDirty: true,
+      });
+    } else {
+      const converted = (options as FormFieldOption[]).map(getOptionValue);
+      setValue(optionsPath as Path<FormTemplateFormValues>, converted, {
+        shouldDirty: true,
+      });
+    }
   };
+
+  const remove = (index: number) => {
+    const next = isImageMode
+      ? (options as ImageOption[]).filter((_, i) => i !== index)
+      : (options as string[]).filter((_, i) => i !== index);
+    setValue(optionsPath as Path<FormTemplateFormValues>, next, {
+      shouldDirty: true,
+    });
+  };
+
+  const addTextOption = () => {
+    if (!newOption.trim()) return;
+    const opts = options as string[];
+    if (opts.includes(newOption.trim())) return;
+    setValue(optionsPath as Path<FormTemplateFormValues>, [...opts, newOption.trim()], {
+      shouldDirty: true,
+    });
+    setNewOption("");
+  };
+
+  const addImageOption = () => {
+    const opts = options as ImageOption[];
+    setValue(optionsPath as Path<FormTemplateFormValues>, [...opts, { value: "", imageUrl: "", altText: "" }], {
+      shouldDirty: true,
+    });
+  };
+
+  const updateImageOption = (index: number, patch: Partial<ImageOption>) => {
+    const opts = [...(options as ImageOption[])];
+    opts[index] = { ...opts[index], ...patch };
+    setValue(optionsPath as Path<FormTemplateFormValues>, opts, {
+      shouldDirty: true,
+    });
+  };
+
   return (
-    <div>
-      <Label>Options</Label>
-      <div className="space-y-2 mt-2">
-        {options.map((opt, idx) => (
-          <div key={idx} className="flex items-center gap-2">
-            <Input value={opt} readOnly />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => remove(idx)}
-            >
-              <Trash2 className="h-4 w-4" />
+    <div className="space-y-3">
+      <div>
+        <Label>Options display</Label>
+        <Select
+          value={optionDisplay}
+          onValueChange={(v) => setDisplayMode(v as "text" | "image")}
+        >
+          <SelectTrigger className="mt-1 w-full max-w-[200px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="text">Text</SelectItem>
+            <SelectItem value="image">Images</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label>Options</Label>
+        <div className="space-y-2 mt-2">
+          {!isImageMode &&
+            textOptions.map((opt, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <Input value={opt} readOnly className="flex-1" />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => remove(idx)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          {isImageMode &&
+            imageOptions.map((opt, idx) => (
+              <div key={idx} className="flex flex-col gap-2 p-3 border rounded-md">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Option {idx + 1}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => remove(idx)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 gap-2">
+                  <Input
+                    placeholder="Value"
+                    value={opt.value}
+                    onChange={(e) =>
+                      updateImageOption(idx, { value: e.target.value })
+                    }
+                  />
+                  <Input
+                    placeholder="Image URL"
+                    value={opt.imageUrl}
+                    onChange={(e) =>
+                      updateImageOption(idx, { imageUrl: e.target.value })
+                    }
+                  />
+                  <Input
+                    placeholder="Alt text (optional)"
+                    value={opt.altText ?? ""}
+                    onChange={(e) =>
+                      updateImageOption(idx, { altText: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+            ))}
+          {!isImageMode && (
+            <div className="flex items-center gap-2">
+              <Input
+                value={newOption}
+                onChange={(e) => setNewOption(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addTextOption();
+                  }
+                }}
+                placeholder="Add option..."
+                className="flex-1"
+              />
+              <Button type="button" onClick={addTextOption}>
+                Add
+              </Button>
+            </div>
+          )}
+          {isImageMode && (
+            <Button type="button" variant="outline" size="sm" onClick={addImageOption}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add option
             </Button>
-          </div>
-        ))}
-        <div className="flex items-center gap-2">
-          <Input
-            value={newOption}
-            onChange={(e) => setNewOption(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                onAddOption(newOption);
-              }
-            }}
-            placeholder="Add option..."
-          />
-          <Button type="button" onClick={() => onAddOption(newOption)}>
-            Add
-          </Button>
+          )}
         </div>
       </div>
     </div>

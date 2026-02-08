@@ -16,6 +16,13 @@ import { Loader2, CheckCircle, Info } from "lucide-react";
 import Image from "next/image";
 import type { FormField, CardMedia } from "@/lib/forms/types";
 import {
+  getOptionValue,
+  getOptionLabel,
+  getOptionAlt,
+  getOptionImageUrl,
+  isImageOption,
+} from "@/lib/forms/option-utils";
+import {
   applyPiping,
   getDynamicLabel,
   extractPipingReferences,
@@ -369,14 +376,85 @@ export function FieldRenderer({
         );
 
       case "select": {
-        // Radix Select disallows SelectItem value="". Use sentinel only when empty is a real option.
-        const SELECT_EMPTY_SENTINEL = "__empty__";
         const selectOptions = field.options ?? [];
-        const hasEmptyOption = selectOptions.includes("");
+        const isImage = field.optionDisplay === "image" && selectOptions.some(isImageOption);
+        const SELECT_EMPTY_SENTINEL = "__empty__";
+        const optionValues = selectOptions.map(getOptionValue);
+        const hasEmptyOption = optionValues.includes("");
         const selectValue =
           stringValue === "" && hasEmptyOption
             ? SELECT_EMPTY_SENTINEL
             : stringValue;
+        if (isImage) {
+          return (
+            <div className={mode === "card" ? "space-y-6" : "space-y-2"}>
+              <QuestionLabel
+                htmlFor={field.id}
+                mode={mode}
+                pipingInfo={pipingInfo}
+              >
+                {displayLabel}
+                {requiredMark}
+              </QuestionLabel>
+              <Select
+                value={selectValue}
+                onValueChange={(val) =>
+                  onChange(val === SELECT_EMPTY_SENTINEL ? "" : val)
+                }
+                disabled={disabled}
+              >
+                <SelectTrigger
+                  className={mode === "card" ? "h-12 text-base" : ""}
+                  aria-invalid={!!error}
+                  aria-describedby={error ? `${field.id}-error` : undefined}
+                >
+                  <SelectValue
+                    placeholder={displayPlaceholder || "Select an option"}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {selectOptions.map((option) => {
+                    const val = getOptionValue(option);
+                    const itemValue =
+                      val === "" ? SELECT_EMPTY_SENTINEL : val;
+                    const imgUrl = getOptionImageUrl(option);
+                    const alt = getOptionAlt(option);
+                    return (
+                      <SelectItem key={itemValue} value={itemValue}>
+                        {imgUrl ? (
+                          <span className="flex items-center gap-2">
+                            <span className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded bg-muted">
+                              <img
+                                src={imgUrl}
+                                alt={alt}
+                                className="h-full w-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = "none";
+                                }}
+                              />
+                            </span>
+                            <span className="truncate">{val || "—"}</span>
+                          </span>
+                        ) : (
+                          val === "" ? "—" : getOptionLabel(option)
+                        )}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              {error && (
+                <div
+                  id={`${field.id}-error`}
+                  className="text-sm text-destructive"
+                  role="alert"
+                >
+                  {error}
+                </div>
+              )}
+            </div>
+          );
+        }
         return (
           <div className={mode === "card" ? "space-y-6" : "space-y-2"}>
             <QuestionLabel
@@ -405,11 +483,12 @@ export function FieldRenderer({
               </SelectTrigger>
               <SelectContent>
                 {selectOptions.map((option) => {
+                  const val = getOptionValue(option);
                   const itemValue =
-                    option === "" ? SELECT_EMPTY_SENTINEL : option;
+                    val === "" ? SELECT_EMPTY_SENTINEL : val;
                   return (
                     <SelectItem key={itemValue} value={itemValue}>
-                      {option === "" ? "—" : option}
+                      {val === "" ? "—" : getOptionLabel(option)}
                     </SelectItem>
                   );
                 })}
@@ -428,7 +507,10 @@ export function FieldRenderer({
         );
       }
 
-      case "radio":
+      case "radio": {
+        const radioOptions = field.options ?? [];
+        const isImage =
+          field.optionDisplay === "image" && radioOptions.some(isImageOption);
         return (
           <div className={mode === "card" ? "space-y-6" : "space-y-2"}>
             <QuestionLabel mode={mode}>
@@ -440,39 +522,82 @@ export function FieldRenderer({
               onValueChange={(val) => onChange(val)}
               disabled={disabled}
               className={
-                mode === "card"
-                  ? "grid grid-cols-2 gap-3"
-                  : "flex flex-col gap-2"
+                mode === "card" && isImage
+                  ? "grid grid-cols-2 sm:grid-cols-3 gap-3"
+                  : mode === "card"
+                    ? "grid grid-cols-2 gap-3"
+                    : "flex flex-col gap-2"
               }
               aria-invalid={!!error}
               aria-describedby={error ? `${field.id}-error` : undefined}
             >
-              {field.options?.map((option) => (
-                <div
-                  key={option}
-                  className={
-                    mode === "card"
-                      ? "flex items-center space-x-3 rounded-lg border p-4 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 transition-colors"
-                      : "flex items-center space-x-2"
-                  }
-                >
-                  <RadioGroupItem
-                    value={option}
-                    id={`${field.id}-${option}`}
-                    className="flex-shrink-0"
-                  />
-                  <Label
-                    htmlFor={`${field.id}-${option}`}
+              {radioOptions.map((option) => {
+                const val = getOptionValue(option);
+                const imgUrl = getOptionImageUrl(option);
+                const alt = getOptionAlt(option);
+                return (
+                  <div
+                    key={val}
                     className={
-                      mode === "card"
-                        ? "flex-1 cursor-pointer font-normal text-base"
-                        : "flex-1 cursor-pointer font-normal text-sm"
+                      mode === "card" && isImage
+                        ? "relative flex flex-col rounded-lg border overflow-hidden has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:ring-2 has-[[data-state=checked]]:ring-primary/20 transition-colors"
+                        : mode === "card"
+                          ? "flex items-center space-x-3 rounded-lg border p-4 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 transition-colors"
+                          : "flex items-center space-x-2"
                     }
                   >
-                    {option}
-                  </Label>
-                </div>
-              ))}
+                    {mode === "card" && isImage && imgUrl ? (
+                      <>
+                        <Label
+                          htmlFor={`${field.id}-${val}`}
+                          className="cursor-pointer block"
+                        >
+                          <span className="relative flex aspect-square w-full overflow-hidden rounded-t-md bg-muted">
+                            <img
+                              src={imgUrl}
+                              alt={alt}
+                              className="absolute inset-0 h-full w-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src = "";
+                                e.currentTarget.alt = alt;
+                              }}
+                            />
+                            <span className="absolute bottom-0 left-0 right-0 bg-black/60 py-1 text-center text-xs text-white">
+                              {val || "—"}
+                            </span>
+                          </span>
+                        </Label>
+                        <div className="flex items-center p-2">
+                          <RadioGroupItem
+                            value={val}
+                            id={`${field.id}-${val}`}
+                            className="flex-shrink-0"
+                          />
+                          <span className="ml-2 truncate text-sm">{val || "—"}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <RadioGroupItem
+                          value={val}
+                          id={`${field.id}-${val}`}
+                          className="flex-shrink-0"
+                        />
+                        <Label
+                          htmlFor={`${field.id}-${val}`}
+                          className={
+                            mode === "card"
+                              ? "flex-1 cursor-pointer font-normal text-base"
+                              : "flex-1 cursor-pointer font-normal text-sm"
+                          }
+                        >
+                          {getOptionLabel(option)}
+                        </Label>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
             </RadioGroup>
             {error && (
               <div
@@ -485,10 +610,13 @@ export function FieldRenderer({
             )}
           </div>
         );
+      }
 
       case "checkbox": {
         const selectedValues = Array.isArray(value) ? value : [];
         const options = field.options ?? [];
+        const isImage =
+          field.optionDisplay === "image" && options.some(isImageOption);
         return (
           <div className={mode === "card" ? "space-y-6" : "space-y-2"}>
             <Label
@@ -508,41 +636,88 @@ export function FieldRenderer({
             ) : (
               <div
                 className={
-                  mode === "card"
-                    ? "flex flex-col gap-3"
-                    : "flex flex-col gap-2"
+                  mode === "card" && isImage
+                    ? "grid grid-cols-2 sm:grid-cols-3 gap-3"
+                    : mode === "card"
+                      ? "flex flex-col gap-3"
+                      : "flex flex-col gap-2"
                 }
               >
-                {options.map((option) => (
-                  <div
-                    key={option}
-                    className={
-                      mode === "card"
-                        ? "flex items-center space-x-3 rounded-lg border p-4 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 transition-colors"
-                        : "flex items-center space-x-2"
-                    }
-                  >
-                    <Checkbox
-                      id={`${field.id}-${option}`}
-                      checked={selectedValues.includes(option)}
-                      onCheckedChange={(checked) =>
-                        onCheckboxChange?.(option, checked === true)
-                      }
-                      disabled={disabled}
-                      className="flex-shrink-0"
-                    />
-                    <Label
-                      htmlFor={`${field.id}-${option}`}
+                {options.map((option) => {
+                  const val = getOptionValue(option);
+                  const imgUrl = getOptionImageUrl(option);
+                  const alt = getOptionAlt(option);
+                  return (
+                    <div
+                      key={val}
                       className={
-                        mode === "card"
-                          ? "flex-1 cursor-pointer font-normal text-base"
-                          : "flex-1 cursor-pointer font-normal text-sm"
+                        mode === "card" && isImage && imgUrl
+                          ? "relative flex flex-col rounded-lg border overflow-hidden has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:ring-2 has-[[data-state=checked]]:ring-primary/20 transition-colors"
+                          : mode === "card"
+                            ? "flex items-center space-x-3 rounded-lg border p-4 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 transition-colors"
+                            : "flex items-center space-x-2"
                       }
                     >
-                      {option}
-                    </Label>
-                  </div>
-                ))}
+                      {mode === "card" && isImage && imgUrl ? (
+                        <>
+                          <Label
+                            htmlFor={`${field.id}-${val}`}
+                            className="cursor-pointer block"
+                          >
+                            <span className="relative flex aspect-square w-full overflow-hidden rounded-t-md bg-muted">
+                              <img
+                                src={imgUrl}
+                                alt={alt}
+                                className="absolute inset-0 h-full w-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.src = "";
+                                  e.currentTarget.alt = alt;
+                                }}
+                              />
+                              <span className="absolute bottom-0 left-0 right-0 bg-black/60 py-1 text-center text-xs text-white">
+                                {val || "—"}
+                              </span>
+                            </span>
+                          </Label>
+                          <div className="flex items-center p-2">
+                            <Checkbox
+                              id={`${field.id}-${val}`}
+                              checked={selectedValues.includes(val)}
+                              onCheckedChange={(checked) =>
+                                onCheckboxChange?.(val, checked === true)
+                              }
+                              disabled={disabled}
+                              className="flex-shrink-0"
+                            />
+                            <span className="ml-2 truncate text-sm">{val || "—"}</span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <Checkbox
+                            id={`${field.id}-${val}`}
+                            checked={selectedValues.includes(val)}
+                            onCheckedChange={(checked) =>
+                              onCheckboxChange?.(val, checked === true)
+                            }
+                            disabled={disabled}
+                            className="flex-shrink-0"
+                          />
+                          <Label
+                            htmlFor={`${field.id}-${val}`}
+                            className={
+                              mode === "card"
+                                ? "flex-1 cursor-pointer font-normal text-base"
+                                : "flex-1 cursor-pointer font-normal text-sm"
+                            }
+                          >
+                            {getOptionLabel(option)}
+                          </Label>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
             {error && (

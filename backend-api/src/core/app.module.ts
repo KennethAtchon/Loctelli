@@ -18,7 +18,6 @@ import { MainAppModule } from '../main-app/main-app.module';
 // Guards and middleware
 import { JwtAuthGuard } from '../shared/auth/auth.guard';
 import { SecurityHeadersMiddleware } from '../shared/middleware/security-headers.middleware';
-import { RateLimitMiddleware } from '../shared/middleware/rate-limit.middleware';
 import { InputValidationMiddleware } from '../shared/middleware/input-validation.middleware';
 
 @Module({
@@ -55,15 +54,7 @@ export class AppModule implements NestModule {
       .exclude({ path: 'website-builder/upload', method: RequestMethod.POST })
       .forRoutes('*');
 
-    // Apply rate limiting to unified auth endpoints
-    // Note: Throttle guards in the controller provide more granular rate limiting
-    consumer
-      .apply(RateLimitMiddleware)
-      .forRoutes(
-        { path: 'auth/login', method: RequestMethod.POST },
-        { path: 'auth/register', method: RequestMethod.POST },
-        { path: 'auth/refresh', method: RequestMethod.POST },
-        { path: 'auth/change-password', method: RequestMethod.POST },
-      );
+    // Rate limiting: handled by MainAppModule (main-app RateLimitMiddleware for *).
+    // That middleware uses rate-limit.config.ts and the same cache as the monitor, so auth keys (login/register) show in Monitor.
   }
 }

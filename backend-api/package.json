@@ -8,7 +8,7 @@
   "scripts": {
     "build": "nest build",
     "build:all": "bun run format && bun run lint && bun run tsc --noEmit && bun run check:circular && bun run build",
-    "check:circular": "madge --circular --tsconfig tsconfig.json --extensions ts src",
+    "check:circular": "bunx madge --circular --ts-config tsconfig.json --extensions ts src",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "bun run --bun nest start",

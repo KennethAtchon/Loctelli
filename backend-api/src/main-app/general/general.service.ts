@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../infrastructure/prisma/prisma.service';
 import { CacheService } from '../infrastructure/cache/cache.service';
-import { RATE_LIMIT_MONITOR_PATTERNS } from '../infrastructure/config/rate-limit.config';
+import {
+  RATE_LIMIT_MONITOR_PATTERNS,
+  RATE_LIMIT_MONITOR_PREFIX_TYPES,
+} from '../infrastructure/config/rate-limit.config';
 
 type Field = {
   name: string;
@@ -268,21 +271,16 @@ export class GeneralService {
         const windowEnd = windowStart + windowMs;
 
         let type = 'default';
-        if (key.startsWith('auth_rate_limit:')) {
-          const parts = key.split(':');
-          type = parts[2] ?? 'auth';
-        } else if (key.startsWith('track_time_rate_limit:'))
-          type = 'track-time';
-        else if (key.startsWith('form_submit_rate_limit:'))
-          type = 'form-submit';
-        else if (key.startsWith('form_upload_rate_limit:'))
-          type = 'form-upload';
-        else if (key.startsWith('api_rate_limit:')) type = 'api';
-        else if (key.startsWith('status_rate_limit:')) type = 'status';
-
-        const ipOrId = key.includes(':')
-          ? key.split(':').slice(1).join(':')
-          : key;
+        let ipOrId = key;
+        for (const [prefix, typeLabel] of RATE_LIMIT_MONITOR_PREFIX_TYPES) {
+          if (!key.startsWith(prefix)) continue;
+          const suffix = key.slice(prefix.length);
+          const lastColon = suffix.lastIndexOf(':');
+          const lastSegment = lastColon >= 0 ? suffix.slice(lastColon + 1) : '';
+          type = prefix === 'auth_rate_limit:' && lastSegment ? lastSegment : typeLabel;
+          ipOrId = lastColon >= 0 ? suffix.slice(0, lastColon) : suffix;
+          break;
+        }
 
         entries.push({
           key,
