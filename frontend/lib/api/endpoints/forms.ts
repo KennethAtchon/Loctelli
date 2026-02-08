@@ -263,4 +263,15 @@ export class FormsApi {
       success: boolean;
     }>;
   }
+
+  /** Card Form AI chat: send message + current form context, get assistant reply. */
+  async cardFormAiChat(body: {
+    message: string;
+    currentCardFormPayload?: Record<string, unknown>;
+    conversationHistory?: Array<{ role: string; content: string }>;
+  }): Promise<{ content: string }> {
+    return this.api.cardFormAiChat(undefined, body) as Promise<{
+      content: string;
+    }>;
+  }
 }

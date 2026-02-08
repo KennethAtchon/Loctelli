@@ -236,4 +236,17 @@ export const formsConfig: EndpointGroup = {
     },
     responseType: {} as { success: boolean },
   },
+
+  // Card Form AI chat (admin): ask questions, get Card Form JSON
+  cardFormAiChat: {
+    method: "POST",
+    path: "/forms/ai-card-form-chat",
+    requiresBody: true,
+    bodyType: {} as {
+      message: string;
+      currentCardFormPayload?: Record<string, unknown>;
+      conversationHistory?: Array<{ role: string; content: string }>;
+    },
+    responseType: {} as { content: string },
+  },
 };

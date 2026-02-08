@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback } from "react";
-import { Download } from "lucide-react";
+import { useCallback, useState } from "react";
+import { Download, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { CardFormBuilder } from "../card-form-builder";
 import { CardFormFullImportDialog } from "../card-form-full-import-dialog";
+import { CardFormAIBuilderModal } from "../card-form-ai-builder-modal";
 import type { FlowchartGraph } from "@/lib/forms/flowchart-types";
 import type { CardFormTemplateJson } from "@/lib/forms/card-form-template-json";
 
@@ -35,6 +36,8 @@ export function FormCardBuilderSection({
   formSlug,
   description = "Build your interactive card form using the flowchart editor. Use Import card form / Export card form for a single JSON that includes flow, styling, and profile estimation.",
 }: FormCardBuilderSectionProps) {
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+
   const handleExportFullCardForm = useCallback(() => {
     if (!getFullCardFormPayload) return;
     const payload = getFullCardFormPayload();
@@ -57,6 +60,17 @@ export function FormCardBuilderSection({
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <CardTitle>Card Form Builder</CardTitle>
             <div className="flex items-center gap-2 flex-wrap">
+              {getFullCardFormPayload && onImportFullCardForm && (
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  onClick={() => setAiModalOpen(true)}
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Build with AI
+                </Button>
+              )}
               {getFullCardFormPayload && (
                 <Button
                   type="button"
@@ -84,6 +98,14 @@ export function FormCardBuilderSection({
           formSlug={formSlug}
         />
       </CardContent>
+      {getFullCardFormPayload && onImportFullCardForm && (
+        <CardFormAIBuilderModal
+          open={aiModalOpen}
+          onOpenChange={setAiModalOpen}
+          getFullCardFormPayload={getFullCardFormPayload}
+          onImportFullCardForm={onImportFullCardForm}
+        />
+      )}
     </Card>
   );
 }

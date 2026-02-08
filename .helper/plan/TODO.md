@@ -12,7 +12,8 @@ Create plans for each of this:
 
 Feature request:
 
-Radio buttons and checkboxes (and other multiple choice things) have images on them  (instead of text) users can choose between text or images, but not mix and match them 
 
-AI to build the card form (At the top of card form), have a button that opens up a modal for an AI text bot, we have the system prompt of the ai be like "Ask clarifying questions and create the output (JSON for card builder) for this user". The AI goal is to create a form builder based on what the user wants. It doesn't have image upload, rather to get images, the user has to provide links. This will be the alternative paths for users who dont want to use the fine grained customizations that card form builder provides.
+AI to build the card form (At the top of card form), have a button that opens up a modal for an AI text bot, we have the system prompt of the ai be like "Ask clarifying questions and create the output (JSON for card builder) for this user". The AI goal is to create a form builder based on what the user wants. It doesn't have image upload, rather to get images, the user has to provide links. This will be the alternative paths for users who dont want to use the fine grained customizations that card form builder provides. This will load the thing the user wants automatically (when they are creating or edititng), and useer can customize further.
+
+Now choice is, should we use the prompt data model system to make the prompt there with a seed. Or not give the user option at all, andd have the prompt hardcoded on the server.
 

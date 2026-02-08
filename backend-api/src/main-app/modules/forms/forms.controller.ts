@@ -29,6 +29,8 @@ import { CreateFormSessionDto } from './dto/create-form-session.dto';
 import { UpdateFormSessionDto } from './dto/update-form-session.dto';
 import { ProfileEstimationAIService } from './services/profile-estimation-ai.service';
 import { FormAnalyticsService } from './services/form-analytics.service';
+import { CardFormAIService } from './services/card-form-ai.service';
+import { CardFormAiChatDto } from './dto/card-form-ai-chat.dto';
 import { JwtAuthGuard } from '../../../shared/auth/auth.guard';
 import { AdminGuard } from '../../../shared/guards/admin.guard';
 import { Public } from '../../../shared/decorators/public.decorator';
@@ -43,7 +45,19 @@ export class FormsController {
     private readonly formsService: FormsService,
     private readonly profileEstimationAI: ProfileEstimationAIService,
     private readonly formAnalytics: FormAnalyticsService,
+    private readonly cardFormAI: CardFormAIService,
   ) {}
+
+  // Card Form AI chat (Admin only) – ask questions and get Card Form JSON
+  @Post('ai-card-form-chat')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  async cardFormAiChat(@Body() dto: CardFormAiChatDto) {
+    return this.cardFormAI.chat(
+      dto.message,
+      dto.currentCardFormPayload,
+      dto.conversationHistory,
+    );
+  }
 
   // Form Templates (Admin only)
   @Post('templates')
