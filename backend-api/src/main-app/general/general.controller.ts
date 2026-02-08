@@ -46,6 +46,13 @@ export class GeneralController {
     return this.generalService.getSystemStatus();
   }
 
+  @Get('monitor-stats')
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'super_admin')
+  async getMonitorStats() {
+    return this.generalService.getMonitorStats();
+  }
+
   @Get('recent-leads')
   @UseGuards(RolesGuard)
   @Roles('admin', 'super_admin')

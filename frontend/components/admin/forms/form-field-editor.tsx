@@ -113,7 +113,9 @@ export function FormFieldEditor({
           </div>
         </div>
 
-        {(field.type === "select" || field.type === "radio" || field.type === "checkbox") && (
+        {(field.type === "select" ||
+          field.type === "radio" ||
+          field.type === "checkbox") && (
           <div>
             <Label>Options</Label>
             <div className="space-y-2">

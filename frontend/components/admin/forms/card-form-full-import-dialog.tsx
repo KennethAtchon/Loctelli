@@ -91,19 +91,46 @@ function getFullCardFormExample(): CardFormTemplateJson {
         title: "Your score",
         description: "Based on your answers.",
         fieldScoring: [
-          { fieldId: "score", scoring: [{ answer: "1", points: 25 }, { answer: "2", points: 50 }, { answer: "3", points: 75 }] },
+          {
+            fieldId: "score",
+            scoring: [
+              { answer: "1", points: 25 },
+              { answer: "2", points: 50 },
+              { answer: "3", points: 75 },
+            ],
+          },
         ],
         ranges: [
-          { min: 0, max: 33, label: "Getting started", description: "Keep exploring.", image: undefined },
-          { min: 34, max: 66, label: "On track", description: "You're doing well.", image: undefined },
-          { min: 67, max: 100, label: "Expert", description: "You've got this.", image: undefined },
+          {
+            min: 0,
+            max: 33,
+            label: "Getting started",
+            description: "Keep exploring.",
+            image: undefined,
+          },
+          {
+            min: 34,
+            max: 66,
+            label: "On track",
+            description: "You're doing well.",
+            image: undefined,
+          },
+          {
+            min: 67,
+            max: 100,
+            label: "Expert",
+            description: "You've got this.",
+            image: undefined,
+          },
         ],
       },
     },
   };
 }
 
-export function CardFormFullImportDialog({ onImport }: CardFormFullImportDialogProps) {
+export function CardFormFullImportDialog({
+  onImport,
+}: CardFormFullImportDialogProps) {
   const [jsonInput, setJsonInput] = useState("");
   const [showDialog, setShowDialog] = useState(false);
   const { toast } = useToast();
@@ -148,8 +175,9 @@ export function CardFormFullImportDialog({ onImport }: CardFormFullImportDialogP
         <DialogHeader>
           <DialogTitle>Import full card form</DialogTitle>
           <DialogDescription>
-            Paste a full card form JSON to load flow, styling, profile estimation, and display
-            settings in one go. This replaces the current card flow, theme, and results config.
+            Paste a full card form JSON to load flow, styling, profile
+            estimation, and display settings in one go. This replaces the
+            current card flow, theme, and results config.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 flex-1 min-h-0 flex flex-col">
@@ -194,10 +222,11 @@ export function CardFormFullImportDialog({ onImport }: CardFormFullImportDialogP
             </div>
           </div>
           <div className="bg-muted/50 p-3 rounded-md text-xs text-muted-foreground flex-shrink-0">
-            <strong>Format:</strong> One JSON object with <code>flowchartGraph</code> (required), plus
-            optional <code>title</code>, <code>subtitle</code>, <code>cardSettings</code>,{" "}
-            <code>styling</code>, and <code>profileEstimation</code>. Use &quot;Export card form&quot; to
-            download a valid file.
+            <strong>Format:</strong> One JSON object with{" "}
+            <code>flowchartGraph</code> (required), plus optional{" "}
+            <code>title</code>, <code>subtitle</code>, <code>cardSettings</code>
+            , <code>styling</code>, and <code>profileEstimation</code>. Use
+            &quot;Export card form&quot; to download a valid file.
           </div>
         </div>
       </DialogContent>

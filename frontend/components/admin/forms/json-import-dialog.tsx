@@ -183,7 +183,8 @@ export function JsonImportDialog({ onImport }: JsonImportDialogProps) {
 ]`}
             </pre>
             <p className="text-xs text-muted-foreground mt-1">
-              Simple form schema only. For card forms use &quot;Import card form&quot; in the Card Builder.
+              Simple form schema only. For card forms use &quot;Import card
+              form&quot; in the Card Builder.
             </p>
           </div>
         </div>

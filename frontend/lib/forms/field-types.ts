@@ -25,17 +25,63 @@ export interface FormFieldTypeOption {
 
 /** All field types available in both Simple and Card forms (excluding statement, which is card-only in builder) */
 export const FORM_FIELD_TYPE_OPTIONS: FormFieldTypeOption[] = [
-  { value: "text", label: "Text Input", description: "Single-line text (e.g. name, short answer)", hasOptions: false, isInput: true },
-  { value: "textarea", label: "Text Area", description: "Multi-line text (e.g. message, comments)", hasOptions: false, isInput: true },
-  { value: "select", label: "Select Dropdown", description: "Single choice from a dropdown", hasOptions: true, isInput: true },
-  { value: "radio", label: "Radio Buttons", description: "Single choice from visible options", hasOptions: true, isInput: true },
-  { value: "checkbox", label: "Checkbox", description: "Multiple choices; user can select several options", hasOptions: true, isInput: true },
-  { value: "file", label: "File Upload", description: "User uploads a file", hasOptions: false, isInput: true },
-  { value: "image", label: "Image Upload", description: "User uploads an image", hasOptions: false, isInput: true },
+  {
+    value: "text",
+    label: "Text Input",
+    description: "Single-line text (e.g. name, short answer)",
+    hasOptions: false,
+    isInput: true,
+  },
+  {
+    value: "textarea",
+    label: "Text Area",
+    description: "Multi-line text (e.g. message, comments)",
+    hasOptions: false,
+    isInput: true,
+  },
+  {
+    value: "select",
+    label: "Select Dropdown",
+    description: "Single choice from a dropdown",
+    hasOptions: true,
+    isInput: true,
+  },
+  {
+    value: "radio",
+    label: "Radio Buttons",
+    description: "Single choice from visible options",
+    hasOptions: true,
+    isInput: true,
+  },
+  {
+    value: "checkbox",
+    label: "Checkbox",
+    description: "Multiple choices; user can select several options",
+    hasOptions: true,
+    isInput: true,
+  },
+  {
+    value: "file",
+    label: "File Upload",
+    description: "User uploads a file",
+    hasOptions: false,
+    isInput: true,
+  },
+  {
+    value: "image",
+    label: "Image Upload",
+    description: "User uploads an image",
+    hasOptions: false,
+    isInput: true,
+  },
 ];
 
 /** Field types that use the options array (select, radio, checkbox) */
-export const FIELD_TYPES_WITH_OPTIONS: FormFieldType[] = ["select", "radio", "checkbox"];
+export const FIELD_TYPES_WITH_OPTIONS: FormFieldType[] = [
+  "select",
+  "radio",
+  "checkbox",
+];
 
 export function fieldTypeHasOptions(type: FormFieldType): boolean {
   return FIELD_TYPES_WITH_OPTIONS.includes(type);
@@ -47,6 +93,8 @@ export function isConditionableFieldType(type: FormFieldType): boolean {
 }
 
 /** Get option metadata by value (for labels in UI) */
-export function getFieldTypeOption(type: FormFieldType): FormFieldTypeOption | undefined {
+export function getFieldTypeOption(
+  type: FormFieldType
+): FormFieldTypeOption | undefined {
   return FORM_FIELD_TYPE_OPTIONS.find((o) => o.value === type);
 }

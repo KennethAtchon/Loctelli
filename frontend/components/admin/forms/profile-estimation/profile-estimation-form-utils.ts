@@ -83,7 +83,8 @@ export function getDefaultFormValues(
                 name: "",
                 description: "",
                 image: "",
-                matchingLogic: undefined as ProfileEstimationFormValues["categoryConfig"]["categories"][0]["matchingLogic"],
+                matchingLogic:
+                  undefined as ProfileEstimationFormValues["categoryConfig"]["categories"][0]["matchingLogic"],
               },
             ];
       })(),
@@ -136,7 +137,8 @@ export function getDefaultFormValues(
                 name: "",
                 description: "",
                 image: "",
-                matchingCriteria: undefined as ProfileEstimationFormValues["recommendationConfig"]["recommendations"][0]["matchingCriteria"],
+                matchingCriteria:
+                  undefined as ProfileEstimationFormValues["recommendationConfig"]["recommendations"][0]["matchingCriteria"],
               },
             ];
       })(),

@@ -17,6 +17,7 @@ import {
   SystemStatus,
   DetailedUser,
   DetailedLead,
+  MonitorStats,
 } from "../endpoints/admin-auth";
 
 export const adminAuthConfig: EndpointGroup = {
@@ -196,5 +197,11 @@ export const adminAuthConfig: EndpointGroup = {
     path: "/general/leads/:leadId/detailed",
     pathParams: [{ name: "leadId", required: true, type: "number" }],
     responseType: {} as DetailedLead,
+  },
+
+  getMonitorStats: {
+    method: "GET",
+    path: "/general/monitor-stats",
+    responseType: {} as MonitorStats,
   },
 };

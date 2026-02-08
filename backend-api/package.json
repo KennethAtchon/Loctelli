@@ -7,7 +7,8 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
-    "build:all": "bun run format && bun run lint && bun run tsc --noEmit && bun run build",
+    "build:all": "bun run format && bun run lint && bun run tsc --noEmit && bun run check:circular && bun run build",
+    "check:circular": "madge --circular --tsconfig tsconfig.json --extensions ts src",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "bun run --bun nest start",
@@ -75,7 +76,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "madge": "^6.1.0",
     "@nestjs/cli": "^11.0.10",
+    "eslint": "^9.16.0",
     "@nestjs/testing": "^11.1.8",
     "@types/bcrypt": "^6.0.0",
     "@types/bun": "^1.3.8",
@@ -92,6 +95,9 @@
     "supertest": "^7.1.4",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.3"
+  },
+  "overrides": {
+    "eslint": "^9.16.0"
   },
   "prisma": {
     "seed": "bun prisma/seed.ts"

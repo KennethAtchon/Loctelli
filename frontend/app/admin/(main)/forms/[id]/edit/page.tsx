@@ -129,7 +129,10 @@ export default function EditFormTemplatePage() {
     const slug = watch("slug");
     const slugWasFromPreviousName =
       !previousName || slug === generateSlug(previousName);
-    if (template && (slug === generateSlug(template.name) || slugWasFromPreviousName)) {
+    if (
+      template &&
+      (slug === generateSlug(template.name) || slugWasFromPreviousName)
+    ) {
       setValue("slug", generateSlug(name));
     }
   };
@@ -288,7 +291,9 @@ export default function EditFormTemplatePage() {
             }
             getFullCardFormPayload={() => {
               const values = form.getValues();
-              const graph = (values.cardSettings?.flowchartGraph as FlowchartGraph) ?? defaultFlowchartGraph;
+              const graph =
+                (values.cardSettings?.flowchartGraph as FlowchartGraph) ??
+                defaultFlowchartGraph;
               return {
                 version: CARD_FORM_TEMPLATE_JSON_VERSION,
                 title: values.title,
@@ -298,18 +303,27 @@ export default function EditFormTemplatePage() {
                 flowchartGraph: graph,
                 cardSettings: values.cardSettings,
                 styling: values.styling ?? undefined,
-                profileEstimation: formValuesToProfileEstimation(
-                  values.profileEstimation ?? getDefaultFormValues(undefined)
-                ) ?? undefined,
+                profileEstimation:
+                  formValuesToProfileEstimation(
+                    values.profileEstimation ?? getDefaultFormValues(undefined)
+                  ) ?? undefined,
               };
             }}
             onImportFullCardForm={(payload: CardFormTemplateJson) => {
               setValue("title", payload.title ?? watch("title"));
               setValue("subtitle", payload.subtitle ?? watch("subtitle"));
-              setValue("submitButtonText", payload.submitButtonText ?? watch("submitButtonText"));
-              setValue("successMessage", payload.successMessage ?? watch("successMessage"));
+              setValue(
+                "submitButtonText",
+                payload.submitButtonText ?? watch("submitButtonText")
+              );
+              setValue(
+                "successMessage",
+                payload.successMessage ?? watch("successMessage")
+              );
               setValue("cardSettings", {
-                ...(watch("cardSettings") as Record<string, unknown> | undefined),
+                ...(watch("cardSettings") as
+                  | Record<string, unknown>
+                  | undefined),
                 ...payload.cardSettings,
                 flowchartGraph: payload.flowchartGraph,
                 flowchartViewport: payload.flowchartGraph.viewport,
@@ -368,7 +382,9 @@ export default function EditFormTemplatePage() {
             }
           />
 
-          {isCardForm && <FormAppearanceSection formSlug={watch("slug") ?? template?.slug} />}
+          {isCardForm && (
+            <FormAppearanceSection formSlug={watch("slug") ?? template?.slug} />
+          )}
 
           {!isCardForm && (
             <FormFieldsSection

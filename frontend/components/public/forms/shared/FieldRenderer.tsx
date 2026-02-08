@@ -374,7 +374,9 @@ export function FieldRenderer({
         const selectOptions = field.options ?? [];
         const hasEmptyOption = selectOptions.includes("");
         const selectValue =
-          stringValue === "" && hasEmptyOption ? SELECT_EMPTY_SENTINEL : stringValue;
+          stringValue === "" && hasEmptyOption
+            ? SELECT_EMPTY_SENTINEL
+            : stringValue;
         return (
           <div className={mode === "card" ? "space-y-6" : "space-y-2"}>
             <QuestionLabel
@@ -387,7 +389,9 @@ export function FieldRenderer({
             </QuestionLabel>
             <Select
               value={selectValue}
-              onValueChange={(val) => onChange(val === SELECT_EMPTY_SENTINEL ? "" : val)}
+              onValueChange={(val) =>
+                onChange(val === SELECT_EMPTY_SENTINEL ? "" : val)
+              }
               disabled={disabled}
             >
               <SelectTrigger
@@ -401,7 +405,8 @@ export function FieldRenderer({
               </SelectTrigger>
               <SelectContent>
                 {selectOptions.map((option) => {
-                  const itemValue = option === "" ? SELECT_EMPTY_SENTINEL : option;
+                  const itemValue =
+                    option === "" ? SELECT_EMPTY_SENTINEL : option;
                   return (
                     <SelectItem key={itemValue} value={itemValue}>
                       {option === "" ? "—" : option}
@@ -503,7 +508,9 @@ export function FieldRenderer({
             ) : (
               <div
                 className={
-                  mode === "card" ? "flex flex-col gap-3" : "flex flex-col gap-2"
+                  mode === "card"
+                    ? "flex flex-col gap-3"
+                    : "flex flex-col gap-2"
                 }
               >
                 {options.map((option) => (

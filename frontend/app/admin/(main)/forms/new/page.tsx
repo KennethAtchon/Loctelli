@@ -322,7 +322,9 @@ export default function NewFormTemplatePage() {
               }
               getFullCardFormPayload={() => {
                 const values = form.getValues();
-                const graph = (values.cardSettings?.flowchartGraph as FlowchartGraph) ?? defaultFlowchartGraph;
+                const graph =
+                  (values.cardSettings?.flowchartGraph as FlowchartGraph) ??
+                  defaultFlowchartGraph;
                 return {
                   version: CARD_FORM_TEMPLATE_JSON_VERSION,
                   title: values.title,
@@ -332,18 +334,28 @@ export default function NewFormTemplatePage() {
                   flowchartGraph: graph,
                   cardSettings: values.cardSettings,
                   styling: values.styling ?? undefined,
-                  profileEstimation: formValuesToProfileEstimation(
-                    values.profileEstimation ?? getDefaultFormValues(undefined)
-                  ) ?? undefined,
+                  profileEstimation:
+                    formValuesToProfileEstimation(
+                      values.profileEstimation ??
+                        getDefaultFormValues(undefined)
+                    ) ?? undefined,
                 };
               }}
               onImportFullCardForm={(payload: CardFormTemplateJson) => {
                 setValue("title", payload.title ?? watch("title"));
                 setValue("subtitle", payload.subtitle ?? watch("subtitle"));
-                setValue("submitButtonText", payload.submitButtonText ?? watch("submitButtonText"));
-                setValue("successMessage", payload.successMessage ?? watch("successMessage"));
+                setValue(
+                  "submitButtonText",
+                  payload.submitButtonText ?? watch("submitButtonText")
+                );
+                setValue(
+                  "successMessage",
+                  payload.successMessage ?? watch("successMessage")
+                );
                 setValue("cardSettings", {
-                  ...(watch("cardSettings") as Record<string, unknown> | undefined),
+                  ...(watch("cardSettings") as
+                    | Record<string, unknown>
+                    | undefined),
                   ...payload.cardSettings,
                   flowchartGraph: payload.flowchartGraph,
                   flowchartViewport: payload.flowchartGraph.viewport,

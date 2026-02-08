@@ -68,6 +68,21 @@ export function matchRoute(matcher: RouteMatcher, req: Request): boolean {
 }
 
 /**
+ * Redis key patterns for monitor (admin) to list all rate limit keys.
+ * Must match every key prefix used by keyGenerators in rateLimitRules + default.
+ * When adding a new rule with a new key prefix, add its pattern here (e.g. 'my_limit:*').
+ */
+export const RATE_LIMIT_MONITOR_PATTERNS: string[] = [
+  'auth_rate_limit:*',
+  'track_time_rate_limit:*',
+  'form_submit_rate_limit:*',
+  'form_upload_rate_limit:*',
+  'status_rate_limit:*',
+  'api_rate_limit:*',
+  'rate_limit:*', // default when no rule keyGenerator
+];
+
+/**
  * Rate limit rules - ordered by priority (higher priority first)
  * Rules are evaluated in order, first match wins
  *
@@ -77,6 +92,7 @@ export function matchRoute(matcher: RouteMatcher, req: Request): boolean {
  * 3. Define a `matcher` with method/path conditions
  * 4. Set `priority` (higher = checked first, default: 0)
  * 5. Define the `config` with windowMs, maxRequests, and optional keyGenerator
+ * 6. If the key prefix is new, add it to RATE_LIMIT_MONITOR_PATTERNS above
  *
  * Example:
  * ```typescript

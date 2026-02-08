@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../infrastructure/prisma/prisma.service';
 import { CacheService } from '../infrastructure/cache/cache.service';
+import { RATE_LIMIT_MONITOR_PATTERNS } from '../infrastructure/config/rate-limit.config';
 
 type Field = {
   name: string;
@@ -208,6 +209,165 @@ export class GeneralService {
       return status;
     } catch (error) {
       throw new Error(`Failed to check system status: ${error.message}`);
+    }
+  }
+
+  /**
+   * Monitor stats for admin debugging: rate limits (per IP/key), DB counts, system status.
+   */
+  async getMonitorStats() {
+    const [systemStatus, rateLimitEntries, dbStats] = await Promise.all([
+      this.getSystemStatus(),
+      this.getRateLimitEntries(),
+      this.getDbStats(),
+    ]);
+
+    return {
+      timestamp: new Date().toISOString(),
+      system: systemStatus,
+      rateLimits: rateLimitEntries,
+      database: dbStats,
+    };
+  }
+
+  private async getRateLimitEntries(): Promise<
+    Array<{
+      key: string;
+      type: string;
+      ipOrId: string;
+      count: number;
+      windowStart: number;
+      windowEnd: number;
+      windowMinutes: number;
+    }>
+  > {
+    const allKeys = new Set<string>();
+    for (const pattern of RATE_LIMIT_MONITOR_PATTERNS) {
+      const keys = await this.cacheService.getKeysByPattern(pattern);
+      keys.forEach((k) => allKeys.add(k));
+    }
+
+    const entries: Array<{
+      key: string;
+      type: string;
+      ipOrId: string;
+      count: number;
+      windowStart: number;
+      windowEnd: number;
+      windowMinutes: number;
+    }> = [];
+
+    for (const key of allKeys) {
+      try {
+        const raw = await this.cacheService.getCache<string>(key);
+        if (!raw) continue;
+        const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        const count = Number(data?.count ?? 0);
+        const windowStart = Number(data?.windowStart ?? 0);
+        const windowMs = 15 * 60 * 1000;
+        const windowEnd = windowStart + windowMs;
+
+        let type = 'default';
+        if (key.startsWith('auth_rate_limit:')) {
+          const parts = key.split(':');
+          type = parts[2] ?? 'auth';
+        } else if (key.startsWith('track_time_rate_limit:'))
+          type = 'track-time';
+        else if (key.startsWith('form_submit_rate_limit:'))
+          type = 'form-submit';
+        else if (key.startsWith('form_upload_rate_limit:'))
+          type = 'form-upload';
+        else if (key.startsWith('api_rate_limit:')) type = 'api';
+        else if (key.startsWith('status_rate_limit:')) type = 'status';
+
+        const ipOrId = key.includes(':')
+          ? key.split(':').slice(1).join(':')
+          : key;
+
+        entries.push({
+          key,
+          type,
+          ipOrId,
+          count,
+          windowStart,
+          windowEnd,
+          windowMinutes: 15,
+        });
+      } catch {
+        // skip invalid entries
+      }
+    }
+
+    entries.sort((a, b) => b.count - a.count);
+    return entries;
+  }
+
+  private async getDbStats(): Promise<
+    | {
+        users: number;
+        admins: number;
+        subAccounts: number;
+        strategies: number;
+        leads: number;
+        bookings: number;
+        formTemplates: number;
+        formSubmissions: number;
+      }
+    | {
+        users: number;
+        admins: number;
+        subAccounts: number;
+        strategies: number;
+        leads: number;
+        bookings: number;
+        formTemplates: number;
+        formSubmissions: number;
+        _error: string;
+      }
+  > {
+    try {
+      const [
+        userCount,
+        adminCount,
+        subAccountCount,
+        strategyCount,
+        leadCount,
+        bookingCount,
+        formTemplateCount,
+        formSubmissionCount,
+      ] = await Promise.all([
+        this.prisma.user.count(),
+        this.prisma.adminUser.count(),
+        this.prisma.subAccount.count(),
+        this.prisma.strategy.count(),
+        this.prisma.lead.count(),
+        this.prisma.booking.count(),
+        this.prisma.formTemplate.count(),
+        this.prisma.formSubmission.count(),
+      ]);
+
+      return {
+        users: userCount,
+        admins: adminCount,
+        subAccounts: subAccountCount,
+        strategies: strategyCount,
+        leads: leadCount,
+        bookings: bookingCount,
+        formTemplates: formTemplateCount,
+        formSubmissions: formSubmissionCount,
+      };
+    } catch (error) {
+      return {
+        users: 0,
+        admins: 0,
+        subAccounts: 0,
+        strategies: 0,
+        leads: 0,
+        bookings: 0,
+        formTemplates: 0,
+        formSubmissions: 0,
+        _error: (error as Error).message,
+      };
     }
   }
 

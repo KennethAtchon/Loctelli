@@ -28,13 +28,21 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Loader2, Shield, ChevronRight, Building2 } from "lucide-react";
+import {
+  Loader2,
+  Shield,
+  ChevronRight,
+  Building2,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import logger from "@/lib/logger";
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const { adminLogin, isAuthenticated, isLoading } = useAdminAuth();
   const [error, setError] = useState<string>("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<AdminLoginFormValues>({
     resolver: zodResolver(adminLoginSchema),
@@ -185,16 +193,33 @@ export default function AdminLoginPage() {
                         Password
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          type="password"
-                          autoComplete="current-password"
-                          placeholder="Enter your password"
-                          disabled={isSubmitting}
-                          className="bg-white/10 border-white/20 text-white placeholder:text-blue-200/60 focus:border-blue-400 focus:ring-blue-400/50 backdrop-blur-sm transition-all duration-200"
-                          aria-describedby={error ? "login-error" : undefined}
-                          aria-invalid={!!error}
-                          {...field}
-                        />
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            autoComplete="current-password"
+                            placeholder="Enter your password"
+                            disabled={isSubmitting}
+                            className="bg-white/10 border-white/20 text-white placeholder:text-blue-200/60 focus:border-blue-400 focus:ring-blue-400/50 backdrop-blur-sm transition-all duration-200 pr-12"
+                            aria-describedby={error ? "login-error" : undefined}
+                            aria-invalid={!!error}
+                            {...field}
+                          />
+                          <button
+                            type="button"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-200/60 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-transparent rounded"
+                            onClick={() => setShowPassword(!showPassword)}
+                            disabled={isSubmitting}
+                            aria-label={
+                              showPassword ? "Hide password" : "Show password"
+                            }
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
                       </FormControl>
                       <FormMessage className="text-red-200" />
                     </FormItem>

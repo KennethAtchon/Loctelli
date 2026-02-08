@@ -421,7 +421,10 @@ export function CardFormView({
               )}
             </AnimatePresence>
           </div>
-          <div className="flex-shrink-0 pt-4 border-t mt-auto" style={{ borderColor: "var(--form-border, hsl(var(--border)))" }}>
+          <div
+            className="flex-shrink-0 pt-4 border-t mt-auto"
+            style={{ borderColor: "var(--form-border, hsl(var(--border)))" }}
+          >
             <div className="flex items-center justify-between gap-4 mb-4">
               <Button
                 type="button"

@@ -1,6 +1,7 @@
 # AI_Orchastrator
 
 ## Updates
+- 2026-02-07: Added admin **Monitor** tab for backend debugging: rate limits (per IP/key), DB table counts, system status. Backend: `GET /general/monitor-stats` (admin/super_admin), `GeneralService.getMonitorStats()` + `CacheService.getKeysByPattern()` for Redis rate-limit keys; frontend: `app/admin/(main)/monitor/page.tsx` (tabs: Overview, Rate limits, Database), sidebar nav “Monitor” (Activity icon), `api.adminAuth.getMonitorStats()` and types in `admin-auth.ts` / `admin-auth.config.ts`.
 - 2026-02-07: Implemented Phase 3 Card Form UI Builder: theme presets (form-styling-presets.ts: Minimal, Dark, Light, Brand), contrast check (contrast-utils.ts + WCAG AA warning in Appearance), base font size input (14–24, recommended 16–18) and --form-base-font-size on public form.
 - 2026-02-07: Implemented Phase 1 Card Form UI Builder: FormStyling type, FormAppearanceSection, form-styling-utils + CSS vars, CardFormView theme vars. Plan: .helper/plan/card-form-ui-builder-plan.md.
 - 2026-02-07: Added plan for Card Form UI Builder (theme/styling layer): `.helper/plan/card-form-ui-builder-plan.md`. Proposal for admin “Appearance” section (fonts, colors, card/button options) and public application via CSS variables; FormTemplate.styling as single source of truth; phased implementation (MVP → more options + preview → presets + a11y).

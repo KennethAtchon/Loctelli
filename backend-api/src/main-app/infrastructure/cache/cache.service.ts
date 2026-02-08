@@ -1,12 +1,23 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger, Optional } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { REDIS_STORE } from './cache.module';
+
+type RedisStoreLike = {
+  keys?: (pattern: string) => Promise<string[]>;
+  client?: { keys?: (pattern: string) => Promise<string[]> };
+};
 
 @Injectable()
 export class CacheService {
   private readonly logger = new Logger(CacheService.name);
 
-  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
+  constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @Optional()
+    @Inject(REDIS_STORE)
+    private redisStorePromise?: Promise<RedisStoreLike | null>,
+  ) {
     this.logger.log('🔧 CacheService initialized');
     this.logger.log(`🔧 Cache manager type: ${typeof this.cacheManager}`);
     this.logger.log(
@@ -220,6 +231,49 @@ export class CacheService {
     } catch (error) {
       this.logger.error('❌ Cache KEYS error:', error);
       return Promise.resolve([]);
+    }
+  }
+
+  /**
+   * Get Redis keys matching a pattern (e.g. 'auth_rate_limit:*').
+   * Uses the injected Redis store from cache-manager-redis-yet (has .keys(pattern)).
+   * Used by monitor/stats for rate limit visibility.
+   */
+  async getKeysByPattern(pattern: string): Promise<string[]> {
+    try {
+      if (!this.redisStorePromise) {
+        this.logger.debug(
+          '[CacheService] No Redis store injected, getKeysByPattern returns []',
+        );
+        return [];
+      }
+      const store = await this.redisStorePromise;
+      if (!store) return [];
+
+      // cache-manager-redis-yet store exposes .keys(pattern)
+      if (typeof store.keys === 'function') {
+        const keys = await store.keys(pattern);
+        this.logger.debug(
+          `[CacheService] KEYS ${pattern} → ${keys?.length ?? 0} keys`,
+        );
+        return Array.isArray(keys) ? keys : [];
+      }
+      // fallback: store.client (node-redis)
+      const client = (store as any).client;
+      if (client && typeof client.keys === 'function') {
+        const keys = await client.keys(pattern);
+        return Array.isArray(keys) ? keys : [];
+      }
+      this.logger.warn(
+        '[CacheService] Redis store has no .keys or .client.keys',
+      );
+      return [];
+    } catch (error) {
+      this.logger.error(
+        `❌ [CacheService] getKeysByPattern(${pattern}):`,
+        error,
+      );
+      return [];
     }
   }
 }

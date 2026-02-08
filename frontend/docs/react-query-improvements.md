@@ -132,10 +132,10 @@ Use **useTenantQuery** (or **useQuery** when no tenant) for loading the entity; 
 
 ### Public / shared
 
-| File                               | Current pattern                                          | Use React Query for                                                                                                         |
-| ---------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `app/(main)/forms/[slug]/page.tsx` | `formsApi.getPublicForm(slug)` in `loadForm()` | **useQuery** `queryKey: ['form', 'public', slug]` for template; submit as-is or **useMutation** for submit |
-| Auth (login/register)              | Direct `api.auth.*` / `api.adminAuth.*` in context       | Leave as-is (no React Query)                                                                                                |
+| File                               | Current pattern                                    | Use React Query for                                                                                        |
+| ---------------------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `app/(main)/forms/[slug]/page.tsx` | `formsApi.getPublicForm(slug)` in `loadForm()`     | **useQuery** `queryKey: ['form', 'public', slug]` for template; submit as-is or **useMutation** for submit |
+| Auth (login/register)              | Direct `api.auth.*` / `api.adminAuth.*` in context | Leave as-is (no React Query)                                                                               |
 
 ### Components
 

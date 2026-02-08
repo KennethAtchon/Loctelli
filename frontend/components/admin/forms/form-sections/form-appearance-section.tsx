@@ -38,14 +38,18 @@ const FONT_OPTIONS = [
   { value: "Merriweather", label: "Merriweather" },
 ];
 
-const SHADOW_OPTIONS: { value: "none" | "sm" | "md" | "lg"; label: string }[] = [
-  { value: "none", label: "None" },
-  { value: "sm", label: "Small" },
-  { value: "md", label: "Medium" },
-  { value: "lg", label: "Large" },
-];
+const SHADOW_OPTIONS: { value: "none" | "sm" | "md" | "lg"; label: string }[] =
+  [
+    { value: "none", label: "None" },
+    { value: "sm", label: "Small" },
+    { value: "md", label: "Medium" },
+    { value: "lg", label: "Large" },
+  ];
 
-const BUTTON_STYLE_OPTIONS: { value: "solid" | "outline" | "ghost"; label: string }[] = [
+const BUTTON_STYLE_OPTIONS: {
+  value: "solid" | "outline" | "ghost";
+  label: string;
+}[] = [
   { value: "solid", label: "Solid" },
   { value: "outline", label: "Outline" },
   { value: "ghost", label: "Ghost" },
@@ -97,7 +101,9 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
   const primaryHex = (current.colors?.primary ?? "").trim().replace(/^#/, "")
     ? (current.colors?.primary ?? "").trim()
     : null;
-  const primaryFgHex = (current.colors?.primaryForeground ?? "").trim().replace(/^#/, "")
+  const primaryFgHex = (current.colors?.primaryForeground ?? "")
+    .trim()
+    .replace(/^#/, "")
     ? (current.colors?.primaryForeground ?? "").trim()
     : null;
   const contrastPrimaryFg =
@@ -124,7 +130,8 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
         <div>
           <CardTitle>Appearance</CardTitle>
           <CardDescription>
-            Customize fonts, colors, and card style for this form. Leave empty to use defaults.
+            Customize fonts, colors, and card style for this form. Leave empty
+            to use defaults.
           </CardDescription>
         </div>
         {previewUrl && (
@@ -132,7 +139,9 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => window.open(previewUrl, "_blank", "noopener,noreferrer")}
+            onClick={() =>
+              window.open(previewUrl, "_blank", "noopener,noreferrer")
+            }
             className="shrink-0 gap-1.5"
           >
             <ExternalLink className="h-4 w-4" />
@@ -166,13 +175,20 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
           <Label>Typography</Label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="styling-font-heading" className="text-muted-foreground text-xs">
+              <Label
+                htmlFor="styling-font-heading"
+                className="text-muted-foreground text-xs"
+              >
                 Heading font
               </Label>
               <Select
                 value={current.fontFamily?.heading ?? FONT_SYSTEM_DEFAULT}
                 onValueChange={(v) =>
-                  updateNested("fontFamily", "heading", v === FONT_SYSTEM_DEFAULT ? undefined : v)
+                  updateNested(
+                    "fontFamily",
+                    "heading",
+                    v === FONT_SYSTEM_DEFAULT ? undefined : v
+                  )
                 }
               >
                 <SelectTrigger id="styling-font-heading" className="mt-1">
@@ -188,13 +204,20 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
               </Select>
             </div>
             <div>
-              <Label htmlFor="styling-font-body" className="text-muted-foreground text-xs">
+              <Label
+                htmlFor="styling-font-body"
+                className="text-muted-foreground text-xs"
+              >
                 Body font
               </Label>
               <Select
                 value={current.fontFamily?.body ?? FONT_SYSTEM_DEFAULT}
                 onValueChange={(v) =>
-                  updateNested("fontFamily", "body", v === FONT_SYSTEM_DEFAULT ? undefined : v)
+                  updateNested(
+                    "fontFamily",
+                    "body",
+                    v === FONT_SYSTEM_DEFAULT ? undefined : v
+                  )
                 }
               >
                 <SelectTrigger id="styling-font-body" className="mt-1">
@@ -210,7 +233,10 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
               </Select>
             </div>
             <div>
-              <Label htmlFor="styling-base-font-size" className="text-muted-foreground text-xs">
+              <Label
+                htmlFor="styling-base-font-size"
+                className="text-muted-foreground text-xs"
+              >
                 Base font size (px)
               </Label>
               <Input
@@ -219,7 +245,11 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
                 min={14}
                 max={24}
                 placeholder="16"
-                value={current.baseFontSize === undefined ? "" : String(current.baseFontSize)}
+                value={
+                  current.baseFontSize === undefined
+                    ? ""
+                    : String(current.baseFontSize)
+                }
                 onChange={(e) => {
                   const v = e.target.value;
                   form.setValue("styling", {
@@ -247,7 +277,13 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
                   ) : (
                     <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
                   )}
-                  <span className={contrastPrimaryFg.passesAA ? "text-muted-foreground" : "text-amber-700 dark:text-amber-400"}>
+                  <span
+                    className={
+                      contrastPrimaryFg.passesAA
+                        ? "text-muted-foreground"
+                        : "text-amber-700 dark:text-amber-400"
+                    }
+                  >
                     Primary vs primary text: {contrastPrimaryFg.ratio}:1
                     {contrastPrimaryFg.passesAA
                       ? " — passes WCAG AA"
@@ -262,7 +298,13 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
                   ) : (
                     <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
                   )}
-                  <span className={contrastPrimaryBg.passesAA ? "text-muted-foreground" : "text-amber-700 dark:text-amber-400"}>
+                  <span
+                    className={
+                      contrastPrimaryBg.passesAA
+                        ? "text-muted-foreground"
+                        : "text-amber-700 dark:text-amber-400"
+                    }
+                  >
                     Primary vs background: {contrastPrimaryBg.ratio}:1
                     {contrastPrimaryBg.passesAA
                       ? " — passes WCAG AA"
@@ -274,7 +316,10 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="styling-primary" className="text-muted-foreground text-xs">
+              <Label
+                htmlFor="styling-primary"
+                className="text-muted-foreground text-xs"
+              >
                 Primary (buttons, progress)
               </Label>
               <div className="flex gap-2 mt-1">
@@ -283,19 +328,26 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
                   type="color"
                   className="h-10 w-14 p-1 cursor-pointer"
                   value={current.colors?.primary ?? "#000000"}
-                  onChange={(e) => updateNested("colors", "primary", e.target.value)}
+                  onChange={(e) =>
+                    updateNested("colors", "primary", e.target.value)
+                  }
                 />
                 <Input
                   type="text"
                   placeholder="#000000"
                   value={current.colors?.primary ?? ""}
-                  onChange={(e) => updateNested("colors", "primary", e.target.value)}
+                  onChange={(e) =>
+                    updateNested("colors", "primary", e.target.value)
+                  }
                   className="flex-1 font-mono text-sm"
                 />
               </div>
             </div>
             <div>
-              <Label htmlFor="styling-primary-fg" className="text-muted-foreground text-xs">
+              <Label
+                htmlFor="styling-primary-fg"
+                className="text-muted-foreground text-xs"
+              >
                 Primary text (on primary)
               </Label>
               <div className="flex gap-2 mt-1">
@@ -304,19 +356,26 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
                   type="color"
                   className="h-10 w-14 p-1 cursor-pointer"
                   value={current.colors?.primaryForeground ?? "#ffffff"}
-                  onChange={(e) => updateNested("colors", "primaryForeground", e.target.value)}
+                  onChange={(e) =>
+                    updateNested("colors", "primaryForeground", e.target.value)
+                  }
                 />
                 <Input
                   type="text"
                   placeholder="#ffffff"
                   value={current.colors?.primaryForeground ?? ""}
-                  onChange={(e) => updateNested("colors", "primaryForeground", e.target.value)}
+                  onChange={(e) =>
+                    updateNested("colors", "primaryForeground", e.target.value)
+                  }
                   className="flex-1 font-mono text-sm"
                 />
               </div>
             </div>
             <div>
-              <Label htmlFor="styling-bg" className="text-muted-foreground text-xs">
+              <Label
+                htmlFor="styling-bg"
+                className="text-muted-foreground text-xs"
+              >
                 Page background
               </Label>
               <div className="flex gap-2 mt-1">
@@ -325,19 +384,26 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
                   type="color"
                   className="h-10 w-14 p-1 cursor-pointer"
                   value={current.colors?.background ?? "#f9fafb"}
-                  onChange={(e) => updateNested("colors", "background", e.target.value)}
+                  onChange={(e) =>
+                    updateNested("colors", "background", e.target.value)
+                  }
                 />
                 <Input
                   type="text"
                   placeholder="e.g. #f9fafb"
                   value={current.colors?.background ?? ""}
-                  onChange={(e) => updateNested("colors", "background", e.target.value)}
+                  onChange={(e) =>
+                    updateNested("colors", "background", e.target.value)
+                  }
                   className="flex-1 font-mono text-sm"
                 />
               </div>
             </div>
             <div>
-              <Label htmlFor="styling-fg" className="text-muted-foreground text-xs">
+              <Label
+                htmlFor="styling-fg"
+                className="text-muted-foreground text-xs"
+              >
                 Text color
               </Label>
               <div className="flex gap-2 mt-1">
@@ -346,19 +412,26 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
                   type="color"
                   className="h-10 w-14 p-1 cursor-pointer"
                   value={current.colors?.foreground ?? "#111827"}
-                  onChange={(e) => updateNested("colors", "foreground", e.target.value)}
+                  onChange={(e) =>
+                    updateNested("colors", "foreground", e.target.value)
+                  }
                 />
                 <Input
                   type="text"
                   placeholder="e.g. #111827"
                   value={current.colors?.foreground ?? ""}
-                  onChange={(e) => updateNested("colors", "foreground", e.target.value)}
+                  onChange={(e) =>
+                    updateNested("colors", "foreground", e.target.value)
+                  }
                   className="flex-1 font-mono text-sm"
                 />
               </div>
             </div>
             <div>
-              <Label htmlFor="styling-card" className="text-muted-foreground text-xs">
+              <Label
+                htmlFor="styling-card"
+                className="text-muted-foreground text-xs"
+              >
                 Card background
               </Label>
               <div className="flex gap-2 mt-1">
@@ -367,19 +440,26 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
                   type="color"
                   className="h-10 w-14 p-1 cursor-pointer"
                   value={current.colors?.card ?? "#ffffff"}
-                  onChange={(e) => updateNested("colors", "card", e.target.value)}
+                  onChange={(e) =>
+                    updateNested("colors", "card", e.target.value)
+                  }
                 />
                 <Input
                   type="text"
                   placeholder="#ffffff"
                   value={current.colors?.card ?? ""}
-                  onChange={(e) => updateNested("colors", "card", e.target.value)}
+                  onChange={(e) =>
+                    updateNested("colors", "card", e.target.value)
+                  }
                   className="flex-1 font-mono text-sm"
                 />
               </div>
             </div>
             <div>
-              <Label htmlFor="styling-border" className="text-muted-foreground text-xs">
+              <Label
+                htmlFor="styling-border"
+                className="text-muted-foreground text-xs"
+              >
                 Border color
               </Label>
               <div className="flex gap-2 mt-1">
@@ -388,19 +468,26 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
                   type="color"
                   className="h-10 w-14 p-1 cursor-pointer"
                   value={current.colors?.border ?? "#e5e7eb"}
-                  onChange={(e) => updateNested("colors", "border", e.target.value)}
+                  onChange={(e) =>
+                    updateNested("colors", "border", e.target.value)
+                  }
                 />
                 <Input
                   type="text"
                   placeholder="#e5e7eb"
                   value={current.colors?.border ?? ""}
-                  onChange={(e) => updateNested("colors", "border", e.target.value)}
+                  onChange={(e) =>
+                    updateNested("colors", "border", e.target.value)
+                  }
                   className="flex-1 font-mono text-sm"
                 />
               </div>
             </div>
             <div>
-              <Label htmlFor="styling-accent" className="text-muted-foreground text-xs">
+              <Label
+                htmlFor="styling-accent"
+                className="text-muted-foreground text-xs"
+              >
                 Accent (highlights)
               </Label>
               <div className="flex gap-2 mt-1">
@@ -409,19 +496,26 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
                   type="color"
                   className="h-10 w-14 p-1 cursor-pointer"
                   value={current.colors?.accent ?? "#0ea5e9"}
-                  onChange={(e) => updateNested("colors", "accent", e.target.value)}
+                  onChange={(e) =>
+                    updateNested("colors", "accent", e.target.value)
+                  }
                 />
                 <Input
                   type="text"
                   placeholder="#0ea5e9"
                   value={current.colors?.accent ?? ""}
-                  onChange={(e) => updateNested("colors", "accent", e.target.value)}
+                  onChange={(e) =>
+                    updateNested("colors", "accent", e.target.value)
+                  }
                   className="flex-1 font-mono text-sm"
                 />
               </div>
             </div>
             <div>
-              <Label htmlFor="styling-muted" className="text-muted-foreground text-xs">
+              <Label
+                htmlFor="styling-muted"
+                className="text-muted-foreground text-xs"
+              >
                 Muted background
               </Label>
               <div className="flex gap-2 mt-1">
@@ -430,19 +524,26 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
                   type="color"
                   className="h-10 w-14 p-1 cursor-pointer"
                   value={current.colors?.muted ?? "#f3f4f6"}
-                  onChange={(e) => updateNested("colors", "muted", e.target.value)}
+                  onChange={(e) =>
+                    updateNested("colors", "muted", e.target.value)
+                  }
                 />
                 <Input
                   type="text"
                   placeholder="#f3f4f6"
                   value={current.colors?.muted ?? ""}
-                  onChange={(e) => updateNested("colors", "muted", e.target.value)}
+                  onChange={(e) =>
+                    updateNested("colors", "muted", e.target.value)
+                  }
                   className="flex-1 font-mono text-sm"
                 />
               </div>
             </div>
             <div>
-              <Label htmlFor="styling-muted-fg" className="text-muted-foreground text-xs">
+              <Label
+                htmlFor="styling-muted-fg"
+                className="text-muted-foreground text-xs"
+              >
                 Muted text
               </Label>
               <div className="flex gap-2 mt-1">
@@ -451,13 +552,17 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
                   type="color"
                   className="h-10 w-14 p-1 cursor-pointer"
                   value={current.colors?.mutedForeground ?? "#6b7280"}
-                  onChange={(e) => updateNested("colors", "mutedForeground", e.target.value)}
+                  onChange={(e) =>
+                    updateNested("colors", "mutedForeground", e.target.value)
+                  }
                 />
                 <Input
                   type="text"
                   placeholder="#6b7280"
                   value={current.colors?.mutedForeground ?? ""}
-                  onChange={(e) => updateNested("colors", "mutedForeground", e.target.value)}
+                  onChange={(e) =>
+                    updateNested("colors", "mutedForeground", e.target.value)
+                  }
                   className="flex-1 font-mono text-sm"
                 />
               </div>
@@ -469,7 +574,10 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
           <Label>Progress bar</Label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="styling-progress-color" className="text-muted-foreground text-xs">
+              <Label
+                htmlFor="styling-progress-color"
+                className="text-muted-foreground text-xs"
+              >
                 Bar color
               </Label>
               <div className="flex gap-2 mt-1">
@@ -478,19 +586,26 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
                   type="color"
                   className="h-10 w-14 p-1 cursor-pointer"
                   value={current.progress?.color ?? "#0d9488"}
-                  onChange={(e) => updateNested("progress", "color", e.target.value)}
+                  onChange={(e) =>
+                    updateNested("progress", "color", e.target.value)
+                  }
                 />
                 <Input
                   type="text"
                   placeholder="#0d9488"
                   value={current.progress?.color ?? ""}
-                  onChange={(e) => updateNested("progress", "color", e.target.value)}
+                  onChange={(e) =>
+                    updateNested("progress", "color", e.target.value)
+                  }
                   className="flex-1 font-mono text-sm"
                 />
               </div>
             </div>
             <div>
-              <Label htmlFor="styling-progress-height" className="text-muted-foreground text-xs">
+              <Label
+                htmlFor="styling-progress-height"
+                className="text-muted-foreground text-xs"
+              >
                 Bar height (px)
               </Label>
               <Input
@@ -499,10 +614,18 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
                 min={2}
                 max={24}
                 placeholder="8"
-                value={current.progress?.barHeight === undefined ? "" : String(current.progress.barHeight)}
+                value={
+                  current.progress?.barHeight === undefined
+                    ? ""
+                    : String(current.progress.barHeight)
+                }
                 onChange={(e) => {
                   const v = e.target.value;
-                  updateNested("progress", "barHeight", v === "" ? undefined : Number(v));
+                  updateNested(
+                    "progress",
+                    "barHeight",
+                    v === "" ? undefined : Number(v)
+                  );
                 }}
                 className="mt-1"
               />
@@ -514,7 +637,10 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
           <Label>Card style</Label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="styling-card-radius" className="text-muted-foreground text-xs">
+              <Label
+                htmlFor="styling-card-radius"
+                className="text-muted-foreground text-xs"
+              >
                 Border radius (px)
               </Label>
               <Input
@@ -523,22 +649,37 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
                 min={0}
                 max={24}
                 placeholder="8"
-                value={current.card?.borderRadius === undefined ? "" : String(current.card.borderRadius)}
+                value={
+                  current.card?.borderRadius === undefined
+                    ? ""
+                    : String(current.card.borderRadius)
+                }
                 onChange={(e) => {
                   const v = e.target.value;
-                  updateNested("card", "borderRadius", v === "" ? undefined : Number(v));
+                  updateNested(
+                    "card",
+                    "borderRadius",
+                    v === "" ? undefined : Number(v)
+                  );
                 }}
                 className="mt-1"
               />
             </div>
             <div>
-              <Label htmlFor="styling-card-shadow" className="text-muted-foreground text-xs">
+              <Label
+                htmlFor="styling-card-shadow"
+                className="text-muted-foreground text-xs"
+              >
                 Shadow
               </Label>
               <Select
                 value={current.card?.shadow ?? "default"}
                 onValueChange={(v) =>
-                  updateNested("card", "shadow", v === "default" ? undefined : v)
+                  updateNested(
+                    "card",
+                    "shadow",
+                    v === "default" ? undefined : v
+                  )
                 }
               >
                 <SelectTrigger id="styling-card-shadow" className="mt-1">
@@ -561,7 +702,10 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
           <Label>Buttons</Label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="styling-btn-radius" className="text-muted-foreground text-xs">
+              <Label
+                htmlFor="styling-btn-radius"
+                className="text-muted-foreground text-xs"
+              >
                 Border radius (px)
               </Label>
               <Input
@@ -570,23 +714,32 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
                 min={0}
                 max={24}
                 placeholder="6"
-                value={current.buttons?.borderRadius === undefined ? "" : String(current.buttons.borderRadius)}
+                value={
+                  current.buttons?.borderRadius === undefined
+                    ? ""
+                    : String(current.buttons.borderRadius)
+                }
                 onChange={(e) => {
                   const v = e.target.value;
-                  updateNested("buttons", "borderRadius", v === "" ? undefined : Number(v));
+                  updateNested(
+                    "buttons",
+                    "borderRadius",
+                    v === "" ? undefined : Number(v)
+                  );
                 }}
                 className="mt-1"
               />
             </div>
             <div>
-              <Label htmlFor="styling-btn-style" className="text-muted-foreground text-xs">
+              <Label
+                htmlFor="styling-btn-style"
+                className="text-muted-foreground text-xs"
+              >
                 Button style
               </Label>
               <Select
                 value={current.buttons?.style ?? "solid"}
-                onValueChange={(v) =>
-                  updateNested("buttons", "style", v)
-                }
+                onValueChange={(v) => updateNested("buttons", "style", v)}
               >
                 <SelectTrigger id="styling-btn-style" className="mt-1">
                   <SelectValue />
@@ -607,13 +760,20 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
           <Label>Result screen</Label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="styling-result-layout" className="text-muted-foreground text-xs">
+              <Label
+                htmlFor="styling-result-layout"
+                className="text-muted-foreground text-xs"
+              >
                 Layout
               </Label>
               <Select
                 value={current.resultScreen?.layout ?? "default"}
                 onValueChange={(v) =>
-                  updateNested("resultScreen", "layout", v === "default" ? undefined : v)
+                  updateNested(
+                    "resultScreen",
+                    "layout",
+                    v === "default" ? undefined : v
+                  )
                 }
               >
                 <SelectTrigger id="styling-result-layout" className="mt-1">
@@ -630,14 +790,21 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
               </Select>
             </div>
             <div>
-              <Label htmlFor="styling-result-title-size" className="text-muted-foreground text-xs">
+              <Label
+                htmlFor="styling-result-title-size"
+                className="text-muted-foreground text-xs"
+              >
                 Result title size (px or e.g. 1.5rem)
               </Label>
               <Input
                 id="styling-result-title-size"
                 type="text"
                 placeholder="e.g. 24 or 1.5rem"
-                value={current.resultScreen?.titleFontSize === undefined ? "" : String(current.resultScreen.titleFontSize)}
+                value={
+                  current.resultScreen?.titleFontSize === undefined
+                    ? ""
+                    : String(current.resultScreen.titleFontSize)
+                }
                 onChange={(e) => {
                   const v = e.target.value.trim();
                   if (v === "") {

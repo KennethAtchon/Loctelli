@@ -20,14 +20,20 @@ const GOOGLE_FONT_NAMES = new Set([
  * Returns a Google Fonts CSS2 URL for the given font names. Only includes names in the safe list.
  * Use with <link rel="stylesheet" href={url} /> to load fonts.
  */
-export function getGoogleFontsStylesheetUrl(fontNames: (string | undefined)[]): string | null {
+export function getGoogleFontsStylesheetUrl(
+  fontNames: (string | undefined)[]
+): string | null {
   const names = fontNames.filter(
-    (n): n is string => typeof n === "string" && n.length > 0 && GOOGLE_FONT_NAMES.has(n)
+    (n): n is string =>
+      typeof n === "string" && n.length > 0 && GOOGLE_FONT_NAMES.has(n)
   );
   if (names.length === 0) return null;
   const unique = [...new Set(names)];
   const params = unique
-    .map((name) => `family=${encodeURIComponent(name).replace(/ /g, "+")}:wght@400;600;700`)
+    .map(
+      (name) =>
+        `family=${encodeURIComponent(name).replace(/ /g, "+")}:wght@400;600;700`
+    )
     .join("&");
   return `https://fonts.googleapis.com/css2?${params}&display=swap`;
 }
@@ -57,14 +63,17 @@ export const FORM_STYLING_VARS = {
   resultTitleFontSize: "--form-result-title-font-size",
 } as const;
 
-const defaultCardShadow = "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)";
+const defaultCardShadow =
+  "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)";
 
 /**
  * Maps FormStyling to a React.CSSProperties object that sets CSS variables.
  * Use as the style prop on a wrapper div so children can use var(--form-*).
  * Fallbacks are chosen to match typical app defaults (Tailwind/theme).
  */
-export function formStylingToCssVars(styling: FormStyling | null | undefined): React.CSSProperties {
+export function formStylingToCssVars(
+  styling: FormStyling | null | undefined
+): React.CSSProperties {
   if (!styling || typeof styling !== "object") {
     return {};
   }
@@ -132,13 +141,18 @@ export function formStylingToCssVars(styling: FormStyling | null | undefined): R
     vars["--form-result-max-width"] =
       s.resultScreen.layout === "full" ? "100%" : "48rem";
   }
-  if (s.resultScreen?.titleFontSize !== undefined && s.resultScreen.titleFontSize !== "") {
+  if (
+    s.resultScreen?.titleFontSize !== undefined &&
+    s.resultScreen.titleFontSize !== ""
+  ) {
     const v = s.resultScreen.titleFontSize;
-    vars[FORM_STYLING_VARS.resultTitleFontSize] = typeof v === "number" ? `${v}px` : String(v);
+    vars[FORM_STYLING_VARS.resultTitleFontSize] =
+      typeof v === "number" ? `${v}px` : String(v);
   }
   if (s.card?.borderRadius !== undefined && s.card.borderRadius !== "") {
     const v = s.card.borderRadius;
-    vars[FORM_STYLING_VARS.cardRadius] = typeof v === "number" ? `${v}px` : String(v);
+    vars[FORM_STYLING_VARS.cardRadius] =
+      typeof v === "number" ? `${v}px` : String(v);
   }
   if (s.card?.shadow) {
     if (s.card.shadow === "none") {
@@ -154,7 +168,8 @@ export function formStylingToCssVars(styling: FormStyling | null | undefined): R
   }
   if (s.buttons?.borderRadius !== undefined && s.buttons.borderRadius !== "") {
     const v = s.buttons.borderRadius;
-    vars[FORM_STYLING_VARS.buttonRadius] = typeof v === "number" ? `${v}px` : String(v);
+    vars[FORM_STYLING_VARS.buttonRadius] =
+      typeof v === "number" ? `${v}px` : String(v);
   }
   if (s.buttons?.style) {
     vars[FORM_STYLING_VARS.buttonVariant] = s.buttons.style;

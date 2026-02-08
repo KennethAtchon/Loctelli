@@ -114,7 +114,7 @@ export function formValuesToUpdates(
       required: values.required,
       placeholder: values.placeholder || undefined,
       options: fieldTypeHasOptions(values.fieldType as FormField["type"])
-        ? values.options ?? []
+        ? (values.options ?? [])
         : undefined,
       pipingKey: values.pipingKey.trim() || undefined,
       enablePiping: values.enablePiping,

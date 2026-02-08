@@ -61,7 +61,6 @@ function hasAnyConditions(
   return logic.conditions.length > 0;
 }
 
-
 const dummyNode = {
   id: "",
   type: "question" as const,

@@ -105,6 +105,24 @@ export interface SystemStatus {
   fileStorage: string;
 }
 
+/** Rate limit entry from Redis (per IP/key) for monitor tab */
+export interface MonitorRateLimitEntry {
+  key: string;
+  type: string;
+  ipOrId: string;
+  count: number;
+  windowStart: number;
+  windowEnd: number;
+  windowMinutes: number;
+}
+
+export interface MonitorStats {
+  timestamp: string;
+  system: SystemStatus;
+  rateLimits: MonitorRateLimitEntry[];
+  database: Record<string, number> & { _error?: string };
+}
+
 export interface DetailedUser {
   id: number;
   name: string;
@@ -393,5 +411,9 @@ export class AdminAuthApi {
     return this.api.getDetailedLead({
       leadId,
     }) as Promise<DetailedLead>;
+  }
+
+  async getMonitorStats(): Promise<MonitorStats> {
+    return this.api.getMonitorStats() as Promise<MonitorStats>;
   }
 }
