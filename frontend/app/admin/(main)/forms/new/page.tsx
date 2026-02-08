@@ -12,7 +12,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useTenant } from "@/contexts/tenant-context";
 import { FormFieldsSection } from "@/components/admin/forms/form-sections/form-fields-section";
@@ -43,6 +43,7 @@ import {
   getDefaultFormValues,
   formValuesToProfileEstimation,
 } from "@/components/admin/forms/profile-estimation/profile-estimation-form-utils";
+import { getApiErrorMessage } from "@/lib/api/error-utils";
 
 const defaultValues: FormTemplateFormValues = {
   name: "",
@@ -63,7 +64,6 @@ export default function NewFormTemplatePage() {
   const [formType, setFormType] = useState<FormType | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { toast } = useToast();
 
   const form = useForm<FormTemplateFormValues>({
     defaultValues,
@@ -122,20 +122,14 @@ export default function NewFormTemplatePage() {
     );
 
     if (!validation.isValid) {
-      toast({
-        title: "Validation Error",
-        description: validation.error,
-        variant: "destructive",
-      });
+      toast.error("Validation Error", { description: validation.error });
       return;
     }
 
     const invalidFields = values.schema.filter((field) => !field.label?.trim());
     if (!isCardForm && invalidFields.length > 0) {
-      toast({
-        title: "Validation Error",
+      toast.error("Validation Error", {
         description: "All form fields must have labels",
-        variant: "destructive",
       });
       return;
     }
@@ -160,21 +154,18 @@ export default function NewFormTemplatePage() {
 
       await api.forms.createFormTemplate(dataToSubmit);
 
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Form template created successfully",
       });
 
       router.push("/admin/forms");
     } catch (error: unknown) {
       console.error("Failed to create form template:", error);
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Failed to create form template",
-        variant: "destructive",
+      toast.error("Could not create form", {
+        description: getApiErrorMessage(
+          error,
+          "Failed to create form template. Please try again."
+        ),
       });
     } finally {
       setLoading(false);
@@ -344,16 +335,7 @@ export default function NewFormTemplatePage() {
                 };
               }}
               onImportFullCardForm={(payload: CardFormTemplateJson) => {
-                setValue("title", payload.title ?? watch("title"));
-                setValue("subtitle", payload.subtitle ?? watch("subtitle"));
-                setValue(
-                  "submitButtonText",
-                  payload.submitButtonText ?? watch("submitButtonText")
-                );
-                setValue(
-                  "successMessage",
-                  payload.successMessage ?? watch("successMessage")
-                );
+                const current = form.getValues();
                 let graph: FlowchartGraph | undefined;
                 if (payload.schema?.length && payload.flowchartEdges?.length) {
                   graph = buildFlowchartFromSchemaAndEdges(
@@ -372,21 +354,31 @@ export default function NewFormTemplatePage() {
                     );
                   graph = payload.flowchartGraph;
                 }
+                const merged: FormTemplateFormValues = {
+                  ...current,
+                  title: payload.title ?? current.title,
+                  subtitle: payload.subtitle ?? current.subtitle,
+                  submitButtonText:
+                    payload.submitButtonText ?? current.submitButtonText,
+                  successMessage:
+                    payload.successMessage ?? current.successMessage,
+                  styling: payload.styling ?? current.styling,
+                  profileEstimation: getDefaultFormValues(
+                    payload.profileEstimation ?? undefined
+                  ),
+                };
                 if (graph) {
-                  setValue("cardSettings", {
-                    ...(watch("cardSettings") as
+                  merged.cardSettings = {
+                    ...(current.cardSettings as
                       | Record<string, unknown>
                       | undefined),
                     ...payload.cardSettings,
                     flowchartGraph: graph,
                     flowchartViewport: graph.viewport,
-                  });
+                  };
                 }
-                setValue("styling", payload.styling ?? watch("styling"));
-                setValue(
-                  "profileEstimation",
-                  getDefaultFormValues(payload.profileEstimation ?? undefined)
-                );
+                // reset() syncs useFieldArray (categories, ranges, etc.); setValue alone does not
+                form.reset(merged);
               }}
               formSlug={watch("slug")}
               description="Build your interactive card form using the flowchart editor. Use schema JSON for the flow only, or full card form JSON for flow + styling + profile estimation. Preview after you create the form."

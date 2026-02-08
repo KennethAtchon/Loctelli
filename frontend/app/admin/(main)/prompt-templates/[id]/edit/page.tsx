@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import type {
   PromptTemplate,
@@ -43,7 +43,6 @@ export default function EditPromptTemplatePage() {
   const [tagInput, setTagInput] = useState("");
   const router = useRouter();
   const params = useParams();
-  const { toast } = useToast();
   const templateId = parseInt(params.id as string);
 
   const form = useForm<EditPromptTemplateFormValues>({
@@ -78,11 +77,7 @@ export default function EditPromptTemplatePage() {
           tags: data.tags ?? [],
         });
       } catch {
-        toast({
-          title: "Error",
-          description: "Failed to load template",
-          variant: "destructive",
-        });
+        toast.error("Error", { description: "Failed to load template" });
         router.push("/admin/prompt-templates");
       } finally {
         setLoading(false);
@@ -119,16 +114,13 @@ export default function EditPromptTemplatePage() {
         tags: data.tags ?? [],
       };
       await api.promptTemplates.update(templateId, submitData);
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Template updated successfully",
       });
       router.push("/admin/prompt-templates");
     } catch (error) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: `Failed to update template: ${error instanceof Error ? error.message : "Unknown error"}`,
-        variant: "destructive",
       });
     }
   });

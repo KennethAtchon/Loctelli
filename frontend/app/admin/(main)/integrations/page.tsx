@@ -31,7 +31,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import type { IntegrationTemplate, Integration } from "@/lib/api";
 
@@ -43,7 +43,6 @@ export default function IntegrationsPage() {
   const isLoadingRef = useRef(false);
 
   const router = useRouter();
-  const { toast } = useToast();
 
   useEffect(() => {
     loadData();
@@ -67,10 +66,8 @@ export default function IntegrationsPage() {
       setIntegrations(integrationsData);
     } catch (error) {
       console.error("Failed to load data:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to load integrations data",
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -83,16 +80,13 @@ export default function IntegrationsPage() {
       setDeleting(id);
       await api.integrations.deleteIntegration(id);
       await loadData(); // Reload to get updated list
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Integration deleted successfully",
       });
     } catch (error) {
       console.error("Failed to delete integration:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to delete integration",
-        variant: "destructive",
       });
     } finally {
       setDeleting(null);

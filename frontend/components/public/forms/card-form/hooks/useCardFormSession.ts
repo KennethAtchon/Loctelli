@@ -276,7 +276,7 @@ export function useCardFormSession(
       cancelled = true;
       initializationInProgressRef.current = false;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- createSessionMutation is stable from TanStack Query
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- createSessionMutation is stable from TanStack Query
   }, [slug, template, options.saveProgress]);
 
   const persistProgress = useCallback(

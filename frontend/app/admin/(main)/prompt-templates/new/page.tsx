@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import type { CreatePromptTemplateDto } from "@/lib/api/endpoints/prompt-templates";
 import { Badge } from "@/components/ui/badge";
@@ -48,7 +48,6 @@ const defaultValues: CreatePromptTemplateFormValues = {
 export default function NewPromptTemplatePage() {
   const [tagInput, setTagInput] = useState("");
   const router = useRouter();
-  const { toast } = useToast();
 
   const form = useForm<CreatePromptTemplateFormValues>({
     resolver: zodResolver(createPromptTemplateSchema),
@@ -82,16 +81,13 @@ export default function NewPromptTemplatePage() {
         tags: data.tags ?? [],
       };
       await api.promptTemplates.create(submitData);
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Template created successfully",
       });
       router.push("/admin/prompt-templates");
     } catch (error) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: `Failed to create template: ${error instanceof Error ? error.message : "Unknown error"}`,
-        variant: "destructive",
       });
     }
   });

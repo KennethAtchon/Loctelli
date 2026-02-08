@@ -127,9 +127,6 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
       null
     );
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- setters used by effect/ref logic
-    const [, setCompletedMessages] = useState<Set<string>>(new Set());
-    const [, setActiveSectionId] = useState<string | null>(null);
     const inputContainerRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const shouldFocusAfterStreamingRef = useRef(false);
@@ -224,7 +221,6 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
     useEffect(() => {
       if (externalMessages.length === 0) {
         setMessageSections([]);
-        setActiveSectionId(null);
         return;
       }
 
@@ -256,9 +252,6 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
             isActive: true,
             sectionIndex: sections.length,
           };
-
-          // Update active section ID
-          setActiveSectionId(newSectionId);
         } else {
           // Add to current section
           currentSection.messages.push(message);
@@ -512,8 +505,6 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
     );
 
     const renderMessage = (message: Message) => {
-      const isCompleted = completedMessages.has(message.id);
-
       // Check if message contains an image (base64 data URL)
       const imageMatch = message.content.match(
         /!\[Image\]\((data:image\/[^)]+)\)/
@@ -551,14 +542,10 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
               </div>
             )}
 
-            {/* For user messages or completed system messages, render without animation */}
+            {/* System messages use fade-in animation */}
             {textContent && (
               <span
-                className={
-                  message.type === "system" && !isCompleted
-                    ? "animate-fade-in"
-                    : ""
-                }
+                className={message.type === "system" ? "animate-fade-in" : ""}
               >
                 {textContent}
               </span>
@@ -721,7 +708,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                         disabled={isStreaming || disabled || loading}
                       >
                         {/* Lucide icon - decorative, sr-only provides label */}
-                        <Image className="h-4 w-4 text-gray-500" aria-hidden alt="" />
+                        <Image className="h-4 w-4 text-gray-500" aria-hidden />
                         <span className="sr-only">Upload photo</span>
                       </Button>
                       <Button
@@ -732,7 +719,10 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                         className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100"
                         disabled={isStreaming || disabled || loading}
                       >
-                        <InfoIcon className="h-4 w-4 text-gray-500" aria-hidden alt="" />
+                        <InfoIcon
+                          className="h-4 w-4 text-gray-500"
+                          aria-hidden
+                        />
                         <span className="sr-only">Agent info</span>
                       </Button>
                     </div>
@@ -778,7 +768,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                       disabled={isStreaming || disabled || loading}
                     >
                       {/* Lucide icon - decorative */}
-                      <Image className="h-4 w-4 text-gray-500" aria-hidden alt="" />
+                      <Image className="h-4 w-4 text-gray-500" aria-hidden />
                       <span className="sr-only">Upload photo</span>
                     </Button>
                     <Button
@@ -789,7 +779,7 @@ const ChatInterface = React.forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                       className="rounded-full h-8 w-8 border-0 flex-shrink-0 transition-all duration-200 bg-transparent hover:bg-gray-100"
                       disabled={isStreaming || disabled || loading}
                     >
-                      <InfoIcon className="h-4 w-4 text-gray-500" aria-hidden alt="" />
+                      <InfoIcon className="h-4 w-4 text-gray-500" aria-hidden />
                       <span className="sr-only">Agent info</span>
                     </Button>
                   </div>

@@ -17,4 +17,3 @@ Feature request:
 
 ------
 
-ok so now double check EVERYTHING, when a user creates something with json, the json is the exact same as if they are creating it manually, confirm this to be the case

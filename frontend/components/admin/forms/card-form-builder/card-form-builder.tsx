@@ -24,7 +24,6 @@ export function CardFormBuilder({
   const {
     viewMode,
     setViewMode,
-    selectedNodeId,
     selectedNode,
     selectedNodeIndex,
     handleNodeClick,
@@ -128,7 +127,6 @@ export function CardFormBuilder({
               graph={graph}
               onGraphChange={handleGraphChange}
               onNodeClick={handleNodeClick}
-              selectedNodeId={selectedNodeId}
             />
           ) : (
             <div className="h-full overflow-y-auto rounded-lg border bg-muted/30 p-4">

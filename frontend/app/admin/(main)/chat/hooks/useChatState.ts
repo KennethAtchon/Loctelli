@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { api } from "@/lib/api";
 import { useTenant } from "@/contexts/tenant-context";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import logger from "@/lib/logger";
 import { generateStableId } from "@/lib/utils/stable-id";
 import type { Lead } from "@/types";
@@ -41,7 +41,6 @@ interface ChatApiResponse {
 
 export function useChatState() {
   const { getTenantQueryParams } = useTenant();
-  const { toast } = useToast();
 
   // State
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -180,8 +179,7 @@ export function useChatState() {
           history.length = 0;
           history.push(...updatedHistory);
 
-          toast({
-            title: "Conversation Started",
+          toast.success("Conversation Started", {
             description: "AI has sent the first message!",
           });
         } catch (initiateError) {
@@ -296,18 +294,14 @@ export function useChatState() {
         setIsLoading(false);
         setIsLoadingHistory(false);
         setError(null);
-        toast({
-          title: "Chat history cleared",
+        toast.success("Chat history cleared", {
           description: "All messages for this lead have been deleted.",
-          variant: "default",
         });
         await loadChatHistory(Number(selectedLeadId), leadProfile?.name);
       } catch (err) {
         logger.error("Failed to clear chat history:", err);
-        toast({
-          title: "Error",
+        toast.error("Error", {
           description: "Failed to clear chat history. Please try again.",
-          variant: "destructive",
         });
       }
     }

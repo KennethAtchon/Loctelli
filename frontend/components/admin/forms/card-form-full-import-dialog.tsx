@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import {
   type CardFormTemplateJson,
   CARD_FORM_TEMPLATE_JSON_VERSION,
@@ -129,7 +129,6 @@ export function CardFormFullImportDialog({
 }: CardFormFullImportDialogProps) {
   const [jsonInput, setJsonInput] = useState("");
   const [showDialog, setShowDialog] = useState(false);
-  const { toast } = useToast();
 
   const handleLoadExample = () => {
     setJsonInput(JSON.stringify(getFullCardFormExample(), null, 2));
@@ -146,15 +145,12 @@ export function CardFormFullImportDialog({
       onImport(parsed);
       setJsonInput("");
       setShowDialog(false);
-      toast({
-        title: "Card form imported",
+      toast.success("Card form imported", {
         description: "Flow, styling, and profile estimation have been applied.",
       });
     } catch (err) {
-      toast({
-        title: "Import failed",
+      toast.error("Import failed", {
         description: err instanceof Error ? err.message : "Invalid JSON",
-        variant: "destructive",
       });
     }
   };

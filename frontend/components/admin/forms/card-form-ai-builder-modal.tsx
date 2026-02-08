@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import type { CardFormTemplateJson } from "@/lib/forms/card-form-template-json";
 import { extractCardFormJsonFromText } from "@/lib/forms/extract-card-form-json";
@@ -42,7 +42,6 @@ export function CardFormAIBuilderModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [applyError, setApplyError] = useState<string | null>(null);
-  const { toast } = useToast();
 
   const lastAssistantMessage = messages
     .filter((m) => m.role === "assistant")
@@ -92,15 +91,11 @@ export function CardFormAIBuilderModal({
     } catch (err) {
       const message = err instanceof Error ? err.message : "Request failed";
       setError(message);
-      toast({
-        title: "AI request failed",
-        description: message,
-        variant: "destructive",
-      });
+      toast.error("AI request failed", { description: message });
     } finally {
       setLoading(false);
     }
-  }, [inputValue, loading, messages, getFullCardFormPayload, toast]);
+  }, [inputValue, loading, messages, getFullCardFormPayload]);
 
   const handleApply = useCallback(() => {
     if (!extractedJson) return;
@@ -110,8 +105,7 @@ export function CardFormAIBuilderModal({
       onOpenChange(false);
       setMessages([]);
       setError(null);
-      toast({
-        title: "Form applied",
+      toast.success("Form applied", {
         description:
           "The generated form has been loaded. You can customize it further.",
       });
@@ -119,13 +113,9 @@ export function CardFormAIBuilderModal({
       const message =
         err instanceof Error ? err.message : "Failed to apply form";
       setApplyError(message);
-      toast({
-        title: "Apply failed",
-        description: message,
-        variant: "destructive",
-      });
+      toast.error("Apply failed", { description: message });
     }
-  }, [extractedJson, onImportFullCardForm, onOpenChange, toast]);
+  }, [extractedJson, onImportFullCardForm, onOpenChange]);
 
   const handleOpenChange = useCallback(
     (next: boolean) => {

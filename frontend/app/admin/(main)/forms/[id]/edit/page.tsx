@@ -15,7 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import type { FormTemplate, UpdateFormTemplateDto } from "@/lib/forms/types";
 import { FormFieldsSection } from "@/components/admin/forms/form-sections/form-fields-section";
@@ -46,6 +46,7 @@ import {
   getDefaultFormValues,
   formValuesToProfileEstimation,
 } from "@/components/admin/forms/profile-estimation/profile-estimation-form-utils";
+import { getApiErrorMessage } from "@/lib/api/error-utils";
 
 function templateToFormValues(t: FormTemplate): FormTemplateFormValues {
   return {
@@ -73,7 +74,6 @@ export default function EditFormTemplatePage() {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const router = useRouter();
-  const { toast } = useToast();
 
   const form = useForm<FormTemplateFormValues>({
     defaultValues: {
@@ -115,11 +115,9 @@ export default function EditFormTemplatePage() {
           values.cardSettings.flowchartGraph as FlowchartGraph
         );
         if (errs.length > 0) {
-          toast({
-            title: "Invalid saved flowchart",
+          toast.error("Invalid saved flowchart", {
             description:
               "The saved flowchart was invalid; recovered using form schema. Please review and save again.",
-            variant: "destructive",
           });
           values = {
             ...values,
@@ -134,10 +132,11 @@ export default function EditFormTemplatePage() {
       form.reset(values);
     } catch (error: unknown) {
       console.error("Failed to load template:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load form template",
-        variant: "destructive",
+      toast.error("Could not load form", {
+        description: getApiErrorMessage(
+          error,
+          "Failed to load form template. Please try again."
+        ),
       });
       router.push("/admin/forms");
     } finally {
@@ -187,21 +186,15 @@ export default function EditFormTemplatePage() {
     );
 
     if (!validation.isValid) {
-      toast({
-        title: "Validation Error",
-        description: validation.error,
-        variant: "destructive",
-      });
+      toast.error("Validation Error", { description: validation.error });
       return;
     }
 
     const currentSchema = values.schema || [];
     const invalidFields = currentSchema.filter((field) => !field.label?.trim());
     if (!isCardForm && invalidFields.length > 0) {
-      toast({
-        title: "Validation Error",
+      toast.error("Validation Error", {
         description: "All form fields must have labels",
-        variant: "destructive",
       });
       return;
     }
@@ -227,21 +220,18 @@ export default function EditFormTemplatePage() {
           };
       await api.forms.updateFormTemplate(formId, payload);
 
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Form template updated successfully",
       });
 
       router.push("/admin/forms");
     } catch (error: unknown) {
       console.error("Failed to update form template:", error);
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Failed to update form template",
-        variant: "destructive",
+      toast.error("Could not save form", {
+        description: getApiErrorMessage(
+          error,
+          "Failed to update form template. Please try again."
+        ),
       });
     } finally {
       setLoading(false);
@@ -337,16 +327,7 @@ export default function EditFormTemplatePage() {
               };
             }}
             onImportFullCardForm={(payload: CardFormTemplateJson) => {
-              setValue("title", payload.title ?? watch("title"));
-              setValue("subtitle", payload.subtitle ?? watch("subtitle"));
-              setValue(
-                "submitButtonText",
-                payload.submitButtonText ?? watch("submitButtonText")
-              );
-              setValue(
-                "successMessage",
-                payload.successMessage ?? watch("successMessage")
-              );
+              const current = form.getValues();
               let graph: FlowchartGraph | undefined;
               if (payload.schema?.length && payload.flowchartEdges?.length) {
                 graph = buildFlowchartFromSchemaAndEdges(
@@ -365,21 +346,31 @@ export default function EditFormTemplatePage() {
                   );
                 graph = payload.flowchartGraph;
               }
+              const merged: FormTemplateFormValues = {
+                ...current,
+                title: payload.title ?? current.title,
+                subtitle: payload.subtitle ?? current.subtitle,
+                submitButtonText:
+                  payload.submitButtonText ?? current.submitButtonText,
+                successMessage:
+                  payload.successMessage ?? current.successMessage,
+                styling: payload.styling ?? current.styling,
+                profileEstimation: getDefaultFormValues(
+                  payload.profileEstimation ?? undefined
+                ),
+              };
               if (graph) {
-                setValue("cardSettings", {
-                  ...(watch("cardSettings") as
+                merged.cardSettings = {
+                  ...(current.cardSettings as
                     | Record<string, unknown>
                     | undefined),
                   ...payload.cardSettings,
                   flowchartGraph: graph,
                   flowchartViewport: graph.viewport,
-                });
+                };
               }
-              setValue("styling", payload.styling ?? watch("styling"));
-              setValue(
-                "profileEstimation",
-                getDefaultFormValues(payload.profileEstimation ?? undefined)
-              );
+              // reset() syncs useFieldArray (categories, ranges, etc.); setValue alone does not
+              form.reset(merged);
             }}
             formSlug={watch("slug") || template?.slug}
           />

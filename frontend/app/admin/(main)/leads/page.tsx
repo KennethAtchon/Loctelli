@@ -33,10 +33,7 @@ export default function LeadsPage() {
     invalidateQueries: [["leads"]],
   });
 
-  const leads = useMemo(
-    () => leadsQuery.data ?? [],
-    [leadsQuery.data]
-  );
+  const leads = useMemo(() => leadsQuery.data ?? [], [leadsQuery.data]);
 
   // Sync filtered list when leads data changes
   useEffect(() => {

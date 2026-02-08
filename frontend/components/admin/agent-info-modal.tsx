@@ -19,7 +19,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 
 interface AgentInfo {
@@ -80,7 +80,6 @@ export default function AgentInfoModal({
   const [error, setError] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [showFullPrompt, setShowFullPrompt] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     if (open && userId && leadId) {
@@ -120,8 +119,7 @@ export default function AgentInfoModal({
   const copyToClipboard = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
-    toast({
-      title: "Copied",
+    toast.success("Copied", {
       description: `${field} copied to clipboard`,
     });
     setTimeout(() => setCopiedField(null), 2000);

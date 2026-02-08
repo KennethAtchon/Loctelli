@@ -46,14 +46,13 @@ export interface FlowchartCanvasProps {
   graph: FlowchartGraph;
   onGraphChange: (graph: FlowchartGraph) => void;
   onNodeClick?: (nodeId: string) => void;
-  selectedNodeId?: string;
 }
 
 export function FlowchartCanvas({
   graph,
   onGraphChange,
   onNodeClick,
-}: Omit<FlowchartCanvasProps, "selectedNodeId">) {
+}: FlowchartCanvasProps) {
   const nodes = graph.nodes as Node[];
   const edges = graph.edges as Edge[];
 

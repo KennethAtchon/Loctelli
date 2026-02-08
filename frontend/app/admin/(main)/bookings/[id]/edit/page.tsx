@@ -24,14 +24,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import logger from "@/lib/logger";
 import { useTenant } from "@/contexts/tenant-context";
 
 export default function EditBookingPage() {
   const router = useRouter();
   const params = useParams();
-  const { toast } = useToast();
   const { adminFilter } = useTenant();
   const bookingId = Number(params.id);
 
@@ -88,10 +87,8 @@ export default function EditBookingPage() {
       } catch (error) {
         logger.error("Failed to load booking data:", error);
         setError("Failed to load booking data");
-        toast({
-          title: "Error",
+        toast.error("Error", {
           description: "Failed to load booking data",
-          variant: "destructive",
         });
       } finally {
         setIsLoading(false);
@@ -101,7 +98,7 @@ export default function EditBookingPage() {
     if (bookingId) {
       loadData();
     }
-  }, [bookingId, toast, adminFilter]);
+  }, [bookingId, adminFilter]);
 
   const handleInputChange = (
     field: string,
@@ -132,10 +129,8 @@ export default function EditBookingPage() {
       formData.regularUserId === 0 ||
       !formData.bookingType
     ) {
-      toast({
-        title: "Validation Error",
+      toast.error("Validation Error", {
         description: "Please fill in all required fields",
-        variant: "destructive",
       });
       return;
     }
@@ -145,10 +140,8 @@ export default function EditBookingPage() {
       (user) => user.id === formData.regularUserId
     );
     if (!selectedUser) {
-      toast({
-        title: "Validation Error",
+      toast.error("Validation Error", {
         description: "Selected user does not exist",
-        variant: "destructive",
       });
       return;
     }
@@ -167,18 +160,15 @@ export default function EditBookingPage() {
 
       await api.bookings.updateBooking(bookingId, updateData);
 
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Booking updated successfully",
       });
 
       router.push("/admin/bookings");
     } catch (error) {
       logger.error("Failed to update booking:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to update booking",
-        variant: "destructive",
       });
     } finally {
       setIsSaving(false);

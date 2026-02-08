@@ -34,14 +34,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import type { Integration, UpdateIntegrationDto } from "@/lib/api";
 
 export default function EditIntegrationPage() {
   const router = useRouter();
   const params = useParams();
-  const { toast } = useToast();
 
   const [integration, setIntegration] = useState<Integration | null>(null);
   const [loading, setLoading] = useState(true);
@@ -77,10 +76,8 @@ export default function EditIntegrationPage() {
       });
     } catch (error) {
       console.error("Failed to load integration:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to load integration",
-        variant: "destructive",
       });
       router.push("/admin/integrations");
     } finally {
@@ -100,10 +97,8 @@ export default function EditIntegrationPage() {
 
   const validateForm = (): boolean => {
     if (!formData.name?.trim()) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Please enter an integration name",
-        variant: "destructive",
       });
       return false;
     }
@@ -117,10 +112,8 @@ export default function EditIntegrationPage() {
           !formData.config?.[field] ||
           formData.config[field].toString().trim() === ""
         ) {
-          toast({
-            title: "Error",
+          toast.error("Error", {
             description: `Please fill in the required field: ${field}`,
-            variant: "destructive",
           });
           return false;
         }
@@ -136,16 +129,13 @@ export default function EditIntegrationPage() {
     try {
       setTesting(true);
       await api.integrations.testConnection(integration.id);
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Connection test successful!",
       });
     } catch (error) {
       console.error("Connection test failed:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Connection test failed",
-        variant: "destructive",
       });
     } finally {
       setTesting(false);
@@ -158,18 +148,15 @@ export default function EditIntegrationPage() {
     try {
       setTesting(true);
       await api.integrations.syncData(integration.id);
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Data sync completed successfully!",
       });
       // Reload integration to get updated sync time
       await loadIntegration(integration.id);
     } catch (error) {
       console.error("Sync failed:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Data sync failed",
-        variant: "destructive",
       });
     } finally {
       setTesting(false);
@@ -182,17 +169,14 @@ export default function EditIntegrationPage() {
     try {
       setSaving(true);
       await api.integrations.update(integration.id, formData);
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Integration updated successfully",
       });
       router.push("/admin/integrations");
     } catch (error) {
       console.error("Failed to update integration:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to update integration",
-        variant: "destructive",
       });
     } finally {
       setSaving(false);
@@ -205,17 +189,14 @@ export default function EditIntegrationPage() {
     try {
       setDeleting(true);
       await api.integrations.deleteIntegration(integration.id);
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Integration deleted successfully",
       });
       router.push("/admin/integrations");
     } catch (error) {
       console.error("Failed to delete integration:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to delete integration",
-        variant: "destructive",
       });
     } finally {
       setDeleting(false);

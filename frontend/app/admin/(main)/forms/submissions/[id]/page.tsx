@@ -30,8 +30,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { getApiErrorMessage } from "@/lib/api/error-utils";
 import type {
   FormSubmission,
   UpdateFormSubmissionDto,
@@ -48,7 +49,6 @@ export default function FormSubmissionDetailPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [updateData, setUpdateData] = useState<UpdateFormSubmissionDto>({});
   const router = useRouter();
-  const { toast } = useToast();
 
   useEffect(() => {
     loadSubmission();
@@ -66,10 +66,8 @@ export default function FormSubmissionDetailPage() {
       });
     } catch (error: unknown) {
       console.error("Failed to load submission:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to load form submission",
-        variant: "destructive",
       });
       router.push("/admin/forms/submissions");
     } finally {
@@ -88,19 +86,16 @@ export default function FormSubmissionDetailPage() {
       );
       setSubmission(updatedSubmission);
       setIsEditing(false);
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Form submission updated successfully",
       });
     } catch (error: unknown) {
       console.error("Failed to update submission:", error);
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Failed to update form submission",
-        variant: "destructive",
+      toast.error("Could not save submission", {
+        description: getApiErrorMessage(
+          error,
+          "Failed to update form submission. Please try again."
+        ),
       });
     } finally {
       setLoading(false);

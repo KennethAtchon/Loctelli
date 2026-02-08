@@ -37,12 +37,11 @@ import type { UserProfile } from "@/lib/api/endpoints/admin-auth";
 import type { PromptTemplate } from "@/lib/api/endpoints/prompt-templates";
 import logger from "@/lib/logger";
 import { useTenant } from "@/contexts/tenant-context";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 export default function NewStrategyPage() {
   const router = useRouter();
   const { adminFilter } = useTenant();
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -251,17 +250,14 @@ export default function NewStrategyPage() {
         promptTemplateId: prev.promptTemplateId || parsed.promptTemplateId || 0,
       }));
 
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Strategy data imported successfully",
       });
       setJsonInput("");
       setShowJsonImport(false);
     } catch {
-      toast({
-        title: "Import Error",
+      toast.error("Import Error", {
         description: "Invalid JSON format. Please check your input.",
-        variant: "destructive",
       });
     }
   };
@@ -305,8 +301,7 @@ export default function NewStrategyPage() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    toast({
-      title: "Exported",
+    toast.success("Exported", {
       description: "Strategy data copied to clipboard and downloaded",
     });
   };

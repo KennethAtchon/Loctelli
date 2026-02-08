@@ -2,7 +2,7 @@
 
 import { useMemo, useCallback } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import {
   flowchartToSchema,
   schemaToFlowchart,
@@ -49,7 +49,6 @@ export function useFormTemplateFormStateRHF(
   UseFormTemplateFormStateReturn<FormTemplateFormValues>,
   "handleInputChange"
 > {
-  const { toast } = useToast();
   const { exportFileName } = options;
 
   const defaultFlowchartGraph = useMemo(
@@ -114,11 +113,10 @@ export function useFormTemplateFormStateRHF(
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast({
-      title: "Success",
+    toast.success("Success", {
       description: "Form schema exported successfully",
     });
-  }, [form, exportFileName, toast]);
+  }, [form, exportFileName]);
 
   const handleImportFields = useCallback(
     (fields: FormField[]) => {
@@ -189,7 +187,6 @@ export function useFormTemplateFormState<
   setFormData: React.Dispatch<React.SetStateAction<T>>,
   options: UseFormTemplateFormStateOptions = {}
 ): UseFormTemplateFormStateReturn<T> {
-  const { toast } = useToast();
   const { exportFileName } = options;
 
   const defaultFlowchartGraph = useMemo(
@@ -223,10 +220,7 @@ export function useFormTemplateFormState<
     [setFormData]
   );
 
-  const currentSchema = useMemo(
-    () => formData.schema ?? [],
-    [formData.schema]
-  );
+  const currentSchema = useMemo(() => formData.schema ?? [], [formData.schema]);
 
   const addField = useCallback(() => {
     const newField: FormField = {
@@ -277,11 +271,10 @@ export function useFormTemplateFormState<
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast({
-      title: "Success",
+    toast.success("Success", {
       description: "Form schema exported successfully",
     });
-  }, [currentSchema, exportFileName, formData.slug, toast]);
+  }, [currentSchema, exportFileName, formData.slug]);
 
   const handleImportFields = useCallback(
     (fields: FormField[]) => {

@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import type { PromptTemplate } from "@/lib/api/endpoints/prompt-templates";
 import { useTenant } from "@/contexts/tenant-context";
@@ -41,7 +41,6 @@ export default function PromptTemplatesPage() {
   const [deleting, setDeleting] = useState<number | null>(null);
   const isLoadingRef = useRef(false);
   const router = useRouter();
-  const { toast } = useToast();
   const { subAccountId, isGlobalView, getCurrentSubaccount } = useTenant();
 
   useEffect(() => {
@@ -71,10 +70,8 @@ export default function PromptTemplatesPage() {
       setTemplates(data);
     } catch (error) {
       console.error("Failed to load templates:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to load prompt templates",
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -84,21 +81,17 @@ export default function PromptTemplatesPage() {
 
   const handleActivate = async (id: number) => {
     if (isGlobalView) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description:
           "Please select a specific subaccount to activate templates. Templates cannot be activated globally.",
-        variant: "destructive",
       });
       return;
     }
 
     if (!subAccountId) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description:
           "No subaccount selected. Please select a subaccount first.",
-        variant: "destructive",
       });
       return;
     }
@@ -108,16 +101,13 @@ export default function PromptTemplatesPage() {
       await api.promptTemplates.activate(id, subAccountId);
       await loadTemplates(); // Reload to get updated status
       const currentSubaccount = getCurrentSubaccount?.();
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: `Template activated successfully for ${currentSubaccount?.name}`,
       });
     } catch (error) {
       console.error("Failed to activate template:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to activate template",
-        variant: "destructive",
       });
     } finally {
       setActivating(null);
@@ -129,16 +119,13 @@ export default function PromptTemplatesPage() {
       setDeleting(id);
       await api.promptTemplates.deleteTemplate(id);
       await loadTemplates(); // Reload to get updated list
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Template deleted successfully",
       });
     } catch (error) {
       console.error("Failed to delete template:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to delete template",
-        variant: "destructive",
       });
     } finally {
       setDeleting(null);

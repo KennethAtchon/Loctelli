@@ -28,14 +28,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import type { Integration } from "@/lib/api";
 
 export default function IntegrationDetailsPage() {
   const router = useRouter();
   const params = useParams();
-  const { toast } = useToast();
 
   const [integration, setIntegration] = useState<Integration | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,10 +56,8 @@ export default function IntegrationDetailsPage() {
       setIntegration(data);
     } catch (error) {
       console.error("Failed to load integration:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to load integration",
-        variant: "destructive",
       });
       router.push("/admin/integrations");
     } finally {
@@ -74,16 +71,13 @@ export default function IntegrationDetailsPage() {
     try {
       setTesting(true);
       await api.integrations.testConnection(integration.id);
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Connection test successful!",
       });
     } catch (error) {
       console.error("Connection test failed:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Connection test failed",
-        variant: "destructive",
       });
     } finally {
       setTesting(false);
@@ -96,18 +90,15 @@ export default function IntegrationDetailsPage() {
     try {
       setSyncing(true);
       await api.integrations.syncData(integration.id);
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Data sync completed successfully!",
       });
       // Reload integration to get updated sync time
       await loadIntegration(integration.id);
     } catch (error) {
       console.error("Sync failed:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Data sync failed",
-        variant: "destructive",
       });
     } finally {
       setSyncing(false);
@@ -120,17 +111,14 @@ export default function IntegrationDetailsPage() {
     try {
       setDeleting(true);
       await api.integrations.deleteIntegration(integration.id);
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Integration deleted successfully",
       });
       router.push("/admin/integrations");
     } catch (error) {
       console.error("Failed to delete integration:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to delete integration",
-        variant: "destructive",
       });
     } finally {
       setDeleting(false);

@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import type { FormField } from "@/lib/forms/types";
 import { FORM_FIELD_TYPE_OPTIONS } from "@/lib/forms/field-types";
 import { generateStableId } from "@/lib/utils/stable-id";
@@ -28,7 +28,6 @@ const VALID_TYPES = FORM_FIELD_TYPE_OPTIONS.map((o) => o.value);
 export function JsonImportDialog({ onImport }: JsonImportDialogProps) {
   const [jsonInput, setJsonInput] = useState("");
   const [showDialog, setShowDialog] = useState(false);
-  const { toast } = useToast();
 
   const getExampleJSON = () => {
     return JSON.stringify(
@@ -83,30 +82,25 @@ export function JsonImportDialog({ onImport }: JsonImportDialogProps) {
       }
 
       const usedIds = new Set();
-      const schemaWithUniqueIds = parsedSchema.map(
-        (field: FormField) => {
-          let fieldId = field.id;
-          if (!fieldId || usedIds.has(fieldId)) {
-            fieldId = generateStableId("field");
-          }
-          usedIds.add(fieldId);
-          return { ...field, id: fieldId };
+      const schemaWithUniqueIds = parsedSchema.map((field: FormField) => {
+        let fieldId = field.id;
+        if (!fieldId || usedIds.has(fieldId)) {
+          fieldId = generateStableId("field");
         }
-      );
+        usedIds.add(fieldId);
+        return { ...field, id: fieldId };
+      });
 
       onImport(schemaWithUniqueIds);
       setJsonInput("");
       setShowDialog(false);
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: `Imported ${schemaWithUniqueIds.length} form fields successfully`,
       });
     } catch (error: unknown) {
-      toast({
-        title: "Import Error",
+      toast.error("Import Error", {
         description:
           error instanceof Error ? error.message : "Invalid JSON format",
-        variant: "destructive",
       });
     }
   };

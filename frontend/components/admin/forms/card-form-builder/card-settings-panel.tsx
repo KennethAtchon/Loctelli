@@ -38,7 +38,7 @@ import {
 } from "@/lib/forms/field-types";
 import { labelToPipingKey } from "@/lib/forms/form-utils";
 import { api } from "@/lib/api";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import {
   Collapsible,
   CollapsibleContent,
@@ -89,17 +89,14 @@ export function CardSettingsPanel({
     [nodeIndex]
   );
 
-  const { toast } = useToast();
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [newOption, setNewOption] = useState("");
 
   const handleMediaUpload = async (file: File) => {
     if (!formSlug) {
-      toast({
-        title: "Form Not Saved",
+      toast.error("Form Not Saved", {
         description:
           "Please save the form first before uploading files. You can use a URL instead, or save the form and try again.",
-        variant: "destructive",
       });
       return;
     }
@@ -122,13 +119,13 @@ export function CardSettingsPanel({
           : { ...defaultMediaFormValues, url: result.url },
         { shouldDirty: true }
       );
-      toast({ title: "Success", description: "Media uploaded successfully" });
+      toast.success("Success", {
+        description: "Media uploaded successfully",
+      });
     } catch (error) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description:
           error instanceof Error ? error.message : "Failed to upload media",
-        variant: "destructive",
       });
     } finally {
       setUploadingMedia(false);

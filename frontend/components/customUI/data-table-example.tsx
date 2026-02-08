@@ -5,12 +5,7 @@ import { api } from "@/lib/api";
 import type { UserProfile } from "@/lib/api/endpoints/admin-auth";
 import { DataTable, Column, Filter, StatCard } from "./data-table";
 import { Badge } from "@/components/ui/badge";
-import {
-  Users,
-  UserCheck,
-  UserX,
-  UserPlus,
-} from "lucide-react";
+import { Users, UserCheck, UserX, UserPlus } from "lucide-react";
 import { useTenant } from "@/contexts/tenant-context";
 import { usePagination } from "./use-pagination";
 

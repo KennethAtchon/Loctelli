@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import DatabaseSchema from "@/components/admin/database-schema";
 import SDKTables from "@/components/admin/sdk-tables";
 
@@ -38,16 +38,10 @@ export default function DevPage() {
   const [debugLoading, setDebugLoading] = useState(false);
   const [debugTime, setDebugTime] = useState<number | null>(null);
 
-  const { toast } = useToast();
-
   // Debug section functions
   const executeApiCall = async () => {
     if (!debugUrl.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a URL",
-        variant: "destructive",
-      });
+      toast.error("Error", { description: "Please enter a URL" });
       return;
     }
 
@@ -63,11 +57,7 @@ export default function DevPage() {
       try {
         headers = JSON.parse(debugHeaders);
       } catch {
-        toast({
-          title: "Error",
-          description: "Invalid JSON in headers",
-          variant: "destructive",
-        });
+        toast.error("Error", { description: "Invalid JSON in headers" });
         return;
       }
 
@@ -80,11 +70,7 @@ export default function DevPage() {
         try {
           options.body = debugBody;
         } catch {
-          toast({
-            title: "Error",
-            description: "Invalid request body",
-            variant: "destructive",
-          });
+          toast.error("Error", { description: "Invalid request body" });
           return;
         }
       }
@@ -116,8 +102,7 @@ export default function DevPage() {
   const copyResponse = () => {
     if (typeof window !== "undefined" && navigator.clipboard) {
       navigator.clipboard.writeText(debugResponse);
-      toast({
-        title: "Copied",
+      toast.success("Copied", {
         description: "Response copied to clipboard",
       });
     }

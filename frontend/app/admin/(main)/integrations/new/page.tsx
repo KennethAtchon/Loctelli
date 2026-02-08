@@ -22,14 +22,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import type { IntegrationTemplate, CreateIntegrationDto } from "@/lib/api";
 
 export default function NewIntegrationPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { toast } = useToast();
 
   const [templates, setTemplates] = useState<IntegrationTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] =
@@ -55,15 +54,13 @@ export default function NewIntegrationPage() {
       setTemplates(data);
     } catch (error) {
       console.error("Failed to load templates:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to load integration templates",
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, []);
 
   useEffect(() => {
     loadTemplates();
@@ -107,19 +104,15 @@ export default function NewIntegrationPage() {
 
   const validateForm = (): boolean => {
     if (!selectedTemplate) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Please select an integration template",
-        variant: "destructive",
       });
       return false;
     }
 
     if (!formData.name.trim()) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Please enter an integration name",
-        variant: "destructive",
       });
       return false;
     }
@@ -131,10 +124,8 @@ export default function NewIntegrationPage() {
         !formData.config[field] ||
         formData.config[field].toString().trim() === ""
       ) {
-        toast({
-          title: "Error",
+        toast.error("Error", {
           description: `Please fill in the required field: ${field}`,
-          variant: "destructive",
         });
         return false;
       }
@@ -149,16 +140,13 @@ export default function NewIntegrationPage() {
     try {
       setTesting(true);
       // For now, we'll just show a success message since the backend test is mocked
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Connection test successful!",
       });
     } catch (error) {
       console.error("Connection test failed:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Connection test failed",
-        variant: "destructive",
       });
     } finally {
       setTesting(false);
@@ -171,17 +159,14 @@ export default function NewIntegrationPage() {
     try {
       setSaving(true);
       await api.integrations.create(formData);
-      toast({
-        title: "Success",
+      toast.success("Success", {
         description: "Integration created successfully",
       });
       router.push("/admin/integrations");
     } catch (error) {
       console.error("Failed to create integration:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to create integration",
-        variant: "destructive",
       });
     } finally {
       setSaving(false);
