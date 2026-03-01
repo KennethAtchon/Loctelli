@@ -2,9 +2,8 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
-import { AuthManager } from "@/lib/api/auth-manager";
-
-const authManager = new AuthManager();
+import { authManager } from "@/lib/api/auth-manager";
+import { emitSessionExpired } from "@/lib/session-expiration";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   // Create QueryClient in state to ensure it's stable across re-renders
@@ -46,16 +45,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 // Invalidate all queries to trigger refetch with new token
                 client.invalidateQueries();
               } catch {
-                // Refresh failed, clear tokens and redirect
-                authManager.clearTokens();
-                if (typeof window !== "undefined") {
-                  const currentPath = window.location.pathname;
-                  if (currentPath.startsWith("/admin")) {
-                    window.location.href = "/admin/login";
-                  } else {
-                    window.location.href = "/auth/login";
-                  }
-                }
+                emitSessionExpired({
+                  source: "react-query-mutation-onError",
+                  reason: "Could not refresh your session.",
+                });
               }
             }
           },

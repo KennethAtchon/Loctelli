@@ -229,7 +229,7 @@ describe("ApiClient", () => {
       mockAuthCookies.setRefreshToken.mockImplementation(() => {});
 
       await expect(apiClient.get("/test")).rejects.toThrow(
-        "Authentication failed. Please log in again."
+        "Session expired. Please refresh your session."
       );
     });
 
@@ -243,7 +243,7 @@ describe("ApiClient", () => {
       mockAuthCookies.getRefreshToken.mockReturnValue(null);
 
       await expect(apiClient.get("/test")).rejects.toThrow(
-        "Authentication failed. Please log in again."
+        "Session expired. Please refresh your session."
       );
     });
 

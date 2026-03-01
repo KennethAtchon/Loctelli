@@ -37,6 +37,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import logger from "@/lib/logger";
+import { resolvePostLoginRedirect } from "@/lib/session-expiration";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -49,9 +50,12 @@ export default function AdminLoginPage() {
     defaultValues: { email: "", password: "" },
   });
 
+  const getPostLoginRedirect = () =>
+    resolvePostLoginRedirect("/admin/dashboard");
+
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      router.push("/admin/dashboard");
+      router.push(getPostLoginRedirect());
     }
   }, [isAuthenticated, isLoading, router]);
 
@@ -70,7 +74,7 @@ export default function AdminLoginPage() {
     try {
       await adminLogin({ email: data.email, password: data.password });
       logger.debug("✅ Admin login successful, redirecting...");
-      router.push("/admin/dashboard");
+      router.push(getPostLoginRedirect());
     } catch (err) {
       logger.error("❌ Admin login failed:", err);
       setError(

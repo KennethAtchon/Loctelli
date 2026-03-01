@@ -1,23 +1,45 @@
 import { API_CONFIG } from "../utils/envUtils";
 import logger from "@/lib/logger";
 import { rateLimiter } from "../utils/rate-limiter";
-import { AuthManager } from "./auth-manager";
+import { AuthManager, getAuthManager } from "./auth-manager";
 import { toast } from "sonner";
+import { emitSessionExpired } from "@/lib/session-expiration";
 
 const API_BASE_URL = API_CONFIG.BASE_URL;
 
 export class ApiClient {
   private baseUrl: string;
   private authManager: AuthManager;
+  private static defaultInstance: ApiClient | null = null;
+  private static hasRateLimitCleanupInterval = false;
+  private lastFailedRequest: {
+    endpoint: string;
+    options: RequestInit;
+    timestamp: number;
+  } | null = null;
 
-  constructor(baseUrl: string = API_BASE_URL) {
+  protected constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
-    this.authManager = new AuthManager(baseUrl);
+    this.authManager = getAuthManager(baseUrl);
 
-    // Clean up expired rate limit blocks every minute
-    setInterval(() => {
-      rateLimiter.cleanup();
-    }, 60000);
+    if (!ApiClient.hasRateLimitCleanupInterval) {
+      ApiClient.hasRateLimitCleanupInterval = true;
+      // Clean up expired rate limit blocks every minute
+      setInterval(() => {
+        rateLimiter.cleanup();
+      }, 60000);
+    }
+  }
+
+  static getInstance(baseUrl: string = API_BASE_URL): ApiClient {
+    if (baseUrl === API_BASE_URL) {
+      if (!ApiClient.defaultInstance) {
+        ApiClient.defaultInstance = new ApiClient(baseUrl);
+      }
+      return ApiClient.defaultInstance;
+    }
+
+    return new ApiClient(baseUrl);
   }
 
   async request<T = unknown>(
@@ -71,7 +93,8 @@ export class ApiClient {
 
     // Handle 401 Unauthorized - attempt token refresh and retry once
     if (response.status === 401 && !isAuthEndpoint) {
-      logger.debug("🔒 401 Unauthorized, attempting token refresh...");
+      logger.debug("🔒 Received 401, attempting token refresh...");
+      this.lastFailedRequest = { endpoint, options, timestamp: Date.now() };
       try {
         await this.authManager.refreshToken();
 
@@ -90,6 +113,7 @@ export class ApiClient {
           ...options,
           headers: retryHeaders,
         });
+        this.lastFailedRequest = null;
 
         logger.debug(
           "🔄 Retry response status:",
@@ -97,31 +121,21 @@ export class ApiClient {
           response.statusText
         );
 
-        // If retry still fails, clear tokens and throw
+        // If retry still fails, trigger session expiration handling
         if (response.status === 401) {
-          this.authManager.clearTokens();
-          if (typeof window !== "undefined") {
-            const currentPath = window.location.pathname;
-            if (currentPath.startsWith("/admin")) {
-              window.location.href = "/admin/login";
-            } else {
-              window.location.href = "/auth/login";
-            }
-          }
-          throw new Error("Authentication failed. Please log in again.");
+          emitSessionExpired({
+            source: "api-client-retry-401",
+            reason: "Session expired after token refresh.",
+          });
+          throw new Error("Session expired. Please refresh your session.");
         }
       } catch (refreshError) {
         logger.error("❌ Token refresh failed:", refreshError);
-        this.authManager.clearTokens();
-        if (typeof window !== "undefined") {
-          const currentPath = window.location.pathname;
-          if (currentPath.startsWith("/admin")) {
-            window.location.href = "/admin/login";
-          } else {
-            window.location.href = "/auth/login";
-          }
-        }
-        throw new Error("Authentication failed. Please log in again.");
+        emitSessionExpired({
+          source: "api-client-refresh-failed",
+          reason: "Could not refresh your session.",
+        });
+        throw new Error("Session expired. Please refresh your session.");
       }
     }
 
@@ -358,7 +372,23 @@ export class ApiClient {
 
     return searchParams.toString();
   }
+
+  /** Retry the last failed request (if any) after manual refresh */
+  async retryLastFailedRequest<T = unknown>(): Promise<T | null> {
+    if (!this.lastFailedRequest) return null;
+
+    const { endpoint, options } = this.lastFailedRequest;
+    this.lastFailedRequest = null;
+
+    try {
+      logger.debug("🔄 Retrying last failed request after manual refresh...");
+      return await this.request<T>(endpoint, options);
+    } catch (error) {
+      logger.error("❌ Retry of last failed request failed:", error);
+      throw error;
+    }
+  }
 }
 
 // Create and export a default instance for backward compatibility
-export const apiClient = new ApiClient();
+export const apiClient = ApiClient.getInstance();

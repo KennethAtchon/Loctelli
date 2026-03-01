@@ -1,8 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
-import { AuthManager } from "./auth-manager";
+import { authManager } from "./auth-manager";
 import logger from "@/lib/logger";
-
-const authManager = new AuthManager();
+import { emitSessionExpired } from "@/lib/session-expiration";
 
 /**
  * React Query error handler for 401 Unauthorized responses
@@ -30,18 +29,10 @@ export async function handle401Error(
       return true; // Indicate that we handled the error
     } catch (refreshError) {
       logger.error("❌ Token refresh failed:", refreshError);
-      // Clear tokens and redirect to login
-      authManager.clearTokens();
-
-      // Redirect to appropriate login page
-      if (typeof window !== "undefined") {
-        const currentPath = window.location.pathname;
-        if (currentPath.startsWith("/admin")) {
-          window.location.href = "/admin/login";
-        } else {
-          window.location.href = "/auth/login";
-        }
-      }
+      emitSessionExpired({
+        source: "react-query-401-handler",
+        reason: "Could not refresh your session.",
+      });
       return false; // Error not fully handled, let React Query handle it
     }
   }

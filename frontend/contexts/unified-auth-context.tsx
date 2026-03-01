@@ -14,7 +14,10 @@ import type {
   AdminAuthResponse,
 } from "@/lib/api";
 import logger from "@/lib/logger";
-import { AuthManager } from "@/lib/api/auth-manager";
+import { authManager } from "@/lib/api/auth-manager";
+import { SessionExpirationModal } from "@/components/auth/session-expiration-modal";
+import { IdleTimeoutModal } from "@/components/auth/idle-timeout-modal";
+import { idleTimeoutManager } from "@/lib/idle-timeout";
 
 type AccountType = "user" | "admin";
 
@@ -71,7 +74,6 @@ export function UnifiedAuthProvider({
   const [account, setAccount] = useState<UnifiedAccount | null>(null);
   const [accountType, setAccountType] = useState<AccountType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const authManager = new AuthManager();
   const isAuthenticated = !!account && !!accountType;
   // Check for existing tokens and auto-login on mount
   useEffect(() => {
@@ -256,6 +258,7 @@ export function UnifiedAuthProvider({
       setAccount(normalizeUserProfile(userProfile));
       setAccountType("user");
       logger.log("✅ User login successful:", response.user.email);
+      idleTimeoutManager.start();
     } catch (error) {
       logger.error("❌ User login failed:", error);
       throw error;
@@ -289,6 +292,7 @@ export function UnifiedAuthProvider({
       setAccount(normalizeAdminProfile(response.admin));
       setAccountType("admin");
       logger.log("✅ Admin login successful:", response.admin.email);
+      idleTimeoutManager.start();
     } catch (error) {
       logger.error("❌ Admin login failed:", error);
       throw error;
@@ -326,6 +330,7 @@ export function UnifiedAuthProvider({
     // Clear state
     setAccount(null);
     setAccountType(null);
+    idleTimeoutManager.destroy();
     logger.log("✅ Logout successful");
   };
 
@@ -406,6 +411,8 @@ export function UnifiedAuthProvider({
   return (
     <UnifiedAuthContext.Provider value={value}>
       {children}
+      <SessionExpirationModal />
+      <IdleTimeoutModal />
     </UnifiedAuthContext.Provider>
   );
 }

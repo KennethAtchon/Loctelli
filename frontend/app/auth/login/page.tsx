@@ -26,6 +26,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import logger from "@/lib/logger";
+import { resolvePostLoginRedirect } from "@/lib/session-expiration";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -37,17 +38,18 @@ export default function LoginPage() {
     defaultValues: { email: "", password: "" },
   });
 
+  const getPostLoginRedirect = () => {
+    const fallbackPath = isAdmin() ? "/admin/dashboard" : "/account";
+    return resolvePostLoginRedirect(fallbackPath);
+  };
+
   useEffect(() => {
     logger.debug("🔍 Error state changed:", error);
   }, [error]);
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      if (isAdmin()) {
-        router.push("/admin/dashboard");
-      } else {
-        router.push("/account");
-      }
+      router.push(getPostLoginRedirect());
     }
   }, [isAuthenticated, isLoading, isAdmin, router]);
 
@@ -81,7 +83,7 @@ export default function LoginPage() {
       logger.debug("🧪 Testing login with credentials...");
       await loginUser({ email: data.email, password: data.password });
       logger.debug("✅ Login successful, redirecting...");
-      router.push("/account");
+      router.push(getPostLoginRedirect());
     } catch (err) {
       logger.error("❌ Login failed:", err);
       const errorMessage =
