@@ -56,8 +56,9 @@ export function IdleTimeoutModal() {
         <AlertDialogHeader>
           <AlertDialogTitle>You will be signed out soon</AlertDialogTitle>
           <AlertDialogDescription>
-            You've been inactive for a while. For your security, you'll be automatically
-            signed out in {minutesUntilLogout} minute{minutesUntilLogout !== 1 ? "s" : ""}.
+            You've been inactive for a while. For your security, you'll be
+            automatically signed out in {minutesUntilLogout} minute
+            {minutesUntilLogout !== 1 ? "s" : ""}.
           </AlertDialogDescription>
         </AlertDialogHeader>
 

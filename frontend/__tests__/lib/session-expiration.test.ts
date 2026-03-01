@@ -21,7 +21,11 @@ type MockWindow = {
 
 const originalWindow = globalThis.window;
 
-function createMockWindow(pathname: string, search = "", hash = ""): MockWindow {
+function createMockWindow(
+  pathname: string,
+  search = "",
+  hash = ""
+): MockWindow {
   const storage = new Map<string, string>();
 
   return {

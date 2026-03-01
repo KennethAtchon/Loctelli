@@ -29,14 +29,6 @@ const mockAuthCookies = {
 };
 
 mock.module("@/lib/cookies", () => ({ AuthCookies: mockAuthCookies }));
-    setAdminAccessToken: mockSetAdminAccessToken,
-    setAdminRefreshToken: mockSetAdminRefreshToken,
-    setAccessToken: mockSetAccessToken,
-    setRefreshToken: mockSetRefreshToken,
-    clearAdminTokens: mockClearAdminTokens,
-    clearUserTokens: mockClearUserTokens,
-  },
-}));
 
 mock.module("@/lib/logger", () => ({
   __esModule: true,

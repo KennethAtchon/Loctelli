@@ -49,12 +49,18 @@ export class IdleTimeoutManager {
   }
 
   private setupActivityListeners(): void {
+    if (typeof window === "undefined" || typeof document === "undefined")
+      return;
+
     this.options.events.forEach((event) => {
       document.addEventListener(event, this.boundResetTimer, { passive: true });
     });
   }
 
   private removeActivityListeners(): void {
+    if (typeof window === "undefined" || typeof document === "undefined")
+      return;
+
     this.options.events.forEach((event) => {
       document.removeEventListener(event, this.boundResetTimer);
     });
@@ -87,7 +93,10 @@ export class IdleTimeoutManager {
       detail: {
         reason: "idle-timeout",
         source: "idle-timeout-manager",
-        returnTo: window.location.pathname + window.location.search + window.location.hash,
+        returnTo:
+          window.location.pathname +
+          window.location.search +
+          window.location.hash,
       },
     });
     window.dispatchEvent(event);

@@ -9,11 +9,24 @@ import logger from "@/lib/logger";
  * - Headers will be automatically included
  * - Works for both regular users and admins
  */
-export class TenantAwareApiClient extends ApiClient {
+export class TenantAwareApiClient {
+  private static instance: TenantAwareApiClient | null = null;
+  private apiClient: ApiClient;
   private tenantContext: {
     subAccountId: number | null;
     mode: "USER_SCOPED" | "ADMIN_GLOBAL" | "ADMIN_FILTERED";
   } | null = null;
+
+  private constructor() {
+    this.apiClient = ApiClient.getInstance();
+  }
+
+  static getInstance(): TenantAwareApiClient {
+    if (!TenantAwareApiClient.instance) {
+      TenantAwareApiClient.instance = new TenantAwareApiClient();
+    }
+    return TenantAwareApiClient.instance;
+  }
 
   /**
    * Set the tenant context for subsequent requests
@@ -50,28 +63,77 @@ export class TenantAwareApiClient extends ApiClient {
   }
 
   /**
-   * Override request to include tenant headers
+   * Delegate API methods to internal client with tenant headers
    */
-  async request<T = unknown>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
-    // Add tenant headers to the request
-    const tenantHeaders = this.getTenantHeaders();
-
-    const enhancedOptions = {
+  async get<T = unknown>(endpoint: string, options: RequestInit = {}) {
+    return this.apiClient.request<T>(endpoint, {
       ...options,
+      method: "GET",
+      headers: { ...this.getTenantHeaders(), ...options.headers },
+    });
+  }
+
+  async post<T = unknown>(
+    endpoint: string,
+    data?: unknown,
+    options: RequestInit = {}
+  ) {
+    return this.apiClient.request<T>(endpoint, {
+      ...options,
+      method: "POST",
+      body: data ? JSON.stringify(data) : undefined,
       headers: {
+        "Content-Type": "application/json",
+        ...this.getTenantHeaders(),
         ...options.headers,
-        ...tenantHeaders,
       },
-    };
+    });
+  }
 
-    if (Object.keys(tenantHeaders).length > 0) {
-      logger.debug("🏢 Including tenant headers:", tenantHeaders);
-    }
+  async put<T = unknown>(
+    endpoint: string,
+    data?: unknown,
+    options: RequestInit = {}
+  ) {
+    return this.apiClient.request<T>(endpoint, {
+      ...options,
+      method: "PUT",
+      body: data ? JSON.stringify(data) : undefined,
+      headers: {
+        "Content-Type": "application/json",
+        ...this.getTenantHeaders(),
+        ...options.headers,
+      },
+    });
+  }
 
-    return super.request<T>(endpoint, enhancedOptions);
+  async patch<T = unknown>(
+    endpoint: string,
+    data?: unknown,
+    options: RequestInit = {}
+  ) {
+    return this.apiClient.request<T>(endpoint, {
+      ...options,
+      method: "PATCH",
+      body: data ? JSON.stringify(data) : undefined,
+      headers: {
+        "Content-Type": "application/json",
+        ...this.getTenantHeaders(),
+        ...options.headers,
+      },
+    });
+  }
+
+  async delete<T = unknown>(endpoint: string, options: RequestInit = {}) {
+    return this.apiClient.request<T>(endpoint, {
+      ...options,
+      method: "DELETE",
+      headers: { ...this.getTenantHeaders(), ...options.headers },
+    });
+  }
+
+  buildQueryString(params: Record<string, unknown>): string {
+    return this.apiClient.buildQueryString(params);
   }
 
   /**
@@ -123,7 +185,7 @@ export class TenantAwareApiClient extends ApiClient {
 /**
  * Create singleton instance
  */
-export const tenantApiClient = new TenantAwareApiClient();
+export const tenantApiClient = TenantAwareApiClient.getInstance();
 
 /**
  * Hook to get API client with tenant context automatically applied

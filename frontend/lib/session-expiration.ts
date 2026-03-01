@@ -49,11 +49,13 @@ export function consumeReturnToPath(): string | null {
   return sanitizeReturnTo(stored);
 }
 
-export function emitSessionExpired(detail: {
-  reason?: string;
-  source?: string;
-  returnTo?: string;
-} = {}): void {
+export function emitSessionExpired(
+  detail: {
+    reason?: string;
+    source?: string;
+    returnTo?: string;
+  } = {}
+): void {
   if (typeof window === "undefined") {
     return;
   }
@@ -94,7 +96,9 @@ export function subscribeToSessionExpired(
 }
 
 export function getLoginPathForCurrentRoute(pathname?: string): string {
-  const currentPath = pathname ?? (typeof window !== "undefined" ? window.location.pathname : "/");
+  const currentPath =
+    pathname ??
+    (typeof window !== "undefined" ? window.location.pathname : "/");
   return currentPath.startsWith("/admin") ? "/admin/login" : "/auth/login";
 }
 
@@ -104,7 +108,9 @@ export function redirectToLoginWithReturnTo(path?: string): void {
   }
 
   const returnTo = persistReturnToPath(path);
-  const loginPath = getLoginPathForCurrentRoute(path ?? window.location.pathname);
+  const loginPath = getLoginPathForCurrentRoute(
+    path ?? window.location.pathname
+  );
   const nextUrl = `${loginPath}?returnTo=${encodeURIComponent(returnTo)}`;
   window.location.href = nextUrl;
 }
@@ -114,7 +120,9 @@ export function resolvePostLoginRedirect(defaultPath: string): string {
     return defaultPath;
   }
 
-  const queryParam = new URLSearchParams(window.location.search).get("returnTo");
+  const queryParam = new URLSearchParams(window.location.search).get(
+    "returnTo"
+  );
   const returnToFromQuery = sanitizeReturnTo(queryParam);
 
   if (returnToFromQuery) {

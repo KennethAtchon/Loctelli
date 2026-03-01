@@ -139,11 +139,12 @@ export class AuthManager {
   private schedulePreemptiveRefresh(): void {
     this.clearRefreshTimer();
 
-    const token = AuthCookies.getAccessToken() || AuthCookies.getAdminAccessToken();
+    const token =
+      AuthCookies.getAccessToken() || AuthCookies.getAdminAccessToken();
     if (!token) return;
 
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = JSON.parse(atob(token.split(".")[1]));
       const exp = payload.exp * 1000; // Convert to milliseconds
       const now = Date.now();
       const ttl = exp - now;
@@ -237,7 +238,9 @@ export class AuthManager {
   }
 }
 
-export function getAuthManager(baseUrl: string = API_CONFIG.BASE_URL): AuthManager {
+export function getAuthManager(
+  baseUrl: string = API_CONFIG.BASE_URL
+): AuthManager {
   if (baseUrl === API_CONFIG.BASE_URL) {
     if (!defaultAuthManager) {
       defaultAuthManager = new AuthManager(baseUrl);

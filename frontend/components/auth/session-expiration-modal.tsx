@@ -23,7 +23,9 @@ import { toast } from "sonner";
 export function SessionExpirationModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [reason, setReason] = useState<string>("Your session is no longer valid.");
+  const [reason, setReason] = useState<string>(
+    "Your session is no longer valid."
+  );
 
   useEffect(() => {
     return subscribeToSessionExpired((detail) => {

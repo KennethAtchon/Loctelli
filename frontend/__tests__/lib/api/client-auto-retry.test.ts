@@ -22,13 +22,21 @@ const mockLogger = Bun.mock("@/lib/logger", "default", () => ({
   warn: jest.fn(),
 }));
 
-const mockAuthManager = Bun.mock("@/lib/api/auth-manager", "AuthManager", jest.fn().mockImplementation(() => ({
-  getAuthHeaders: () => ({ Authorization: "Bearer test-token" }),
-  refreshToken: jest.fn().mockResolvedValue(undefined),
-  isAuthEndpoint: jest.fn(() => false),
-})));
+const mockAuthManager = Bun.mock(
+  "@/lib/api/auth-manager",
+  "AuthManager",
+  jest.fn().mockImplementation(() => ({
+    getAuthHeaders: () => ({ Authorization: "Bearer test-token" }),
+    refreshToken: jest.fn().mockResolvedValue(undefined),
+    isAuthEndpoint: jest.fn(() => false),
+  }))
+);
 
-const mockEmitSessionExpired = Bun.mock("@/lib/session-expiration", "emitSessionExpired", jest.fn());
+const mockEmitSessionExpired = Bun.mock(
+  "@/lib/session-expiration",
+  "emitSessionExpired",
+  jest.fn()
+);
 
 describe("ApiClient auto-retry", () => {
   let apiClient: ApiClient;
@@ -57,7 +65,9 @@ describe("ApiClient auto-retry", () => {
         json: () => Promise.resolve({ data: "success" }),
       } as Response);
 
-    await expect(apiClient.get("/test")).rejects.toThrow("Session expired. Please refresh your session.");
+    await expect(apiClient.get("/test")).rejects.toThrow(
+      "Session expired. Please refresh your session."
+    );
 
     expect(mockEmitSessionExpired).toHaveBeenCalledWith({
       source: "api-client-retry-401",

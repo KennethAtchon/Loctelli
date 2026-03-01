@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "NODE_ENV=development bun run --bun next dev --turbopack",
-    "build": "NODE_ENV=production bun run --bun next build",
-    "build:all": "bun run format && bun run lint && bun run tsc --noEmit && bun run build",
+    "build": "rm -rf .next && NODE_ENV=production bun run --bun next build",
+    "build:all": "bun run format && bun run lint && bun run build && bun run tsc --noEmit",
     "start": "bun run --bun next start",
     "lint": "eslint . --max-warnings 999",
     "format": "prettier --write .",

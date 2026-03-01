@@ -48,7 +48,11 @@ beforeAll(() => {
     Promise.resolve({
       ok: true,
       status: 200,
-      json: () => Promise.resolve({ access_token: "new_access", refresh_token: "new_refresh" }),
+      json: () =>
+        Promise.resolve({
+          access_token: "new_access",
+          refresh_token: "new_refresh",
+        }),
     } as Response)
   );
 });
