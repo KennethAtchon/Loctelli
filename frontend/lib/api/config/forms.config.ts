@@ -249,4 +249,17 @@ export const formsConfig: EndpointGroup = {
     },
     responseType: {} as { content: string },
   },
+
+  // Simple Form AI chat (admin): ask questions, get Simple Form JSON
+  simpleFormAiChat: {
+    method: "POST",
+    path: "/forms/ai-simple-form-chat",
+    requiresBody: true,
+    bodyType: {} as {
+      message: string;
+      currentSimpleFormPayload?: Record<string, unknown>;
+      conversationHistory?: Array<{ role: string; content: string }>;
+    },
+    responseType: {} as { content: string },
+  },
 };

@@ -30,7 +30,9 @@ import { UpdateFormSessionDto } from './dto/update-form-session.dto';
 import { ProfileEstimationAIService } from './services/profile-estimation-ai.service';
 import { FormAnalyticsService } from './services/form-analytics.service';
 import { CardFormAIService } from './services/card-form-ai.service';
+import { SimpleFormAIService } from './services/simple-form-ai.service';
 import { CardFormAiChatDto } from './dto/card-form-ai-chat.dto';
+import { SimpleFormAiChatDto } from './dto/simple-form-ai-chat.dto';
 import { JwtAuthGuard } from '../../../shared/auth/auth.guard';
 import { AdminGuard } from '../../../shared/guards/admin.guard';
 import { Public } from '../../../shared/decorators/public.decorator';
@@ -46,6 +48,7 @@ export class FormsController {
     private readonly profileEstimationAI: ProfileEstimationAIService,
     private readonly formAnalytics: FormAnalyticsService,
     private readonly cardFormAI: CardFormAIService,
+    private readonly simpleFormAI: SimpleFormAIService,
   ) {}
 
   // Card Form AI chat (Admin only) – ask questions and get Card Form JSON
@@ -55,6 +58,17 @@ export class FormsController {
     return this.cardFormAI.chat(
       dto.message,
       dto.currentCardFormPayload,
+      dto.conversationHistory,
+    );
+  }
+
+  // Simple Form AI chat (Admin only) – ask questions and get Simple Form JSON
+  @Post('ai-simple-form-chat')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  async simpleFormAiChat(@Body() dto: SimpleFormAiChatDto) {
+    return this.simpleFormAI.chat(
+      dto.message,
+      dto.currentSimpleFormPayload,
       dto.conversationHistory,
     );
   }

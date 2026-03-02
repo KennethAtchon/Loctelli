@@ -25,7 +25,13 @@ export function Navigation() {
               className="mr-2"
               onClick={() => router.push("/")}
             />
-            <Link href="/" className="text-xl font-bold text-blue-600" onClick={() => router.push("/")}>Loctelli</Link>
+            <Link
+              href="/"
+              className="text-xl font-bold text-blue-600"
+              onClick={() => router.push("/")}
+            >
+              Loctelli
+            </Link>
           </div>
 
           {/* Desktop Navigation */}

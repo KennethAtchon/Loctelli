@@ -710,10 +710,16 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
                 onChange={(e) => {
                   const v = e.target.value.trim();
                   if (v === "") {
-                    updateNested("card", "height", { ...current.card?.height, mobile: undefined });
+                    updateNested("card", "height", {
+                      ...current.card?.height,
+                      mobile: undefined,
+                    });
                     return;
                   }
-                  updateNested("card", "height", { ...current.card?.height, mobile: v });
+                  updateNested("card", "height", {
+                    ...current.card?.height,
+                    mobile: v,
+                  });
                 }}
                 className="mt-1"
               />
@@ -736,10 +742,16 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
                 onChange={(e) => {
                   const v = e.target.value.trim();
                   if (v === "") {
-                    updateNested("card", "height", { ...current.card?.height, tablet: undefined });
+                    updateNested("card", "height", {
+                      ...current.card?.height,
+                      tablet: undefined,
+                    });
                     return;
                   }
-                  updateNested("card", "height", { ...current.card?.height, tablet: v });
+                  updateNested("card", "height", {
+                    ...current.card?.height,
+                    tablet: v,
+                  });
                 }}
                 className="mt-1"
               />
@@ -762,10 +774,16 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
                 onChange={(e) => {
                   const v = e.target.value.trim();
                   if (v === "") {
-                    updateNested("card", "height", { ...current.card?.height, desktop: undefined });
+                    updateNested("card", "height", {
+                      ...current.card?.height,
+                      desktop: undefined,
+                    });
                     return;
                   }
-                  updateNested("card", "height", { ...current.card?.height, desktop: v });
+                  updateNested("card", "height", {
+                    ...current.card?.height,
+                    desktop: v,
+                  });
                 }}
                 className="mt-1"
               />

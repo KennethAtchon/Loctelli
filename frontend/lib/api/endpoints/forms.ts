@@ -263,4 +263,15 @@ export class FormsApi {
       content: string;
     }>;
   }
+
+  /** Simple Form AI chat: send message + current form context, get assistant reply. */
+  async simpleFormAiChat(body: {
+    message: string;
+    currentSimpleFormPayload?: Record<string, unknown>;
+    conversationHistory?: Array<{ role: string; content: string }>;
+  }): Promise<{ content: string }> {
+    return this.api.simpleFormAiChat(undefined, body) as Promise<{
+      content: string;
+    }>;
+  }
 }

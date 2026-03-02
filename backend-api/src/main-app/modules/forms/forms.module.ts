@@ -4,6 +4,7 @@ import { FormsController } from './forms.controller';
 import { ProfileEstimationAIService } from './services/profile-estimation-ai.service';
 import { FormAnalyticsService } from './services/form-analytics.service';
 import { CardFormAIService } from './services/card-form-ai.service';
+import { SimpleFormAIService } from './services/simple-form-ai.service';
 import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
 import { StorageModule } from '../../../shared/storage/storage.module';
 
@@ -15,6 +16,7 @@ import { StorageModule } from '../../../shared/storage/storage.module';
     ProfileEstimationAIService,
     FormAnalyticsService,
     CardFormAIService,
+    SimpleFormAIService,
   ],
   exports: [FormsService],
 })

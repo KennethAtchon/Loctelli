@@ -51,13 +51,19 @@ export function SimpleFormView({
 
   if (success) {
     return (
-      <Card 
+      <Card
         className={`${
-          template.styling?.card?.height?.mobile ? `h-[${template.styling.card.height.mobile}]` : ''
+          template.styling?.card?.height?.mobile
+            ? `h-[${template.styling.card.height.mobile}]`
+            : ""
         } ${
-          template.styling?.card?.height?.tablet ? `md:h-[${template.styling.card.height.tablet}]` : ''
+          template.styling?.card?.height?.tablet
+            ? `md:h-[${template.styling.card.height.tablet}]`
+            : ""
         } ${
-          template.styling?.card?.height?.desktop ? `lg:h-[${template.styling.card.height.desktop}]` : ''
+          template.styling?.card?.height?.desktop
+            ? `lg:h-[${template.styling.card.height.desktop}]`
+            : ""
         }`}
       >
         <CardContent className="pt-6 text-center">
@@ -73,13 +79,19 @@ export function SimpleFormView({
   }
 
   return (
-    <Card 
+    <Card
       className={`${
-        template.styling?.card?.height?.mobile ? `h-[${template.styling.card.height.mobile}]` : ''
+        template.styling?.card?.height?.mobile
+          ? `h-[${template.styling.card.height.mobile}]`
+          : ""
       } ${
-        template.styling?.card?.height?.tablet ? `md:h-[${template.styling.card.height.tablet}]` : ''
+        template.styling?.card?.height?.tablet
+          ? `md:h-[${template.styling.card.height.tablet}]`
+          : ""
       } ${
-        template.styling?.card?.height?.desktop ? `lg:h-[${template.styling.card.height.desktop}]` : ''
+        template.styling?.card?.height?.desktop
+          ? `lg:h-[${template.styling.card.height.desktop}]`
+          : ""
       }`}
     >
       <CardHeader>

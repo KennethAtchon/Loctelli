@@ -232,7 +232,7 @@ export interface FormStyling {
     /** Height configuration for card forms */
     height?: {
       mobile?: string | number; // e.g. "400px", "24rem", 400
-      tablet?: string | number; // e.g. "600px", "36rem", 600  
+      tablet?: string | number; // e.g. "600px", "36rem", 600
       desktop?: string | number; // e.g. "800px", "48rem", 800
     };
   };

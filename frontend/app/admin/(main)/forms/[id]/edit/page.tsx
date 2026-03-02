@@ -432,6 +432,27 @@ export default function EditFormTemplatePage() {
               onRemoveField={removeField}
               onImportFields={handleImportFields}
               onExportSchema={exportSchemaToJSON}
+              AIBuilder={{
+                name: watch("name") || "",
+                slug: watch("slug") || "",
+                title: watch("title") || "",
+                subtitle: watch("subtitle") || "",
+                description: watch("description") || "",
+                submitButtonText: watch("submitButtonText") || "Submit",
+                successMessage:
+                  watch("successMessage") || "Thank you for your submission!",
+                styling: watch("styling") || undefined,
+                onNameChange: handleNameChange,
+                onTitleChange: handleTitleChange,
+                onSubtitleChange: (subtitle) => setValue("subtitle", subtitle),
+                onDescriptionChange: (description) =>
+                  setValue("description", description),
+                onSubmitButtonTextChange: (text) =>
+                  setValue("submitButtonText", text),
+                onSuccessMessageChange: (message) =>
+                  setValue("successMessage", message),
+                onStylingChange: (styling) => setValue("styling", styling),
+              }}
             />
           )}
 
