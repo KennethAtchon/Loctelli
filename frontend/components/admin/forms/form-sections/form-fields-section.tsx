@@ -77,13 +77,25 @@ export function FormFieldsSection({
     onImportFields(payload.schema || []);
 
     // Update other form properties if callbacks are provided
-    if (AIBuilder.onNameChange && payload.name && payload.name !== AIBuilder.name) {
+    if (
+      AIBuilder.onNameChange &&
+      payload.name &&
+      payload.name !== AIBuilder.name
+    ) {
       AIBuilder.onNameChange(payload.name);
     }
-    if (AIBuilder.onTitleChange && payload.title && payload.title !== AIBuilder.title) {
+    if (
+      AIBuilder.onTitleChange &&
+      payload.title &&
+      payload.title !== AIBuilder.title
+    ) {
       AIBuilder.onTitleChange(payload.title);
     }
-    if (AIBuilder.onSubtitleChange && payload.subtitle && payload.subtitle !== AIBuilder.subtitle) {
+    if (
+      AIBuilder.onSubtitleChange &&
+      payload.subtitle &&
+      payload.subtitle !== AIBuilder.subtitle
+    ) {
       AIBuilder.onSubtitleChange(payload.subtitle);
     }
     if (
@@ -107,7 +119,11 @@ export function FormFieldsSection({
     ) {
       AIBuilder.onSuccessMessageChange(payload.successMessage);
     }
-    if (AIBuilder.onStylingChange && payload.styling && payload.styling !== AIBuilder.styling) {
+    if (
+      AIBuilder.onStylingChange &&
+      payload.styling &&
+      payload.styling !== AIBuilder.styling
+    ) {
       AIBuilder.onStylingChange(payload.styling);
     }
   };

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/unified-auth-context";
+import { getLoginPathForCurrentRoute } from "@/lib/session-expiration";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -12,12 +13,14 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push("/auth/login");
+      const loginPath = getLoginPathForCurrentRoute(pathname);
+      router.push(loginPath);
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router, pathname]);
 
   // Show loading state while checking authentication or during redirect
   if (isLoading || (!isAuthenticated && !isLoading)) {

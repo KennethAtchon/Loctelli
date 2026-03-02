@@ -30,7 +30,7 @@ import { resolvePostLoginRedirect } from "@/lib/session-expiration";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { loginUser, isAuthenticated, isLoading, isAdmin } = useUnifiedAuth();
+  const { loginUser, isAuthenticated, isLoading } = useUnifiedAuth();
   const [error, setError] = useState("");
 
   const form = useForm<LoginFormValues>({
@@ -38,10 +38,7 @@ export default function LoginPage() {
     defaultValues: { email: "", password: "" },
   });
 
-  const getPostLoginRedirect = () => {
-    const fallbackPath = isAdmin() ? "/admin/dashboard" : "/account";
-    return resolvePostLoginRedirect(fallbackPath);
-  };
+  const getPostLoginRedirect = () => resolvePostLoginRedirect("/account");
 
   useEffect(() => {
     logger.debug("🔍 Error state changed:", error);
@@ -51,7 +48,7 @@ export default function LoginPage() {
     if (!isLoading && isAuthenticated) {
       router.push(getPostLoginRedirect());
     }
-  }, [isAuthenticated, isLoading, isAdmin, router]);
+  }, [isAuthenticated, isLoading, router]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
