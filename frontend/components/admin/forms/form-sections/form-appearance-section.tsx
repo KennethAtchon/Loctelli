@@ -695,6 +695,84 @@ export function FormAppearanceSection(props?: FormAppearanceSectionProps) {
                 </SelectContent>
               </Select>
             </div>
+            <div>
+              <Label
+                htmlFor="styling-card-height-mobile"
+                className="text-muted-foreground text-xs"
+              >
+                Card height - mobile (px or rem)
+              </Label>
+              <Input
+                id="styling-card-height-mobile"
+                type="text"
+                placeholder="400px"
+                value={current.card?.height?.mobile ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value.trim();
+                  if (v === "") {
+                    updateNested("card", "height", { ...current.card?.height, mobile: undefined });
+                    return;
+                  }
+                  updateNested("card", "height", { ...current.card?.height, mobile: v });
+                }}
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Height for mobile screens. Default: 400px
+              </p>
+            </div>
+            <div>
+              <Label
+                htmlFor="styling-card-height-tablet"
+                className="text-muted-foreground text-xs"
+              >
+                Card height - tablet (px or rem)
+              </Label>
+              <Input
+                id="styling-card-height-tablet"
+                type="text"
+                placeholder="600px"
+                value={current.card?.height?.tablet ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value.trim();
+                  if (v === "") {
+                    updateNested("card", "height", { ...current.card?.height, tablet: undefined });
+                    return;
+                  }
+                  updateNested("card", "height", { ...current.card?.height, tablet: v });
+                }}
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Height for tablet screens (md:). Default: 600px
+              </p>
+            </div>
+            <div>
+              <Label
+                htmlFor="styling-card-height-desktop"
+                className="text-muted-foreground text-xs"
+              >
+                Card height - desktop (px or rem)
+              </Label>
+              <Input
+                id="styling-card-height-desktop"
+                type="text"
+                placeholder="700px"
+                value={current.card?.height?.desktop ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value.trim();
+                  if (v === "") {
+                    updateNested("card", "height", { ...current.card?.height, desktop: undefined });
+                    return;
+                  }
+                  updateNested("card", "height", { ...current.card?.height, desktop: v });
+                }}
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Height for desktop screens (lg:). Default: 700px
+              </p>
+            </div>
           </div>
         </div>
 

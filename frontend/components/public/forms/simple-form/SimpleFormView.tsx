@@ -51,7 +51,15 @@ export function SimpleFormView({
 
   if (success) {
     return (
-      <Card>
+      <Card 
+        className={`${
+          template.styling?.card?.height?.mobile ? `h-[${template.styling.card.height.mobile}]` : ''
+        } ${
+          template.styling?.card?.height?.tablet ? `md:h-[${template.styling.card.height.tablet}]` : ''
+        } ${
+          template.styling?.card?.height?.desktop ? `lg:h-[${template.styling.card.height.desktop}]` : ''
+        }`}
+      >
         <CardContent className="pt-6 text-center">
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Thank You!</h2>
@@ -65,7 +73,15 @@ export function SimpleFormView({
   }
 
   return (
-    <Card>
+    <Card 
+      className={`${
+        template.styling?.card?.height?.mobile ? `h-[${template.styling.card.height.mobile}]` : ''
+      } ${
+        template.styling?.card?.height?.tablet ? `md:h-[${template.styling.card.height.tablet}]` : ''
+      } ${
+        template.styling?.card?.height?.desktop ? `lg:h-[${template.styling.card.height.desktop}]` : ''
+      }`}
+    >
       <CardHeader>
         <CardTitle>{template.title}</CardTitle>
         {template.subtitle && (

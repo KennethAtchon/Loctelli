@@ -5,9 +5,11 @@ import { Calendar, Menu, X } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <nav className="bg-white/95 backdrop-blur-lg shadow-sm border-b border-gray-100 sticky top-0 z-50">
@@ -21,8 +23,9 @@ export function Navigation() {
               width={32}
               height={32}
               className="mr-2"
+              onClick={() => router.push("/")}
             />
-            <div className="text-xl font-bold text-blue-600">Loctelli</div>
+            <Link href="/" className="text-xl font-bold text-blue-600" onClick={() => router.push("/")}>Loctelli</Link>
           </div>
 
           {/* Desktop Navigation */}

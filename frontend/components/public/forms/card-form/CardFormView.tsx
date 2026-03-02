@@ -361,7 +361,15 @@ export function CardFormView({
             </span>
           </div>
         </CardHeader>
-        <CardContent className="h-[500px] md:h-[700px] lg:h-[800px] flex flex-col relative overflow-hidden">
+        <CardContent 
+          className={`flex flex-col relative overflow-hidden ${
+            template.styling?.card?.height?.mobile ? `h-[${template.styling.card.height.mobile}]` : 'h-[400px]'
+          } ${
+            template.styling?.card?.height?.tablet ? `md:h-[${template.styling.card.height.tablet}]` : 'md:h-[600px]'
+          } ${
+            template.styling?.card?.height?.desktop ? `lg:h-[${template.styling.card.height.desktop}]` : 'lg:h-[700px]'
+          }`}
+        >
           {formError && (
             <Alert variant="destructive" className="mb-4 flex-shrink-0">
               <AlertCircle className="h-4 w-4" />

@@ -229,6 +229,12 @@ export interface FormStyling {
     padding?: number | string;
     /** Max width of the card container (e.g. 480, "28rem", "36rem", "100%"). */
     maxWidth?: number | string;
+    /** Height configuration for card forms */
+    height?: {
+      mobile?: string | number; // e.g. "400px", "24rem", 400
+      tablet?: string | number; // e.g. "600px", "36rem", 600  
+      desktop?: string | number; // e.g. "800px", "48rem", 800
+    };
   };
   buttons?: {
     borderRadius?: number | string;
